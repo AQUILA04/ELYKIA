@@ -1,0 +1,15 @@
+package com.optimize.elykia.sale.web.dto;
+
+import lombok.Data;
+
+@Data
+public class DashboardKpiDto {
+    private long pendingOrders;
+    private double potentialValue;
+    private double acceptanceRate;
+    private double denialRate;
+    private double acceptedPipelineValue;
+    private double averageOrderValue;
+    private double soldValueLast30Days;
+    private double potentialProfit;
+}

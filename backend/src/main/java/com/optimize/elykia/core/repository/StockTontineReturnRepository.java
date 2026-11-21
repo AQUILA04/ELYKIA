@@ -2,7 +2,7 @@ package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.entity.stock.StockTontineReturn;
-import com.optimize.elykia.core.enumaration.StockReturnStatus;
+import com.optimize.elykia.sale.domain.StockReturnStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -81,7 +81,7 @@ public interface StockTontineReturnRepository extends GenericRepository<StockTon
             @Param("endDate") LocalDate endDate,
             @Param("statuses") List<StockReturnStatus> statuses);
 
-    @Query("SELECT new com.optimize.elykia.core.dto.StockRequestExportDTO(" +
+    @Query("SELECT new com.optimize.elykia.sale.web.dto.StockRequestExportDTO(" +
             "CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name), " +
             "SUM(i.quantity), COALESCE(a.sellingPrice, 0.0), SUM(i.quantity * COALESCE(a.sellingPrice, 0.0)), " +
             "a.type, a.marque, a.model, a.name) " +
@@ -93,7 +93,7 @@ public interface StockTontineReturnRepository extends GenericRepository<StockTon
             "AND (:#{#requestIds == null || #requestIds.isEmpty()} = true OR s.id IN :requestIds) " +
             "GROUP BY a.type, a.marque, a.model, a.name, a.sellingPrice " +
             "ORDER BY a.type, a.marque, a.model, a.name")
-    List<com.optimize.elykia.core.dto.StockRequestExportDTO> findAggregatedStockReturns(
+    List<com.optimize.elykia.sale.web.dto.StockRequestExportDTO> findAggregatedStockReturns(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
             @Param("collector") String collector,

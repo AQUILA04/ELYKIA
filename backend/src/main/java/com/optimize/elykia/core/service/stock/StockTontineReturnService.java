@@ -13,7 +13,7 @@ import com.optimize.elykia.core.entity.stock.StockTontineReturnItem;
 import com.optimize.elykia.inventory.domain.ArticleStockLotSourceType;
 import com.optimize.elykia.inventory.domain.MovementType;
 import com.optimize.elykia.inventory.domain.StockHistoryReferenceType;
-import com.optimize.elykia.core.enumaration.StockReturnStatus;
+import com.optimize.elykia.sale.domain.StockReturnStatus;
 import com.optimize.elykia.core.repository.StockTontineReturnRepository;
 import com.optimize.elykia.inventory.application.ArticlesService;
 import com.optimize.elykia.inventory.application.InventoryWarehouseGuard;
@@ -277,7 +277,7 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
         return repo.findFilteredList(effectiveCollector, startDate, endDate, resolveVisibleStatuses(), pageable);
     }
 
-    public com.optimize.elykia.core.dto.stock.StockReturnKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {
+    public com.optimize.elykia.sale.web.dto.StockReturnKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {
         StockTontineReturnRepository repo = (StockTontineReturnRepository) getRepository();
         String effectiveCollector = resolveCollector(collector);
         List<Object[]> counts = repo.countByStatusFiltered(effectiveCollector, startDate, endDate, resolveVisibleStatuses());
@@ -297,7 +297,7 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
             }
         }
 
-        return com.optimize.elykia.core.dto.stock.StockReturnKpiDto.builder()
+        return com.optimize.elykia.sale.web.dto.StockReturnKpiDto.builder()
                 .total(pending + received + cancelledRefused)
                 .pending(pending)
                 .received(received)

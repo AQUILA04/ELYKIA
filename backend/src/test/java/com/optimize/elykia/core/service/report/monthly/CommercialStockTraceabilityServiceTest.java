@@ -1,9 +1,9 @@
 package com.optimize.elykia.core.service.report.monthly;
 
 import com.optimize.elykia.inventory.domain.Articles;
-import com.optimize.elykia.core.entity.stock.CommercialStockMovement;
-import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
-import com.optimize.elykia.core.repository.CommercialStockMovementRepository;
+import com.optimize.elykia.sale.domain.CommercialStockMovement;
+import com.optimize.elykia.sale.domain.CommercialStockMovementType;
+import com.optimize.elykia.sale.infrastructure.persistence.CommercialStockMovementRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

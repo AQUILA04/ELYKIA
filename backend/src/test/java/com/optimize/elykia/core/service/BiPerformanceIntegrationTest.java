@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.service;
 
 import com.optimize.elykia.core.dto.bi.*;
-import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.core.service.bi.BiCollectionAnalyticsService;
 import com.optimize.elykia.core.service.bi.BiDashboardService;
 import com.optimize.elykia.core.service.bi.BiSalesAnalyticsService;

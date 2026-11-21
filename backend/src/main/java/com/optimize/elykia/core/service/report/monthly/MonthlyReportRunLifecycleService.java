@@ -2,7 +2,7 @@ package com.optimize.elykia.core.service.report.monthly;
 
 import com.optimize.elykia.core.entity.report.MonthlyReportRun;
 import com.optimize.elykia.core.entity.report.MonthlyReportSnapshot;
-import com.optimize.elykia.core.enumaration.MonthlyReportOutboxStatus;
+import com.optimize.elykia.shared.domain.MonthlyReportOutboxStatus;
 import com.optimize.elykia.core.enumaration.MonthlyReportRunStatus;
 import com.optimize.elykia.core.repository.MonthlyReportOutboxEntryRepository;
 import com.optimize.elykia.core.repository.MonthlyReportRunRepository;

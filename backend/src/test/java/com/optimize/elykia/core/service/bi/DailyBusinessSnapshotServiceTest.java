@@ -4,8 +4,9 @@ import com.optimize.elykia.core.dto.bi.PortfolioMetricsProjection;
 import com.optimize.elykia.core.dto.bi.SalesMetricsProjection;
 import com.optimize.elykia.core.entity.bi.DailyBusinessSnapshot;
 import com.optimize.elykia.inventory.infrastructure.persistence.ArticlesRepository;
-import com.optimize.elykia.core.repository.CreditRepository;
-import com.optimize.elykia.core.repository.CreditTimelineRepository;
+import com.optimize.elykia.core.repository.BiCreditQueryRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.DailyBusinessSnapshotRepository;
 import com.optimize.elykia.inventory.application.ArticlesService;
 import org.junit.jupiter.api.Test;
@@ -27,6 +28,7 @@ class DailyBusinessSnapshotServiceTest {
 
     @Mock private DailyBusinessSnapshotRepository snapshotRepository;
     @Mock private CreditRepository creditRepository;
+    @Mock private BiCreditQueryRepository biCreditQueryRepository;
     @Mock private CreditTimelineRepository timelineRepository;
     @Mock private ArticlesService articlesService;
     @Mock private ArticlesRepository articlesRepository;
@@ -40,7 +42,7 @@ class DailyBusinessSnapshotServiceTest {
         LocalDate date = LocalDate.of(2026, 8, 19);
         DailyBusinessSnapshot snapshot = new DailyBusinessSnapshot();
         when(snapshotRepository.findBySnapshotDate(date)).thenReturn(Optional.of(snapshot));
-        when(creditRepository.getDailySalesMetricsForAccountingDate(date)).thenReturn(salesMetrics);
+        when(biCreditQueryRepository.getDailySalesMetricsForAccountingDate(date)).thenReturn(salesMetrics);
         when(salesMetrics.getSalesCount()).thenReturn(3);
         when(salesMetrics.getTotalAmount()).thenReturn(32_000.0);
         when(salesMetrics.getTotalProfit()).thenReturn(9_500.0);
@@ -49,7 +51,7 @@ class DailyBusinessSnapshotServiceTest {
         when(articlesService.getRepository()).thenReturn(articlesRepository);
         when(articlesRepository.countByStockQuantityEquals(0)).thenReturn(4L);
         when(articlesService.countLowStockItems()).thenReturn(7L);
-        when(creditRepository.getPortfolioMetricsAsOf(date)).thenReturn(portfolioMetrics);
+        when(biCreditQueryRepository.getPortfolioMetricsAsOf(date)).thenReturn(portfolioMetrics);
         when(portfolioMetrics.getActiveCount()).thenReturn(12);
         when(portfolioMetrics.getTotalOutstanding()).thenReturn(58_000.0);
         when(portfolioMetrics.getTotalOverdue()).thenReturn(6_000.0);
@@ -81,13 +83,13 @@ class DailyBusinessSnapshotServiceTest {
         DailyBusinessSnapshotService service = service();
         LocalDate date = LocalDate.of(2026, 8, 19);
         when(snapshotRepository.findBySnapshotDate(date)).thenReturn(Optional.empty());
-        when(creditRepository.getDailySalesMetricsForAccountingDate(date)).thenReturn(null);
+        when(biCreditQueryRepository.getDailySalesMetricsForAccountingDate(date)).thenReturn(null);
         when(timelineRepository.sumAmountByDate(date.atStartOfDay(), date.atTime(23, 59, 59))).thenReturn(null);
         when(articlesService.getDetailedStockValues()).thenReturn(Map.of());
         when(articlesService.getRepository()).thenReturn(articlesRepository);
         when(articlesRepository.countByStockQuantityEquals(0)).thenReturn(0L);
         when(articlesService.countLowStockItems()).thenReturn(0L);
-        when(creditRepository.getPortfolioMetricsAsOf(date)).thenReturn(null);
+        when(biCreditQueryRepository.getPortfolioMetricsAsOf(date)).thenReturn(null);
         when(creditRepository.sumExpectedDailyCollection()).thenReturn(null);
         when(snapshotRepository.save(any(DailyBusinessSnapshot.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -109,6 +111,6 @@ class DailyBusinessSnapshotServiceTest {
 
     private DailyBusinessSnapshotService service() {
         return new DailyBusinessSnapshotService(snapshotRepository, snapshotRepository,
-                creditRepository, timelineRepository, articlesService);
+                creditRepository, biCreditQueryRepository, timelineRepository, articlesService);
     }
 }

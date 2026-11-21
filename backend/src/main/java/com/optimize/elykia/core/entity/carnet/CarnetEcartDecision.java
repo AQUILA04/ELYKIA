@@ -1,9 +1,9 @@
 package com.optimize.elykia.core.entity.carnet;
 
 import com.optimize.common.entities.entity.BaseEntity;
-import com.optimize.elykia.core.enumaration.CarnetEcartDirection;
-import com.optimize.elykia.core.enumaration.CarnetEcartDomain;
-import com.optimize.elykia.core.enumaration.CarnetEcartStatus;
+import com.optimize.elykia.shared.carnet.CarnetEcartDirection;
+import com.optimize.elykia.shared.carnet.CarnetEcartDomain;
+import com.optimize.elykia.shared.carnet.CarnetEcartStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

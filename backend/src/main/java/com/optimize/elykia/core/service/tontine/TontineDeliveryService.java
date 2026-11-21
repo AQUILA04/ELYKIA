@@ -29,7 +29,7 @@ import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.service.util.ClientAccountService;
 import com.optimize.elykia.core.service.sale.CashSalePricingService;
-import com.optimize.elykia.core.service.sale.CreditService;
+import com.optimize.elykia.sale.application.CreditService;
 import com.optimize.elykia.core.service.tontine.allocation.TontineProjectedBalanceCalculator;
 import com.optimize.elykia.core.service.tontine.conflict.TontineDeliveryConflictService;
 import com.optimize.elykia.core.service.tontine.conflict.TontineDeliveryDuplicateException;
@@ -61,7 +61,7 @@ public class TontineDeliveryService {
     private final TontineSessionRepository sessionRepository;
     private final ArticlesRepository articlesRepository;
     private final UserService userService;
-    private final CreditService creditService;
+    private final TontineCreditCreationService tontineCreditCreationService;
     private final ClientAccountService clientAccountService;
     private final AccountService accountService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
@@ -441,7 +441,7 @@ public class TontineDeliveryService {
         }
         delivery.setRemainingBalance(available - total);
 
-        creditService.createTontineCredit(delivery);
+        tontineCreditCreationService.createTontineCredit(delivery);
         delivery.setDeliveryDate(LocalDateTime.now());
         deliveryRepository.save(delivery);
         member.setDeliveryStatus(TontineMemberDeliveryStatus.DELIVERED);
@@ -548,7 +548,12 @@ public class TontineDeliveryService {
                         itemDto.getPackCount(),
                         itemDto.getUnitsPerPack(),
                         itemDto.getQuantity());
-                quote.apply(item);
+                item.setQuantity(quote.getUnitQuantity());
+                item.setUnitPrice(quote.getPackPrice());
+                item.setTotalPrice(quote.getLineAmount());
+                var pricing = item.getSaleLine() != null ? item.getSaleLine() : new com.optimize.elykia.sale.domain.SaleLinePricing();
+                quote.fill(pricing);
+                item.setSaleLine(pricing);
                 itemTotal = quote.getLineAmount();
             } else {
                 item.setQuantity(itemDto.getQuantity());

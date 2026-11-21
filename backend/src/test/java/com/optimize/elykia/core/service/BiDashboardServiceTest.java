@@ -7,8 +7,9 @@ import com.optimize.elykia.core.dto.bi.PortfolioMetricsProjection;
 import com.optimize.elykia.core.dto.bi.SalesMetricsDto;
 import com.optimize.elykia.core.dto.bi.SalesMetricsProjection;
 import com.optimize.elykia.inventory.web.dto.StockMetricsDto;
-import com.optimize.elykia.core.repository.CreditRepository;
-import com.optimize.elykia.core.repository.CreditTimelineRepository;
+import com.optimize.elykia.core.repository.BiCreditQueryRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
 import com.optimize.elykia.core.service.bi.BiDashboardService;
 import com.optimize.elykia.inventory.application.StockMovementService;
 import com.optimize.elykia.inventory.application.ArticlesService;
@@ -35,6 +36,8 @@ class BiDashboardServiceTest {
     @Mock
     private CreditRepository creditRepository;
     @Mock
+    private BiCreditQueryRepository biCreditQueryRepository;
+    @Mock
     private CreditTimelineRepository creditTimelineRepository;
     @Mock
     private ArticlesService articlesService;
@@ -55,9 +58,9 @@ class BiDashboardServiceTest {
     @Test
     void getSalesMetrics_returnsCurrentAggregatesWhenPreviousPeriodHasNoSale() {
         // Given
-        when(creditRepository.getSalesMetrics(startDate, endDate))
+        when(biCreditQueryRepository.getSalesMetrics(startDate, endDate))
                 .thenReturn(salesProjection(2, 250_000.0, 50_000.0, 125_000.0));
-        when(creditRepository.getSalesMetrics(previousStart(), previousEnd()))
+        when(biCreditQueryRepository.getSalesMetrics(previousStart(), previousEnd()))
                 .thenReturn(salesProjection(0, 0.0, 0.0, 0.0));
 
         // When
@@ -75,9 +78,9 @@ class BiDashboardServiceTest {
     @Test
     void getSalesMetrics_calculatesEvolutionAgainstPreviousPeriod() {
         // Given
-        when(creditRepository.getSalesMetrics(startDate, endDate))
+        when(biCreditQueryRepository.getSalesMetrics(startDate, endDate))
                 .thenReturn(salesProjection(1, 250_000.0, 50_000.0, 250_000.0));
-        when(creditRepository.getSalesMetrics(previousStart(), previousEnd()))
+        when(biCreditQueryRepository.getSalesMetrics(previousStart(), previousEnd()))
                 .thenReturn(salesProjection(1, 200_000.0, 40_000.0, 200_000.0));
 
         // When
@@ -127,7 +130,7 @@ class BiDashboardServiceTest {
     @Test
     void getPortfolioMetrics_mapsRepositoryAggregate() {
         // Given
-        when(creditRepository.getPortfolioMetrics())
+        when(biCreditQueryRepository.getPortfolioMetrics())
                 .thenReturn(portfolioProjection(2, 125_000.0, 50_000.0, 50_000.0, 0.0, 0.0));
 
         // When
@@ -142,7 +145,7 @@ class BiDashboardServiceTest {
     @Test
     void getPortfolioMetrics_mapsParBucketsFromAggregate() {
         // Given
-        when(creditRepository.getPortfolioMetrics())
+        when(biCreditQueryRepository.getPortfolioMetrics())
                 .thenReturn(portfolioProjection(3, 225_000.0, 225_000.0, 225_000.0, 175_000.0, 100_000.0));
 
         // When
@@ -157,13 +160,13 @@ class BiDashboardServiceTest {
     @Test
     void getOverview_combinesAllDashboardMetricFamilies() {
         // Given
-        when(creditRepository.getSalesMetrics(any(LocalDate.class), any(LocalDate.class)))
+        when(biCreditQueryRepository.getSalesMetrics(any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(salesProjection(1, 100_000.0, 20_000.0, 100_000.0));
         when(creditTimelineRepository.sumAmountByDateAndCreditType(
                 any(LocalDateTime.class), any(LocalDateTime.class), eq("CREDIT")))
                 .thenReturn(50_000.0);
         when(creditRepository.getTotalExpectedAmountForActiveCredits()).thenReturn(100_000.0);
-        when(creditRepository.getPortfolioMetrics())
+        when(biCreditQueryRepository.getPortfolioMetrics())
                 .thenReturn(portfolioProjection(1, 50_000.0, 0.0, 0.0, 0.0, 0.0));
         when(articlesService.getStockMetrics()).thenReturn(mock(StockMetricsDto.class));
 

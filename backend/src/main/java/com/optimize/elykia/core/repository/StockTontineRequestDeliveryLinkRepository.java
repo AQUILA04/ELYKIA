@@ -2,7 +2,7 @@ package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.entity.stock.StockTontineRequestDeliveryLink;
-import com.optimize.elykia.core.enumaration.StockRequestStatus;
+import com.optimize.elykia.sale.domain.StockRequestStatus;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 

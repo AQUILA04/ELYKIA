@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.dto.stock;
 
-import com.optimize.elykia.core.enumaration.StockRequestStatus;
+import com.optimize.elykia.sale.domain.StockRequestStatus;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

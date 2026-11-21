@@ -13,15 +13,15 @@ import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineCollectionDto;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineMemberDetailDto;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineStakePeriodDto;
-import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.sale.domain.Credit;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistory;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
-import com.optimize.elykia.core.enumaration.CreditStatus;
+import com.optimize.elykia.sale.domain.CreditStatus;
 import com.optimize.elykia.shared.domain.OperationType;
-import com.optimize.elykia.core.repository.CreditCollectorHistoryRepository;
-import com.optimize.elykia.core.repository.CreditRepository;
-import com.optimize.elykia.core.repository.CreditTimelineRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditCollectorHistoryRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
@@ -60,6 +60,8 @@ class FormerPortfolioServiceTest {
     @Mock private ClientCollectorHistoryRepository clientCollectorHistoryRepository;
     @Mock private CreditRepository creditRepository;
     @Mock private CreditTimelineRepository creditTimelineRepository;
+    @Mock private com.optimize.elykia.core.repository.FormerPortfolioCreditQueryRepository formerCreditQueryRepository;
+    @Mock private com.optimize.elykia.core.repository.FormerPortfolioTimelineQueryRepository formerTimelineQueryRepository;
     @Mock private CreditCollectorHistoryRepository creditCollectorHistoryRepository;
 
     private FormerPortfolioService service;
@@ -74,6 +76,8 @@ class FormerPortfolioServiceTest {
                 clientCollectorHistoryRepository,
                 creditRepository,
                 creditTimelineRepository,
+                formerCreditQueryRepository,
+                formerTimelineQueryRepository,
                 creditCollectorHistoryRepository);
     }
 

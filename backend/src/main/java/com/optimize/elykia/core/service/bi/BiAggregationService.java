@@ -3,8 +3,9 @@ package com.optimize.elykia.core.service.bi;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.entity.bi.CollectionAnalyticsDaily;
 import com.optimize.elykia.core.entity.bi.SalesAnalyticsDaily;
-import com.optimize.elykia.core.entity.sale.Credit;
-import com.optimize.elykia.core.entity.sale.CreditTimeline;
+import com.optimize.elykia.sale.domain.Credit;
+import com.optimize.elykia.sale.domain.CreditTimeline;
+import com.optimize.elykia.sale.api.SaleBiAggregationPort;
 import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import java.time.LocalDate;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class BiAggregationService {
+public class BiAggregationService implements SaleBiAggregationPort {
     
     private final SalesAggregationRepository salesAggregationRepository;
     private final CollectionAggregationRepository collectionAggregationRepository;

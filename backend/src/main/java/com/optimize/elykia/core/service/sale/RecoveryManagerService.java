@@ -1,7 +1,10 @@
 package com.optimize.elykia.core.service.sale;
 
-import com.optimize.elykia.core.dto.CreditLateSummaryDTO;
-import com.optimize.elykia.core.dto.CreditTimelineDto;
+import com.optimize.elykia.sale.application.ClientReliquatService;
+import com.optimize.elykia.sale.application.CreditService;
+import com.optimize.elykia.sale.application.CreditTimelineService;
+import com.optimize.elykia.sale.web.dto.CreditLateSummaryDTO;
+import com.optimize.elykia.sale.web.dto.CreditTimelineDto;
 import com.optimize.elykia.core.dto.sale.CloseCreditsRequestDto;
 import com.optimize.elykia.core.dto.sale.CreditCloseItemDto;
 import com.optimize.elykia.core.dto.sale.CloseCreditsResponseDto;
@@ -9,12 +12,12 @@ import com.optimize.elykia.core.dto.sale.CreditCloseResultDto;
 import com.optimize.elykia.core.dto.sale.CommercialRemittanceDto;
 import com.optimize.elykia.core.dto.sale.MonthlyRecoveryRateDto;
 import com.optimize.elykia.core.dto.sale.RecoveryManagerReportSummaryDto;
-import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.sale.domain.Credit;
 import com.optimize.elykia.core.entity.sale.RecoveryManagerOperation;
-import com.optimize.elykia.core.enumaration.CreditStatus;
+import com.optimize.elykia.sale.domain.CreditStatus;
 import com.optimize.elykia.core.event.RecoveryManagerCollectionEvent;
 import com.optimize.elykia.core.repository.RecoveryManagerOperationRepository;
-import com.optimize.elykia.core.service.CreditLateService;
+import com.optimize.elykia.sale.application.CreditLateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

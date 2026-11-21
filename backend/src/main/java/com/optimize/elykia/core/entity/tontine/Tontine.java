@@ -2,7 +2,7 @@ package com.optimize.elykia.core.entity.tontine;
 
 import com.optimize.common.entities.entity.Auditable;
 import com.optimize.elykia.client.entity.Client;
-import com.optimize.elykia.core.enumaration.CreditStatus;
+import com.optimize.elykia.sale.domain.CreditStatus;
 import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

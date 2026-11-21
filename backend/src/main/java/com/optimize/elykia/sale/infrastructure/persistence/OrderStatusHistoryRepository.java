@@ -1,0 +1,44 @@
+package com.optimize.elykia.sale.infrastructure.persistence;
+
+import com.optimize.common.entities.repository.GenericRepository;
+import com.optimize.elykia.sale.domain.OrderStatusHistory;
+
+import com.optimize.elykia.sale.domain.OrderSource;
+import com.optimize.elykia.sale.domain.OrderStatus;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDateTime;
+
+public interface OrderStatusHistoryRepository extends GenericRepository<OrderStatusHistory, Long> {
+
+    long countByNewStatusAndChangeTimestampBetween(OrderStatus newStatus, LocalDateTime start, LocalDateTime end);
+
+    @Query("""
+            SELECT COUNT(h) FROM OrderStatusHistory h
+            WHERE h.newStatus = :status
+              AND h.changeTimestamp BETWEEN :start AND :end
+              AND h.order.source = :source
+            """)
+    long countByNewStatusAndSourceAndChangeTimestampBetween(
+            @Param("status") OrderStatus status,
+            @Param("source") OrderSource source,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+
+    @Query("SELECT COALESCE(SUM(h.order.totalAmount), 0) FROM OrderStatusHistory h WHERE h.newStatus = :status AND h.changeTimestamp BETWEEN :start AND :end")
+    double sumTotalAmountForNewStatusBetween(@Param("status") OrderStatus status, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query("""
+            SELECT COALESCE(SUM(h.order.totalAmount), 0) FROM OrderStatusHistory h
+            WHERE h.newStatus = :status
+              AND h.changeTimestamp BETWEEN :start AND :end
+              AND h.order.source = :source
+            """)
+    double sumTotalAmountForNewStatusAndSourceBetween(
+            @Param("status") OrderStatus status,
+            @Param("source") OrderSource source,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
+
+}

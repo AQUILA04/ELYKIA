@@ -1,9 +1,9 @@
 package com.optimize.elykia.core.util;
 
-import com.optimize.elykia.core.dto.StockRequestExportDTO;
+import com.optimize.elykia.sale.web.dto.StockRequestExportDTO;
 import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.inventory.domain.StockReceptionItem;
-import com.optimize.elykia.core.entity.stock.StockRequestItem;
+import com.optimize.elykia.sale.domain.StockRequestItem;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

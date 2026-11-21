@@ -7,10 +7,11 @@ import com.optimize.elykia.core.dto.customer.CustomerNotificationDto;
 import com.optimize.elykia.core.entity.customer.CustomerMobileMoneySubmission;
 import com.optimize.elykia.core.entity.customer.CustomerTontineMmSubmission;
 import com.optimize.elykia.core.entity.notification.CustomerNotification;
-import com.optimize.elykia.core.entity.sale.Order;
+import com.optimize.elykia.sale.domain.Order;
 import com.optimize.elykia.core.enumaration.CustomerNotificationType;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
-import com.optimize.elykia.core.enumaration.OrderStatus;
+import com.optimize.elykia.sale.api.OrderCustomerNotificationPort;
+import com.optimize.elykia.sale.domain.OrderStatus;
 import com.optimize.elykia.core.repository.notification.CustomerNotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +30,7 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CustomerNotificationService {
+public class CustomerNotificationService implements OrderCustomerNotificationPort {
 
     private static final int DEFAULT_LIMIT = 50;
     private static final NumberFormat AMOUNT_FORMAT = NumberFormat.getIntegerInstance(Locale.FRANCE);

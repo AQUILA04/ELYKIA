@@ -1,8 +1,8 @@
 package com.optimize.elykia.core.service.report.monthly;
 
-import com.optimize.elykia.core.entity.stock.CommercialStockMovement;
-import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
-import com.optimize.elykia.core.repository.CommercialStockMovementRepository;
+import com.optimize.elykia.sale.domain.CommercialStockMovement;
+import com.optimize.elykia.sale.domain.CommercialStockMovementType;
+import com.optimize.elykia.sale.infrastructure.persistence.CommercialStockMovementRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

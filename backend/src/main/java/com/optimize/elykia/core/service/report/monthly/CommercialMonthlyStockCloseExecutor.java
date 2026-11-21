@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.report.monthly;
 
-import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
+import com.optimize.elykia.sale.application.CommercialMonthlyStockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

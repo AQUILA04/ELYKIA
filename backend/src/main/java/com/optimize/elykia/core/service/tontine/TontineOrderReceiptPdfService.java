@@ -9,7 +9,7 @@ import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.dto.TontineOrderReceiptPdfDto;
 import com.optimize.elykia.core.dto.TontineOrderReceiptVerificationDto;
 import com.optimize.elykia.inventory.domain.Articles;
-import com.optimize.elykia.core.entity.sale.SaleLinePricing;
+import com.optimize.elykia.sale.domain.SaleLinePricing;
 import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.entity.tontine.TontineDeliveryItem;
 import com.optimize.elykia.core.entity.tontine.TontineMember;

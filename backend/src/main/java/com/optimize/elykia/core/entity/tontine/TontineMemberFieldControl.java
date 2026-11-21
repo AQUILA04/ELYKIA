@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.entity.tontine;
 
 import com.optimize.common.entities.entity.BaseEntity;
-import com.optimize.elykia.core.enumaration.FieldControlStatus;
+import com.optimize.elykia.sale.domain.FieldControlStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

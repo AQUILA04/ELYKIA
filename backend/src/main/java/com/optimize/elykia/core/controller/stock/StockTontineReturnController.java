@@ -67,7 +67,7 @@ public class StockTontineReturnController {
     }
 
     @GetMapping("/kpis")
-    public ResponseEntity<com.optimize.elykia.core.dto.stock.StockReturnKpiDto> getKpis(
+    public ResponseEntity<com.optimize.elykia.sale.web.dto.StockReturnKpiDto> getKpis(
             @RequestParam(required = false) String collector,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {

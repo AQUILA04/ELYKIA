@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.service.bi;
 
 import com.optimize.elykia.core.dto.bi.*;
-import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.core.repository.BiCreditQueryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BiSalesAnalyticsService {
     
-    private final CreditRepository creditRepository;
+    private final BiCreditQueryRepository creditRepository;
     
     /**
      * Tendances des ventes par jour - Optimized with native queries

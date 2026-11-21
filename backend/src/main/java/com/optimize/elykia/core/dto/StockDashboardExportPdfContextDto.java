@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.elykia.sale.web.dto.CommercialStockDashboardExportDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

@@ -20,7 +20,7 @@ import com.optimize.elykia.inventory.infrastructure.persistence.ArticlesReposito
 import com.optimize.elykia.core.repository.TontineDeliveryRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
-import com.optimize.elykia.core.service.sale.CreditService;
+import com.optimize.elykia.core.service.tontine.TontineCreditCreationService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryReferenceService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
 import com.optimize.elykia.core.service.tontine.allocation.TontineProjectedBalanceCalculator;
@@ -65,7 +65,7 @@ class TontineDeliveryServiceTest {
     @Mock
     private UserService userService;
     @Mock
-    private CreditService creditService;
+    private TontineCreditCreationService creditService;
     @Mock
     private ClientAccountService clientAccountService;
     @Mock

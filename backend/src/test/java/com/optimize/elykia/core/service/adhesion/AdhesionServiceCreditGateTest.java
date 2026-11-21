@@ -11,7 +11,7 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.repository.AccountRepository;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.enumaration.AdhesionType;
-import com.optimize.elykia.core.enumaration.CreditPurpose;
+import com.optimize.elykia.sale.domain.CreditPurpose;
 import com.optimize.elykia.core.repository.adhesion.AdhesionBalanceMovementRepository;
 import com.optimize.elykia.core.repository.adhesion.ClientAdhesionRepository;
 import org.junit.jupiter.api.BeforeEach;

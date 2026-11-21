@@ -12,7 +12,7 @@ import com.optimize.elykia.core.entity.tontine.TontineStock;
 import com.optimize.elykia.inventory.domain.MovementType;
 import com.optimize.elykia.inventory.domain.StockHistoryReferenceType;
 import com.optimize.elykia.inventory.domain.StockOperationType;
-import com.optimize.elykia.core.enumaration.StockRequestStatus;
+import com.optimize.elykia.sale.domain.StockRequestStatus;
 import com.optimize.elykia.core.enumaration.TontineStockMovementType;
 import com.optimize.elykia.inventory.infrastructure.persistence.ArticleHistoryRepository;
 import com.optimize.elykia.inventory.infrastructure.persistence.ArticlesRepository;

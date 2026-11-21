@@ -1,10 +1,12 @@
 package com.optimize.elykia.core.service.report;
 
 
+import com.optimize.elykia.sale.application.RemainingAtClientsPdfService;
+import com.optimize.elykia.sale.application.RemainingAtClientsService;
 import com.optimize.elykia.finance.application.DailyOperationService;
 import com.optimize.elykia.finance.application.DailyReportPdfServiceTest;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
-import com.optimize.elykia.core.dto.report.RemainingAtClientsCreditDto;
+import com.optimize.elykia.sale.web.dto.RemainingAtClientsCreditDto;
 import com.optimize.elykia.finance.domain.DailyOperationLog;
 import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.finance.infrastructure.persistence.DailyOperationLogRepository;

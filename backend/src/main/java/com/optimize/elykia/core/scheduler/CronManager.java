@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.scheduler;
 
-import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.finance.application.AccountingDayService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

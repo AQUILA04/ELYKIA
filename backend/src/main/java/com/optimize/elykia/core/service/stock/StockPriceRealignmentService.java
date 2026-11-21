@@ -1,10 +1,12 @@
 package com.optimize.elykia.core.service.stock;
 
+import com.optimize.elykia.sale.application.StockRequestService;
+import com.optimize.elykia.sale.application.StockReturnService;
 import com.optimize.elykia.inventory.domain.Articles;
-import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
+import com.optimize.elykia.sale.domain.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.tontine.TontineStock;
 import com.optimize.elykia.inventory.event.ArticlePriceChangedEvent;
-import com.optimize.elykia.core.repository.CommercialMonthlyStockItemRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CommercialMonthlyStockItemRepository;
 import com.optimize.elykia.core.repository.TontineStockRepository;
 import com.optimize.elykia.inventory.application.ArticlesService;
 import com.optimize.elykia.shared.security.ActingUserSecuritySupport;

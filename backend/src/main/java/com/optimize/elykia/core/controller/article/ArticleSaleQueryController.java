@@ -3,7 +3,7 @@ package com.optimize.elykia.core.controller.article;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.service.sale.CashSalePricingService;
-import com.optimize.elykia.core.service.sale.CreditArticlesService;
+import com.optimize.elykia.sale.application.CreditArticlesService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

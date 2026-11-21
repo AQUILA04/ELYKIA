@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.util;
 
 import com.optimize.elykia.inventory.domain.Articles;
-import com.optimize.elykia.core.entity.stock.StockRequestItem;
+import com.optimize.elykia.sale.domain.StockRequestItem;
 import com.optimize.elykia.core.entity.stock.StockTontineRequestItem;
 import org.junit.jupiter.api.Test;
 

@@ -1,0 +1,19 @@
+package com.optimize.elykia.sale.web.dto;
+
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+@Data
+public class CreditArticlesDto {
+    private Long id;
+    private Long creditId;
+    @NotNull(message = "L'identifiant de l'article lié au crédit est obligatoire !")
+    private Long articleId;
+    @NotNull(message = "La quantité de l'article lié au crédit est obligatoire")
+    private Integer quantity;
+    private Long stockItemId;
+    private Long tontineItemId;
+    private com.optimize.elykia.inventory.domain.SalePackMode salePackMode;
+    private Integer packCount;
+    private Integer unitsPerPack;
+}

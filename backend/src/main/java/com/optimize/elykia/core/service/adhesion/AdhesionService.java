@@ -18,11 +18,12 @@ import com.optimize.elykia.core.enumaration.AdhesionMovementType;
 import com.optimize.elykia.core.enumaration.AdhesionSource;
 import com.optimize.elykia.core.enumaration.AdhesionStatus;
 import com.optimize.elykia.core.enumaration.AdhesionType;
-import com.optimize.elykia.core.enumaration.CreditPurpose;
+import com.optimize.elykia.sale.domain.CreditPurpose;
 import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.event.AdhesionCashEvent;
 import com.optimize.elykia.core.repository.adhesion.AdhesionBalanceMovementRepository;
 import com.optimize.elykia.core.repository.adhesion.ClientAdhesionRepository;
+import com.optimize.elykia.sale.api.AdhesionCreditPort;
 import com.optimize.elykia.shared.security.UserProfilConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +41,7 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class AdhesionService {
+public class AdhesionService implements AdhesionCreditPort {
 
     /**
      * Jumeau serveur du remote config Firebase {@code dualCreditAuthorization}.

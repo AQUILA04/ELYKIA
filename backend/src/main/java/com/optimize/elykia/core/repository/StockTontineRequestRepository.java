@@ -1,8 +1,9 @@
 package com.optimize.elykia.core.repository;
 
+import com.optimize.elykia.sale.infrastructure.persistence.StockRequestRepository;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.entity.stock.StockTontineRequest;
-import com.optimize.elykia.core.enumaration.StockRequestStatus;
+import com.optimize.elykia.sale.domain.StockRequestStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -32,7 +33,7 @@ public interface StockTontineRequestRepository extends GenericRepository<StockTo
     @Query("SELECT max(s.id) FROM StockTontineRequest s")
     Long findMaxId();
 
-    @Query("SELECT new com.optimize.elykia.core.dto.StockRequestExportDTO(" +
+    @Query("SELECT new com.optimize.elykia.sale.web.dto.StockRequestExportDTO(" +
             "COALESCE(i.itemName, CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name)), " +
             "SUM(i.quantity), COALESCE(i.unitPrice, 0.0), SUM(i.quantity * COALESCE(i.unitPrice, 0.0)), " +
             "a.type, a.marque, a.model, a.name) " +
@@ -45,7 +46,7 @@ public interface StockTontineRequestRepository extends GenericRepository<StockTo
             "GROUP BY COALESCE(i.itemName, CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name)), i.unitPrice, " +
             "a.type, a.marque, a.model, a.name " +
             "ORDER BY COALESCE(i.itemName, CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name))")
-    List<com.optimize.elykia.core.dto.StockRequestExportDTO> findAggregatedStockRequests(
+    List<com.optimize.elykia.sale.web.dto.StockRequestExportDTO> findAggregatedStockRequests(
             @Param("startDate") java.time.LocalDate startDate,
             @Param("endDate") java.time.LocalDate endDate,
             @Param("collector") String collector,

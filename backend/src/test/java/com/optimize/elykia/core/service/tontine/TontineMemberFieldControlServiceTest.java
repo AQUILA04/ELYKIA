@@ -14,7 +14,7 @@ import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControl;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControlLine;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
-import com.optimize.elykia.core.enumaration.FieldControlStatus;
+import com.optimize.elykia.sale.domain.FieldControlStatus;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;

@@ -2,7 +2,7 @@ package com.optimize.elykia.core.entity.report;
 
 import com.optimize.common.entities.entity.Auditable;
 import com.optimize.elykia.core.enumaration.MonthlyReportFileType;
-import com.optimize.elykia.core.enumaration.MonthlyReportOutboxStatus;
+import com.optimize.elykia.shared.domain.MonthlyReportOutboxStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

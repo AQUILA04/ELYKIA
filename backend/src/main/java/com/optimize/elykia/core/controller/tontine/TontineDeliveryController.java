@@ -2,7 +2,7 @@ package com.optimize.elykia.core.controller.tontine;
 
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
-import com.optimize.elykia.core.dto.BulkCountResult;
+import com.optimize.elykia.shared.web.BulkCountResult;
 import com.optimize.elykia.core.dto.CreateDeliveryDto;
 import com.optimize.elykia.core.dto.ValidateTontineDeliveriesDto;
 import com.optimize.elykia.core.dto.UpdateDeliveryItemsDto;

@@ -66,7 +66,7 @@ public interface TontineMemberFieldControlRepository extends GenericRepository<T
             JOIN FETCH c.tontineMember m
             JOIN FETCH m.client
             WHERE c.state = com.optimize.common.entities.enums.State.ENABLED
-              AND c.status = com.optimize.elykia.core.enumaration.FieldControlStatus.ECART
+              AND c.status = com.optimize.elykia.sale.domain.FieldControlStatus.ECART
               AND c.observedAt = (
                 SELECT MAX(c2.observedAt) FROM TontineMemberFieldControl c2
                 WHERE c2.tontineMember.id = c.tontineMember.id

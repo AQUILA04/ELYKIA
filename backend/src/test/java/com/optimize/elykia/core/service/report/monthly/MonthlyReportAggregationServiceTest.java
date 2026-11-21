@@ -1,9 +1,9 @@
 package com.optimize.elykia.core.service.report.monthly;
 
 import com.optimize.elykia.finance.domain.DailyCommercialReport;
-import com.optimize.elykia.core.entity.stock.CommercialStockMovement;
-import com.optimize.elykia.core.repository.CommercialStockMovementRepository;
-import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.sale.domain.CommercialStockMovement;
+import com.optimize.elykia.sale.infrastructure.persistence.CommercialStockMovementRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.finance.infrastructure.persistence.DailyCommercialReportRepository;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;

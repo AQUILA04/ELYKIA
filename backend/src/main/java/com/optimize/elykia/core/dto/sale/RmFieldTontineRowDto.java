@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.dto.sale;
 
-import com.optimize.elykia.core.enumaration.CarnetEcartStatus;
+import com.optimize.elykia.shared.carnet.CarnetEcartStatus;
 import lombok.Getter;
 
 import java.time.LocalDateTime;

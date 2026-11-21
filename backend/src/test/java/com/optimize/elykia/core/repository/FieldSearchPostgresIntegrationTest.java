@@ -1,15 +1,16 @@
 package com.optimize.elykia.core.repository;
 
+import com.optimize.elykia.sale.infrastructure.persistence.OrderRepository;
 import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.core.dto.sale.RmFieldTontineRowDto;
-import com.optimize.elykia.core.entity.sale.Order;
+import com.optimize.elykia.sale.domain.Order;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
-import com.optimize.elykia.core.enumaration.OrderStatus;
-import com.optimize.elykia.core.enumaration.RmFieldListProgress;
+import com.optimize.elykia.sale.domain.OrderStatus;
+import com.optimize.elykia.shared.carnet.RmFieldListProgress;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;

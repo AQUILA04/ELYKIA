@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.dto;
 
-import com.optimize.elykia.core.enumaration.CarnetEcartStatus;
-import com.optimize.elykia.core.enumaration.FieldControlStatus;
+import com.optimize.elykia.shared.carnet.CarnetEcartStatus;
+import com.optimize.elykia.sale.domain.FieldControlStatus;
 import lombok.Builder;
 import lombok.Getter;
 

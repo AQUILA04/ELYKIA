@@ -3,7 +3,7 @@ package com.optimize.elykia.core.controller.carnet;
 import com.optimize.elykia.core.dto.carnet.CarnetEcartBulkResultDto;
 import com.optimize.elykia.core.dto.carnet.CarnetEcartItemDto;
 import com.optimize.elykia.core.dto.carnet.CarnetEcartKeysRequest;
-import com.optimize.elykia.core.enumaration.CarnetEcartDomain;
+import com.optimize.elykia.shared.carnet.CarnetEcartDomain;
 import com.optimize.elykia.core.service.carnet.CarnetEcartDecisionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

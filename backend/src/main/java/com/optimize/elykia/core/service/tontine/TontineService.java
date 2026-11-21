@@ -32,7 +32,7 @@ import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.shared.security.UserProfilConstant;
 import com.optimize.elykia.shared.monitoring.BusinessMetricsPublisher;
-import com.optimize.elykia.core.service.carnet.CarnetEcartRules;
+import com.optimize.elykia.shared.carnet.CarnetEcartRules;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicy;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicyResolver;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;

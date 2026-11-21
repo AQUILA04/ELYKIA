@@ -1,0 +1,12 @@
+package com.optimize.elykia.sale.domain;
+
+public enum CreditStatus {
+    CREATED,
+    VALIDATED,
+    INPROGRESS,
+    DELIVERED,
+    ENDED,
+    SETTLED,
+    MERGED,
+    CANCELLED
+}

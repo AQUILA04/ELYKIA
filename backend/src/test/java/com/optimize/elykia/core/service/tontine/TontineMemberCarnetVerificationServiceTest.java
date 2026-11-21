@@ -3,7 +3,7 @@ package com.optimize.elykia.core.service.tontine;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.elykia.client.entity.Client;
-import com.optimize.elykia.core.dto.BulkCarnetVerificationResultDto;
+import com.optimize.elykia.shared.carnet.BulkCarnetVerificationResultDto;
 import com.optimize.elykia.core.dto.TontineMemberRespDto;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;

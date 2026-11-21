@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.enumaration;
 
+import com.optimize.elykia.sale.domain.CreditPurpose;
 public enum AdhesionType {
     PERSONAL,
     BUSINESS,

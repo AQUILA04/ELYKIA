@@ -1,11 +1,11 @@
 package com.optimize.elykia.core.service.bi;
 
 import com.optimize.elykia.client.enumeration.ClientType;
-import com.optimize.elykia.core.entity.sale.Credit;
-import com.optimize.elykia.core.entity.sale.CreditTimeline;
+import com.optimize.elykia.sale.domain.Credit;
+import com.optimize.elykia.sale.domain.CreditTimeline;
 import com.optimize.elykia.shared.domain.OperationType;
-import com.optimize.elykia.core.repository.CreditRepository;
-import com.optimize.elykia.core.repository.CreditTimelineRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

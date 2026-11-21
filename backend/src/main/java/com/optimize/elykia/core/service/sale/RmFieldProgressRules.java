@@ -1,9 +1,10 @@
 package com.optimize.elykia.core.service.sale;
 
-import com.optimize.elykia.core.enumaration.CarnetEcartStatus;
-import com.optimize.elykia.core.enumaration.FieldControlStatus;
-import com.optimize.elykia.core.enumaration.RmFieldListProgress;
-import com.optimize.elykia.core.service.carnet.CarnetEcartRules;
+import com.optimize.elykia.shared.carnet.RmFieldListProgressSql;
+import com.optimize.elykia.shared.carnet.CarnetEcartStatus;
+import com.optimize.elykia.sale.domain.FieldControlStatus;
+import com.optimize.elykia.shared.carnet.RmFieldListProgress;
+import com.optimize.elykia.shared.carnet.CarnetEcartRules;
 
 import java.time.LocalDateTime;
 

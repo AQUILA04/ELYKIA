@@ -1,8 +1,8 @@
 package com.optimize.elykia.core.service.sale;
 
 import com.optimize.elykia.core.dto.sale.RecoveryManagerActivityDto;
-import com.optimize.elykia.core.repository.CreditFieldControlRepository;
-import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditFieldControlRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.core.repository.RecoveryManagerOperationRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;

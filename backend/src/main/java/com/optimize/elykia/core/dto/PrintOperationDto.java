@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.elykia.sale.web.dto.DailyUnrecoveredCreditDto;
 import com.optimize.common.entities.util.DateUtils;
 import lombok.Data;
 

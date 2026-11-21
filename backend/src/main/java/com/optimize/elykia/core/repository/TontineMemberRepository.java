@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.repository;
 
+import com.optimize.elykia.shared.carnet.RmFieldListProgressSql;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.dto.sale.RmFieldTontineRowDto;

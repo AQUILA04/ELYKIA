@@ -20,14 +20,14 @@ import com.optimize.elykia.core.dto.portfolio.FormerTontineCollectionDto;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineMemberDetailDto;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineMemberDto;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineStakePeriodDto;
-import com.optimize.elykia.core.entity.sale.Credit;
-import com.optimize.elykia.core.entity.sale.CreditCollectorHistory;
+import com.optimize.elykia.sale.domain.Credit;
+import com.optimize.elykia.sale.domain.CreditCollectorHistory;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
-import com.optimize.elykia.core.enumaration.CreditStatus;
+import com.optimize.elykia.sale.domain.CreditStatus;
 import com.optimize.elykia.shared.domain.OperationType;
-import com.optimize.elykia.core.repository.CreditCollectorHistoryRepository;
-import com.optimize.elykia.core.repository.CreditRepository;
-import com.optimize.elykia.core.repository.CreditTimelineRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditCollectorHistoryRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
@@ -64,6 +64,8 @@ public class FormerPortfolioService {
     private final ClientCollectorHistoryRepository clientCollectorHistoryRepository;
     private final CreditRepository creditRepository;
     private final CreditTimelineRepository creditTimelineRepository;
+    private final com.optimize.elykia.core.repository.FormerPortfolioCreditQueryRepository formerCreditQueryRepository;
+    private final com.optimize.elykia.core.repository.FormerPortfolioTimelineQueryRepository formerTimelineQueryRepository;
     private final CreditCollectorHistoryRepository creditCollectorHistoryRepository;
 
     public Page<FormerTontineMemberDto> listFormerTontineMembers(Pageable pageable) {
@@ -99,7 +101,7 @@ public class FormerPortfolioService {
 
     public Page<FormerCreditListItemDto> listFormerCredits(Pageable pageable) {
         User user = requirePromoter();
-        Page<FormerCreditSeedDto> seeds = creditRepository.findFormerCredits(user.getUsername(), pageable);
+        Page<FormerCreditSeedDto> seeds = formerCreditQueryRepository.findFormerCredits(user.getUsername(), pageable);
         List<FormerCreditListItemDto> items = enrichCredits(seeds.getContent(), user.getUsername());
         return new PageImpl<>(items, pageable, seeds.getTotalElements());
     }
@@ -115,13 +117,13 @@ public class FormerPortfolioService {
         }
         FormerCreditSeedDto seed = seedOf(credit);
         FormerCreditListItemDto item = enrichCredits(List.of(seed), user.getUsername()).get(0);
-        List<FormerCreditTimelineDto> timelines = creditTimelineRepository.findOwnByCredit(creditId, user.getUsername());
+        List<FormerCreditTimelineDto> timelines = formerTimelineQueryRepository.findOwnByCredit(creditId, user.getUsername());
         return toCreditDetail(item, timelines);
     }
 
     public List<FormerCreditTimelineDto> ownCreditTimelines(Long creditId) {
         User user = requirePromoter();
-        return creditTimelineRepository.findOwnByCredit(creditId, user.getUsername());
+        return formerTimelineQueryRepository.findOwnByCredit(creditId, user.getUsername());
     }
 
     public Page<FormerAgencyClientDto> listFormerAgencyClients(Pageable pageable) {
@@ -152,15 +154,15 @@ public class FormerPortfolioService {
         List<FormerTontineCollectionDto> collections =
                 tontineCollectionRepository.findFormerOwnCollections(commercial, cap);
         List<FormerCreditListItemDto> credits = enrichCredits(
-                creditRepository.findFormerCredits(commercial, cap).getContent(), commercial);
+                formerCreditQueryRepository.findFormerCredits(commercial, cap).getContent(), commercial);
         List<Long> creditIds = credits.stream().map(FormerCreditListItemDto::creditId).toList();
         List<FormerCreditTimelineDto> timelines = creditIds.isEmpty()
                 ? List.of()
-                : creditTimelineRepository.findOwnByCreditIds(creditIds, commercial);
+                : formerTimelineQueryRepository.findOwnByCreditIds(creditIds, commercial);
         List<Long> agencyIds = creditRepository.findFormerAgencyClientIds(commercial, cap).getContent();
         List<FormerAgencySaleDto> agencySales = agencyIds.isEmpty()
                 ? List.of()
-                : creditRepository.findFormerAgencySales(agencyIds, commercial);
+                : formerCreditQueryRepository.findFormerAgencySales(agencyIds, commercial);
         return new FormerPortfolioSyncDto(members, collections, credits, timelines, agencySales);
     }
 
@@ -299,7 +301,7 @@ public class FormerPortfolioService {
 
     private FormerCreditDetailDto cashAsFormerDetail(Credit credit, String commercial) {
         Client client = credit.getClient();
-        List<FormerCreditTimelineDto> timelines = creditTimelineRepository.findOwnByCredit(credit.getId(), commercial);
+        List<FormerCreditTimelineDto> timelines = formerTimelineQueryRepository.findOwnByCredit(credit.getId(), commercial);
         double own = timelines.stream().mapToDouble(line -> line.amount() == null ? 0.0 : line.amount()).sum();
         return new FormerCreditDetailDto(
                 credit.getId(),
@@ -357,7 +359,7 @@ public class FormerPortfolioService {
         if (clientIds == null || clientIds.isEmpty()) {
             return List.of();
         }
-        List<FormerAgencySaleDto> sales = creditRepository.findFormerAgencySales(clientIds, commercial);
+        List<FormerAgencySaleDto> sales = formerCreditQueryRepository.findFormerAgencySales(clientIds, commercial);
         Map<Long, List<FormerAgencySaleDto>> byClient = new LinkedHashMap<>();
         for (Long clientId : clientIds) {
             byClient.put(clientId, new ArrayList<>());

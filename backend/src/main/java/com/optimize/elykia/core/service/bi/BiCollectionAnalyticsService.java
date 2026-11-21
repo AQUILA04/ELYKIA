@@ -4,10 +4,11 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.bi.CollectionTrendDto;
 import com.optimize.elykia.core.dto.bi.OverdueAnalysisDto;
 import com.optimize.elykia.core.dto.bi.OverdueRangeProjection;
-import com.optimize.elykia.core.entity.sale.Credit;
-import com.optimize.elykia.core.enumaration.CreditStatus;
-import com.optimize.elykia.core.repository.CreditRepository;
-import com.optimize.elykia.core.repository.CreditTimelineRepository;
+import com.optimize.elykia.sale.domain.Credit;
+import com.optimize.elykia.sale.domain.CreditStatus;
+import com.optimize.elykia.core.repository.BiCreditQueryRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import java.util.List;
 public class BiCollectionAnalyticsService {
     
     private final CreditRepository creditRepository;
+    private final BiCreditQueryRepository biCreditQueryRepository;
     private final CreditTimelineRepository timelineRepository;
     
     /**
@@ -74,7 +76,7 @@ public class BiCollectionAnalyticsService {
         long startTime = System.currentTimeMillis();
         
         // Use optimized native query instead of multiple Stream filter operations
-        List<OverdueRangeProjection> projections = creditRepository.getOverdueAnalysis();
+        List<OverdueRangeProjection> projections = biCreditQueryRepository.getOverdueAnalysis();
         
         // Calculate total overdue amount for percentage calculation
         Double totalOverdue = projections.stream()

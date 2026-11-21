@@ -2,8 +2,9 @@ package com.optimize.elykia.core.service.bi;
 
 import com.optimize.elykia.core.dto.bi.*;
 import com.optimize.elykia.inventory.web.dto.StockMetricsDto;
-import com.optimize.elykia.core.repository.CreditRepository;
-import com.optimize.elykia.core.repository.CreditTimelineRepository;
+import com.optimize.elykia.core.repository.BiCreditQueryRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
 import com.optimize.elykia.inventory.application.ArticlesService;
 import com.optimize.elykia.inventory.application.StockMovementService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 public class BiDashboardService {
     
     private final CreditRepository creditRepository;
+    private final BiCreditQueryRepository biCreditQueryRepository;
     private final CreditTimelineRepository creditTimelineRepository;
     private final ArticlesService articlesService;
     private final StockMovementService stockMovementService;
@@ -38,7 +40,7 @@ public class BiDashboardService {
         long startTime = System.currentTimeMillis();
         
         // Use optimized native query instead of loading all credits into memory
-        var projection = creditRepository.getSalesMetrics(startDate, endDate);
+        var projection = biCreditQueryRepository.getSalesMetrics(startDate, endDate);
         
         Double totalAmount = projection.getTotalAmount();
         Double totalProfit = projection.getTotalProfit();
@@ -52,7 +54,7 @@ public class BiDashboardService {
         LocalDate previousStart = startDate.minusDays(daysDiff);
         LocalDate previousEnd = startDate.minusDays(1);
         
-        var previousProjection = creditRepository.getSalesMetrics(previousStart, previousEnd);
+        var previousProjection = biCreditQueryRepository.getSalesMetrics(previousStart, previousEnd);
         Double previousTotal = previousProjection.getTotalAmount();
         
         Double evolution = previousTotal > 0 ? ((totalAmount - previousTotal) / previousTotal) * 100 : 0.0;
@@ -102,7 +104,7 @@ public class BiDashboardService {
         long startTime = System.currentTimeMillis();
         
         // Use optimized native query instead of loading all active credits into memory
-        var projection = creditRepository.getPortfolioMetrics();
+        var projection = biCreditQueryRepository.getPortfolioMetrics();
         
         Integer activeCount = projection.getActiveCount();
         Double totalOutstanding = projection.getTotalOutstanding();

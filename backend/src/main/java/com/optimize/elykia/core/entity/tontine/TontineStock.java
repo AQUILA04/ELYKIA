@@ -2,8 +2,8 @@ package com.optimize.elykia.core.entity.tontine;
 
 import com.optimize.common.entities.entity.BaseEntity;
 import com.optimize.common.entities.exception.CustomValidationException;
-import com.optimize.elykia.core.entity.sale.Credit;
-import com.optimize.elykia.core.entity.sale.CreditArticles;
+import com.optimize.elykia.sale.domain.Credit;
+import com.optimize.elykia.sale.domain.CreditArticles;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

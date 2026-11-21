@@ -2,8 +2,8 @@ package com.optimize.elykia.core.service.sale;
 
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.service.ParameterService;
-import com.optimize.elykia.core.dto.sale.SaleLineQuote;
-import com.optimize.elykia.core.dto.sale.SaleOfferDto;
+import com.optimize.elykia.sale.web.dto.SaleLineQuote;
+import com.optimize.elykia.sale.web.dto.SaleOfferDto;
 import com.optimize.elykia.inventory.web.dto.FifoLotSlice;
 import com.optimize.elykia.inventory.domain.ArticleSalePack;
 import com.optimize.elykia.inventory.domain.Articles;
@@ -19,6 +19,7 @@ import com.optimize.elykia.inventory.infrastructure.persistence.ArticlesReposito
 import com.optimize.elykia.core.repository.TontineStockLayerRepository;
 import com.optimize.elykia.core.repository.TontineStockRepository;
 import com.optimize.elykia.inventory.application.StockValuationFacade;
+import com.optimize.elykia.sale.api.WarehouseCashSalePricingPort;
 import com.optimize.elykia.inventory.domain.ArticlePackagingRules;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class CashSalePricingService {
+public class CashSalePricingService implements WarehouseCashSalePricingPort {
 
     public static final String PRICE_SOURCE_KEY = "CASH_SALE_PRICE_SOURCE";
     public static final String SOURCE_CATALOG = "CATALOG";

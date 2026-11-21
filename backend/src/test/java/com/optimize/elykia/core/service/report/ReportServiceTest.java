@@ -2,11 +2,11 @@ package com.optimize.elykia.core.service.report;
 
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.AccountingReportDto;
-import com.optimize.elykia.core.dto.DownloadData;
+import com.optimize.elykia.sale.web.dto.DownloadData;
 import com.optimize.elykia.core.dto.ItemReleaseSheetDto;
 import com.optimize.elykia.finance.domain.DailyAccountancy;
 import com.optimize.elykia.finance.domain.PeriodState;
-import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.finance.infrastructure.persistence.DailyAccountingRepository;
 import com.optimize.elykia.core.repository.view.AccountancyReportRepository;
 import com.optimize.elykia.finance.application.AccountingDayService;

@@ -2,7 +2,7 @@ package com.optimize.elykia.core.service.report.monthly;
 
 import com.optimize.elykia.finance.application.MonthlyReportStorageService;
 import com.optimize.elykia.core.entity.report.MonthlyReportOutboxEntry;
-import com.optimize.elykia.core.enumaration.MonthlyReportOutboxStatus;
+import com.optimize.elykia.shared.domain.MonthlyReportOutboxStatus;
 import com.optimize.elykia.core.repository.MonthlyReportOutboxEntryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

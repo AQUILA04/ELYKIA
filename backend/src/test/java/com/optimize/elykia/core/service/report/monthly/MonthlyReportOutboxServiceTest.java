@@ -4,7 +4,7 @@ import com.optimize.elykia.core.entity.report.MonthlyReportFile;
 import com.optimize.elykia.core.entity.report.MonthlyReportOutboxEntry;
 import com.optimize.elykia.core.entity.report.MonthlyReportRun;
 import com.optimize.elykia.core.enumaration.MonthlyReportFileType;
-import com.optimize.elykia.core.enumaration.MonthlyReportOutboxStatus;
+import com.optimize.elykia.shared.domain.MonthlyReportOutboxStatus;
 import com.optimize.elykia.core.repository.MonthlyReportFileRepository;
 import com.optimize.elykia.core.repository.MonthlyReportOutboxEntryRepository;
 import org.junit.jupiter.api.Test;

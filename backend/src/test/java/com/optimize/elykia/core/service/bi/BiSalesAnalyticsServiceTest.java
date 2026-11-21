@@ -4,7 +4,7 @@ import com.optimize.elykia.core.dto.bi.ArticlePerformanceDto;
 import com.optimize.elykia.core.dto.bi.ArticlePerformanceProjection;
 import com.optimize.elykia.core.dto.bi.CommercialPerformanceDto;
 import com.optimize.elykia.core.dto.bi.CommercialSalesProjection;
-import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.core.repository.BiCreditQueryRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class BiSalesAnalyticsServiceTest {
 
-    @Mock private CreditRepository creditRepository;
+    @Mock private BiCreditQueryRepository creditRepository;
     @Mock private CommercialSalesProjection zeroSalesCommercial;
     @Mock private ArticlePerformanceProjection primaryArticle;
     @Mock private ArticlePerformanceProjection secondaryArticle;

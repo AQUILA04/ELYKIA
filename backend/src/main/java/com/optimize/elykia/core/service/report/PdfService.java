@@ -9,15 +9,15 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.InventoryControlPdfDto;
 import com.optimize.elykia.core.dto.ItemReleaseSheetDto;
 import com.optimize.elykia.core.dto.PrintOperationDto;
-import com.optimize.elykia.core.dto.DailyUnrecoveredCreditDto;
+import com.optimize.elykia.sale.web.dto.DailyUnrecoveredCreditDto;
 import com.optimize.elykia.inventory.web.dto.StockReceptionDto;
 import com.optimize.elykia.inventory.web.dto.StockReceptionsDailyPdfDto;
 import com.optimize.elykia.inventory.domain.Inventory;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.core.service.sale.CreditService;
+import com.optimize.elykia.sale.application.CreditService;
 import com.optimize.elykia.inventory.application.InventoryService;
 import com.optimize.elykia.inventory.application.StockReceptionService;
-import com.optimize.elykia.core.service.order.OrderService;
+import com.optimize.elykia.sale.application.OrderService;
 import com.optimize.elykia.finance.application.AccountingDayService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
-import com.optimize.elykia.core.dto.RestockNeededDto;
+import com.optimize.elykia.sale.web.dto.RestockNeededDto;
 
 @Service
 @RequiredArgsConstructor

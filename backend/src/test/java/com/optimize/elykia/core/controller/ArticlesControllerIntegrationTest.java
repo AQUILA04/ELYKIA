@@ -3,7 +3,7 @@ package com.optimize.elykia.core.controller;
 import tools.jackson.databind.ObjectMapper;
 import com.optimize.elykia.inventory.web.dto.ArticlesDto;
 import com.optimize.elykia.inventory.domain.Articles;
-import com.optimize.elykia.core.service.sale.CreditArticlesService;
+import com.optimize.elykia.sale.application.CreditArticlesService;
 import com.optimize.elykia.inventory.application.ArticlesService;
 import com.optimize.elykia.core.support.IntegrationTestSupport;
 import org.junit.jupiter.api.BeforeEach;

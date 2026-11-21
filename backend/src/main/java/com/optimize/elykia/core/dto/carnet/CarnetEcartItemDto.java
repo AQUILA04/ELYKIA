@@ -1,8 +1,8 @@
 package com.optimize.elykia.core.dto.carnet;
 
-import com.optimize.elykia.core.enumaration.CarnetEcartDirection;
-import com.optimize.elykia.core.enumaration.CarnetEcartDomain;
-import com.optimize.elykia.core.enumaration.CarnetEcartStatus;
+import com.optimize.elykia.shared.carnet.CarnetEcartDirection;
+import com.optimize.elykia.shared.carnet.CarnetEcartDomain;
+import com.optimize.elykia.shared.carnet.CarnetEcartStatus;
 import lombok.Builder;
 import lombok.Value;
 

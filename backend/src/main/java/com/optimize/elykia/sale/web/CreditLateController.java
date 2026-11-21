@@ -1,0 +1,58 @@
+package com.optimize.elykia.sale.web;
+
+import com.optimize.elykia.sale.application.CreditLateService;
+import com.optimize.common.entities.util.Response;
+import com.optimize.common.entities.util.ResponseUtil;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/credits/late")
+@SecurityRequirement(name = "bearerAuth")
+@Tag(name = "API de gestion des retards crédits")
+@RequiredArgsConstructor
+@CrossOrigin
+public class CreditLateController {
+
+    private final CreditLateService creditLateService;
+
+    @GetMapping
+    public ResponseEntity<Response> getLateCredits(@RequestParam(required = false) String collector,
+                                                   @RequestParam(required = false) Integer month,
+                                                   @RequestParam(required = false) String locality) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditLateService.getLateCredits(collector, month, locality)), HttpStatus.OK);
+    }
+
+    @GetMapping("/summary")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RETARD + "')")
+    public ResponseEntity<Response> getSummary(@RequestParam(required = false) String collector,
+                                               @RequestParam(required = false) Integer month,
+                                               @RequestParam(required = false) String locality) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditLateService.getSummary(collector, month, locality)), HttpStatus.OK);
+    }
+
+    @GetMapping("/collectors")
+    public ResponseEntity<Response> getLateCollectors() {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditLateService.getLateCollectors()), HttpStatus.OK);
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> exportLateCredits(@RequestParam(required = false) String collector,
+                                                    @RequestParam(required = false) Integer month,
+                                                    @RequestParam(required = false) String type,
+                                                    @RequestParam(required = false) String locality) {
+        byte[] pdfBytes = creditLateService.generatePdfExport(collector, month, type, locality);
+        
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("filename", "credits_en_retard.pdf");
+        
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+}

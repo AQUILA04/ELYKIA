@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.listener;
 
 import com.optimize.elykia.notification.api.AppNotificationFacade;
-import com.optimize.elykia.core.event.CarnetEcartDetectedEvent;
+import com.optimize.elykia.shared.carnet.CarnetEcartDetectedEvent;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

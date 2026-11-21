@@ -1,0 +1,474 @@
+package com.optimize.elykia.sale.application;
+
+import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.client.service.ClientService;
+import com.optimize.elykia.shared.security.UserProfilConstant;
+import com.optimize.elykia.sale.web.dto.CollectorDailyStakeDto;
+import com.optimize.elykia.sale.web.dto.CreditTimelineDto;
+import com.optimize.elykia.sale.web.dto.DefaultDailyStakeUnitDto;
+import com.optimize.elykia.sale.web.dto.SpecialDailyStakeResponseDto;
+import com.optimize.elykia.finance.domain.DailyAccountancy;
+import com.optimize.elykia.sale.domain.Credit;
+import com.optimize.elykia.sale.domain.CreditTimeline;
+import com.optimize.elykia.sale.domain.CreditStatus;
+import com.optimize.elykia.shared.domain.OperationType;
+import com.optimize.elykia.sale.web.mapper.CreditMapper;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
+import com.optimize.elykia.finance.application.AccountingDayService;
+import com.optimize.elykia.finance.application.DailyAccountancyService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+/**
+ * Couvre le flow recouvrement critique :
+ * ensure journée comptable HORS TX, puis mise en REQUIRES_NEW
+ * (évite Could not open JPA EntityManager / UnexpectedRollbackException).
+ */
+@ExtendWith(MockitoExtension.class)
+class CreditTimelineServiceRecoveryFlowTest {
+
+    @Mock
+    private CreditTimelineRepository repository;
+    @Mock
+    private CreditMapper creditMapper;
+    @Mock
+    private CreditService creditService;
+    @Mock
+    private ClientService clientService;
+    @Mock
+    private DailyAccountancyService dailyAccountancyService;
+    @Mock
+    private AccountingDayService accountingDayService;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private ClientReliquatService clientReliquatService;
+    @Mock
+    private UserService userService;
+    @Mock
+    private PlatformTransactionManager transactionManager;
+    @Mock
+    private TransactionStatus transactionStatus;
+    @Mock
+    private CreditRepository creditRepository;
+
+    private CreditTimelineService service;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(transactionManager.getTransaction(any(TransactionDefinition.class))).thenReturn(transactionStatus);
+        service = new CreditTimelineService(
+                repository,
+                creditMapper,
+                creditService,
+                clientService,
+                dailyAccountancyService,
+                accountingDayService,
+                eventPublisher,
+                clientReliquatService,
+                userService,
+                transactionManager
+        );
+    }
+
+    @Test
+    void makeDailyStake_ensuresAccountingBeforeOpeningTransaction() {
+        AtomicBoolean ensureCalled = new AtomicBoolean(false);
+        AtomicBoolean txOpenedAfterEnsure = new AtomicBoolean(false);
+
+        when(repository.existsByReference(anyString())).thenReturn(false);
+        when(accountingDayService.ensureAccountingReadyForOperations()).thenAnswer(inv -> {
+            ensureCalled.set(true);
+            return LocalDate.of(2026, 7, 17);
+        });
+        when(transactionManager.getTransaction(any(TransactionDefinition.class))).thenAnswer(inv -> {
+            txOpenedAfterEnsure.set(ensureCalled.get());
+            return transactionStatus;
+        });
+
+        Credit credit = inProgressCredit(1L, "collector1", 100.0, 1000.0);
+        CreditTimelineDto dto = stakeDto(1L, 100.0, "REC-WEB-1");
+        CreditTimeline mapped = new CreditTimeline();
+        mapped.setAmount(100.0);
+        mapped.setReference("REC-WEB-1");
+
+        when(creditMapper.toCreditTimeline(any())).thenReturn(mapped);
+        when(creditService.getById(1L)).thenReturn(credit);
+        when(dailyAccountancyService.getByCollectorOrCreateNew("collector1")).thenReturn(new DailyAccountancy());
+        when(creditService.update(any(Credit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(repository.save(any(CreditTimeline.class))).thenAnswer(inv -> {
+            CreditTimeline saved = inv.getArgument(0);
+            saved.setId(50L);
+            return saved;
+        });
+
+        CreditTimeline result = service.makeDailyStake(dto);
+
+        assertEquals(50L, result.getId());
+        assertTrue(txOpenedAfterEnsure.get(), "La TX métier doit s'ouvrir après ensureAccountingReadyForOperations");
+
+        InOrder order = inOrder(accountingDayService, transactionManager);
+        order.verify(accountingDayService).ensureAccountingReadyForOperations();
+        order.verify(transactionManager, atLeastOnce()).getTransaction(any(TransactionDefinition.class));
+        verify(transactionManager).commit(transactionStatus);
+        verify(accountingDayService, times(1)).ensureAccountingReadyForOperations();
+    }
+
+    @Test
+    void dailyStakeFactor_doesNotCallEnsureAccounting() {
+        Credit credit = inProgressCredit(2L, "collector2", 50.0, 500.0);
+        CreditTimeline timeline = new CreditTimeline();
+        timeline.setAmount(50.0);
+        timeline.setReference("REC-FACTOR-1");
+        timeline.setNormalStake(true);
+
+        when(dailyAccountancyService.getByCollectorOrCreateNew("collector2")).thenReturn(new DailyAccountancy());
+        when(creditService.update(any(Credit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(repository.save(any(CreditTimeline.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.dailyStakeFactor(credit, timeline);
+
+        verify(accountingDayService, never()).ensureAccountingReadyForOperations();
+        verify(dailyAccountancyService).getByCollectorOrCreateNew("collector2");
+        verify(repository).save(any(CreditTimeline.class));
+    }
+
+    @Test
+    void defaultDailyStakeByCollector_ensuresOnceThenIsolatesEachStakeInOwnTransaction() {
+        when(accountingDayService.ensureAccountingReadyForOperations()).thenReturn(LocalDate.of(2026, 7, 17));
+        when(creditService.getRepository()).thenReturn(creditRepository);
+
+        Credit okCredit = inProgressCredit(10L, "collector1", 100.0, 1000.0);
+        // mise > restant → exception métier isolée (ne doit pas casser l'autre TX)
+        Credit badCredit = inProgressCredit(99L, "collector1", 200.0, 100.0);
+        when(repository.existsByReference("REC-OK")).thenReturn(false);
+        when(repository.existsByReference("REC-FAIL")).thenReturn(false);
+        when(creditRepository.findByIdAndStatus(10L, CreditStatus.INPROGRESS)).thenReturn(Optional.of(okCredit));
+        when(creditRepository.findByIdAndStatus(99L, CreditStatus.INPROGRESS)).thenReturn(Optional.of(badCredit));
+
+        when(dailyAccountancyService.getByCollectorOrCreateNew("collector1")).thenReturn(new DailyAccountancy());
+        when(creditService.update(any(Credit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(repository.save(any(CreditTimeline.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CollectorDailyStakeDto dto = new CollectorDailyStakeDto();
+        dto.setCollector("collector1");
+        DefaultDailyStakeUnitDto ok = new DefaultDailyStakeUnitDto();
+        ok.setCreditId(10L);
+        ok.setRecoveryId("REC-OK");
+        DefaultDailyStakeUnitDto fail = new DefaultDailyStakeUnitDto();
+        fail.setCreditId(99L);
+        fail.setRecoveryId("REC-FAIL");
+        dto.setStakeUnits(List.of(ok, fail));
+
+        SpecialDailyStakeResponseDto response = service.defaultDailyStakeByCollector(dto);
+
+        assertEquals(List.of("REC-OK"), response.getSuccessRecoveryIds());
+        assertEquals(1, response.getFailedRecoveries().size());
+        assertEquals("REC-FAIL", response.getFailedRecoveries().get(0).getRecoveryId());
+
+        verify(accountingDayService, times(1)).ensureAccountingReadyForOperations();
+        // Une TX par unité (isolation REQUIRES_NEW)
+        verify(transactionManager, times(2)).getTransaction(any(TransactionDefinition.class));
+        verify(transactionManager, times(1)).commit(transactionStatus);
+        verify(transactionManager, times(1)).rollback(transactionStatus);
+
+        InOrder order = inOrder(accountingDayService, transactionManager);
+        order.verify(accountingDayService).ensureAccountingReadyForOperations();
+        order.verify(transactionManager, times(2)).getTransaction(any(TransactionDefinition.class));
+    }
+
+    @Test
+    void applyAutoReliquatForClosure_closesWhenCashPlusReliquatCoversRemaining() {
+        Credit credit = inProgressCredit(1L, "collector1", 225.0, 200.0);
+        credit.getClient().setId(42L);
+        when(clientReliquatService.getReliquatForClient(42L)).thenReturn(200.0);
+
+        CreditTimelineDto dto = stakeDto(1L, 0.0, "REC-RELIQUAT-CLOSE");
+        service.applyAutoReliquatForClosure(dto, credit);
+
+        assertEquals(200.0, dto.getAmount());
+        assertEquals(200.0, dto.getReliquatUsedAmount());
+        assertEquals(0.0, dto.getReliquatGeneratedAmount());
+    }
+
+    @Test
+    void applyAutoReliquatForClosure_extendsPartialCashToClose() {
+        Credit credit = inProgressCredit(1L, "collector1", 225.0, 400.0);
+        credit.getClient().setId(42L);
+        when(clientReliquatService.getReliquatForClient(42L)).thenReturn(200.0);
+
+        CreditTimelineDto dto = stakeDto(1L, 225.0, "REC-RELIQUAT-PARTIAL");
+        service.applyAutoReliquatForClosure(dto, credit);
+
+        assertEquals(400.0, dto.getAmount());
+        assertEquals(175.0, dto.getReliquatUsedAmount());
+    }
+
+    @Test
+    void applyAutoReliquatForClosure_skipsWhenMobileAlreadySentUsed() {
+        Credit credit = inProgressCredit(1L, "collector1", 225.0, 200.0);
+        credit.getClient().setId(42L);
+
+        CreditTimelineDto dto = stakeDto(1L, 200.0, "REC-MOBILE");
+        dto.setReliquatUsedAmount(200.0);
+        service.applyAutoReliquatForClosure(dto, credit);
+
+        assertEquals(200.0, dto.getAmount());
+        assertEquals(200.0, dto.getReliquatUsedAmount());
+        verify(clientReliquatService, never()).getReliquatForClient(any());
+    }
+
+    @Test
+    void applyAutoReliquatForClosure_noopWhenReliquatInsufficient() {
+        Credit credit = inProgressCredit(1L, "collector1", 225.0, 500.0);
+        credit.getClient().setId(42L);
+        when(clientReliquatService.getReliquatForClient(42L)).thenReturn(50.0);
+
+        CreditTimelineDto dto = stakeDto(1L, 225.0, "REC-NORMAL");
+        service.applyAutoReliquatForClosure(dto, credit);
+
+        assertEquals(225.0, dto.getAmount());
+        assertEquals(null, dto.getReliquatUsedAmount());
+    }
+
+    @Test
+    void defaultDailyStakeByCollector_promoterCannotRecoverOtherCollectorsCredit() {
+        User promoter = promoterOnly("COM015");
+        when(accountingDayService.ensureAccountingReadyForOperations()).thenReturn(LocalDate.of(2026, 7, 17));
+        when(creditService.getRepository()).thenReturn(creditRepository);
+        when(userService.getCurrentUser()).thenReturn(promoter);
+
+        Credit otherCredit = inProgressCredit(10L, "COM003", 100.0, 1000.0);
+        when(repository.existsByReference("REC-OTHER")).thenReturn(false);
+        when(creditRepository.findByIdAndStatus(10L, CreditStatus.INPROGRESS)).thenReturn(Optional.of(otherCredit));
+
+        CollectorDailyStakeDto dto = new CollectorDailyStakeDto();
+        dto.setCollector("COM015");
+        DefaultDailyStakeUnitDto unit = new DefaultDailyStakeUnitDto();
+        unit.setCreditId(10L);
+        unit.setRecoveryId("REC-OTHER");
+        dto.setStakeUnits(List.of(unit));
+
+        SpecialDailyStakeResponseDto response = service.defaultDailyStakeByCollector(dto);
+
+        assertTrue(response.getSuccessRecoveryIds().isEmpty());
+        assertEquals(1, response.getFailedRecoveries().size());
+        assertEquals("REC-OTHER", response.getFailedRecoveries().get(0).getRecoveryId());
+        assertTrue(response.getFailedRecoveries().get(0).getErrorMessage().contains("commercial crédit"));
+        verify(repository, never()).save(any(CreditTimeline.class));
+    }
+
+    @Test
+    void makeDailyStake_promoterOwnsCollector_succeeds() {
+        User promoter = promoterOnly("COM015");
+        when(repository.existsByReference(anyString())).thenReturn(false);
+        when(accountingDayService.ensureAccountingReadyForOperations()).thenReturn(LocalDate.of(2026, 7, 17));
+        when(userService.getCurrentUser()).thenReturn(promoter);
+
+        Credit credit = inProgressCredit(1L, "COM015", 100.0, 1000.0);
+        CreditTimelineDto dto = stakeDto(1L, 100.0, "REC-OWN");
+        CreditTimeline mapped = new CreditTimeline();
+        mapped.setAmount(100.0);
+        mapped.setReference("REC-OWN");
+
+        when(creditMapper.toCreditTimeline(any())).thenReturn(mapped);
+        when(creditService.getById(1L)).thenReturn(credit);
+        when(dailyAccountancyService.getByCollectorOrCreateNew("COM015")).thenReturn(new DailyAccountancy());
+        when(creditService.update(any(Credit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(repository.save(any(CreditTimeline.class))).thenAnswer(inv -> {
+            CreditTimeline saved = inv.getArgument(0);
+            saved.setId(51L);
+            return saved;
+        });
+
+        CreditTimeline result = service.makeDailyStake(dto);
+        assertEquals(51L, result.getId());
+    }
+
+    @Test
+    void makeDailyStake_promoterOtherCollector_throws() {
+        User promoter = promoterOnly("COM015");
+        when(repository.existsByReference(anyString())).thenReturn(false);
+        when(accountingDayService.ensureAccountingReadyForOperations()).thenReturn(LocalDate.of(2026, 7, 17));
+        when(userService.getCurrentUser()).thenReturn(promoter);
+        when(creditService.getById(1L)).thenReturn(inProgressCredit(1L, "COM003", 100.0, 1000.0));
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> service.makeDailyStake(stakeDto(1L, 100.0, "REC-FORBIDDEN")));
+        assertTrue(ex.getMessage().contains("commercial crédit"));
+        verify(repository, never()).save(any(CreditTimeline.class));
+    }
+
+    @Test
+    void makeDailyStake_returnsExistingTimelineWithoutEnsureWhenReferenceAlreadySynced() {
+        CreditTimeline existing = new CreditTimeline();
+        existing.setId(7L);
+        existing.setReference("REC-DUP");
+        when(repository.existsByReference("REC-DUP")).thenReturn(true);
+        when(repository.findByReference("REC-DUP")).thenReturn(Optional.of(existing));
+
+        CreditTimelineDto dto = stakeDto(1L, 100.0, "REC-DUP");
+
+        CreditTimeline result = service.makeDailyStake(dto);
+
+        assertEquals(7L, result.getId());
+        verify(accountingDayService, never()).ensureAccountingReadyForOperations();
+        verify(transactionManager, never()).getTransaction(any(TransactionDefinition.class));
+    }
+
+    @Test
+    void recordInitialSaleRecovery_usesManagedCreditWithoutReloadOrNewTransaction() {
+        Credit cashSale = new Credit();
+        cashSale.setId(42L);
+        cashSale.setCollector("COM001");
+        cashSale.setDailyStake(5000.0);
+        cashSale.setTotalAmount(5000.0);
+        cashSale.setTotalAmountPaid(5000.0);
+        cashSale.setTotalAmountRemaining(0.0);
+        cashSale.setRemainingDaysCount(0);
+        cashSale.setStatus(CreditStatus.VALIDATED);
+        cashSale.setType(OperationType.CASH);
+        cashSale.setReference("CSH-42");
+        cashSale.setBeginDate(LocalDate.of(2026, 7, 18));
+        cashSale.setExpectedEndDate(LocalDate.of(2026, 7, 18));
+        Client client = new Client();
+        client.setFirstname("Client");
+        client.setLastname("E2E");
+        cashSale.setClient(client);
+
+        CreditTimelineDto dto = new CreditTimelineDto();
+        dto.setCreditId(42L);
+        dto.setCollector("COM001");
+        dto.setAmount(5000.0);
+        dto.setNormalStake(false);
+
+        CreditTimeline mapped = new CreditTimeline();
+        mapped.setAmount(5000.0);
+        mapped.setNormalStake(false);
+        when(creditMapper.toCreditTimeline(dto)).thenReturn(mapped);
+        when(dailyAccountancyService.getByCollectorOrCreateNew("COM001")).thenReturn(new DailyAccountancy());
+        when(creditService.update(any(Credit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(repository.save(any(CreditTimeline.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.recordInitialSaleRecovery(cashSale, dto);
+
+        verify(creditService, never()).getById(any());
+        verify(transactionManager, never()).getTransaction(any(TransactionDefinition.class));
+        verify(accountingDayService, never()).ensureAccountingReadyForOperations();
+        verify(dailyAccountancyService).getByCollectorOrCreateNew("COM001");
+        verify(repository).save(any(CreditTimeline.class));
+        assertEquals(cashSale, mapped.getCredit());
+        assertEquals(CreditStatus.SETTLED, cashSale.getStatus());
+    }
+
+    @Test
+    void recordInitialSaleRecovery_keepsCashSaleValidatedWhileWarehouseDeliveryIsPending() {
+        Credit cashSale = new Credit();
+        cashSale.setId(43L);
+        cashSale.setCollector("COM001");
+        cashSale.setDailyStake(5000.0);
+        cashSale.setTotalAmount(5000.0);
+        cashSale.setTotalAmountPaid(5000.0);
+        cashSale.setTotalAmountRemaining(0.0);
+        cashSale.setRemainingDaysCount(0);
+        cashSale.setStatus(CreditStatus.VALIDATED);
+        cashSale.setType(OperationType.CASH);
+        cashSale.setPendingWarehouseDelivery(true);
+        cashSale.setReference("CSH-43");
+        cashSale.setBeginDate(LocalDate.of(2026, 7, 18));
+        cashSale.setExpectedEndDate(LocalDate.of(2026, 7, 18));
+        Client client = new Client();
+        client.setFirstname("Client");
+        client.setLastname("E2E");
+        cashSale.setClient(client);
+
+        CreditTimelineDto dto = new CreditTimelineDto();
+        dto.setCreditId(43L);
+        dto.setCollector("COM001");
+        dto.setAmount(5000.0);
+        dto.setNormalStake(false);
+
+        CreditTimeline mapped = new CreditTimeline();
+        mapped.setAmount(5000.0);
+        mapped.setNormalStake(false);
+        when(creditMapper.toCreditTimeline(dto)).thenReturn(mapped);
+        when(dailyAccountancyService.getByCollectorOrCreateNew("COM001")).thenReturn(new DailyAccountancy());
+        when(creditService.update(any(Credit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(repository.save(any(CreditTimeline.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.recordInitialSaleRecovery(cashSale, dto);
+
+        assertEquals(CreditStatus.VALIDATED, cashSale.getStatus());
+        assertEquals(null, cashSale.getEffectiveEndDate());
+        assertTrue(cashSale.isPendingWarehouseDelivery());
+    }
+
+    private static CreditTimelineDto stakeDto(Long creditId, Double amount, String reference) {
+        CreditTimelineDto dto = new CreditTimelineDto();
+        dto.setCreditId(creditId);
+        dto.setAmount(amount);
+        dto.setReference(reference);
+        dto.setNormalStake(true);
+        return dto;
+    }
+
+    private static Credit inProgressCredit(Long id, String collector, double dailyStake, double remaining) {
+        Credit credit = new Credit();
+        credit.setId(id);
+        credit.setCollector(collector);
+        credit.setDailyStake(dailyStake);
+        credit.setTotalAmount(remaining);
+        credit.setTotalAmountPaid(0.0);
+        credit.setTotalAmountRemaining(remaining);
+        credit.setRemainingDaysCount(10);
+        credit.setStatus(CreditStatus.INPROGRESS);
+        credit.setType(OperationType.CREDIT);
+        credit.setReference("CR-" + id);
+        Client client = new Client();
+        client.setFirstname("Jean");
+        client.setLastname("Test");
+        credit.setClient(client);
+        return credit;
+    }
+
+    private static User promoterOnly(String username) {
+        User user = mock(User.class);
+        when(user.getUsername()).thenReturn(username);
+        when(user.is(UserProfilConstant.SECRETARY)).thenReturn(false);
+        when(user.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+        when(user.is(UserProfilConstant.ADMIN)).thenReturn(false);
+        when(user.is(UserProfilConstant.PROMOTER)).thenReturn(true);
+        return user;
+    }
+}

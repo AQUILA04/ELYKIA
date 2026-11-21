@@ -18,7 +18,7 @@ import com.optimize.elykia.inventory.domain.MovementType;
 import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.inventory.web.dto.FifoConsumptionResult;
 import com.optimize.elykia.inventory.domain.StockHistoryReferenceType;
-import com.optimize.elykia.core.enumaration.StockRequestStatus;
+import com.optimize.elykia.sale.domain.StockRequestStatus;
 import com.optimize.elykia.core.event.StockTontineRequestDeliveredEvent;
 import com.optimize.elykia.core.event.TontineStockRequestValidatedEvent;
 import com.optimize.elykia.core.repository.StockTontineRequestDeliveryLinkRepository;
@@ -49,9 +49,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.optimize.elykia.core.dto.StockRequestExportDTO;
-import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
-import com.optimize.elykia.core.dto.StockExportPdfContextDto;
+import com.optimize.elykia.sale.web.dto.StockRequestExportDTO;
+import com.optimize.elykia.sale.web.dto.PartialDeliveryResponseDTO;
+import com.optimize.elykia.sale.web.dto.StockExportPdfContextDto;
 import com.optimize.elykia.shared.pdf.PdfDocumentIdentity;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import org.thymeleaf.TemplateEngine;
@@ -482,7 +482,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         rows.forEach(dto -> dto.setLinkedOrderReferences(refs.getOrDefault(dto.getId(), List.of())));
     }
 
-    public com.optimize.elykia.core.dto.stock.StockRequestKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {
+    public com.optimize.elykia.sale.web.dto.StockRequestKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {
         StockTontineRequestRepository repo = (StockTontineRequestRepository) getRepository();
         String effectiveCollector = resolveCollector(collector);
         List<Object[]> counts = repo.countByStatusFiltered(effectiveCollector, startDate, endDate, resolveVisibleStatuses());
@@ -504,7 +504,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
             }
         }
 
-        return com.optimize.elykia.core.dto.stock.StockRequestKpiDto.builder()
+        return com.optimize.elykia.sale.web.dto.StockRequestKpiDto.builder()
                 .total(pending + validated + delivered + cancelledRefused)
                 .pending(pending)
                 .validated(validated)

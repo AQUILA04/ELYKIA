@@ -7,7 +7,7 @@ import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
 import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
-import com.optimize.elykia.core.service.carnet.CarnetVerifiable;
+import com.optimize.elykia.shared.carnet.CarnetVerifiable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

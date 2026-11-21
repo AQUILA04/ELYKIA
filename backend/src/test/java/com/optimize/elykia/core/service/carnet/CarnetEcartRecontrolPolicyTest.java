@@ -2,9 +2,9 @@ package com.optimize.elykia.core.service.carnet;
 
 import com.optimize.elykia.core.entity.carnet.CarnetEcartDecision;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControlLine;
-import com.optimize.elykia.core.enumaration.CarnetEcartStatus;
-import com.optimize.elykia.core.enumaration.FieldControlStatus;
-import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
+import com.optimize.elykia.shared.carnet.CarnetEcartStatus;
+import com.optimize.elykia.sale.domain.FieldControlStatus;
+import com.optimize.elykia.shared.carnet.EcartDecisionView;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

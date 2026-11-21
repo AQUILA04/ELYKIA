@@ -4,8 +4,8 @@ import com.optimize.elykia.core.entity.stock.StockTontineRequest;
 import com.optimize.elykia.core.entity.stock.StockTontineRequestItem;
 import java.util.List;
 import com.optimize.elykia.core.dto.CreateStockRequestFromDeliveriesDto;
-import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
-import com.optimize.elykia.core.dto.PendingOrderStockPreviewDto;
+import com.optimize.elykia.sale.web.dto.PartialDeliveryResponseDTO;
+import com.optimize.elykia.sale.web.dto.PendingOrderStockPreviewDto;
 import com.optimize.elykia.core.service.stock.StockExportService;
 import com.optimize.elykia.core.service.stock.StockTontineRequestService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryStockRequestService;
@@ -121,7 +121,7 @@ public class StockTontineRequestController {
     }
 
     @GetMapping("/kpis")
-    public ResponseEntity<com.optimize.elykia.core.dto.stock.StockRequestKpiDto> getKpis(
+    public ResponseEntity<com.optimize.elykia.sale.web.dto.StockRequestKpiDto> getKpis(
             @RequestParam(required = false) String collector,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {

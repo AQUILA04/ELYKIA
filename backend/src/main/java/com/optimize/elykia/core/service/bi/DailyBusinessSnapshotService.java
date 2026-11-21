@@ -4,8 +4,9 @@ import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.core.dto.bi.PortfolioMetricsProjection;
 import com.optimize.elykia.core.dto.bi.SalesMetricsProjection;
 import com.optimize.elykia.core.entity.bi.DailyBusinessSnapshot;
-import com.optimize.elykia.core.repository.CreditRepository;
-import com.optimize.elykia.core.repository.CreditTimelineRepository;
+import com.optimize.elykia.core.repository.BiCreditQueryRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.DailyBusinessSnapshotRepository;
 import com.optimize.elykia.inventory.application.ArticlesService;
 import org.springframework.stereotype.Service;
@@ -21,17 +22,20 @@ public class DailyBusinessSnapshotService extends GenericService<DailyBusinessSn
     
     private final DailyBusinessSnapshotRepository snapshotRepository;
     private final CreditRepository creditRepository;
+    private final BiCreditQueryRepository biCreditQueryRepository;
     private final CreditTimelineRepository timelineRepository;
     private final ArticlesService articlesService;
 
     public DailyBusinessSnapshotService(DailyBusinessSnapshotRepository repository,
                                         DailyBusinessSnapshotRepository snapshotRepository,
                                         CreditRepository creditRepository,
+                                        BiCreditQueryRepository biCreditQueryRepository,
                                         CreditTimelineRepository timelineRepository,
                                         ArticlesService articlesService) {
         super(repository);
         this.snapshotRepository = snapshotRepository;
         this.creditRepository = creditRepository;
+        this.biCreditQueryRepository = biCreditQueryRepository;
         this.timelineRepository = timelineRepository;
         this.articlesService = articlesService;
     }
@@ -45,7 +49,7 @@ public class DailyBusinessSnapshotService extends GenericService<DailyBusinessSn
         
         snapshot.setSnapshotDate(date);
         
-        SalesMetricsProjection dailySales = creditRepository.getDailySalesMetricsForAccountingDate(date);
+        SalesMetricsProjection dailySales = biCreditQueryRepository.getDailySalesMetricsForAccountingDate(date);
         if (dailySales != null) {
             snapshot.setNewCreditsCount(dailySales.getSalesCount() != null ? dailySales.getSalesCount() : 0);
             snapshot.setNewCreditsTotalAmount(dailySales.getTotalAmount() != null ? dailySales.getTotalAmount() : 0.0);
@@ -66,7 +70,7 @@ public class DailyBusinessSnapshotService extends GenericService<DailyBusinessSn
         snapshot.setOutOfStockItemsCount((int) articlesService.getRepository().countByStockQuantityEquals(0));
         snapshot.setLowStockItemsCount((int) articlesService.countLowStockItems());
         
-        PortfolioMetricsProjection portfolio = creditRepository.getPortfolioMetricsAsOf(date);
+        PortfolioMetricsProjection portfolio = biCreditQueryRepository.getPortfolioMetricsAsOf(date);
         if (portfolio != null) {
             snapshot.setActiveCreditsCount(portfolio.getActiveCount() != null ? portfolio.getActiveCount() : 0);
             snapshot.setTotalOutstandingAmount(

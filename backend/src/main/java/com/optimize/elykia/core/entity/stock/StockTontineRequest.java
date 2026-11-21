@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.entity.stock;
 
 import com.optimize.common.entities.entity.Auditable;
-import com.optimize.elykia.core.enumaration.StockRequestStatus;
+import com.optimize.elykia.sale.domain.StockRequestStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

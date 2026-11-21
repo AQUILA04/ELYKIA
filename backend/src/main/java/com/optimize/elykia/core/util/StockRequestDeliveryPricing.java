@@ -1,7 +1,8 @@
 package com.optimize.elykia.core.util;
 
 import com.optimize.elykia.inventory.domain.Articles;
-import com.optimize.elykia.core.entity.stock.StockRequestItem;
+import com.optimize.elykia.sale.domain.SaleStockDeliveryPricing;
+import com.optimize.elykia.sale.domain.StockRequestItem;
 import com.optimize.elykia.core.entity.stock.StockTontineRequestItem;
 
 /**
@@ -15,8 +16,7 @@ public final class StockRequestDeliveryPricing {
 
     public static void applyAtDelivery(StockRequestItem item, Articles article,
             boolean fifoEnabled, double fifoAverageUnitCost) {
-        item.setUnitPrice(article.getCreditSalePrice());
-        item.setPurchasePrice(resolvePurchasePrice(article, fifoEnabled, fifoAverageUnitCost));
+        SaleStockDeliveryPricing.applyAtDelivery(item, article, fifoEnabled, fifoAverageUnitCost);
     }
 
     public static void applyAtDelivery(StockTontineRequestItem item, Articles article,

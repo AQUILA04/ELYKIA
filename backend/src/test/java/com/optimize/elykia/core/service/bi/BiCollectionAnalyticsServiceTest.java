@@ -4,10 +4,11 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.bi.CollectionTrendDto;
 import com.optimize.elykia.core.dto.bi.OverdueAnalysisDto;
 import com.optimize.elykia.core.dto.bi.OverdueRangeProjection;
-import com.optimize.elykia.core.entity.sale.Credit;
-import com.optimize.elykia.core.enumaration.CreditStatus;
-import com.optimize.elykia.core.repository.CreditRepository;
-import com.optimize.elykia.core.repository.CreditTimelineRepository;
+import com.optimize.elykia.sale.domain.Credit;
+import com.optimize.elykia.sale.domain.CreditStatus;
+import com.optimize.elykia.core.repository.BiCreditQueryRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.when;
 class BiCollectionAnalyticsServiceTest {
 
     @Mock private CreditRepository creditRepository;
+    @Mock private BiCreditQueryRepository biCreditQueryRepository;
     @Mock private CreditTimelineRepository timelineRepository;
     @Mock private Credit firstCredit;
     @Mock private Credit secondCredit;
@@ -32,7 +34,7 @@ class BiCollectionAnalyticsServiceTest {
     @Test
     void getCollectionTrends_reusesExpectedDailyStakeAndNormalizesMissingCollectionForEveryDate() {
         // Given
-        BiCollectionAnalyticsService service = new BiCollectionAnalyticsService(creditRepository, timelineRepository);
+        BiCollectionAnalyticsService service = new BiCollectionAnalyticsService(creditRepository, biCreditQueryRepository, timelineRepository);
         LocalDate start = LocalDate.of(2026, 8, 18);
         LocalDate end = LocalDate.of(2026, 8, 19);
         when(firstCredit.getDailyStake()).thenReturn(1_000.0);
@@ -61,14 +63,14 @@ class BiCollectionAnalyticsServiceTest {
     @Test
     void getOverdueAnalysis_calculatesEachRangeShareFromTotalOutstandingDebt() {
         // Given
-        BiCollectionAnalyticsService service = new BiCollectionAnalyticsService(creditRepository, timelineRepository);
+        BiCollectionAnalyticsService service = new BiCollectionAnalyticsService(creditRepository, biCreditQueryRepository, timelineRepository);
         when(earlyOverdue.getRange()).thenReturn("1-7 jours");
         when(earlyOverdue.getCreditsCount()).thenReturn(2);
         when(earlyOverdue.getTotalAmount()).thenReturn(4_000.0);
         when(lateOverdue.getRange()).thenReturn("30+ jours");
         when(lateOverdue.getCreditsCount()).thenReturn(1);
         when(lateOverdue.getTotalAmount()).thenReturn(6_000.0);
-        when(creditRepository.getOverdueAnalysis()).thenReturn(List.of(earlyOverdue, lateOverdue));
+        when(biCreditQueryRepository.getOverdueAnalysis()).thenReturn(List.of(earlyOverdue, lateOverdue));
 
         // When
         List<OverdueAnalysisDto> analysis = service.getOverdueAnalysis();

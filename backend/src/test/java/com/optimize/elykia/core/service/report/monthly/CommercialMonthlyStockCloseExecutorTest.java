@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.report.monthly;
 
-import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
+import com.optimize.elykia.sale.application.CommercialMonthlyStockService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

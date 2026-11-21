@@ -1,12 +1,15 @@
 package com.optimize.elykia.core.service.carnet;
 
+import com.optimize.elykia.shared.carnet.CarnetEcartRules;
 import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.entity.carnet.CarnetEcartDecision;
-import com.optimize.elykia.core.entity.sale.CreditFieldControl;
+import com.optimize.elykia.sale.domain.CreditFieldControl;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControl;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControlLine;
-import com.optimize.elykia.core.enumaration.CarnetEcartStatus;
-import com.optimize.elykia.core.enumaration.FieldControlStatus;
+import com.optimize.elykia.sale.api.CreditCarnetRecontrolPort;
+import com.optimize.elykia.shared.carnet.CarnetEcartStatus;
+import com.optimize.elykia.shared.carnet.EcartDecisionView;
+import com.optimize.elykia.sale.domain.FieldControlStatus;
 import com.optimize.elykia.core.repository.CarnetEcartDecisionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -25,15 +28,9 @@ import java.util.Set;
  */
 @Component
 @RequiredArgsConstructor
-public class CarnetEcartRecontrolPolicy {
+public class CarnetEcartRecontrolPolicy implements CreditCarnetRecontrolPort {
 
     private final CarnetEcartDecisionRepository decisionRepository;
-
-    public record EcartDecisionView(CarnetEcartStatus status, boolean modifiable) {
-        public static EcartDecisionView none() {
-            return new EcartDecisionView(null, false);
-        }
-    }
 
     public boolean mustModifyCredit(CreditFieldControl latest) {
         return viewCredit(latest).modifiable();

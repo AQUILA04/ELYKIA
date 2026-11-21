@@ -1,0 +1,69 @@
+package com.optimize.elykia.sale.web.dto;
+
+import com.optimize.elykia.shared.carnet.CarnetEcartStatus;
+import com.optimize.elykia.sale.domain.CreditStatus;
+import com.optimize.elykia.sale.domain.LateType;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Getter
+@Builder(toBuilder = true)
+public class CreditLateDTO {
+
+    private Long        id;
+    private String      reference;
+
+    // Client
+    private Long        clientId;
+    private String      clientName;
+    private String      clientPhone;
+    private String      clientQuarter;
+    private Double      latitude;
+    private Double      longitude;
+    private String      mll;
+
+    // Commercial
+    private String      collector;
+
+    // Montants
+    private Double      totalAmount;
+    private Double      totalAmountPaid;
+    /** Montant restant net du reliquat client (à encaisser). */
+    private Double      totalAmountRemaining;
+    /** Reliquat client imputé sur ce crédit pour le calcul du restant net. */
+    private Double      clientReliquatApplied;
+    private Double      dailyStake;
+    /** Avance déjà enregistrée sur le crédit (comparaison carnet). */
+    private Double      advance;
+
+    // Dates
+    private LocalDate   beginDate;
+    private LocalDate   expectedEndDate;
+    private Integer     remainingDaysCount;
+
+    // Retard calculé
+    /** Jours depuis expectedEndDate (0 si non dépassée) */
+    private int         lateDaysDelai;
+    /** Jours d'échéance non payés (jours écoulés − jours payés) */
+    private int         lateDaysEcheance;
+    /** Type de retard : DELAI, ECHEANCE ou DOUBLE */
+    private LateType    lateType;
+
+    private CreditStatus status;
+
+    private Boolean carnetVerified;
+    private LocalDateTime carnetVerifiedAt;
+    private String carnetVerifiedBy;
+
+    /** Dernier contrôle carnet, renseigné sur la liste terrain des crédits en cours. */
+    private String latestControlStatus;
+    private Double latestDifferenceAmount;
+    private Double latestNotebookTotalAmount;
+    private String latestControlNote;
+    private LocalDateTime latestObservedAt;
+    private CarnetEcartStatus ecartDecisionStatus;
+    private Boolean modifiable;
+}

@@ -2,7 +2,7 @@ package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.entity.report.MonthlyReportOutboxEntry;
-import com.optimize.elykia.core.enumaration.MonthlyReportOutboxStatus;
+import com.optimize.elykia.shared.domain.MonthlyReportOutboxStatus;
 
 import java.util.List;
 

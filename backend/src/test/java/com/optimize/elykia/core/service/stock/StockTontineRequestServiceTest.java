@@ -10,7 +10,7 @@ import com.optimize.elykia.shared.security.UserPermissionConstant;
 import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.stock.StockTontineRequest;
 import com.optimize.elykia.core.entity.stock.StockTontineRequestItem;
-import com.optimize.elykia.core.enumaration.StockRequestStatus;
+import com.optimize.elykia.sale.domain.StockRequestStatus;
 import com.optimize.elykia.core.repository.StockTontineRequestRepository;
 import com.optimize.elykia.finance.application.AccountingDayService;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;

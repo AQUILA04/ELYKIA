@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.dto.sale;
 
-import com.optimize.elykia.core.dto.CreditFieldControlDto;
-import com.optimize.elykia.core.dto.CreditLateDTO;
+import com.optimize.elykia.sale.web.dto.CreditFieldControlDto;
+import com.optimize.elykia.sale.web.dto.CreditLateDTO;
 import com.optimize.elykia.core.dto.TontineMemberFieldControlDto;
 import lombok.Builder;
 import lombok.Getter;

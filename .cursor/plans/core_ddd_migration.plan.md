@@ -16,8 +16,8 @@
 | **Vague 2** | `notification` (`CLOSED` + `notification::api`), `organization` (`OPEN` — `Agency`, `Locality`, `Promoter`, `CommercialStaff*`, `CommercialAccountAssignment`, `UserManagement`), rapatriement `client` + enrichissement `shared` | **Fait (`2.3.0`)** |
 | **Vague 3** | `inventory` (`OPEN` — Catalogue, Magasin, Réceptions, Mouvements, FIFO, Packaging, Inventaires + 3 ports SPI `inventory.api`) & enrichissement `shared` | **Fait (`2.4.0`)** |
 | **Vague 4** | `finance` (`OPEN` — Dépenses, Caisse, Journée comptable, Versements/Remises/Surplus, Rapports journaliers & mensuels + 5 ports SPI `finance.api` + absorption de `SupplyExpensePortAdapter`) | **Fait (`2.5.0`)** |
-| **Vague 5** | `sale` (`Credit`, `Order`, `SaleCancellation`, `RecoveryFieldPlan`, stock commercial `CommercialMonthlyStock`/`StockRequest`/`StockReturn` + `DebtDocument`/`DebtService`, façade `sale::api`) | Planifiée |
-| **Vague 6** | `tontine` (`tontine → sale::api` unidirectionnel + `StockTontine*`) + `carnet` (module aval + `CarnetEcartDetectedEvent`) | Planifiée |
+| **Vague 5** | `sale` (`OPEN` — Ventes/Crédits, Commandes, Annulations, Stock commercial `CommercialMonthlyStock`/`StockRequest`/`StockReturn`, Dettes `DebtDocument`/`DebtService`, `RemainingAtClients*`, 7 ports SPI `sale.api`, absorption de 3 adaptateurs SPI + enrichissement `shared.carnet`) | **Fait (`2.6.0`)** |
+| **Vague 6** | `tontine` (`tontine → sale` unidirectionnel + `StockTontine*` + `TontineCreditCreationService`) + `carnet` (module aval + `RecoveryFieldPlan*`/`RecoveryManager*`) | Planifiée |
 | **Vague 7** | `customer` (`Espace Client` + `adhesion` + `paygate` + `ocr`) + `bi` + `FormerPortfolio` + suppression de `core/` | Planifiée |
 
 ## 3. Périmètre exact du Lot 1 (`2.2.0`)
@@ -77,3 +77,16 @@
   - `web/` : 11 contrôleurs (`DailyReportController` découplé des 3 endpoints portefeuille/tontine déplacés vers `core.controller.report.DailyReportPortfolioController`), 5 mappers MapStruct, 31 DTOs.
 - **Éléments délibérément maintenus dans `core` pour les Vagues 5–7 :** `DebtDocument`/`DebtLine`/`DebtService` (`@ManyToOne CommercialMonthlyStock` / `CommercialMonthlyStockItem` → Vague 5 `sale`), et rapports transverses crédits/tontines (`ReportService`, `PdfService`, `MonthlyReportAggregationService`, `RemainingAtClients*`, `CommercialTontineYearlySummaryService`, `CommercialYearlyPortfolioService`, `RecoveryManagerReportPdfService`, `DailyTontineReportReconciler`).
 - **`ModularityTests` :** vérifie désormais les **12 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `finance`, `recruitment`, `ai`, `apprelease`, `core`).
+
+## 7. Périmètre exact de la Vague 5 (`2.6.0`)
+
+- **`shared` (enrichi) :** `shared.carnet` (`CarnetVerifiable`, `CarnetVerificationSupport`, `BulkCarnetVerificationResultDto`, `CarnetEcartRules` + test, `CarnetEcartStatus`, `CarnetEcartDomain`, `CarnetEcartDirection`, `CarnetEcartDetectedEvent`, `EcartDecisionView`, `RmFieldListProgress`, `RmFieldListProgressSql`), `shared.domain.MonthlyReportOutboxStatus`, `shared.web.BulkCountResult`.
+- **`sale` (`OPEN` pendant le découpage, `allowedDependencies = {"entities", "securities", "client", "shared", "notification :: api", "organization", "inventory", "finance"}`, 0 dép. sur `core`, 313 fichiers déplacés via `git mv`) :**
+  - `api/` : 7 ports SPI (`AdhesionCreditPort`, `SaleBiAggregationPort`, `OrderCustomerNotificationPort`, `SalePdfExportPort`, `FormerPortfolioCreditPort`, `CreditCarnetRecontrolPort`, `WarehouseCashSalePricingPort`).
+  - `domain/` : 31 entités JPA (Ventes/Crédits, Commandes, Annulations, Stock commercial mensuel, Dettes commerciales), 23 enums, 7 règles/calculateurs (`ClientReliquatNetRemaining`, `CommercialMonthlyStockCashSalePricing`, `CreditArticleUnitPricePolicy`, `CreditSearchSqlFilter`, `RattrapageCreditSupport`, `SaleStockSortOrder`, `SaleStockDeliveryPricing`).
+  - `event/` : 7 événements (`CreditStartedEvent`, `CreditCollectionEvent`, `CreditCollectionCancelledEvent`, `OrderCreatedEvent`, `StockRequestValidatedEvent`, `StockRequestDeliveredEvent`, `StockReturnedEvent`).
+  - `infrastructure/persistence/` : 29 repositories JPA (requêtes lecture seule BI/Ancien portefeuille isolées dans `core.repository.BiCreditQueryRepository`, `FormerPortfolioCreditQueryRepository`, `FormerPortfolioTimelineQueryRepository`).
+  - `application/` : 42 services/listeners/adaptateurs — absorbant directement `CreditAccountingPortAdapter`, `FieldControlDebtPortAdapter` et `InventoryDebtPortAdapter` — + 43 suites de tests unitaires dans `sale` (`sale.domain` 71,3 % LINE, `sale.application` 56,2 % LINE).
+  - `web/` : 13 contrôleurs, 4 mappers MapStruct, 103 DTOs (`SaleLineQuote` découplé de `TontineDeliveryItem`).
+- **Orchestration `tontine → sale` :** `core.service.tontine.TontineCreditCreationService` porte `buildFromDelivery(TontineDelivery)` + validation/déduction stock tontine. Services transverses ventes+tontine (`RecoveryFieldPlanService`, `RecoveryManager*`, `CashSalePricingService`, `StockExportService`, `StockPriceRealignmentService`) conservés dans `core` jusqu'à la Vague 6.
+- **`ModularityTests` :** vérifie désormais les **13 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `finance`, `sale`, `recruitment`, `ai`, `apprelease`, `core`).
