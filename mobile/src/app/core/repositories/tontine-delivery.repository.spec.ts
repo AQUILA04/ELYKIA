@@ -144,3 +144,39 @@ describe('TontineDeliveryRepository reservedQuantitiesByArticle', () => {
     expect(params).toEqual(['COM005']);
   });
 });
+
+describe('TontineDeliveryRepository saveAll', () => {
+  it('replaces the items of the order instead of adding them next to the previous ones', async () => {
+    const databaseService = jasmine.createSpyObj('DatabaseService', ['execute', 'executeSet', 'query']);
+    (databaseService as any)['db'] = {};
+    databaseService.executeSet.and.resolveTo(undefined as any);
+    const repository = new TontineDeliveryRepository(databaseService);
+
+    await repository.saveAll([{
+      id: '5', tontineMemberId: 'm1', commercialUsername: 'COM010', status: 'PENDING', totalAmount: 15800,
+      items: [
+        { id: '91', tontineDeliveryId: '5', articleId: 'a1', quantity: 4, unitPrice: 3200, totalPrice: 12800 },
+        { id: '92', tontineDeliveryId: '5', articleId: 'a2', quantity: 2, unitPrice: 1500, totalPrice: 3000 }
+      ]
+    } as any]);
+
+    const set = databaseService.executeSet.calls.mostRecent().args[0] as Array<{ statement: string; values: any[] }>;
+    const deleteIndex = set.findIndex(entry => /DELETE FROM tontine_delivery_items WHERE tontineDeliveryId = \?/.test(entry.statement));
+    const firstItemIndex = set.findIndex(entry => /INSERT OR REPLACE INTO tontine_delivery_items/.test(entry.statement));
+    expect(deleteIndex).toBeGreaterThan(-1);
+    expect(set[deleteIndex].values).toEqual(['5']);
+    expect(deleteIndex).toBeLessThan(firstItemIndex);
+  });
+
+  it('keeps the existing items when the order comes without items', async () => {
+    const databaseService = jasmine.createSpyObj('DatabaseService', ['execute', 'executeSet', 'query']);
+    (databaseService as any)['db'] = {};
+    databaseService.executeSet.and.resolveTo(undefined as any);
+    const repository = new TontineDeliveryRepository(databaseService);
+
+    await repository.saveAll([{ id: '5', tontineMemberId: 'm1', commercialUsername: 'COM010', status: 'PENDING', items: [] } as any]);
+
+    const set = databaseService.executeSet.calls.mostRecent().args[0] as Array<{ statement: string }>;
+    expect(set.some(entry => /DELETE FROM tontine_delivery_items/.test(entry.statement))).toBeFalse();
+  });
+});

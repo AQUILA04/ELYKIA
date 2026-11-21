@@ -560,7 +560,8 @@
     <div class="delivery-info">
       <div class="info-row">
         <span class="label">Date de livraison</span>
-        <span class="value mono">{{ formatDateTime(member.delivery?.deliveryDate ?? '') || '—' }}</span>
+        <!-- Tant que la commande n'est pas remise, le serveur garde la date de demande dans ce champ. -->
+        <span class="value mono">{{ member.deliveryStatus === 'DELIVERED' ? (formatDateTime(member.delivery?.deliveryDate ?? '') || '—') : 'Pas encore livrée' }}</span>
       </div>
       <div class="info-row">
         <span class="label">Commercial</span>

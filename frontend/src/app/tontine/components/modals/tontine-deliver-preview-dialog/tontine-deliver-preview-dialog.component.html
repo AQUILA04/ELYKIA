@@ -24,6 +24,10 @@
   </table>
 
   <div class="preview-balance" data-testid="e2e-tontine-deliver-preview-balance">
+    <div class="balance-row" *ngIf="ceiling !== null" data-testid="e2e-tontine-deliver-preview-ceiling">
+      <span>Plafond de la commande</span>
+      <b>{{ ceiling | number:'1.0-0' }} FCFA</b>
+    </div>
     <div class="balance-row">
       <span>Solde net cotisé</span>
       <b>{{ netContribution | number:'1.0-0' }} FCFA</b>
@@ -42,6 +46,9 @@
     </div>
   </div>
 
+  <p class="preview-warning" *ngIf="ceilingExcess > 0">
+    La commande dépasse le plafond de {{ ceilingExcess | number:'1.0-0' }} FCFA : réduisez-la avant de livrer.
+  </p>
   <p class="preview-warning" *ngIf="amountDue > 0">
     Le solde ne couvre pas la commande. Réduisez la commande, ou faites compléter le solde depuis l'application mobile, puis revenez livrer.
   </p>

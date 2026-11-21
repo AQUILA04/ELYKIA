@@ -13,7 +13,7 @@
 </ion-header>
 
 <ion-content class="elyk-content">
-  <div id="receipt-content" class="receipt-preview elyk-card">
+  <div id="receipt-content" class="receipt-preview elyk-card" #receiptContent>
     <div class="header">
       <div class="logo-mark">T</div>
       <h2>REÇU TONTINE</h2>
@@ -113,7 +113,7 @@
           </ion-button>
         </ion-col>
         <ion-col size="6">
-          <ion-button expand="block" class="elyk-btn-navy" (click)="print()">
+          <ion-button expand="block" class="elyk-btn-navy" [disabled]="printing" (click)="print()">
             <ion-icon slot="start" name="print-outline"></ion-icon>
             Imprimer
           </ion-button>

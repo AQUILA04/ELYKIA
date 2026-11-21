@@ -2411,6 +2411,8 @@ export class DatabaseService {
     if (!this.db) throw new Error('Database not initialized.');
     deliveries = deliveries.filter(d => hasPersistableTontineDeliveryId(d?.id));
     if (!deliveries.length) return;
+    deliveries = await this.withoutPendingLocalDeliver(deliveries);
+    if (!deliveries.length) return;
 
     const queryDelivery = `
       INSERT OR REPLACE INTO tontine_deliveries(
@@ -2440,6 +2442,13 @@ export class DatabaseService {
       });
 
       if (d.items && d.items.length) {
+        // Les articles du serveur REMPLACENT ceux de la commande : sans cela, les lignes d'une version
+        // précédente (modification, fusion d'une seconde commande, ID locaux) restaient à côté et
+        // « s'ajoutaient » à la commande à la réouverture.
+        set.push({
+          statement: 'DELETE FROM tontine_delivery_items WHERE tontineDeliveryId = ?',
+          values: [d.id]
+        });
         for (const item of d.items) {
           set.push({
             statement: queryItems,
@@ -2453,6 +2462,25 @@ export class DatabaseService {
     }
 
     await this.db.executeSet(set);
+  }
+
+  /**
+   * Une remise faite hors ligne (needsDeliverSync = 1) n'est pas encore sur le serveur : le serveur
+   * renvoie encore la commande en attente. On garde la ligne locale tant que la remise n'est pas envoyée.
+   */
+  private async withoutPendingLocalDeliver(deliveries: any[]): Promise<any[]> {
+    const ids = deliveries.map(d => String(d.id));
+    const placeholders = ids.map(() => '?').join(',');
+    const result = await this.db!.query(
+      `SELECT id FROM tontine_deliveries WHERE needsDeliverSync = 1 AND id IN (${placeholders})`,
+      ids
+    );
+    const pending = new Set((result.values || []).map((row: any) => String(row.id)));
+    if (pending.size === 0) {
+      return deliveries;
+    }
+    return deliveries.filter(d => !pending.has(String(d.id))
+      || String(d.status || '').toUpperCase() === 'DELIVERED');
   }
 
   async getTontineDeliveries(memberId: string, commercialUsername: string): Promise<any[]> {

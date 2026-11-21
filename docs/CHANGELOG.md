@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (fiabilité terrain des commandes tontine)
+
+### Changed
+
+- **Guide utilisateur —** mobile : plafond affiché sur la fiche et au récapitulatif, **Ajouter un article** en modification et à la livraison, fenêtres d'erreur et de succès, reçu enregistré en PDF quand l'imprimante n'est pas disponible. Web : plafond dans l'aperçu de livraison. Index RAG et guide HTML régénérés.
+- **Plan —** `.cursor/plans/tontine_fiabilite_terrain.plan.md` (audit des causes et cas limites).
+
 ## Docs & Infra — 2026-11-21 (board de pilotage du recouvrement)
 
 ### Changed
@@ -189,6 +196,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.66.1] — 2026-11-21
+
+### Fixed
+
+- **Fiche membre tontine —** « Date de livraison » affichait la date de demande pour une commande pas encore livrée (le serveur garde cette date tant que la remise n'est pas faite). Affiche désormais « Pas encore livrée ».
+
+### Changed
+
+- **Aperçu « Livrer » —** plafond de la commande (plus grand du solde prévisionnel et du solde net) et dépassement éventuel ; la confirmation reste bloquée au-delà.
 
 ## Frontend — [2.66.0] — 2026-11-21
 
@@ -610,6 +627,25 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.49.0] — 2026-11-21
+
+### Fixed
+
+- **Articles qui s'ajoutaient « tout seuls » à une commande tontine —** l'import des commandes du serveur (`saveTontineDeliveries`) et `TontineDeliveryRepository.saveAll` ajoutaient les articles par identifiant sans effacer ceux déjà présents : après une modification, une fusion de seconde commande ou une création hors ligne, les anciennes lignes restaient et réapparaissaient à l'ouverture (total faux, refus 400 à l'enregistrement). Les articles du serveur remplacent maintenant ceux de la commande ; les tablettes déjà touchées se corrigent au prochain chargement.
+- **Remise hors ligne écrasée —** une livraison faite hors ligne et pas encore envoyée n'est plus remplacée par la commande « en attente » renvoyée par le serveur.
+- **Plafond non contrôlé en modification —** « Enregistrer la commande » vérifie le plafond (plus grand du solde prévisionnel et du solde net cotisé) avant d'appeler le serveur ; message avec plafond et dépassement, bouton désactivé tant que la commande dépasse.
+- **Chargement « Enregistrement… » bloqué sur l'aperçu du reçu —** le chargement est fermé avant d'ouvrir le reçu. Les reçus tontine (commande, bon de remise, cotisation) s'enregistrent en PDF à l'ouverture avec un délai maximal ; si l'impression échoue, le PDF est enregistré, un message donne son emplacement et l'aperçu se ferme.
+- **Toasts « Http failure response … 400 OK » —** les erreurs affichent le message du backend (`message` de la réponse) ou un texte en français, jamais le texte technique d'Angular.
+- **« Livrée le » sur une commande non livrée,** montants au format anglais (« 12,800 ») dans les reçus et le récapitulatif (locale `fr-FR` pour toute l'application), titre du récapitulatif tronqué sur fond blanc, prix passant à la ligne dans la liste d'articles.
+- **Refus du serveur à la création ou à la remise —** plus de proposition d'enregistrer hors ligne une saisie que le serveur refuse (elle serait refusée de nouveau à la synchronisation) ; le message de solde insuffisant du serveur ouvre toujours « Compléter le solde ».
+
+### Added
+
+- **Fenêtres communes d'erreur et de succès** (`FeedbackService`, `ElykFeedbackModalComponent`) au design system, réutilisables dans toute l'application ; utilisées par la fiche membre et la création de commande tontine.
+- **Page « Modifier la commande »** (`tontine/order-edit/:memberId`) : la fiche membre reste en lecture seule ; le crayon de la carte **Livraison**, le bouton **Modifier la commande** et le menu ⋮ ouvrent cette page (quantités, ajout d'article, plafond, confirmation avant d'abandonner des changements). Après l'enregistrement, retour à la fiche, qui ouvre le reçu si demandé.
+- **Ajouter un article** pendant la modification d'une commande (stock tontine ou catalogue, recherche, plafond restant) et au récapitulatif de livraison (stock tontine du commercial uniquement, quantité bornée par le stock). Une commande modifiée au récapitulatif est enregistrée avant la remise ou avant d'aller compléter le solde.
+- **Plafond affiché** sur la fiche membre (commande non livrée) et au récapitulatif « Livrer ».
+
 ## Mobile — [2.48.0] — 2026-11-21
 
 ### Added
@@ -871,6 +907,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.64.1] — 2026-11-21
+
+### Changed
+
+- **Messages de plafond des commandes tontine —** création, seconde commande et `PUT /api/v1/tontines/deliveries/{id}/items` : le message donne le montant, le plafond et le dépassement au format français (« La commande (62 300 FCFA) dépasse le plafond de ce membre (25 500 FCFA) de 36 800 FCFA… »). Remise refusée : solde net, montant et manque en FCFA (fini `%.2f`). Test d'intégration PostgreSQL du plafond à la création et à la modification.
 
 ## Backend — [1.64.0] — 2026-11-21
 

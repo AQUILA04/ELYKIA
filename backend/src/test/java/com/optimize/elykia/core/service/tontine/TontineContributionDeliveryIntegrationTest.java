@@ -227,6 +227,62 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
                 TontineMemberDeliveryStatus.PENDING, TontineMemberDeliveryStatus.VALIDATED)).isEmpty());
     }
 
+    @Test
+    void orderCeilingIsEnforcedOnCreationAndOnModification() {
+        // Given: a member of a past session whose stake projects a 3 000 FCFA ceiling (10 months x 30 days x 10).
+        ensureSocietyShareVersionV2();
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(currentUser.getUsername()).thenReturn(COLLECTOR);
+        when(currentUser.is("GESTIONNAIRE")).thenReturn(false);
+        when(currentUser.is("ADMIN")).thenReturn(false);
+        Client client = persistClient("client.tontine.ceiling");
+        TontineSession session = persistActiveSession(LocalDate.now().getYear() - 2);
+        TontineMember member = persistMember(session, client, 10.0);
+        Articles article = persistArticle("TONTINE-CEILING-ARTICLE", 10, 1_000.0, 2_000.0);
+
+        // When / Then: an order above the ceiling is refused with the ceiling and the excess in French format.
+        CreateDeliveryDto tooLarge = delivery(member.getId(), article.getId(), "LIV-CEILING-0", 2_000.0);
+        tooLarge.getItems().get(0).setQuantity(2);
+        com.optimize.common.entities.exception.CustomValidationException refusedCreation = org.junit.jupiter.api.Assertions.assertThrows(
+                com.optimize.common.entities.exception.CustomValidationException.class,
+                () -> tontineDeliveryService.createDelivery(tooLarge));
+        assertTrue(refusedCreation.getMessage().contains("4 000 FCFA"), refusedCreation.getMessage());
+        assertTrue(refusedCreation.getMessage().contains("plafond de ce membre (3 000 FCFA) de 1 000 FCFA"),
+                refusedCreation.getMessage());
+        entityManager.clear();
+        assertTrue(deliveryRepository.findByTontineMemberId(member.getId()).isEmpty());
+
+        // Given: an order within the ceiling is recorded.
+        var created = tontineDeliveryService.createDelivery(
+                delivery(member.getId(), article.getId(), "LIV-CEILING-1", 2_000.0));
+        entityManager.clear();
+
+        // When / Then: raising it above the ceiling through PUT /items is refused and nothing changes.
+        DeliveryItemDto doubled = new DeliveryItemDto();
+        doubled.setArticleId(article.getId());
+        doubled.setQuantity(2);
+        doubled.setUnitPrice(2_000.0);
+        com.optimize.common.entities.exception.CustomValidationException refusedEdit = org.junit.jupiter.api.Assertions.assertThrows(
+                com.optimize.common.entities.exception.CustomValidationException.class,
+                () -> tontineDeliveryService.replaceItems(created.getId(), List.of(doubled)));
+        assertTrue(refusedEdit.getMessage().contains("dépasse le plafond de ce membre (3 000 FCFA) de 1 000 FCFA"),
+                refusedEdit.getMessage());
+        entityManager.clear();
+        TontineDelivery unchanged = deliveryRepository.findByTontineMemberId(member.getId()).orElseThrow();
+        assertEquals(2_000.0, unchanged.getTotalAmount());
+        assertEquals(1, unchanged.getItems().size());
+        assertEquals(1, unchanged.getItems().iterator().next().getQuantity());
+
+        // When / Then: an edit that stays at the ceiling is accepted and replaces the lines.
+        DeliveryItemDto single = new DeliveryItemDto();
+        single.setArticleId(article.getId());
+        single.setQuantity(1);
+        single.setUnitPrice(2_000.0);
+        var edited = tontineDeliveryService.replaceItems(created.getId(), List.of(single));
+        assertEquals(2_000.0, edited.getTotalAmount());
+        assertEquals(1, edited.getItems().size());
+    }
+
     private void ensureSocietyShareVersionV2() {
         // Profil test : auto-initialize désactivé — forcer V2 sans event de migration.
         parameterRepository.findByKey(TontineParameterConstant.SOCIETY_SHARE_VERSION)
@@ -296,12 +352,16 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
     }
 
     private TontineMember persistMember(TontineSession session, Client client) {
+        return persistMember(session, client, DAILY_STAKE);
+    }
+
+    private TontineMember persistMember(TontineSession session, Client client, double dailyStake) {
         TontineMember member = new TontineMember();
         member.setTontineSession(session);
         member.setClient(client);
         member.setRegistrationDate(LocalDateTime.of(session.getStartDate(), java.time.LocalTime.NOON));
         member.setFrequency(TontineMemberFrequency.DAILY);
-        member.setAmount(DAILY_STAKE);
+        member.setAmount(dailyStake);
         member.setTotalContribution(0.0);
         member.setSocietyShare(0.0);
         member.setAvailableContribution(0.0);
@@ -312,7 +372,7 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
 
         TontineMemberAmountHistory amountHistory = new TontineMemberAmountHistory();
         amountHistory.setTontineMember(member);
-        amountHistory.setAmount(DAILY_STAKE);
+        amountHistory.setAmount(dailyStake);
         amountHistory.setStartDate(session.getStartDate());
         member.getAmountHistory().add(amountHistory);
 
