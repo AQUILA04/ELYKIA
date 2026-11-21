@@ -45,6 +45,7 @@ jobs:
           backend:
             - 'backend/**'
             - '.github/workflows/ci.yml'
+            - '.github/scripts/resolve-backend-test-filter.py'
           mobile:
             - 'mobile/**'
           website:
@@ -72,7 +73,7 @@ jobs:
           echo "${out_name}=$(cat "/tmp/detect-${out_name}.txt")" >> "$GITHUB_OUTPUT"
         }
         detect frontend build-frontend 'frontend/**' 'user-guide/**'
-        detect backend build-backend 'backend/**' '.github/workflows/ci.yml'
+        detect backend build-backend 'backend/**' '.github/workflows/ci.yml' '.github/scripts/resolve-backend-test-filter.py'
         # No build job in this workflow for mobile — use last successful CI run.
         detect mobile "" 'mobile/**'
         detect website build-website 'website/**'
@@ -111,6 +112,7 @@ jobs:
       uses: docker/setup-buildx-action@v4
 
     - name: Log in to the Container registry
+      if: github.event_name != 'pull_request'
       uses: docker/login-action@v4
       with:
         registry: ${{ env.REGISTRY }}
@@ -127,7 +129,7 @@ jobs:
       uses: docker/build-push-action@v7
       with:
         context: ./frontend
-        push: true
+        push: ${{ github.event_name != 'pull_request' }}
         tags: |
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-frontend:${{ github.sha }}
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-frontend:latest
@@ -143,11 +145,30 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
 
     - name: Set lowercase image name
       run: |
         # Ensure repository name is lowercase for Docker tags (GHCR requires lowercase repository names)
         echo "IMAGE_NAME_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+    - name: Resolve backend test scope (PR selective vs push full)
+      id: scope
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: |
+        set -euo pipefail
+        if [ "$EVENT_NAME" != "pull_request" ]; then
+          echo "Push event → running full backend verify + JaCoCo + Docker push (required by CD)"
+          echo "mode=full" >> "$GITHUB_OUTPUT"
+          echo "test_filter=" >> "$GITHUB_OUTPUT"
+          echo "dockerfile_changed=true" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        python3 .github/scripts/resolve-backend-test-filter.py >> "$GITHUB_OUTPUT"
 
     - name: Set up JDK 25
       uses: actions/setup-java@v5
@@ -156,11 +177,19 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Run backend quality gate
+    - name: Run backend quality gate (full)
+      if: steps.scope.outputs.mode == 'full'
       run: mvn -B verify --file backend/pom.xml
 
+    - name: Run backend selective module tests (PR)
+      if: steps.scope.outputs.mode == 'selective'
+      run: |
+        echo "Selective Spring Modulith test filter: ${{ steps.scope.outputs.test_filter }}"
+        mvn -B test -Djacoco.skip=true -Dsurefire.failIfNoSpecifiedTests=false \
+          -Dtest="${{ steps.scope.outputs.test_filter }}" --file backend/pom.xml
+
     - name: Publish JaCoCo coverage report
-      if: ${{ always() }}
+      if: ${{ always() && steps.scope.outputs.mode == 'full' }}
       uses: actions/upload-artifact@v6
       with:
         name: backend-jacoco-${{ github.run_id }}
@@ -168,11 +197,15 @@ jobs:
         if-no-files-found: warn
         retention-days: 14
 
-    # Docker Build & Push for Backend
+    # Docker Build & Push for Backend:
+    # - Always build & push on push (main, develop, release/**, prod/**) so CD resolves :${{ github.sha }}.
+    # - On pull_request, skip Docker unless Dockerfile/entrypoint changed (build only, push: false).
     - name: Set up Docker Buildx
+      if: github.event_name != 'pull_request' || steps.scope.outputs.dockerfile_changed == 'true'
       uses: docker/setup-buildx-action@v4
 
     - name: Log in to the Container registry
+      if: github.event_name != 'pull_request'
       uses: docker/login-action@v4
       with:
         registry: ${{ env.REGISTRY }}
@@ -180,16 +213,18 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Extract metadata (tags, labels) for Docker
+      if: github.event_name != 'pull_request' || steps.scope.outputs.dockerfile_changed == 'true'
       id: meta
       uses: docker/metadata-action@v6
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-backend
 
     - name: Build and push Docker image
+      if: github.event_name != 'pull_request' || steps.scope.outputs.dockerfile_changed == 'true'
       uses: docker/build-push-action@v7
       with:
         context: ./backend
-        push: true
+        push: ${{ github.event_name != 'pull_request' }}
         tags: |
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-backend:${{ github.sha }}
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-backend:latest
@@ -214,6 +249,7 @@ jobs:
       uses: docker/setup-buildx-action@v4
 
     - name: Log in to the Container registry
+      if: github.event_name != 'pull_request'
       uses: docker/login-action@v4
       with:
         registry: ${{ env.REGISTRY }}
@@ -230,7 +266,7 @@ jobs:
       uses: docker/build-push-action@v7
       with:
         context: ./website
-        push: true
+        push: ${{ github.event_name != 'pull_request' }}
         tags: |
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-website:${{ github.sha }}
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-website:latest

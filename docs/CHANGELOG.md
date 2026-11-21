@@ -9,11 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
-## Docs & Infra — 2026-11-21 (déploiement TEST dédié `migration-v4`)
+## Docs & Infra — 2026-11-21 (déploiement TEST dédié `migration-v4` & CI sélective PR)
 
 ### Added
 
 - **CI/CD (`.github/workflows/deploy-migration-v4-test.yml`) —** workflow autonome déclenché uniquement sur la branche `migration-v4` (et `workflow_dispatch` verrouillé sur `migration-v4`) pour builder/tester le backend Java 25 (`mvn -B verify` + image Docker `ghcr.io/aquila04/elykia-backend:<sha>` & `:migration-v4`, sans toucher au tag `:latest`), résoudre automatiquement la dernière image `frontend` publiée sur `main`, et déployer **exclusivement** sur l'environnement `test` (aucun job ni secret `prod`).
+- **CI PR sélective par module Spring Modulith (`.github/scripts/resolve-backend-test-filter.py`, `.github/workflows/ci.yml`) —** sur `pull_request`, calcule dynamiquement la fermeture transitive des modules impactés depuis les `package-info.java` et n'exécute que `ModularityTests` + les tests des modules modifiés et de leurs dépendants aval (bascule automatique en suite complète si un module socle ≥ 12 dépendants, `pom.xml`, `resources/`, `Dockerfile` ou un test `integration/` change). Désactive le `push` GHCR sur les `pull_request` (évite d'écraser `:latest` avant merge et économise le build Docker AOT sur PR) ; sur `push` (`main`, `develop`, `release/**`, `prod/**`), `ci.yml` conserve intégralement `mvn -B verify` + JaCoCo + `docker build/push` pour compatibilité 100 % avec `cd.yml` et `e2e.yml`.
 
 ## Docs & Infra — 2026-11-21 (refonte Monolithe Modulaire — CI/E2E & README)
 
