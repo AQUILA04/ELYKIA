@@ -20,6 +20,12 @@ export interface TontineReceiptLine {
   lineAmount?: string;
 }
 
+export interface TontineArticleReservation {
+  articleId: number;
+  reservedQuantity: number;
+  orderCount: number;
+}
+
 export interface TontineReceiptVerification {
   found: boolean;
   message?: string;
@@ -88,6 +94,15 @@ export class TontineDeliveryService {
       headers: this.getHeaders(),
       responseType: 'blob'
     });
+  }
+
+  /** Réservations indicatives du stock tontine d'un commercial : quantités déjà commandées par article. */
+  getStockReservations(commercial: string): Observable<ApiResponse<TontineArticleReservation[]>> {
+    const params = new HttpParams().set('commercial', commercial);
+    return this.http.get<ApiResponse<TontineArticleReservation[]>>(`${this.apiUrl}/reservations`, {
+      headers: this.getHeaders(),
+      params
+    }).pipe(catchError(this.handleError));
   }
 
   verifyReceipt(code: string): Observable<ApiResponse<TontineReceiptVerification>> {

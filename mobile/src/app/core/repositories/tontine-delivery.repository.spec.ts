@@ -117,3 +117,30 @@ describe('TontineDeliveryRepository findUnsynced', () => {
     expect(params).toEqual(['COM002', '2026-10-01', 20, 5]);
   });
 });
+
+describe('TontineDeliveryRepository reservedQuantitiesByArticle', () => {
+  let repository: TontineDeliveryRepository;
+  let databaseService: jasmine.SpyObj<DatabaseService>;
+
+  beforeEach(() => {
+    databaseService = jasmine.createSpyObj('DatabaseService', ['execute', 'executeSet', 'query']);
+    (databaseService as any)['db'] = {};
+    repository = new TontineDeliveryRepository(databaseService);
+  });
+
+  it('sums the quantities of the commercial undelivered orders per article', async () => {
+    databaseService.query.and.resolveTo({
+      values: [{ articleId: 11, quantity: 4 }, { articleId: '12', quantity: '2' }, { articleId: null, quantity: 9 }]
+    } as any);
+
+    const reserved = await repository.reservedQuantitiesByArticle('COM005');
+
+    expect(reserved.get('11')).toBe(4);
+    expect(reserved.get('12')).toBe(2);
+    expect(reserved.size).toBe(2);
+    const [sql, params] = databaseService.query.calls.mostRecent().args;
+    expect(sql).toMatch(/UPPER\(TRIM\(d\.status\)\) IN \('PENDING', 'VALIDATED'\)/);
+    expect(sql).toMatch(/GROUP BY i\.articleId/);
+    expect(params).toEqual(['COM005']);
+  });
+});

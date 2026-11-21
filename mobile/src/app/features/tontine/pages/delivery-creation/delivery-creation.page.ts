@@ -154,29 +154,66 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         this.catalogueHasMore$ = this.store.select(selectCatalogueHasMore);
     }
 
-    /** Session clôturée : le commercial choisit entre le catalogue (commande) et le stock tontine (remise). */
-    catalogueWhenClosed = false;
+    /**
+     * Filtre rapide des articles : le stock tontine du commercial ou le catalogue général.
+     * `null` : choix par défaut selon la session (ouverte → catalogue, clôturée → stock).
+     * Une commande choisie dans le stock ne le touche pas ; seule la remise le débite.
+     */
+    articleSource: 'STOCK' | 'CATALOGUE' | null = null;
 
-    /** Session ACTIVE → catalogue ; CLOSED → stock tontine par défaut, catalogue au choix (commande). */
-    get isCatalogueMode(): boolean {
-        const status = normalizeTontineStatus(this.vm.session?.status);
-        if (status === 'ACTIVE') {
-            return true;
+    get effectiveArticleSource(): 'STOCK' | 'CATALOGUE' {
+        if (this.articleSource) {
+            return this.articleSource;
         }
-        return status === 'CLOSED' && this.catalogueWhenClosed;
+        return normalizeTontineStatus(this.vm.session?.status) === 'CLOSED' ? 'STOCK' : 'CATALOGUE';
     }
 
-    get canChooseArticleSource(): boolean {
+    get isCatalogueMode(): boolean {
+        return this.effectiveArticleSource === 'CATALOGUE';
+    }
+
+    /** Session ouverte : commande seulement ; session clôturée : commande ou remise. */
+    get isSessionClosed(): boolean {
         return normalizeTontineStatus(this.vm.session?.status) === 'CLOSED';
     }
 
+    /** Le filtre s'affiche tant qu'une commande est possible (session ouverte ou clôturée). */
+    get canChooseArticleSource(): boolean {
+        return canCreateTontineOrder(this.vm.session?.status);
+    }
+
     onArticleSourceChange(event: any): void {
-        const wantsCatalogue = String(event?.detail?.value ?? '') === 'CATALOGUE';
-        if (wantsCatalogue === this.catalogueWhenClosed) {
+        const next = String(event?.detail?.value ?? '') === 'CATALOGUE' ? 'CATALOGUE' : 'STOCK';
+        if (next === this.effectiveArticleSource) {
             return;
         }
-        this.catalogueWhenClosed = wantsCatalogue;
+        this.articleSource = next;
         this.refreshArticleSource();
+    }
+
+    /** Quantités déjà commandées par article dans le stock tontine du commercial (indicatif). */
+    reservedByArticle = new Map<string, number>();
+
+    reservedFor(stock: TontineStock): number {
+        return this.reservedByArticle.get(String(stock.articleId)) ?? 0;
+    }
+
+    /** Stock disponible moins ce qui est déjà réservé par d'autres commandes, sans descendre sous zéro. */
+    freeFor(stock: TontineStock): number {
+        return Math.max(0, (stock.availableQuantity ?? 0) - this.reservedFor(stock));
+    }
+
+    private async loadReservations(): Promise<void> {
+        if (!this.commercialUsername) {
+            this.reservedByArticle = new Map();
+            return;
+        }
+        try {
+            this.reservedByArticle = await this.deliveryRepo.reservedQuantitiesByArticle(this.commercialUsername);
+        } catch (error) {
+            console.error('Error loading tontine stock reservations:', error);
+            this.reservedByArticle = new Map();
+        }
     }
 
     async ngOnInit() {
@@ -328,6 +365,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 searchQuery: this.currentSearchQuery
             }
         }));
+        void this.loadReservations();
     }
 
     loadMoreArticles(event: any) {
