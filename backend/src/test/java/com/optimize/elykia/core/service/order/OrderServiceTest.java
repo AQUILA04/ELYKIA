@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.order;
 
+import com.optimize.elykia.notification.api.AppNotificationFacade;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
@@ -13,7 +14,7 @@ import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.Order;
 import com.optimize.elykia.core.entity.sale.OrderItem;
-import com.optimize.elykia.core.enumaration.AppNotificationType;
+import com.optimize.elykia.notification.api.AppNotificationType;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import com.optimize.elykia.core.event.OrderCreatedEvent;
 import com.optimize.elykia.core.repository.OrderItemRepository;
@@ -65,7 +66,7 @@ class OrderServiceTest {
     @Mock private CreditService creditService;
     @Mock private OrderStatusHistoryRepository orderStatusHistoryRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
-    @Mock private com.optimize.elykia.core.service.notification.AppNotificationService appNotificationService;
+    @Mock private AppNotificationFacade appNotificationService;
     @Mock private com.optimize.elykia.core.service.customer.CustomerNotificationService customerNotificationService;
     @Mock private com.optimize.elykia.core.repository.StockRequestOrderLinkRepository stockRequestOrderLinkRepository;
     @Mock private Client client;
@@ -109,7 +110,7 @@ class OrderServiceTest {
         assertEquals(3_900.0, eventCaptor.getValue().getAmount());
         assertEquals("commercial.a", eventCaptor.getValue().getCollector());
         assertEquals(71L, eventCaptor.getValue().getOrderId());
-        verify(appNotificationService, never()).createCustomerOrder(any(), any());
+        verify(appNotificationService, never()).createCustomerOrder(any());
     }
 
     @Test
@@ -130,7 +131,12 @@ class OrderServiceTest {
         Order saved = service.createOrder(dto, com.optimize.elykia.core.enumaration.OrderSource.CUSTOMER_SPACE);
 
         assertEquals(com.optimize.elykia.core.enumaration.OrderSource.CUSTOMER_SPACE, saved.getSource());
-        verify(appNotificationService).createCustomerOrder(saved, client);
+        ArgumentCaptor<com.optimize.elykia.notification.api.CustomerOrderNotificationCommand> notifCaptor =
+                ArgumentCaptor.forClass(com.optimize.elykia.notification.api.CustomerOrderNotificationCommand.class);
+        verify(appNotificationService).createCustomerOrder(notifCaptor.capture());
+        assertEquals(72L, notifCaptor.getValue().orderId());
+        assertEquals(9L, notifCaptor.getValue().clientId());
+        assertEquals("commercial.a", notifCaptor.getValue().targetCollector());
     }
 
     @Test

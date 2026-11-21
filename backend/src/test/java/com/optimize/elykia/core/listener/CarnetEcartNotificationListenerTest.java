@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.listener;
 
+import com.optimize.elykia.notification.api.AppNotificationFacade;
 import com.optimize.elykia.core.event.CarnetEcartDetectedEvent;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 class CarnetEcartNotificationListenerTest {
 
     @Mock
-    private AppNotificationService appNotificationService;
+    private AppNotificationFacade appNotificationService;
 
     @InjectMocks
     private CarnetEcartNotificationListener listener;

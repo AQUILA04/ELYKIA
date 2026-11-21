@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.customer;
 
+import com.optimize.elykia.notification.api.AppNotificationFacade;
+import com.optimize.elykia.shared.security.CollectorAudienceSecurity;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
@@ -12,12 +14,11 @@ import com.optimize.elykia.core.dto.customer.CustomerTontineMmSubmissionDto;
 import com.optimize.elykia.core.entity.customer.CustomerPaymentProof;
 import com.optimize.elykia.core.entity.customer.CustomerTontineMmSubmission;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
-import com.optimize.elykia.core.enumaration.AppNotificationType;
+import com.optimize.elykia.notification.api.AppNotificationType;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
 import com.optimize.elykia.core.enumaration.PaymentProofLinkedType;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.customer.CustomerTontineMmSubmissionRepository;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,13 +41,13 @@ public class CustomerTontineMmSubmissionAdminService {
     private final ClientService clientService;
     private final TontineMemberRepository tontineMemberRepository;
     private final TontineService tontineService;
-    private final AppNotificationService appNotificationService;
+    private final AppNotificationFacade appNotificationService;
     private final CustomerNotificationService customerNotificationService;
     private final PaymentProofService paymentProofService;
 
     @Transactional(readOnly = true)
     public Page<CustomerTontineMmSubmissionDto> list(User user, CustomerSubmissionStatus status, Pageable pageable) {
-        AppNotificationService.assertAudienceOrThrow(user);
+        CollectorAudienceSecurity.assertAudienceOrThrow(user);
         CustomerSubmissionStatus effectiveStatus = status != null ? status : CustomerSubmissionStatus.INITIE;
         Page<CustomerTontineMmSubmission> page = submissionRepository.findByStatusOptional(
                 effectiveStatus, State.ENABLED, pageable);
@@ -61,8 +62,8 @@ public class CustomerTontineMmSubmissionAdminService {
         for (CustomerTontineMmSubmission submission : page.getContent()) {
             Client client = clientsById.get(submission.getClientId());
             String tontineCollector = client != null ? client.getTontineCollector() : null;
-            if (AppNotificationService.isPromoterOnly(user)
-                    && !AppNotificationService.matchesPromoterAudience(
+            if (CollectorAudienceSecurity.isPromoterOnly(user)
+                    && !AppNotificationFacade.matchesPromoterAudience(
                     user,
                     AppNotificationType.TONTINE_PAYMENT_DECLARATION,
                     tontineCollector,
@@ -75,7 +76,7 @@ public class CustomerTontineMmSubmissionAdminService {
     }
 
     public CustomerTontineMmSubmissionDto validate(User user, Long id) {
-        AppNotificationService.assertAudienceOrThrow(user);
+        CollectorAudienceSecurity.assertAudienceOrThrow(user);
         CustomerTontineMmSubmission submission = submissionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Soumission tontine introuvable."));
         if (submission.getStatus() != CustomerSubmissionStatus.INITIE) {
@@ -84,8 +85,8 @@ public class CustomerTontineMmSubmissionAdminService {
 
         Client client = clientService.getById(submission.getClientId());
         String tontineCollector = client != null ? client.getTontineCollector() : null;
-        if (AppNotificationService.isPromoterOnly(user)
-                && !AppNotificationService.matchesPromoterAudience(
+        if (CollectorAudienceSecurity.isPromoterOnly(user)
+                && !AppNotificationFacade.matchesPromoterAudience(
                 user,
                 AppNotificationType.TONTINE_PAYMENT_DECLARATION,
                 tontineCollector,
@@ -163,7 +164,7 @@ public class CustomerTontineMmSubmissionAdminService {
     }
 
     public CustomerTontineMmSubmissionDto reject(User user, Long id) {
-        AppNotificationService.assertAudienceOrThrow(user);
+        CollectorAudienceSecurity.assertAudienceOrThrow(user);
         CustomerTontineMmSubmission submission = submissionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Soumission tontine introuvable."));
         if (submission.getStatus() != CustomerSubmissionStatus.INITIE) {
@@ -172,8 +173,8 @@ public class CustomerTontineMmSubmissionAdminService {
 
         Client client = clientService.getById(submission.getClientId());
         String tontineCollector = client != null ? client.getTontineCollector() : null;
-        if (AppNotificationService.isPromoterOnly(user)
-                && !AppNotificationService.matchesPromoterAudience(
+        if (CollectorAudienceSecurity.isPromoterOnly(user)
+                && !AppNotificationFacade.matchesPromoterAudience(
                 user,
                 AppNotificationType.TONTINE_PAYMENT_DECLARATION,
                 tontineCollector,
@@ -210,13 +211,13 @@ public class CustomerTontineMmSubmissionAdminService {
 
     @Transactional(readOnly = true)
     public PaymentProofService.ProofDownload downloadProof(User user, Long id) {
-        AppNotificationService.assertAudienceOrThrow(user);
+        CollectorAudienceSecurity.assertAudienceOrThrow(user);
         CustomerTontineMmSubmission submission = submissionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Soumission tontine introuvable."));
         Client client = clientService.getById(submission.getClientId());
         String tontineCollector = client != null ? client.getTontineCollector() : null;
-        if (AppNotificationService.isPromoterOnly(user)
-                && !AppNotificationService.matchesPromoterAudience(
+        if (CollectorAudienceSecurity.isPromoterOnly(user)
+                && !AppNotificationFacade.matchesPromoterAudience(
                 user,
                 AppNotificationType.TONTINE_PAYMENT_DECLARATION,
                 tontineCollector,

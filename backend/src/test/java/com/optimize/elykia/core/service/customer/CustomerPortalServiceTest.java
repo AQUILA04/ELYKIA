@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.customer;
 
+import com.optimize.elykia.notification.api.AppNotificationFacade;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.client.entity.Client;
@@ -30,7 +31,6 @@ import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
 import com.optimize.elykia.core.service.adhesion.AdhesionService;
 import com.optimize.elykia.core.service.adhesion.CustomerAdhesionRequestService;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.store.ArticlePhotoService;
 import com.optimize.elykia.core.service.store.ArticlePhotoView;
@@ -79,7 +79,7 @@ class CustomerPortalServiceTest {
     @Mock private TontineSessionRepository tontineSessionRepository;
     @Mock private TontineService tontineService;
     @Mock private CommercialMobileMoneyConfigService commercialMobileMoneyConfigService;
-    @Mock private com.optimize.elykia.core.service.notification.AppNotificationService appNotificationService;
+    @Mock private AppNotificationFacade appNotificationService;
     @Mock private com.optimize.elykia.core.repository.customer.CustomerTontineMmSubmissionRepository tontineMmSubmissionRepository;
     @Mock private CustomerOnboardingService onboardingService;
     @Mock private TontineAmountHistoryHelper tontineAmountHistoryHelper;
@@ -201,7 +201,8 @@ class CustomerPortalServiceTest {
         assertEquals(77L, saved.getTontineMemberId());
         assertEquals(500.0, saved.getExpectedAmount());
         assertEquals(CustomerSubmissionStatus.INITIE, saved.getStatus());
-        verify(appNotificationService).createTontinePaymentDeclaration(any(CustomerTontineMmSubmission.class), eq(activeClient));
+        verify(appNotificationService).createTontinePaymentDeclaration(
+                any(com.optimize.elykia.notification.api.TontinePaymentDeclarationNotificationCommand.class));
     }
 
     @Test

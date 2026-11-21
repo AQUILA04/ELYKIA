@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.service.sale;
 
 import com.optimize.elykia.client.service.ClientService;
-import com.optimize.elykia.core.event.InProgressCreditsTransferEvent;
+import com.optimize.elykia.client.event.InProgressCreditsTransferEvent;
 import com.optimize.elykia.core.repository.CreditCollectorHistoryRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import lombok.RequiredArgsConstructor;

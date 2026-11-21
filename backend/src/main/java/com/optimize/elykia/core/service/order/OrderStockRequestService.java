@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.order;
 
+import com.optimize.elykia.shared.security.CollectorAudienceSecurity;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
@@ -14,7 +15,6 @@ import com.optimize.elykia.core.entity.stock.StockRequestOrderLink;
 import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import com.optimize.elykia.core.repository.OrderRepository;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.repository.StockRequestOrderLinkRepository;
 import com.optimize.elykia.core.service.stock.StockRequestService;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
@@ -108,7 +108,7 @@ public class OrderStockRequestService {
         User currentUser = userService.getCurrentUser();
         assertCanRequestStock(currentUser);
         String collector = "";
-        if (AppNotificationService.isPromoterOnly(currentUser)) {
+        if (CollectorAudienceSecurity.isPromoterOnly(currentUser)) {
             collector = currentUser.getUsername() == null ? "" : currentUser.getUsername().trim();
             if (!StringUtils.hasText(collector)) {
                 throw new CustomValidationException("Commercial introuvable.");

@@ -47,7 +47,7 @@ class CustomerRegistrationServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private AuthenticationManager authenticationManager;
     @Mock private JwtUtils jwtUtils;
-    @Mock private com.optimize.elykia.core.repository.LocalityRepository localityRepository;
+    @Mock private com.optimize.elykia.organization.infrastructure.persistence.LocalityRepository localityRepository;
 
     @InjectMocks
     private CustomerRegistrationService service;

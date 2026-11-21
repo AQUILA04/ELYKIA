@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.portfolio;
 
+import com.optimize.elykia.shared.security.CollectorAudienceSecurity;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
@@ -29,7 +30,6 @@ import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -82,7 +82,7 @@ public class FormerPortfolioService {
         String commercial = resolveHistoryCommercial(requestedCommercial);
         TontineMember member = loadMember(memberId);
         User user = userService.getCurrentUser();
-        if (AppNotificationService.isPromoterOnly(user)) {
+        if (CollectorAudienceSecurity.isPromoterOnly(user)) {
             if (decideTontine(user, member) != FormerPortfolioAccess.Level.FORMER) {
                 throw new CustomValidationException(NOT_FORMER);
             }
@@ -185,9 +185,9 @@ public class FormerPortfolioService {
     }
 
     private FormerPortfolioAccess.Level decideTontine(User user, TontineMember member) {
-        boolean promoterOnly = AppNotificationService.isPromoterOnly(user);
+        boolean promoterOnly = CollectorAudienceSecurity.isPromoterOnly(user);
         String collector = member.getClient() == null ? null : member.getClient().getTontineCollector();
-        boolean current = AppNotificationService.matchesTontineCollector(user, collector);
+        boolean current = CollectorAudienceSecurity.matchesTontineCollector(user, collector);
         boolean former = false;
         if (promoterOnly && !current && user != null && StringUtils.hasText(user.getUsername())) {
             String commercial = user.getUsername();
@@ -204,12 +204,12 @@ public class FormerPortfolioService {
     }
 
     private FormerPortfolioAccess.Level decideCredit(User user, Credit credit) {
-        boolean promoterOnly = AppNotificationService.isPromoterOnly(user);
+        boolean promoterOnly = CollectorAudienceSecurity.isPromoterOnly(user);
         boolean cash = credit.getType() == OperationType.CASH;
         String holder = cash
                 ? (credit.getClient() == null ? null : credit.getClient().getAgencyCollector())
                 : credit.getCollector();
-        boolean current = AppNotificationService.matchesCreditCollector(user, holder);
+        boolean current = CollectorAudienceSecurity.matchesCreditCollector(user, holder);
         boolean former = false;
         if (promoterOnly && !current && user != null && StringUtils.hasText(user.getUsername())) {
             String commercial = user.getUsername();
@@ -406,7 +406,7 @@ public class FormerPortfolioService {
         if (user == null || !StringUtils.hasText(user.getUsername())) {
             throw new CustomValidationException(PROMOTER_ONLY);
         }
-        if (AppNotificationService.isPromoterOnly(user)) {
+        if (CollectorAudienceSecurity.isPromoterOnly(user)) {
             return user.getUsername();
         }
         if (!canConsultAnotherCommercial(user)) {
@@ -453,7 +453,7 @@ public class FormerPortfolioService {
 
     private User requirePromoter() {
         User user = userService.getCurrentUser();
-        if (!AppNotificationService.isPromoterOnly(user)) {
+        if (!CollectorAudienceSecurity.isPromoterOnly(user)) {
             throw new CustomValidationException(PROMOTER_ONLY);
         }
         return user;

@@ -7,7 +7,7 @@ import com.optimize.elykia.core.dto.TontineCollectionResetRunDto;
 import com.optimize.elykia.core.entity.report.TontineCollectionResetLine;
 import com.optimize.elykia.core.entity.report.TontineCollectionResetRun;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
-import com.optimize.elykia.core.enumaration.AppNotificationType;
+import com.optimize.elykia.notification.api.AppNotificationType;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.TontineCollectionResetRunStatus;
 import com.optimize.elykia.core.enumaration.TontineCollectionResetScope;
@@ -18,7 +18,7 @@ import com.optimize.elykia.core.repository.TontineCollectionResetLineRepository;
 import com.optimize.elykia.core.repository.TontineCollectionResetRunRepository;
 import com.optimize.elykia.core.repository.TontineCommercialCollectionVoidStore;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
-import com.optimize.elykia.core.repository.notification.AppNotificationRepository;
+import com.optimize.elykia.notification.api.AppNotificationFacade;
 import com.optimize.elykia.core.service.report.DailyOperationService;
 import com.optimize.elykia.core.service.report.DailyTontineReportReconciler;
 import com.optimize.elykia.core.service.report.monthly.MonthlyReportStorageService;
@@ -72,7 +72,7 @@ class TontineCommercialCollectionVoidServiceTest {
     @Mock
     private DailyOperationService dailyOperationService;
     @Mock
-    private AppNotificationRepository appNotificationRepository;
+    private AppNotificationFacade appNotificationFacade;
     @Mock
     private TontineCatchupNotificationRepository catchupNotificationRepository;
     @Mock
@@ -97,7 +97,7 @@ class TontineCommercialCollectionVoidServiceTest {
                 store,
                 dailyTontineReportReconciler,
                 dailyOperationService,
-                appNotificationRepository,
+                appNotificationFacade,
                 catchupNotificationRepository,
                 pdfService,
                 storageService,
@@ -163,8 +163,8 @@ class TontineCommercialCollectionVoidServiceTest {
         verify(tontineService).refreshSessionRevenue(10L);
         verify(storageService).upload(eq("key/alice.pdf"), aryEq(new byte[]{1}));
         verify(fileRepository).save(any());
-        verify(appNotificationRepository).cancelUnresolvedByTypeAndEntityIds(
-                eq(AppNotificationType.TONTINE_CATCHUP), eq(List.of(11L, 12L)), any());
+        verify(appNotificationFacade).cancelUnresolvedByTypeAndEntityIds(
+                AppNotificationType.TONTINE_CATCHUP, List.of(11L, 12L));
         verify(catchupNotificationRepository).cancelByCollectionIds(List.of(11L, 12L));
         verify(dailyOperationService).logOperationInCurrentTransaction(
                 eq("alice"),

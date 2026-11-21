@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.listener;
 
+import com.optimize.elykia.notification.api.AppNotificationFacade;
 import com.optimize.elykia.core.event.CarnetEcartDetectedEvent;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,7 +17,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 @Slf4j
 public class CarnetEcartNotificationListener {
 
-    private final AppNotificationService appNotificationService;
+    private final AppNotificationFacade appNotificationService;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onCarnetEcartDetected(CarnetEcartDetectedEvent event) {

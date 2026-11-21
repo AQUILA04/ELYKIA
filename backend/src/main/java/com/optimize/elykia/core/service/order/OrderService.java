@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.order;
 
+import com.optimize.elykia.notification.api.AppNotificationFacade;
+import com.optimize.elykia.shared.security.CollectorAudienceSecurity;
 import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
@@ -12,14 +14,13 @@ import com.optimize.elykia.core.entity.sale.Order;
 import com.optimize.elykia.core.entity.sale.OrderItem;
 import com.optimize.common.securities.models.User;
 import com.optimize.elykia.core.entity.stock.StockRequestOrderLink;
-import com.optimize.elykia.core.enumaration.AppNotificationType;
+import com.optimize.elykia.notification.api.AppNotificationType;
 import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.repository.OrderItemRepository;
 import com.optimize.elykia.core.repository.OrderRepository;
 import com.optimize.elykia.core.repository.StockRequestOrderLinkRepository;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.customer.CustomerNotificationService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.sale.CreditService;
@@ -61,7 +62,7 @@ public class OrderService extends GenericService<Order, Long> {
     private final CreditService creditService;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
-    private final AppNotificationService appNotificationService;
+    private final AppNotificationFacade appNotificationService;
     private final CustomerNotificationService customerNotificationService;
     private final StockRequestOrderLinkRepository stockRequestOrderLinkRepository;
 
@@ -74,7 +75,7 @@ public class OrderService extends GenericService<Order, Long> {
             CreditService creditService,
             OrderStatusHistoryRepository orderStatusHistoryRepository,
             org.springframework.context.ApplicationEventPublisher eventPublisher,
-            AppNotificationService appNotificationService,
+            AppNotificationFacade appNotificationService,
             CustomerNotificationService customerNotificationService,
             StockRequestOrderLinkRepository stockRequestOrderLinkRepository) {
         super(repository);
@@ -257,7 +258,7 @@ public class OrderService extends GenericService<Order, Long> {
 
     private String resolveListCollector(String commercial) {
         User currentUser = userService.getCurrentUser();
-        if (AppNotificationService.isPromoterOnly(currentUser)) {
+        if (CollectorAudienceSecurity.isPromoterOnly(currentUser)) {
             return currentUser.getUsername() == null ? "" : currentUser.getUsername().trim();
         }
         return StringUtils.hasText(commercial) ? commercial.trim() : "";
@@ -443,7 +444,14 @@ public class OrderService extends GenericService<Order, Long> {
         }
 
         if (savedOrder.getSource() == OrderSource.CUSTOMER_SPACE) {
-            appNotificationService.createCustomerOrder(savedOrder, client);
+            appNotificationService.createCustomerOrder(new com.optimize.elykia.notification.api.CustomerOrderNotificationCommand(
+                    savedOrder.getId(),
+                    savedOrder.getOrderDate() != null ? savedOrder.getOrderDate().toLocalDate() : null,
+                    savedOrder.getTotalAmount(),
+                    client.getId(),
+                    client.getFullName(),
+                    client.getCollector(),
+                    client.getTontineCollector()));
         }
         clientService.updateOrderStatus(client.getId(), Boolean.TRUE);
 
@@ -451,12 +459,12 @@ public class OrderService extends GenericService<Order, Long> {
     }
 
     void assertOrderPortfolioAccess(User user, Order order) {
-        if (!AppNotificationService.isPromoterOnly(user)) {
+        if (!CollectorAudienceSecurity.isPromoterOnly(user)) {
             return;
         }
         Client client = order.getClient();
         String collector = client != null ? client.getCollector() : null;
-        if (!AppNotificationService.matchesCreditCollector(user, collector)) {
+        if (!CollectorAudienceSecurity.matchesCreditCollector(user, collector)) {
             throw new CustomValidationException("Accès non autorisé à cette commande.");
         }
     }

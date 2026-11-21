@@ -13,7 +13,7 @@ import com.optimize.elykia.core.dto.report.cockpit.CommercialReconciliationLineD
 import com.optimize.elykia.core.dto.report.cockpit.CommercialReportSummaryDto;
 import com.optimize.elykia.core.dto.report.cockpit.CommercialReportSummaryDto.DailyPoint;
 import com.optimize.elykia.core.dto.report.cockpit.TeamYearlySummaryDto;
-import com.optimize.elykia.core.config.CacheNames;
+import com.optimize.elykia.shared.cache.CacheNames;
 import com.optimize.elykia.core.entity.expense.Expense;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;

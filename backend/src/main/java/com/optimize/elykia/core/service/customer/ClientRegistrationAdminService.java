@@ -20,10 +20,10 @@ import com.optimize.elykia.core.dto.customer.CustomerInitialDepositRejectRequest
 import com.optimize.elykia.core.entity.customer.CustomerInitialDepositSubmission;
 import com.optimize.elykia.core.entity.customer.CustomerPaymentProof;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
-import com.optimize.elykia.core.entity.Locality;
+import com.optimize.elykia.organization.domain.Locality;
 import com.optimize.elykia.core.enumaration.PaymentProofLinkedType;
 import com.optimize.elykia.core.repository.customer.CustomerInitialDepositSubmissionRepository;
-import com.optimize.elykia.core.service.masterdata.LocalityService;
+import com.optimize.elykia.organization.application.LocalityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

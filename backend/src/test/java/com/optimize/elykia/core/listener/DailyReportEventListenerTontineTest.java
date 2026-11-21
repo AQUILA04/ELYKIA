@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.listener;
 
+import com.optimize.elykia.notification.api.AppNotificationFacade;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.event.TontineCollectionCancelledEvent;
@@ -37,7 +38,7 @@ class DailyReportEventListenerTontineTest {
     @Mock
     private TontineCatchupNotificationService tontineCatchupNotificationService;
     @Mock
-    private com.optimize.elykia.core.service.notification.AppNotificationService appNotificationService;
+    private AppNotificationFacade appNotificationService;
 
     @InjectMocks
     private DailyReportEventListener listener;

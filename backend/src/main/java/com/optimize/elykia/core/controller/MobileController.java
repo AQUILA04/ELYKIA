@@ -10,7 +10,7 @@ import com.optimize.elykia.core.mapper.RecoveryMapper;
 import com.optimize.elykia.core.mapper.TransactionMapper;
 import com.optimize.elykia.core.service.util.MobileTransactionService;
 import com.optimize.elykia.core.service.util.RecoveryService;
-import com.optimize.elykia.core.service.commercial.CommercialDataSummaryService;
+import com.optimize.elykia.organization.application.CommercialDataSummaryService;
 import com.optimize.elykia.core.service.sale.CreditTimelineService;
 import com.optimize.elykia.core.service.sale.ClientReliquatService;
 import com.optimize.elykia.core.dto.ReliquatSyncDto;

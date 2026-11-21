@@ -6,7 +6,7 @@ import com.optimize.elykia.core.dto.BulkCountResult;
 import com.optimize.elykia.core.dto.CreateDeliveryDto;
 import com.optimize.elykia.core.dto.ValidateTontineDeliveriesDto;
 import com.optimize.elykia.core.dto.UpdateDeliveryItemsDto;
-import com.optimize.elykia.core.dto.ElasticSearchWrapper;
+import com.optimize.elykia.shared.web.ElasticSearchWrapper;
 import com.optimize.elykia.core.dto.TontineDeliveryDto;
 import com.optimize.elykia.core.enumaration.TontineDeliveryConflictOutcome;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryService;

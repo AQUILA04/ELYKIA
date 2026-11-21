@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.user;
 
+
+import com.optimize.elykia.organization.application.UserManagement;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.shared.security.UserProfilConstant;

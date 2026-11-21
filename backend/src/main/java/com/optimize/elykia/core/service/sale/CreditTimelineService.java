@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.sale;
 
+import com.optimize.elykia.shared.security.CollectorAudienceSecurity;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
@@ -7,7 +8,6 @@ import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.service.ClientService;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.dto.CollectorDailyStakeDto;
 import com.optimize.elykia.core.dto.CreditTimelineDto;
 import com.optimize.elykia.core.dto.CreditTimelineMobileDto;
@@ -128,7 +128,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
     private CreditTimeline doMakeDailyStake(CreditTimelineDto dto) {
         Credit credit = creditService.getById(dto.getCreditId());
-        AppNotificationService.assertPromoterOwnsCreditCollector(
+        CollectorAudienceSecurity.assertPromoterOwnsCreditCollector(
                 userService.getCurrentUser(), credit.getCollector());
         applyAutoReliquatForClosure(dto, credit);
 
@@ -456,7 +456,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         }
 
         Credit credit = creditOptional.get();
-        AppNotificationService.assertPromoterOwnsCreditCollector(
+        CollectorAudienceSecurity.assertPromoterOwnsCreditCollector(
                 userService.getCurrentUser(), credit.getCollector());
         Double stakeAmount = amount;
         if (isNormalStake) {

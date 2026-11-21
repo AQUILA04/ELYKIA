@@ -16,7 +16,8 @@ class ModularityTests {
     void verifiesModularStructure() {
         MODULES.verify();
         var expected = java.util.List.of(
-                "entities", "securities", "client", "shared", "recruitment", "ai", "apprelease", "core");
+                "entities", "securities", "client", "shared", "notification", "organization",
+                "recruitment", "ai", "apprelease", "core");
         assertEquals(expected.size(), MODULES.stream().count());
         for (String name : expected) {
             var module = MODULES.getModuleByName(name);

@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.entity.agency;
 
+
+import com.optimize.elykia.organization.domain.Agency;
 import com.optimize.common.entities.entity.BaseEntity;
 import com.optimize.elykia.core.enumaration.WeekStatus;
 import jakarta.persistence.*;

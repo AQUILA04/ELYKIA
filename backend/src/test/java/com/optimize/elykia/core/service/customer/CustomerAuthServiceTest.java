@@ -18,7 +18,7 @@ import com.optimize.elykia.core.dto.customer.CustomerOtpVerifyResponse;
 import com.optimize.elykia.core.dto.customer.CustomerPhoneRequest;
 import com.optimize.elykia.core.dto.customer.CustomerRegisterRequest;
 import com.optimize.elykia.core.dto.customer.CustomerSetupPinRequest;
-import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendResponse;
+import com.optimize.elykia.notification.api.NotificationHubOtpModels.OtpSendResponse;
 import com.optimize.elykia.shared.util.PhoneNormalizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,7 +62,7 @@ class CustomerAuthServiceTest {
     @Mock private ClientRepository clientRepository;
     @Mock private CustomerRegistrationService customerRegistrationService;
     @Mock private CustomerActivityLogService activityLogService;
-    @Mock private com.optimize.elykia.core.service.masterdata.LocalityService localityService;
+    @Mock private com.optimize.elykia.organization.application.LocalityService localityService;
 
     @InjectMocks
     private CustomerAuthService customerAuthService;
@@ -74,10 +74,10 @@ class CustomerAuthServiceTest {
 
     @Test
     void listLocalities_returnsSortedNames() {
-        com.optimize.elykia.core.entity.Locality b = new com.optimize.elykia.core.entity.Locality();
+        com.optimize.elykia.organization.domain.Locality b = new com.optimize.elykia.organization.domain.Locality();
         b.setId(2L);
         b.setName("Bè");
-        com.optimize.elykia.core.entity.Locality a = new com.optimize.elykia.core.entity.Locality();
+        com.optimize.elykia.organization.domain.Locality a = new com.optimize.elykia.organization.domain.Locality();
         a.setId(1L);
         a.setName("Agoè");
         when(localityService.getAll()).thenReturn(java.util.List.of(b, a));

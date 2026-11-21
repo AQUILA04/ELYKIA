@@ -4,7 +4,7 @@ import com.optimize.common.securities.models.User;
 import com.optimize.elykia.core.config.CustomerMobileMoneyProperties;
 import com.optimize.elykia.core.entity.customer.CommercialMobileMoneyConfig;
 import com.optimize.elykia.core.repository.customer.CommercialMobileMoneyConfigRepository;
-import com.optimize.elykia.core.service.user.UserManagement;
+import com.optimize.elykia.organization.application.UserManagement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

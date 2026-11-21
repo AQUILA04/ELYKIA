@@ -9,7 +9,7 @@ import com.optimize.elykia.core.dto.customer.CommercialMobileMoneyConfigUpsertDt
 import com.optimize.elykia.core.dto.customer.CustomerMobileMoneyRecipientDto;
 import com.optimize.elykia.core.entity.customer.CommercialMobileMoneyConfig;
 import com.optimize.elykia.core.repository.customer.CommercialMobileMoneyConfigRepository;
-import com.optimize.elykia.core.service.user.UserManagement;
+import com.optimize.elykia.organization.application.UserManagement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

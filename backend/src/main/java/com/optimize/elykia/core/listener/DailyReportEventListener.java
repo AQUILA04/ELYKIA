@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.listener;
 
+import com.optimize.elykia.notification.api.AppNotificationFacade;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.event.*;
 import com.optimize.elykia.core.event.CreditCollectionEvent;
@@ -28,7 +29,7 @@ public class DailyReportEventListener {
         private final DailyCommercialReportPersistence reportPersistence;
         private final DailyOperationService dailyOperationService;
         private final TontineCatchupNotificationService tontineCatchupNotificationService;
-        private final com.optimize.elykia.core.service.notification.AppNotificationService appNotificationService;
+        private final AppNotificationFacade appNotificationService;
 
         @EventListener
         @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -364,7 +365,14 @@ public class DailyReportEventListener {
                         captureReport.setTontineCatchupCount(catchupCount + 1);
                         captureReport.setTontineCatchupAmount(catchupAmount + amount);
                         reportPersistence.save(captureReport);
-                        appNotificationService.createFromCatchupEvent(event);
+                        appNotificationService.createFromCatchupEvent(new com.optimize.elykia.notification.api.TontineCatchupNotificationCommand(
+                                        event.isCatchup(),
+                                        event.getCollectionId(),
+                                        event.getCollectionReference(),
+                                        event.getClientName(),
+                                        event.getCollector(),
+                                        event.getOperationDate(),
+                                        event.getAmount()));
                         tontineCatchupNotificationService.createFromCatchupEvent(event);
                 }
 

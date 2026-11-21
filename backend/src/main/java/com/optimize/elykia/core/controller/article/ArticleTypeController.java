@@ -4,7 +4,7 @@ import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.ArticleTypeDto;
 import com.optimize.elykia.core.entity.article.ArticleType;
-import com.optimize.elykia.core.service.store.ArticlePhotoBytes;
+import com.optimize.elykia.client.storage.ArticlePhotoBytes;
 import com.optimize.elykia.core.service.store.ArticlePhotoService;
 import com.optimize.elykia.core.service.store.ArticleTypeService;
 import io.swagger.v3.oas.annotations.Operation;

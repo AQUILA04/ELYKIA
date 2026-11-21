@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.customer;
 
+import com.optimize.elykia.notification.api.AppNotificationFacade;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.elykia.client.entity.Client;
@@ -38,7 +39,6 @@ import com.optimize.elykia.core.repository.CreditArticlesRepository;
 import com.optimize.elykia.core.service.adhesion.AdhesionService;
 import com.optimize.elykia.core.service.adhesion.CustomerAdhesionRequestService;
 import com.optimize.elykia.core.service.order.OrderService;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.store.ArticlePhotoService;
 import com.optimize.elykia.core.service.store.ArticlePhotoView;
 import com.optimize.elykia.core.service.store.ArticlesService;
@@ -80,7 +80,7 @@ public class CustomerPortalService {
     private final TontineSessionRepository tontineSessionRepository;
     private final TontineService tontineService;
     private final CommercialMobileMoneyConfigService commercialMobileMoneyConfigService;
-    private final AppNotificationService appNotificationService;
+    private final AppNotificationFacade appNotificationService;
     private final CustomerTontineMmSubmissionRepository tontineMmSubmissionRepository;
     private final CustomerOnboardingService customerOnboardingService;
     private final TontineAmountHistoryHelper tontineAmountHistoryHelper;
@@ -421,7 +421,15 @@ public class CustomerPortalService {
         }
         submission = tontineMmSubmissionRepository.save(submission);
         paymentProofService.link(proof, PaymentProofLinkedType.TONTINE, submission.getId());
-        appNotificationService.createTontinePaymentDeclaration(submission, client);
+        appNotificationService.createTontinePaymentDeclaration(
+                new com.optimize.elykia.notification.api.TontinePaymentDeclarationNotificationCommand(
+                        submission.getId(),
+                        submission.getMobileMoneyReference(),
+                        submission.getMobileMoneyAmount(),
+                        submission.getOperationDate(),
+                        client.getId(),
+                        client.getFullName(),
+                        client.getTontineCollector()));
         return submission;
     }
 
@@ -480,7 +488,19 @@ public class CustomerPortalService {
         submission = submissionRepository.save(submission);
         paymentProofService.link(proof, PaymentProofLinkedType.CREDIT, submission.getId());
 
-        appNotificationService.createPaymentDeclaration(submission, credit, client);
+        String targetCollector = org.springframework.util.StringUtils.hasText(credit.getCollector())
+                ? credit.getCollector()
+                : client.getCollector();
+        appNotificationService.createPaymentDeclaration(
+                new com.optimize.elykia.notification.api.PaymentDeclarationNotificationCommand(
+                        submission.getId(),
+                        submission.getMobileMoneyReference(),
+                        submission.getInstallmentNumber(),
+                        submission.getMobileMoneyAmount(),
+                        client.getId(),
+                        client.getFullName(),
+                        targetCollector,
+                        client.getTontineCollector()));
 
         return CustomerRecoveryDto.builder()
                 .id(String.valueOf(submission.getId()))

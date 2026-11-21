@@ -1,9 +1,9 @@
 package com.optimize.elykia.core.service.customer;
 
+import com.optimize.elykia.shared.security.CollectorAudienceSecurity;
 import com.optimize.common.securities.models.User;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -38,7 +38,7 @@ final class SubmissionAdminSupport {
     }
 
     static <T> Page<T> pageForAudience(User user, List<T> filtered, Pageable pageable, long totalWhenStaff) {
-        if (AppNotificationService.isPromoterOnly(user)) {
+        if (CollectorAudienceSecurity.isPromoterOnly(user)) {
             return new PageImpl<>(filtered, pageable, filtered.size());
         }
         return new PageImpl<>(filtered, pageable, totalWhenStaff);

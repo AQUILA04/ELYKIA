@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.customer;
 
+import com.optimize.elykia.notification.api.AppNotificationFacade;
+import com.optimize.elykia.shared.security.CollectorAudienceSecurity;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
@@ -12,12 +14,11 @@ import com.optimize.elykia.core.entity.customer.CustomerMobileMoneySubmission;
 import com.optimize.elykia.core.entity.customer.CustomerPaymentProof;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditTimeline;
-import com.optimize.elykia.core.enumaration.AppNotificationType;
+import com.optimize.elykia.notification.api.AppNotificationType;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
 import com.optimize.elykia.core.enumaration.PaymentProofLinkedType;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.sale.CreditTimelineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,14 +43,14 @@ public class CustomerMobileMoneySubmissionAdminService {
     private final CustomerMobileMoneySubmissionRepository submissionRepository;
     private final CreditRepository creditRepository;
     private final ClientService clientService;
-    private final AppNotificationService appNotificationService;
+    private final AppNotificationFacade appNotificationService;
     private final CreditTimelineService creditTimelineService;
     private final CustomerNotificationService customerNotificationService;
     private final PaymentProofService paymentProofService;
 
     @Transactional(readOnly = true)
     public Page<CustomerMobileMoneySubmissionDto> list(User user, CustomerSubmissionStatus status, Pageable pageable) {
-        AppNotificationService.assertAudienceOrThrow(user);
+        CollectorAudienceSecurity.assertAudienceOrThrow(user);
         CustomerSubmissionStatus effectiveStatus = status != null ? status : CustomerSubmissionStatus.INITIE;
         Page<CustomerMobileMoneySubmission> page = submissionRepository.findByStatusOptional(
                 effectiveStatus, State.ENABLED, pageable);
@@ -70,8 +71,8 @@ public class CustomerMobileMoneySubmissionAdminService {
             Credit credit = creditsById.get(submission.getCreditId());
             String targetCollector = resolveCollector(credit, client);
             String tontineCollector = client != null ? client.getTontineCollector() : null;
-            if (AppNotificationService.isPromoterOnly(user)
-                    && !AppNotificationService.matchesCreditCollector(user, targetCollector)) {
+            if (CollectorAudienceSecurity.isPromoterOnly(user)
+                    && !CollectorAudienceSecurity.matchesCreditCollector(user, targetCollector)) {
                 continue;
             }
             dtos.add(toDto(submission, client, targetCollector, tontineCollector));
@@ -81,7 +82,7 @@ public class CustomerMobileMoneySubmissionAdminService {
     }
 
     public CustomerMobileMoneySubmissionDto validate(User user, Long id) {
-        AppNotificationService.assertAudienceOrThrow(user);
+        CollectorAudienceSecurity.assertAudienceOrThrow(user);
         CustomerMobileMoneySubmission submission = loadInitiated(id);
         Client client = clientService.getById(submission.getClientId());
         Credit credit = creditRepository.findById(submission.getCreditId())
@@ -145,7 +146,7 @@ public class CustomerMobileMoneySubmissionAdminService {
     }
 
     public CustomerMobileMoneySubmissionDto reject(User user, Long id) {
-        AppNotificationService.assertAudienceOrThrow(user);
+        CollectorAudienceSecurity.assertAudienceOrThrow(user);
         CustomerMobileMoneySubmission submission = loadInitiated(id);
         Client client = clientService.getById(submission.getClientId());
         Credit credit = creditRepository.findById(submission.getCreditId()).orElse(null);
@@ -167,7 +168,7 @@ public class CustomerMobileMoneySubmissionAdminService {
 
     @Transactional(readOnly = true)
     public PaymentProofService.ProofDownload downloadProof(User user, Long id) {
-        AppNotificationService.assertAudienceOrThrow(user);
+        CollectorAudienceSecurity.assertAudienceOrThrow(user);
         CustomerMobileMoneySubmission submission = submissionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Soumission introuvable."));
         Client client = clientService.getById(submission.getClientId());
@@ -191,8 +192,8 @@ public class CustomerMobileMoneySubmissionAdminService {
     }
 
     private void assertPromoterAccess(User user, String targetCollector) {
-        if (AppNotificationService.isPromoterOnly(user)
-                && !AppNotificationService.matchesCreditCollector(user, targetCollector)) {
+        if (CollectorAudienceSecurity.isPromoterOnly(user)
+                && !CollectorAudienceSecurity.matchesCreditCollector(user, targetCollector)) {
             throw new CustomValidationException("Accès non autorisé à cette déclaration.");
         }
     }

@@ -4,7 +4,7 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.common.securities.service.ParameterService;
-import com.optimize.elykia.core.config.CacheNames;
+import com.optimize.elykia.shared.cache.CacheNames;
 import com.optimize.elykia.core.dto.ArticlePriceHistoryDto;
 import com.optimize.elykia.core.dto.ArticleStateHistoryDto;
 import com.optimize.elykia.core.dto.ArticlesDto;

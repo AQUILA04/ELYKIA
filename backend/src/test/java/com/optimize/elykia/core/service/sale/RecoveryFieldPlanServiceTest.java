@@ -102,7 +102,7 @@ class RecoveryFieldPlanServiceTest {
                 parameterService,
                 amountHistoryRepository,
                 new TontineAmountHistoryHelper(parameterService),
-                org.mockito.Mockito.mock(com.optimize.elykia.core.service.user.UserManagement.class));
+                org.mockito.Mockito.mock(com.optimize.elykia.organization.application.UserManagement.class));
     }
 
     @Test

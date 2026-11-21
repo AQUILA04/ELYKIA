@@ -35,7 +35,7 @@ import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.CreditLateService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.service.ParameterService;
-import com.optimize.elykia.core.service.user.UserManagement;
+import com.optimize.elykia.organization.application.UserManagement;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
 import com.optimize.elykia.core.service.tontine.TontineMemberFieldControlService;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;

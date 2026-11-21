@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.listener;
 
-import com.optimize.elykia.core.event.InProgressCreditsTransferEvent;
+import com.optimize.elykia.client.event.InProgressCreditsTransferEvent;
 import com.optimize.elykia.core.service.sale.InProgressCreditsTransferService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

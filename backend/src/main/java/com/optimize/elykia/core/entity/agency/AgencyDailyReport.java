@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.entity.agency;
 
+
+import com.optimize.elykia.organization.domain.Agency;
 import com.optimize.common.entities.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.Getter;

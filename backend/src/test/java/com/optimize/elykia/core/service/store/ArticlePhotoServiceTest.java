@@ -1,5 +1,8 @@
 package com.optimize.elykia.core.service.store;
 
+
+import com.optimize.elykia.client.storage.ArticlePhotoCompressor;
+import com.optimize.elykia.client.storage.ArticlePhotoUrlService;
 import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.client.storage.MinioProperties;
 import com.optimize.elykia.client.storage.MinioStorageService;

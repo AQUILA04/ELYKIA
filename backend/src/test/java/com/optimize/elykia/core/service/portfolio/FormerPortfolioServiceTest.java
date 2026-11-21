@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.portfolio;
 
+import com.optimize.elykia.shared.security.CollectorAudienceSecurity;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
@@ -23,7 +24,6 @@ import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
 import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.junit.jupiter.api.BeforeEach;
@@ -166,7 +166,7 @@ class FormerPortfolioServiceTest {
     @Test
     void formerPromoterCannotRecordACollection() {
         User former = promoter("com.a");
-        assertThatThrownBy(() -> AppNotificationService.assertPromoterOwnsTontineCollector(former, "com.b"))
+        assertThatThrownBy(() -> CollectorAudienceSecurity.assertPromoterOwnsTontineCollector(former, "com.b"))
                 .isInstanceOf(CustomValidationException.class);
     }
 

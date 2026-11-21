@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.tontine;
 
+import com.optimize.elykia.shared.security.CollectorAudienceSecurity;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
@@ -32,7 +33,6 @@ import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.shared.security.UserProfilConstant;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRules;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicy;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicyResolver;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
@@ -594,7 +594,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
             assertDeliveryTopUp(member, dto.getAmount());
         }
         Client client = member.getClient();
-        AppNotificationService.assertPromoterOwnsTontineCollector(
+        CollectorAudienceSecurity.assertPromoterOwnsTontineCollector(
                 userService.getCurrentUser(),
                 client != null ? client.getTontineCollector() : null);
 

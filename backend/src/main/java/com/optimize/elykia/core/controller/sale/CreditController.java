@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.controller.sale;
 
+
+import com.optimize.elykia.shared.web.ElasticSearchWrapper;
 import com.lowagie.text.DocumentException;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.util.Response;

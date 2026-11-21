@@ -1,11 +1,11 @@
 package com.optimize.elykia.core.service.customer;
 
 import com.optimize.common.entities.exception.CustomValidationException;
-import com.optimize.elykia.core.config.NotificationHubProperties;
-import com.optimize.elykia.core.notificationhub.NotificationHubOtpClient;
-import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendResponse;
-import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpVerifyRequest;
-import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpVerifyResponse;
+import com.optimize.elykia.notification.api.NotificationHubProperties;
+import com.optimize.elykia.notification.api.NotificationHubOtpClient;
+import com.optimize.elykia.notification.api.NotificationHubOtpModels.OtpSendResponse;
+import com.optimize.elykia.notification.api.NotificationHubOtpModels.OtpVerifyRequest;
+import com.optimize.elykia.notification.api.NotificationHubOtpModels.OtpVerifyResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,9 +56,9 @@ class CustomerOtpServiceTest {
 
         service.sendOtp("90123456");
 
-        ArgumentCaptor<com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendRequest> captor =
+        ArgumentCaptor<com.optimize.elykia.notification.api.NotificationHubOtpModels.OtpSendRequest> captor =
                 ArgumentCaptor.forClass(
-                        com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendRequest.class);
+                        com.optimize.elykia.notification.api.NotificationHubOtpModels.OtpSendRequest.class);
         verify(otpClient).sendOtp(captor.capture(), anyString());
         assertEquals("+22890123456", captor.getValue().to());
         assertEquals("SMS", captor.getValue().channel());
@@ -71,9 +71,9 @@ class CustomerOtpServiceTest {
 
         service.sendOtp("90331234");
 
-        ArgumentCaptor<com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendRequest> captor =
+        ArgumentCaptor<com.optimize.elykia.notification.api.NotificationHubOtpModels.OtpSendRequest> captor =
                 ArgumentCaptor.forClass(
-                        com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendRequest.class);
+                        com.optimize.elykia.notification.api.NotificationHubOtpModels.OtpSendRequest.class);
         ArgumentCaptor<String> idempotency = ArgumentCaptor.forClass(String.class);
         verify(otpClient).sendOtp(captor.capture(), idempotency.capture());
         assertEquals("+22890331234", captor.getValue().to());
@@ -155,7 +155,7 @@ class CustomerOtpServiceTest {
     @Test
     void sendOtp_maps404ToMissingOtpApiMessage() {
         when(otpClient.sendOtp(any(), anyString()))
-                .thenThrow(new com.optimize.elykia.core.notificationhub.NotificationHubClientException(
+                .thenThrow(new com.optimize.elykia.notification.api.NotificationHubClientException(
                         "Notification Hub : POST http://localhost:8088/v1/otp/send → HTTP 404",
                         404,
                         "{\"status\":404,\"error\":\"Not Found\"}"));

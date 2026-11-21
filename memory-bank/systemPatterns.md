@@ -8,7 +8,7 @@ Schémas d’intégration (partiellement périmés sur les versions Angular) : `
 
 | Dossier | Rôle |
 |---------|------|
-| `backend/` | Monolithe modulaire Spring Boot 4 / Spring Modulith `optimize-elykia-core` (1 seul JAR ; 8 modules : `entities`, `securities`, `client`, `shared`, `recruitment`, `ai`, `apprelease`, `core`) |
+| `backend/` | Monolithe modulaire Spring Boot 4 / Spring Modulith `optimize-elykia-core` (1 seul JAR ; 10 modules : `entities`, `securities`, `client`, `shared`, `notification`, `organization`, `recruitment`, `ai`, `apprelease`, `core`) |
 | `frontend/` | Admin web Angular |
 | `mobile/` | App terrain Ionic / Capacitor (commercial + chef de recouvrement) |
 | `customer-space/` | Espace client Ionic / Capacitor (`com.optimize.elykia.customer`) |
@@ -24,12 +24,14 @@ Architecture **Spring Modulith `2.2.0`** (point d'entrée `com.optimize.elykia.O
 
 - `entities` (`com.optimize.common.entities`, `OPEN`, feuille pure sans dépendance sortante) : `BaseEntity`, `GenericService`, exceptions, i18n (`CommonEntitiesI18nConfig`).
 - `securities` (`com.optimize.common.securities`, `OPEN`, dépend uniquement de `entities`) : sécurité JWT, permissions `ROLE_*`, profils nommés, licences, paramètres applicatifs. Pas de session serveur pour l'UI.
-- `client` (`com.optimize.elykia.client`, `OPEN`, dépend uniquement de `entities`) : domaine `Client`, `Account`, stockage MinIO / photos.
-- `shared` (`com.optimize.elykia.shared`, `OPEN`, dépend de `entities`, `securities`) : utilitaires et constantes métier transverses (`security/`, `util/`, `pdf/PdfHtmlRenderer`).
+- `shared` (`com.optimize.elykia.shared`, `OPEN`, dépend de `entities`, `securities`) : utilitaires et constantes métier transverses (`security/` dont `CollectorAudienceSecurity`, `util/`, `pdf/PdfHtmlRenderer`, `cache/CacheNames`, `web/ElasticSearchWrapper`).
+- `client` (`com.optimize.elykia.client`, `OPEN`, dépend de `entities`, `securities`, `shared`) : domaine `Client`, `Account`, autorisations crédit business, réaffectation / historique de collecteurs (`InProgressCreditsTransferEvent`), stockage MinIO / photos clients & articles (`storage/`).
+- `notification` (`com.optimize.elykia.notification`, `CLOSED`, `@NamedInterface("api")`, isolé de `core`) : notifications internes (`AppNotification*`) et client OTP `NotificationHub*`. Les autres modules consomment exclusivement `notification :: api` (`AppNotificationFacade` + 4 commandes `record` Java 25, `AppNotificationType`, `NotificationHubOtpClient`).
+- `organization` (`com.optimize.elykia.organization`, `OPEN` pendant le découpage, isolé de `core`) : `Agency`, `Locality`, `Promoter`, `CommercialAccountAssignment`, `CommercialStaff*`, `CommercialDataSummary*`, `UserManagement`.
 - `recruitment` (`com.optimize.elykia.recruitment`, `CLOSED`, isolé de `core`) : domaine recrutement (référence DDD pragmatique).
 - `ai` (`com.optimize.elykia.ai`, `CLOSED`, isolé de `core`) : Elykia IA (`domain/`, `application/`, `infrastructure/{persistence,llm,config}/`, `web/dto/`). Schéma SQL = snapshot `backend/src/main/resources/ai/schema-catalog.json` ; aide = index RAG `user-guide-index.json` ; fournisseur LLM par `elykia.ai.provider`.
 - `apprelease` (`com.optimize.elykia.apprelease`, `CLOSED`, isolé de `core`) : distribution des APK mobile & espace client (`application/`, `web/dto/`).
-- `core` (`com.optimize.elykia.core`, `CLOSED`, en cours de découpage progressif en vagues DDD) : couches `controller`, `service`, `repository`, `entity`, `dto`, `mapper` (MapStruct), `config`, `scheduler`. Domaines restants à extraire (Vagues 2–7) : `notification`, `organization`, `inventory`, `finance`, `sale`, `tontine`, `carnet`, `customer`, `bi`.
+- `core` (`com.optimize.elykia.core`, `CLOSED`, en cours de découpage progressif en vagues DDD) : couches `controller`, `service`, `repository`, `entity`, `dto`, `mapper` (MapStruct), `config`, `scheduler`. Domaines restants à extraire (Vagues 3–7) : `inventory`, `finance`, `sale`, `tontine`, `carnet`, `customer`, `bi`.
 
 - Flyway : `backend/src/main/resources/db/migration/V0xx__*.sql`, `out-of-order: false`, `baseline-on-migrate`, baseline 0. Dernière migration au 2026-11-21 : `V045__tontine_delivery_planned_date.sql`. Les tests backend tournent en `create-drop` : une migration n'y est pas exécutée, la valider à part sur un Postgres 15.
 - Fichiers : MinIO (photos clients, articles, rapports, APK, recrutement). Clés uniquement par variables d’environnement.

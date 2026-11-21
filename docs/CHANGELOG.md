@@ -838,6 +838,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [2.3.0] — 2026-11-21
+
+### Changed
+
+- **Migration DDD de `core` — Vague 2 (`notification`, `organization`, `client`, `shared`) →** extraction des modules `notification` et `organization`, rapatriement des extensions `client` et enrichissement de `shared` (87 fichiers déplacés via `git mv`, zéro changement d'URL REST, de contrat JSON ou de schéma SQL/Flyway) :
+  - **`notification` (`com.optimize.elykia.notification`, module `CLOSED` avec `@NamedInterface("api")`, zéro dépendance sur `core`) :** `AppNotificationFacade` + 4 commandes immuables (`record` Java 25 : `PaymentDeclarationNotificationCommand`, `CustomerOrderNotificationCommand`, `TontinePaymentDeclarationNotificationCommand`, `TontineCatchupNotificationCommand`), `AppNotificationType`, client OTP `NotificationHubOtpClient` / `NotificationHubProperties` dans `api/` ; entités `AppNotification` & `AppNotificationRead` dans `domain/` ; `AppNotificationService` dans `application/` ; dépôts JPA & `NotificationHubConfig`/`NotificationHubTokenProvider` dans `infrastructure/` ; `AppNotificationController` & DTOs dans `web/`. Tous les appelants `core` passent désormais exclusivement par `notification :: api`.
+  - **`organization` (`com.optimize.elykia.organization`, module `OPEN` pendant le découpage, zéro dépendance sur `core`) :** entités `Agency`, `Locality`, `Promoter`, `CommercialAccountAssignment` + `AssignmentPeriod`, `CommercialStaffPhotoKeys`, `LocalityNames` dans `domain/` ; 8 services applicatifs (`AgencyService`, `LocalityService`, `PromoterService`, `CommercialStaffService`, `CommercialAccountAssignmentService`, `CommercialDataSummaryService`, `CommercialStaffPhotoService`, `UserManagement`) dans `application/` ; 4 dépôts JPA dans `infrastructure/persistence/` ; 5 contrôleurs, 3 mappers MapStruct et 11 DTOs dans `web/`.
+  - **`client` (`com.optimize.elykia.client`, enrichi) :** rapatriement de `BusinessCreditAuthorization*`, `ClientCollectorAssignment*`, `ClientCollectorHistory*`, `ClientPhotoUrl*`, de l'événement `InProgressCreditsTransferEvent` (`client.event`) et des helpers média MinIO (`ArticlePhotoBytes`, `ArticlePhotoCompressor`, `ArticlePhotoUrlService` dans `client.storage`).
+  - **`shared` (`com.optimize.elykia.shared`, enrichi) :** ajout de `CollectorAudienceSecurity` (`shared.security`, règles RBAC/audience extraites de `AppNotificationService`), `CacheNames` (`shared.cache`) et `ElasticSearchWrapper` (`shared.web`).
+- **Spring Modulith & qualité →** `ModularityTests` vérifie désormais les **10 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `recruitment`, `ai`, `apprelease`, `core`) dont la frontière stricte `core → notification :: api` ; 1 198/1 198 tests + quality gates JaCoCo `0.8.16` (seuils inchangés) + démarrage réel PostgreSQL 15 / Flyway `V000→V045` verts.
+
 ## Backend — [2.2.0] — 2026-11-21
 
 ### Changed

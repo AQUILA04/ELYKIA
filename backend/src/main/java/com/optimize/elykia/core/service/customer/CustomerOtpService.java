@@ -1,13 +1,13 @@
 package com.optimize.elykia.core.service.customer;
 
 import com.optimize.common.entities.exception.CustomValidationException;
-import com.optimize.elykia.core.config.NotificationHubProperties;
-import com.optimize.elykia.core.notificationhub.NotificationHubClientException;
-import com.optimize.elykia.core.notificationhub.NotificationHubOtpClient;
-import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendRequest;
-import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendResponse;
-import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpVerifyRequest;
-import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpVerifyResponse;
+import com.optimize.elykia.notification.api.NotificationHubProperties;
+import com.optimize.elykia.notification.api.NotificationHubClientException;
+import com.optimize.elykia.notification.api.NotificationHubOtpClient;
+import com.optimize.elykia.notification.api.NotificationHubOtpModels.OtpSendRequest;
+import com.optimize.elykia.notification.api.NotificationHubOtpModels.OtpSendResponse;
+import com.optimize.elykia.notification.api.NotificationHubOtpModels.OtpVerifyRequest;
+import com.optimize.elykia.notification.api.NotificationHubOtpModels.OtpVerifyResponse;
 import com.optimize.elykia.shared.util.PhoneNormalizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;

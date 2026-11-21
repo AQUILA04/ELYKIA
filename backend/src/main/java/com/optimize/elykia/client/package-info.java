@@ -2,6 +2,6 @@
         id = "client",
         displayName = "Client & Storage",
         type = org.springframework.modulith.ApplicationModule.Type.OPEN,
-        allowedDependencies = {"entities"}
+        allowedDependencies = {"entities", "securities", "shared"}
 )
 package com.optimize.elykia.client;

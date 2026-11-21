@@ -9,7 +9,7 @@ import com.optimize.elykia.core.entity.report.TontineCollectionResetFile;
 import com.optimize.elykia.core.entity.report.TontineCollectionResetLine;
 import com.optimize.elykia.core.entity.report.TontineCollectionResetRun;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
-import com.optimize.elykia.core.enumaration.AppNotificationType;
+import com.optimize.elykia.notification.api.AppNotificationType;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.TontineCollectionResetRunStatus;
 import com.optimize.elykia.core.enumaration.TontineCollectionResetScope;
@@ -21,7 +21,7 @@ import com.optimize.elykia.core.repository.TontineCollectionResetRunRepository;
 import com.optimize.elykia.core.repository.TontineCommercialCollectionVoidStore;
 import com.optimize.elykia.core.repository.TontineCommercialCollectionVoidStore.Preview;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
-import com.optimize.elykia.core.repository.notification.AppNotificationRepository;
+import com.optimize.elykia.notification.api.AppNotificationFacade;
 import com.optimize.elykia.core.service.report.DailyOperationService;
 import com.optimize.elykia.core.service.report.DailyTontineReportReconciler;
 import com.optimize.elykia.core.service.report.monthly.MonthlyReportStorageService;
@@ -33,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +60,7 @@ public class TontineCommercialCollectionVoidService {
     private final TontineCommercialCollectionVoidStore store;
     private final DailyTontineReportReconciler dailyTontineReportReconciler;
     private final DailyOperationService dailyOperationService;
-    private final AppNotificationRepository appNotificationRepository;
+    private final AppNotificationFacade appNotificationFacade;
     private final TontineCatchupNotificationRepository catchupNotificationRepository;
     private final TontineCollectionResetPdfService pdfService;
     private final MonthlyReportStorageService storageService;
@@ -233,8 +232,8 @@ public class TontineCommercialCollectionVoidService {
         for (int offset = 0; offset < collectionIds.size(); offset += NOTIFICATION_BATCH) {
             List<Long> batch = collectionIds.subList(
                     offset, Math.min(offset + NOTIFICATION_BATCH, collectionIds.size()));
-            appNotificationRepository.cancelUnresolvedByTypeAndEntityIds(
-                    AppNotificationType.TONTINE_CATCHUP, batch, LocalDateTime.now());
+            appNotificationFacade.cancelUnresolvedByTypeAndEntityIds(
+                    AppNotificationType.TONTINE_CATCHUP, batch);
             catchupNotificationRepository.cancelByCollectionIds(batch);
         }
     }

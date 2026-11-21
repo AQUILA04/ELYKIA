@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.customer;
 
+import com.optimize.elykia.notification.api.AppNotificationFacade;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
@@ -10,11 +11,10 @@ import com.optimize.elykia.core.dto.CreditTimelineDto;
 import com.optimize.elykia.core.entity.customer.CustomerMobileMoneySubmission;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditTimeline;
-import com.optimize.elykia.core.enumaration.AppNotificationType;
+import com.optimize.elykia.notification.api.AppNotificationType;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.sale.CreditTimelineService;
 import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ class CustomerMobileMoneySubmissionAdminServiceTest {
     @Mock private CustomerMobileMoneySubmissionRepository submissionRepository;
     @Mock private CreditRepository creditRepository;
     @Mock private ClientService clientService;
-    @Mock private AppNotificationService appNotificationService;
+    @Mock private AppNotificationFacade appNotificationService;
     @Mock private CreditTimelineService creditTimelineService;
     @Mock private CustomerNotificationService customerNotificationService;
     @Mock private PaymentProofService paymentProofService;
