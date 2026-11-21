@@ -2646,7 +2646,7 @@
 * <strong>Rapprochement de la période</strong> : Crédit + Tontine + Solde Nx + Rattrapages = <strong>Dû à la caisse</strong> ; Dû − <strong>Versé</strong> = <strong>Reste</strong>. Les manquants antérieurs sont rappelés dessous.
 * <strong>Activité</strong> en trois blocs : <strong>Crédit</strong> (sortie stock, ventes, recouvrements, commandes, avances, reliquats), <strong>Tontine</strong> (collectes, rattrapages saisis et déjà versés, adhésions, livraisons), <strong>Clients</strong> (nouveaux clients, solde des nouveaux comptes, opérations).
 * <strong>7 derniers jours</strong> : pour chaque jour, ce qui était à verser (barre claire) et ce qui a été versé (barre foncée, orange en cas de retard).
-* <strong>Bilans de l'année</strong> crédit et tontine, avec <strong>Reste chez les clients · détail</strong>. Si les versements tontine dépassent les collectes, une mention <strong>À vérifier</strong> l'indique.
+* <strong>Bilans de l'année</strong> crédit et tontine, avec <strong>Reste chez les clients · détail</strong>. Si les versements tontine dépassent les collectes, une mention <strong>À vérifier</strong> l'indique : l'écart vient en général de collectes faites chez des membres non enregistrés, que le contrôle carnet permet de retrouver.
 * <strong>Nouveau versement</strong> (un seul jour affiché, montant restant dû) et <strong>Équilibrer le surplus</strong> sont disponibles ici. Les flèches <strong>‹ ›</strong> passent au commercial précédent ou suivant ; <strong>Télécharger le PDF</strong> reprend le rapport du commercial.</p>
 <h4 id="versements-rapprochement">Versements &amp; rapprochement</h4>
 <ul>
@@ -2923,6 +2923,16 @@
 <li>Choisissez <strong>OUI</strong> pour que chaque contrôle de carnet terrain marque le membre tontine comme vérifié, y compris hors connexion après actualisation du pack terrain.</li>
 <li>Laissez <strong>NON</strong> pour n’enregistrer que le contrôle. Le badge <strong>Déjà contrôlé</strong> s’affiche quand même, et le carnet reste à vérifier jusqu’à une action <strong>Vérifier</strong>.</li>
 </ol>
+<h3 id="validation-automatique-des-commandes-tontine">Validation automatique des commandes tontine</h3>
+<p>Le paramètre <strong>TONTINE_ORDER_AUTO_VALIDATION</strong> règle le statut d'une commande tontine au moment où elle est enregistrée, depuis le web ou depuis l'application mobile.</p>
+<ol>
+<li>Ouvrez <strong>Configuration</strong> → <strong>Paramètres généraux</strong>.</li>
+<li>Repérez <strong>TONTINE_ORDER_AUTO_VALIDATION</strong>.</li>
+<li>Cliquez sur <strong>Modifier</strong>.</li>
+<li>Passez la valeur à <strong>true</strong>, puis enregistrez : chaque commande créée passe directement au statut <strong>Validée</strong>. Il n'y a plus d'étape <strong>Valider la Livraison</strong>, ni de <strong>Tout valider</strong> sur la page des livraisons pour ces commandes. Une commande complétée depuis un autre téléphone reste aussi <strong>Validée</strong>.</li>
+<li>Laissez <strong>false</strong> (valeur de départ) pour garder la validation par le gestionnaire : une commande saisie par un commercial reste <strong>En attente</strong>. Une commande que vous saisissez vous-même est toujours validée directement.</li>
+</ol>
+<p>Une commande enregistrée hors ligne prend son statut au moment de la synchronisation du téléphone.</p>
 <h3 id="prix-unitaires-sur-les-documents">Prix unitaires sur les documents</h3>
 <p>Trois paramètres règlent l’affichage du prix unitaire et du montant de chaque ligne. Le montant total du document reste toujours affiché, y compris sur les PDF.</p>
 <table>

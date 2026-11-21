@@ -35,7 +35,7 @@
       <app-stock-channel-segment [channel]="channel" (channelChange)="onChannelChange($event)"></app-stock-channel-segment>
       <ng-container *ngIf="channel === 'credit'">
         <div class="agent-select" *ngIf="agents.length">
-          <ng-select [items]="agents" bindLabel="username" bindValue="username" placeholder="Toute l'équipe"
+          <ng-select [items]="agents" bindLabel="username" bindValue="username" placeholder="Toute l'équipe" appendTo="body"
             [searchFn]="searchAgent" [ngModel]="selectedCollector" (ngModelChange)="onCollectorChange($event)"
             aria-label="Commercial" data-testid="e2e-stock-team-agent-select">
             <ng-template ng-option-tmp let-item="item">

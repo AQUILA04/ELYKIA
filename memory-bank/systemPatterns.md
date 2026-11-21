@@ -44,6 +44,8 @@ Modules métier sous `frontend/src/app/` (crédit, stock, tontine, caisse, comma
 
 État : services Angular + RxJS, pas de store global. Gardes : `AuthGuard`, `NgxPermissionsGuard`, `FeatureFlagGuard`, `AiChatGuard`. Confirmations : `AlertService` uniquement (pas de `confirm()` / SweetAlert direct).
 
+Pages v2 (`report-v2`, `stock-v2`) : les classes d'entrée `a1` à `a4` laissent un `transform` qui crée un contexte d'empilement par carte. Tout panneau flottant (`ng-select`, visite guidée) se rattache à `<body>` (`appendTo="body"`), sinon la carte suivante le recouvre.
+
 ## Mobile
 
 Deux coques : `tabs/` (commercial) et `rm-tabs/` (chef de recouvrement, `RmProfilGuard`). Features : sync, stock, clients, commandes, tontine, recovery, écarts / contrôles carnet, ancien portefeuille, consentement de synchro et consentement journalier.

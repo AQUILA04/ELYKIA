@@ -841,7 +841,7 @@ Ouverte depuis le tableau, une alerte ou le filtre Commercial. Un commercial con
 * **Rapprochement de la période** : Crédit + Tontine + Solde Nx + Rattrapages = **Dû à la caisse** ; Dû − **Versé** = **Reste**. Les manquants antérieurs sont rappelés dessous.
 * **Activité** en trois blocs : **Crédit** (sortie stock, ventes, recouvrements, commandes, avances, reliquats), **Tontine** (collectes, rattrapages saisis et déjà versés, adhésions, livraisons), **Clients** (nouveaux clients, solde des nouveaux comptes, opérations).
 * **7 derniers jours** : pour chaque jour, ce qui était à verser (barre claire) et ce qui a été versé (barre foncée, orange en cas de retard).
-* **Bilans de l'année** crédit et tontine, avec **Reste chez les clients · détail**. Si les versements tontine dépassent les collectes, une mention **À vérifier** l'indique.
+* **Bilans de l'année** crédit et tontine, avec **Reste chez les clients · détail**. Si les versements tontine dépassent les collectes, une mention **À vérifier** l'indique : l'écart vient en général de collectes faites chez des membres non enregistrés, que le contrôle carnet permet de retrouver.
 * **Nouveau versement** (un seul jour affiché, montant restant dû) et **Équilibrer le surplus** sont disponibles ici. Les flèches **‹ ›** passent au commercial précédent ou suivant ; **Télécharger le PDF** reprend le rapport du commercial.
 
 #### Versements & rapprochement
@@ -1097,6 +1097,18 @@ Si un article en stock n'a pas de prix d'achat renseigné, l'activation est refu
 3. Cliquez sur **Modifier**.
 4. Choisissez **OUI** pour que chaque contrôle de carnet terrain marque le membre tontine comme vérifié, y compris hors connexion après actualisation du pack terrain.
 5. Laissez **NON** pour n’enregistrer que le contrôle. Le badge **Déjà contrôlé** s’affiche quand même, et le carnet reste à vérifier jusqu’à une action **Vérifier**.
+
+### Validation automatique des commandes tontine
+
+Le paramètre **TONTINE_ORDER_AUTO_VALIDATION** règle le statut d'une commande tontine au moment où elle est enregistrée, depuis le web ou depuis l'application mobile.
+
+1. Ouvrez **Configuration** → **Paramètres généraux**.
+2. Repérez **TONTINE_ORDER_AUTO_VALIDATION**.
+3. Cliquez sur **Modifier**.
+4. Passez la valeur à **true**, puis enregistrez : chaque commande créée passe directement au statut **Validée**. Il n'y a plus d'étape **Valider la Livraison**, ni de **Tout valider** sur la page des livraisons pour ces commandes. Une commande complétée depuis un autre téléphone reste aussi **Validée**.
+5. Laissez **false** (valeur de départ) pour garder la validation par le gestionnaire : une commande saisie par un commercial reste **En attente**. Une commande que vous saisissez vous-même est toujours validée directement.
+
+Une commande enregistrée hors ligne prend son statut au moment de la synchronisation du téléphone.
 
 ### Prix unitaires sur les documents
 

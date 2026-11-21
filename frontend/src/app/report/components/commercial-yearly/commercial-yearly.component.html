@@ -40,8 +40,7 @@
         <div class="skeleton yearly-skeleton" *ngIf="loading"></div>
         <ng-container *ngIf="!loading && tontine as t">
             <span class="yearly-note" *ngIf="tontineGap < -0.01" data-testid="e2e-commercial-yearly-tontine-warning">
-                <strong>À vérifier :</strong> les versements dépassent les collectes de {{ tontineGapAbs | fcfa }}
-                (saisie hors application ou reprise du solde de l'année précédente).
+                <strong>À vérifier :</strong> les versements dépassent les collectes de {{ tontineGapAbs | fcfa }}.
             </span>
             <dl class="lines">
                 <div><dt>Collectes enregistrées</dt><dd class="num">{{ t.totalTontineCollectionsAmount | fcfa }}</dd></div>

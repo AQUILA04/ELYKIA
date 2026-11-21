@@ -40,7 +40,7 @@ Ouverte depuis le tableau, une alerte ou le filtre Commercial. Un commercial con
 * **Rapprochement de la période** : Crédit + Tontine + Solde Nx + Rattrapages = **Dû à la caisse** ; Dû − **Versé** = **Reste**. Les manquants antérieurs sont rappelés dessous.
 * **Activité** en trois blocs : **Crédit** (sortie stock, ventes, recouvrements, commandes, avances, reliquats), **Tontine** (collectes, rattrapages saisis et déjà versés, adhésions, livraisons), **Clients** (nouveaux clients, solde des nouveaux comptes, opérations).
 * **7 derniers jours** : pour chaque jour, ce qui était à verser (barre claire) et ce qui a été versé (barre foncée, orange en cas de retard).
-* **Bilans de l'année** crédit et tontine, avec **Reste chez les clients · détail**. Si les versements tontine dépassent les collectes, une mention **À vérifier** l'indique.
+* **Bilans de l'année** crédit et tontine, avec **Reste chez les clients · détail**. Si les versements tontine dépassent les collectes, une mention **À vérifier** l'indique : l'écart vient en général de collectes faites chez des membres non enregistrés, que le contrôle carnet permet de retrouver.
 * **Nouveau versement** (un seul jour affiché, montant restant dû) et **Équilibrer le surplus** sont disponibles ici. Les flèches **‹ ›** passent au commercial précédent ou suivant ; **Télécharger le PDF** reprend le rapport du commercial.
 
 #### Versements & rapprochement
