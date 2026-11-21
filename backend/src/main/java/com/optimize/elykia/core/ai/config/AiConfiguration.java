@@ -6,9 +6,9 @@ import org.springframework.ai.anthropic.AnthropicChatModel;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.deepseek.DeepSeekChatModel;
+import org.springframework.ai.google.genai.GoogleGenAiChatModel;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.ai.vertexai.gemini.VertexAiGeminiChatModel;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -51,8 +51,8 @@ public class AiConfiguration {
     @Bean
     @Primary
     @ConditionalOnProperty(name = "elykia.ai.provider", havingValue = "gemini")
-    public ChatModel geminiChatModel(VertexAiGeminiChatModel vertexAiGeminiChatModel) {
-        return vertexAiGeminiChatModel;
+    public ChatModel geminiChatModel(GoogleGenAiChatModel googleGenAiChatModel) {
+        return googleGenAiChatModel;
     }
 
     @Bean

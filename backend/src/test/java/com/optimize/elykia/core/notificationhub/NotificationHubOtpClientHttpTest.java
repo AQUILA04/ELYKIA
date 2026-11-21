@@ -1,7 +1,8 @@
 package com.optimize.elykia.core.notificationhub;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.optimize.elykia.core.config.NotificationHubProperties;
 import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendRequest;
 import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendResponse;
@@ -30,7 +31,7 @@ import static org.mockito.Mockito.spy;
 class NotificationHubOtpClientHttpTest {
 
     private HttpServer server;
-    private final ObjectMapper json = new ObjectMapper();
+    private final ObjectMapper json = JsonMapper.builder().build();
     private final AtomicReference<Captured> captured = new AtomicReference<>();
 
     @BeforeEach
@@ -82,9 +83,9 @@ class NotificationHubOtpClientHttpTest {
         assertTrue(call.header("Content-Type").startsWith("application/json"));
 
         JsonNode body = json.readTree(call.body());
-        assertEquals("+22890331234", body.get("to").asText());
-        assertEquals("SMS", body.get("channel").asText());
-        assertEquals("prod", body.get("environment").asText());
+        assertEquals("+22890331234", body.get("to").asString());
+        assertEquals("SMS", body.get("channel").asString());
+        assertEquals("prod", body.get("environment").asString());
 
         assertEquals("a1b2c3d4-e5f6-7890-abcd-ef1234567890", response.sessionId().toString());
         assertEquals(Instant.parse("2026-11-18T12:00:00Z"), response.expiresAt());
@@ -100,7 +101,7 @@ class NotificationHubOtpClientHttpTest {
         tokenProperties.getOauth2().setClientId("elykia");
         tokenProperties.getOauth2().setClientSecret("test-client-secret");
         NotificationHubTokenProvider provider =
-                spy(new NotificationHubTokenProvider(tokenProperties, new ObjectMapper()));
+                spy(new NotificationHubTokenProvider(tokenProperties, JsonMapper.builder().build()));
         doReturn("hub-access-token").when(provider).getAccessToken();
 
         NotificationHubOtpClient client = client(provider, "test");
@@ -120,8 +121,8 @@ class NotificationHubOtpClientHttpTest {
         assertEquals("/v1/otp/verify", call.path());
         assertNull(call.header("Idempotency-Key"));
         JsonNode body = json.readTree(call.body());
-        assertEquals("+22890331234", body.get("to").asText());
-        assertEquals("123456", body.get("code").asText());
+        assertEquals("+22890331234", body.get("to").asString());
+        assertEquals("123456", body.get("code").asString());
         assertEquals(false, response.valid());
         assertEquals("INVALID", response.reason());
     }
@@ -134,7 +135,7 @@ class NotificationHubOtpClientHttpTest {
         properties.setEnvironment(null);
         MockEnvironment environment = new MockEnvironment();
         environment.setActiveProfiles(springProfile);
-        return new NotificationHubOtpClient(properties, tokenProvider, environment, new ObjectMapper());
+        return new NotificationHubOtpClient(properties, tokenProvider, environment, JsonMapper.builder().build());
     }
 
     private record Captured(String method, String path, String body, com.sun.net.httpserver.Headers headers) {

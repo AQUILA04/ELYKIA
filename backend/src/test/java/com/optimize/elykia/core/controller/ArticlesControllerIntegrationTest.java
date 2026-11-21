@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.optimize.elykia.core.dto.ArticlesDto;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
@@ -9,10 +9,10 @@ import com.optimize.elykia.core.support.IntegrationTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -29,10 +29,10 @@ class ArticlesControllerIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private ArticlesService articlesService;
 
-    @MockBean
+    @MockitoBean
     private CreditArticlesService creditArticlesService;
 
     @Autowired

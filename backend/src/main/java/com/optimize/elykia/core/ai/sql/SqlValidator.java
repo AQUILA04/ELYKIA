@@ -49,7 +49,7 @@ public class SqlValidator {
                 throw new SqlValidationException("Seules les requêtes SELECT sont autorisées.");
             }
             TablesNamesFinder finder = new TablesNamesFinder();
-            List<String> tables = finder.getTableList(statement);
+            Set<String> tables = finder.getTables(statement);
             for (String table : tables) {
                 String bare = table.replace("\"", "").toLowerCase();
                 if (bare.contains(".")) {

@@ -1,4 +1,4 @@
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:25-jre
 
 # Non-Alpine (glibc) required: Vertex AI / gRPC loads netty-tcnative which SIGSEGVs on musl/Alpine.
 # Pin UID/GID: useradd --system without -u used 100 on Alpine and 999 on Debian, which

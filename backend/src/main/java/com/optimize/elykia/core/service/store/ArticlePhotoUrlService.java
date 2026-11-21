@@ -3,7 +3,7 @@ package com.optimize.elykia.core.service.store;
 import com.optimize.elykia.client.storage.MinioProperties;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
-import io.minio.http.Method;
+import io.minio.Http.Method;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

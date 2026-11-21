@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.notificationhub;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.optimize.elykia.core.config.NotificationHubProperties;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -91,7 +91,7 @@ public class NotificationHubTokenProvider {
                     .body(String.class);
 
             JsonNode json = objectMapper.readTree(body);
-            String accessToken = json.path("access_token").asText(null);
+            String accessToken = json.path("access_token").asString(null);
             if (!StringUtils.hasText(accessToken)) {
                 throw new NotificationHubClientException(
                         "Réponse token sans access_token", -1, body);

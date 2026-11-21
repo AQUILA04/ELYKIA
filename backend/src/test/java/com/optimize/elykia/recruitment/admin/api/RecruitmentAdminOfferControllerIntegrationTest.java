@@ -1,7 +1,6 @@
 package com.optimize.elykia.recruitment.admin.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.json.JsonMapper;
 import com.optimize.elykia.recruitment.admin.api.dto.JobOfferAdminDto;
 import com.optimize.elykia.recruitment.admin.api.dto.JobOfferUpsertDto;
 import com.optimize.elykia.recruitment.admin.application.ManageJobOfferUseCase;
@@ -12,7 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -28,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class RecruitmentAdminOfferControllerIntegrationTest {
 
     private MockMvc mockMvc;
-    private ObjectMapper objectMapper;
+    private JsonMapper objectMapper;
 
     @Mock
     private ManageJobOfferUseCase manageJobOfferUseCase;
@@ -38,9 +37,9 @@ class RecruitmentAdminOfferControllerIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        objectMapper = JsonMapper.builder().build();
         mockMvc = MockMvcBuilders.standaloneSetup(recruitmentAdminOfferController)
-                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
+                .setMessageConverters(new JacksonJsonHttpMessageConverter(objectMapper))
                 .build();
     }
 

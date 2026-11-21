@@ -23,8 +23,8 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -56,13 +56,13 @@ class StockReceptionTraceabilityIntegrationTest extends IntegrationTestSupport {
     @Autowired
     private ExpenseTypeRepository expenseTypeRepository;
 
-    @MockBean
+    @MockitoBean
     private UserService userService;
-    @MockBean
+    @MockitoBean
     private StockReceptionMapper stockReceptionMapper;
-    @MockBean
+    @MockitoBean
     private ExpenseService expenseService;
-    @MockBean
+    @MockitoBean
     private User currentUser;
 
     @Test

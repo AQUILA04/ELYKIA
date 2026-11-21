@@ -35,18 +35,16 @@ spring:
           model: gpt-4o
           temperature: 0.1
           max-tokens: 4096
-    vertex:
-      ai:
-        gemini:
-          project-id: ${GOOGLE_CLOUD_PROJECT:}
-          location: ${GOOGLE_CLOUD_LOCATION:global}
-          # With location=global, must use host aiplatform.googleapis.com (not global-aiplatform...)
-          api-endpoint: ${SPRING_AI_VERTEX_AI_GEMINI_API_ENDPOINT:aiplatform.googleapis.com}
-          chat:
-            options:
-              model: gemini-3.8-flash
-              temperature: 0.1
-              max-output-tokens: 4096
+    google:
+      genai:
+        api-key: ${GEMINI_API_KEY:}
+        project-id: ${GOOGLE_CLOUD_PROJECT:}
+        location: ${GOOGLE_CLOUD_LOCATION:global}
+        chat:
+          options:
+            model: gemini-2.5-flash
+            temperature: 0.1
+            max-output-tokens: 4096
     deepseek:
       api-key: ${DEEPSEEK_API_KEY:}
       chat:

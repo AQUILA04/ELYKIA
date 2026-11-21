@@ -1,9 +1,5 @@
 package com.optimize.elykia.core.notificationhub;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.optimize.elykia.core.config.NotificationHubProperties;
 import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendRequest;
 import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendResponse;
@@ -13,9 +9,12 @@ import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.net.http.HttpClient;
 import java.time.Duration;
@@ -25,8 +24,6 @@ import java.util.function.Consumer;
 
 /**
  * Client HTTP OTP Notification Hub (contrat {@code OTP_CLIENT_INTEGRATION.md}).
- * Implémentation locale compatible Spring Boot 3.3 / Java 17 — même API que le starter
- * {@code sb-notification-hub-starter} (non publié / Java 21).
  */
 public class NotificationHubOtpClient {
 
@@ -60,20 +57,14 @@ public class NotificationHubOtpClient {
         if (baseUrl.endsWith("/")) {
             baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
         }
-        // RestClient.builder() n'utilise pas l'ObjectMapper Boot : Instant (expiresAt) et
-        // un champ hub ajouté plus tard casseraient l'envoi OTP après un HTTP 202.
-        ObjectMapper mapper = (objectMapper != null ? objectMapper : new ObjectMapper()).copy();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        MappingJackson2HttpMessageConverter jackson = new MappingJackson2HttpMessageConverter(mapper);
+        JsonMapper mapper = (objectMapper instanceof JsonMapper jm ? jm.rebuild() : JsonMapper.builder())
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .build();
+        JacksonJsonHttpMessageConverter jackson = new JacksonJsonHttpMessageConverter(mapper);
         this.restClient = RestClient.builder()
                 .baseUrl(baseUrl)
                 .requestFactory(factory)
-                .messageConverters(converters -> {
-                    converters.removeIf(MappingJackson2HttpMessageConverter.class::isInstance);
-                    converters.add(jackson);
-                })
+                .configureMessageConverters(converters -> converters.withJsonConverter(jackson))
                 .build();
     }
 

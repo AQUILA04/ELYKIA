@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.customer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.elykia.client.storage.MinioProperties;

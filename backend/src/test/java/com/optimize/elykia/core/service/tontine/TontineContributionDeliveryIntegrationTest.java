@@ -43,7 +43,7 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDate;
@@ -85,8 +85,8 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
     @Autowired private EntityManager entityManager;
     @Autowired private ParameterRepository parameterRepository;
 
-    @MockBean private UserService userService;
-    @MockBean private User currentUser;
+    @MockitoBean private UserService userService;
+    @MockitoBean private User currentUser;
 
     @Test
     void contributeThenDeliverTontine_persistsAllocationDeliveryCreditAndStockLedgerAsOneBusinessChain() {

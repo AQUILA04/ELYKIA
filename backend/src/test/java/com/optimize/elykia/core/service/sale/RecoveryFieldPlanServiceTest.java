@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.sale;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
@@ -97,7 +97,7 @@ class RecoveryFieldPlanServiceTest {
                 tontineCollectionRepository,
                 tontineMemberFieldControlRepository,
                 clientService,
-                new ObjectMapper(),
+                JsonMapper.builder().build(),
                 recontrolPolicy,
                 parameterService,
                 amountHistoryRepository,

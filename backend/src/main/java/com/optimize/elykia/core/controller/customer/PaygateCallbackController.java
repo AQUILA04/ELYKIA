@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.controller.customer;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import com.optimize.elykia.core.paygate.OptimizePaygateClient;
 import com.optimize.elykia.core.service.customer.CustomerAutomaticPaymentService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -71,7 +71,7 @@ public class PaygateCallbackController {
         if (value == null || value.isNull()) {
             return null;
         }
-        String text = value.asText();
+        String text = value.asString();
         return text == null || text.isBlank() ? null : text;
     }
 }

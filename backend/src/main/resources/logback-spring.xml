@@ -29,12 +29,10 @@
     <!-- Appender to log to file in a JSON format -->
     <appender name="AppEventRollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${logFolder}/app-event.json</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${logFolder}/ac-event.json.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
             <maxHistory>7</maxHistory>
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>10MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <providers>
@@ -76,12 +74,10 @@
 
     <appender name="MainRollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${logFolder}/main.json</file>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${logFolder}/main.json.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
             <maxHistory>7</maxHistory>
-            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
-                <maxFileSize>10MB</maxFileSize>
-            </timeBasedFileNamingAndTriggeringPolicy>
         </rollingPolicy>
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <providers>
@@ -130,8 +126,11 @@
         <level value="DEBUG" />
     </logger>
 
-    <!-- Loki + root: Janino <if> must not nest inside <root> (breaks appenders). Branch at configuration level. -->
-    <if condition='property("LOKI_API_KEY") != null &amp;&amp; !property("LOKI_API_KEY").trim().isEmpty()'>
+    <!-- Loki + root: Logback 1.6 native <condition> before <if> (Janino removed). Branch at configuration level. -->
+    <condition class="com.optimize.elykia.core.config.NonBlankPropertyCondition">
+        <key>LOKI_API_KEY</key>
+    </condition>
+    <if>
         <then>
             <appender name="LOKI" class="com.github.loki4j.logback.Loki4jAppender">
                 <http>

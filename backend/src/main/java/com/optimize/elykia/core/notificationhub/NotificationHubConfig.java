@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.notificationhub;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.optimize.elykia.core.config.NotificationHubProperties;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;

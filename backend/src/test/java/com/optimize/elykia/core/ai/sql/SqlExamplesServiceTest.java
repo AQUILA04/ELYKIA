@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.ai.sql;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.optimize.elykia.core.ai.config.AiProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ class SqlExamplesServiceTest {
         sql.setExamplesPath("classpath:ai/sql-examples.json");
         sql.setMaxFewShotExamples(2);
         when(aiProperties.getSql()).thenReturn(sql);
-        sqlExamplesService = new SqlExamplesService(new ObjectMapper(), new DefaultResourceLoader(), aiProperties);
+        sqlExamplesService = new SqlExamplesService(JsonMapper.builder().build(), new DefaultResourceLoader(), aiProperties);
         sqlExamplesService.loadExamples();
     }
 

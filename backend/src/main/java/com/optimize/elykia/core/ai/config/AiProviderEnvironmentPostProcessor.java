@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.ai.config;
 
+import org.springframework.boot.EnvironmentPostProcessor;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
@@ -49,7 +49,7 @@ public class AiProviderEnvironmentPostProcessor implements EnvironmentPostProces
             case "ollama" -> "ollama";
             case "anthropic" -> "anthropic";
             case "openai" -> "openai";
-            case "gemini" -> "vertexai";
+            case "gemini" -> "google-genai";
             case "deepseek" -> "deepseek";
             default -> NONE;
         };

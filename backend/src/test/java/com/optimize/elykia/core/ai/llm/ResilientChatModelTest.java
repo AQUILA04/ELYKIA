@@ -1,9 +1,6 @@
 package com.optimize.elykia.core.ai.llm;
 
-import com.google.api.gax.rpc.InvalidArgumentException;
-import com.google.api.gax.rpc.PermissionDeniedException;
-import com.google.api.gax.rpc.ResourceExhaustedException;
-import com.google.api.gax.rpc.StatusCode;
+import com.google.genai.errors.ClientException;
 import com.optimize.elykia.core.ai.config.AiProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,14 +70,13 @@ class ResilientChatModelTest {
         AtomicInteger calls = new AtomicInteger();
         ChatModel delegate = prompt -> {
             calls.incrementAndGet();
-            throw new InvalidArgumentException(
-                    new IllegalStateException("bad prompt"), statusCode(StatusCode.Code.INVALID_ARGUMENT), false);
+            throw new ClientException(400, "INVALID_ARGUMENT", "bad prompt");
         };
 
         ResilientChatModel model = new ResilientChatModel(delegate, retry);
         Prompt prompt = new Prompt("ping");
 
-        assertThrows(InvalidArgumentException.class, () -> model.call(prompt));
+        assertThrows(ClientException.class, () -> model.call(prompt));
         assertEquals(1, calls.get());
     }
 
@@ -117,7 +113,7 @@ class ResilientChatModelTest {
 
         RuntimeException thrown = assertThrows(RuntimeException.class, () -> model.call(prompt));
 
-        assertInstanceOf(PermissionDeniedException.class, thrown.getCause());
+        assertInstanceOf(ClientException.class, thrown.getCause());
         assertEquals(1, calls.get());
     }
 
@@ -142,31 +138,11 @@ class ResilientChatModelTest {
         assertEquals(List.of(expected), responses);
     }
 
-    private static ResourceExhaustedException resourceExhausted() {
-        return new ResourceExhaustedException(
-                new IllegalStateException("RESOURCE_EXHAUSTED"),
-                statusCode(StatusCode.Code.RESOURCE_EXHAUSTED),
-                false);
+    private static ClientException resourceExhausted() {
+        return new ClientException(429, "RESOURCE_EXHAUSTED", "quota exceeded");
     }
 
-    private static PermissionDeniedException permissionDenied(String message) {
-        return new PermissionDeniedException(
-                new IllegalStateException(message),
-                statusCode(StatusCode.Code.PERMISSION_DENIED),
-                false);
-    }
-
-    private static StatusCode statusCode(StatusCode.Code code) {
-        return new StatusCode() {
-            @Override
-            public Code getCode() {
-                return code;
-            }
-
-            @Override
-            public Object getTransportCode() {
-                return code;
-            }
-        };
+    private static ClientException permissionDenied(String message) {
+        return new ClientException(403, "PERMISSION_DENIED", message);
     }
 }

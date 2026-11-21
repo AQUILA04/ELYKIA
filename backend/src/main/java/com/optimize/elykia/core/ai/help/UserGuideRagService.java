@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.ai.help;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import com.optimize.elykia.core.ai.config.AiProperties;
 import com.optimize.elykia.core.ai.dto.GuideSourceDto;
 import jakarta.annotation.PostConstruct;

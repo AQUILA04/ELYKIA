@@ -1,23 +1,23 @@
 # Contexte technique
 
-Versions lues le 2026-11-18. En cas d’écart, les fichiers sources gagnent.
+Versions lues le 2026-11-21 (branche `migration/java25-spring-boot-4`). En cas d’écart, les fichiers sources gagnent.
 
 | Composant | Version | Fichier | Stack constatée |
 |-----------|---------|---------|-----------------|
-| Backend | 1.53.5 | `backend/pom.xml` (`optimize-elykia-core`) | Java 17, Spring Boot **3.3.0**, Spring AI 1.0.0, JPA, Flyway, MapStruct 1.6.0.Beta1, Lombok, springdoc, Testcontainers 1.21.4, JaCoCo (seuil lignes global 0,46) |
-| Frontend | 2.50.5 | `frontend/package.json` | Angular **18.2**, Material, ng-select, ngx-permissions, Playwright 1.60, Karma/Jasmine. `npm install --legacy-peer-deps` |
-| Mobile | 2.40.5 | `mobile/package.json` (+ `environment.ts` et `environment.prod.ts`) | Angular **20**, Ionic **8**, Capacitor **7.4**, SQLite, NgRx 20 |
-| Espace client | 0.17.3 | `customer-space/package.json` | Angular **20.3**, Ionic **8**, Capacitor **8.4** |
+| Backend | 2.0.0 | `backend/pom.xml` (`optimize-elykia-core`) | **Java 25 (LTS)**, **Spring Boot 4.2.0**, Spring AI **2.1.0** (`google-genai`), JPA / Hibernate 7.4, Jackson 3, Flyway 12.11 (`spring-boot-starter-flyway`), MapStruct 1.6.3, Lombok 1.18.48, springdoc 3.2.1, iText 9.8.1 / html2pdf 6.3.4 / PDFBox 3.0.8 / POI 5.5.1, Testcontainers 2.0.5, JaCoCo 0.8.16 (seuil lignes global 0,46) |
+| Frontend | 2.62.0 | `frontend/package.json` | Angular **18.2**, Material, ng-select, ngx-permissions, Playwright 1.60, Karma/Jasmine. `npm install --legacy-peer-deps` |
+| Mobile | 2.48.0 | `mobile/package.json` (+ `environment.ts` et `environment.prod.ts`) | Angular **20**, Ionic **8**, Capacitor **7.4**, SQLite, NgRx 20 |
+| Espace client | 0.17.4 | `customer-space/package.json` | Angular **20.3**, Ionic **8**, Capacitor **8.4** |
 
 `docs/project-overview.md` et `docs/architecture-frontend.md` indiquent encore Angular 14 : c’est périmé.
 
-`backend-lib` (branche `migration/java25-spring-boot-4`, étape 1 avant `backend/`) : `common-entities` **4.0.0**, `common-security-service` **4.0.0**, `optimize-elykia-client` **4.0.0**, tous alignés sur **Java 25** et **Spring Boot 4.2.0** (`spring-boot-starter-webmvc`, Spring Security 7.2, Hibernate 7.4, Jackson 3, JJWT 0.13.0, springdoc 3.2.1, MapStruct 1.6.3, MinIO 9.0.4 + `okhttp-jvm` 5.5.1). Les installer en local dans l'ordre (`common-entities` → `common-securities` → `elykia-client`) avant l'API. `backend/` reste en Java 17 / Spring Boot 3.3.0 jusqu'à l'étape 2.
+`backend-lib` et `backend/` (branche `migration/java25-spring-boot-4`) : `common-entities` **4.0.0**, `common-security-service` **4.0.0**, `optimize-elykia-client` **4.0.0** et `optimize-elykia-core` **2.0.0**, tous alignés sur **Java 25** et **Spring Boot 4.2.0** (`spring-boot-starter-webmvc`, `spring-boot-starter-restclient`, `spring-boot-starter-flyway`, Spring Security 7.2, Hibernate 7.4, Jackson 3, JJWT 0.13.0, springdoc 3.2.1, MapStruct 1.6.3, MinIO 9.0.4 + `okhttp-jvm` 5.5.1, Spring AI 2.1.0 `google-genai`, Logback 1.6.6 sans Janino). Installer `backend-lib` en local dans l'ordre (`common-entities` → `common-securities` → `elykia-client`) avant l'API.
 
 Postgres **15** (image du compose prod). Base locale de dev documentée : `oec` / utilisateur `oec`. Base prod du compose : `elykia_prod_db` (variables `POSTGRES_*`).
 
 ## Lancer en local
 
-Prérequis README : Java 17, Maven 3.8+, Node 20, PostgreSQL 15. Android SDK seulement pour un binaire mobile. Secrets : variables d’environnement, jamais dans Git (`JWT_SECRET`, mot de passe JDBC, clés MinIO, clés LLM, `NOTIFICATION_HUB_*`). Amorçage des comptes démo seulement si `SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED=true` et `LOCAL_SEED_PASSWORD` ; le profil `prod` le coupe.
+Prérequis : Java 25 (branche migration ; Java 17 sur `main` avant fusion), Maven 3.9+, Node 20, PostgreSQL 15. Android SDK seulement pour un binaire mobile. Secrets : variables d’environnement, jamais dans Git (`JWT_SECRET`, mot de passe JDBC, clés MinIO, clés LLM, `NOTIFICATION_HUB_*`). Amorçage des comptes démo seulement si `SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED=true` et `LOCAL_SEED_PASSWORD` ; le profil `prod` le coupe.
 
 ```bash
 # libs puis API — port 8081, health http://localhost:8081/actuator/health

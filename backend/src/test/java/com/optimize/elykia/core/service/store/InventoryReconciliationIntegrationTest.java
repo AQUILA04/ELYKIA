@@ -25,8 +25,8 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -51,8 +51,8 @@ class InventoryReconciliationIntegrationTest extends IntegrationTestSupport {
     @Autowired private StockMovementRepository stockMovementRepository;
     @Autowired private EntityManager entityManager;
 
-    @MockBean private UserService userService;
-    @MockBean private User currentUser;
+    @MockitoBean private UserService userService;
+    @MockitoBean private User currentUser;
 
     @Test
     void adjustStockToPhysical_reconcilesDebtAndPersistsArticleAndWarehouseLedgersAsOneOperation() {

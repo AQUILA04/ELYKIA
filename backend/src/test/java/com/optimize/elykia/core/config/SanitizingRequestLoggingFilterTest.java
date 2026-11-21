@@ -97,7 +97,7 @@ class SanitizingRequestLoggingFilterTest {
 
     private String readPayload(MockHttpServletRequest request) throws IOException {
         request.setContent(request.getContentAsByteArray());
-        ContentCachingRequestWrapper wrapper = new ContentCachingRequestWrapper(request);
+        ContentCachingRequestWrapper wrapper = new ContentCachingRequestWrapper(request, 10_000);
         wrapper.getInputStream().readAllBytes();
         return filter.getMessagePayload(wrapper);
     }

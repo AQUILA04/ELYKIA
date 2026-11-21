@@ -1,8 +1,8 @@
 package com.optimize.elykia.core.service.sale;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.elykia.client.entity.Client;
@@ -1049,7 +1049,7 @@ public class RecoveryFieldPlanService {
     private String toJson(List<String> values) {
         try {
             return objectMapper.writeValueAsString(values != null ? values : List.of());
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new ApplicationException("Erreur sérialisation plan terrain");
         }
     }
@@ -1060,7 +1060,7 @@ public class RecoveryFieldPlanService {
         }
         try {
             return objectMapper.readValue(json, new TypeReference<List<String>>() {});
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             log.warn("Invalid plan JSON: {}", e.getMessage());
             return List.of();
         }

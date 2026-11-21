@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (migration backend Java 25 / Spring Boot 4.2.0 — Docker & CI)
+
+### Changed
+
+- **Docker (`backend/Dockerfile`) —** passage de l'image runtime de `eclipse-temurin:17-jre` à **`eclipse-temurin:25-jre`** (base Debian glibc, UID/GID 999 et Tesseract conservés).
+- **CI/CD (`.github/workflows/ci.yml`, `.github/workflows/e2e.yml`) —** passage de `actions/setup-java@v5` de JDK `17` à **`25`** (`temurin`) pour les jobs `build-backend`, `build-backend-lib` et le démarrage backend du workflow E2E.
+
 ## Docs & Infra — 2026-11-21 (migration backend-lib Java 25 / Spring Boot 4.2.0)
 
 ### Changed
@@ -823,6 +830,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [2.0.0] — 2026-11-21
+
+### Changed
+
+- **Plateforme Java 25 & Spring Boot 4.2.0 →** migration de `optimize-elykia-core` vers **Java 25 (LTS)** (`<release>25</release>`, bytecode v69), **Spring Boot 4.2.0** (Spring Framework 7.1, Spring Security 7.2, Hibernate 7.4, Jackson 3.1.8, Logback 1.6.6, JUnit 6.1.3) et consommation des bibliothèques `backend-lib` **`4.0.0`** (`optimize-elykia-client`, `common-security-service`). Passage aux starters modulaires Boot 4 (`spring-boot-starter-webmvc`, `spring-boot-starter-restclient`, `spring-boot-starter-webmvc-test`, `spring-boot-starter-flyway` avec Flyway `12.11.0`), Testcontainers `2.0.5` (BOM), `jacoco-maven-plugin` `0.8.16` (tous les seuils de couverture conservés à l'identique), `springdoc-openapi-starter-webmvc-ui` `3.2.1`, `spring-boot-admin-starter-client` `4.1.5`, `shedlock` `7.11.0`, `mapstruct` `1.6.3`, `jsqlparser` `5.4`, `logstash-logback-encoder` `9.0` et `loki-logback-appender` `2.1.0`.
+- **Spring AI 2.1.0 (`google-genai`) →** remplacement du starter supprimé `spring-ai-starter-model-vertex-ai-gemini` par **`spring-ai-starter-model-google-genai`** (`GoogleGenAiChatModel`, `spring.ai.model.chat=google-genai`, `spring.ai.google.genai.*` compatible Vertex AI Contabo et clé API Gemini). Adaptation de `ResilientChatModel` sur `com.google.genai.errors.ApiException` et `getOptions()`, et de `AiProviderEnvironmentPostProcessor` sur `org.springframework.boot.EnvironmentPostProcessor` (`META-INF/spring.factories`).
+- **Jackson 3 & Boot 4 →** migration vers `tools.jackson.databind.*`, `JsonMapper`, `JacksonException`, `asString()` et `JacksonJsonHttpMessageConverter` dans l'ensemble du backend et des tests ; déplacement de `@EntityScan` vers `org.springframework.boot.persistence.autoconfigure.EntityScan` ; adaptation MinIO `9.0.4` (`io.minio.Http.Method`) dans `ArticlePhotoUrlService` et `ClientPhotoUrlService` ; adaptation JSqlParser `5.4` (`TablesNamesFinder.getTables`) dans `SqlValidator` ; suppression des `hibernate.dialect` redondants ; migration des tests vers `@MockitoBean`, `org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc` et `ContentCachingRequestWrapper(request, limit)`.
+- **PDF & Excel →** montée vers `com.itextpdf:itext-core:9.8.1`, `html2pdf:6.3.4`, `pdfbox:3.0.8` et `poi:5.5.1` (conservation de `flying-saucer-pdf:9.1.22` + `itextpdf:5.5.13.4` pour les générateurs historiques).
+- **Logback 1.6 sans Janino →** suppression de `org.codehaus.janino:janino`, ajout de `NonBlankPropertyCondition` (`PropertyConditionBase`, avec test `NonBlankPropertyConditionTest`), placement natif `<condition>` avant `<if>` et passage à `SizeAndTimeBasedRollingPolicy` dans `logback-spring.xml`.
 
 ## Backend — [1.63.0] — 2026-11-21
 

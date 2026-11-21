@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.ai.schema;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -33,10 +33,10 @@ public class SchemaCatalogService {
             JsonNode root = objectMapper.readTree(in);
             catalogJson = objectMapper.writeValueAsString(root);
             if (root.has("tables")) {
-                root.get("tables").forEach(t -> allowedTables.add(t.get("name").asText().toLowerCase()));
+                root.get("tables").forEach(t -> allowedTables.add(t.get("name").asString().toLowerCase()));
             }
             if (root.has("views")) {
-                root.get("views").forEach(v -> allowedTables.add(v.get("name").asText().toLowerCase()));
+                root.get("views").forEach(v -> allowedTables.add(v.get("name").asString().toLowerCase()));
             }
             log.info("Schema catalog loaded: {} tables/views", allowedTables.size());
         } catch (Exception e) {
@@ -62,8 +62,8 @@ public class SchemaCatalogService {
             StreamSupport.stream(root.get("tables").spliterator(), false)
                     .filter(t -> t.has("rowLevelFilter"))
                     .forEach(t -> result.put(
-                            t.get("name").asText().toLowerCase(),
-                            t.get("rowLevelFilter").asText()));
+                            t.get("name").asString().toLowerCase(),
+                            t.get("rowLevelFilter").asString()));
         } catch (Exception e) {
             log.warn("Could not parse row-level filter tables", e);
         }

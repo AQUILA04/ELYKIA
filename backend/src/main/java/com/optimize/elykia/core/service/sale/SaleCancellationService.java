@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.service.sale;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.security.services.UserService;
@@ -374,7 +374,7 @@ public class SaleCancellationService {
         run.setStatus(SaleCancellationRunStatus.COMPLETED);
         try {
             run.setExcludedSalesDetails(objectMapper.writeValueAsString(excludedRows));
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new CustomValidationException("Impossible de sérialiser le détail des exclusions d'annulation.");
         }
         run = runRepository.save(run);

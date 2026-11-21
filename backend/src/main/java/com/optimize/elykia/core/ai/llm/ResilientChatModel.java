@@ -1,7 +1,6 @@
 package com.optimize.elykia.core.ai.llm;
 
-import com.google.api.gax.rpc.ApiException;
-import com.google.api.gax.rpc.StatusCode;
+import com.google.genai.errors.ApiException;
 import com.optimize.elykia.core.ai.config.AiProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
@@ -30,11 +29,14 @@ public class ResilientChatModel implements ChatModel {
                     + "et la renvoyer lorsque le service sera rétabli.";
 
     private static final String BILLING_DENIAL_MARKER = "dunning";
+    private static final String PERMISSION_DENIED_STATUS = "PERMISSION_DENIED";
 
-    private static final Set<StatusCode.Code> RETRYABLE_CODES = Set.of(
-            StatusCode.Code.RESOURCE_EXHAUSTED,
-            StatusCode.Code.UNAVAILABLE,
-            StatusCode.Code.DEADLINE_EXCEEDED);
+    private static final Set<String> RETRYABLE_STATUSES = Set.of(
+            "RESOURCE_EXHAUSTED",
+            "UNAVAILABLE",
+            "DEADLINE_EXCEEDED");
+
+    private static final Set<Integer> RETRYABLE_HTTP_CODES = Set.of(429, 503, 504);
 
     private static final int MAX_CAUSE_DEPTH = 10;
 
@@ -57,7 +59,7 @@ public class ResilientChatModel implements ChatModel {
                     log.warn("ai.provider.billing_denied", e);
                     throw new AiBillingUnavailableException(BILLING_MESSAGE, e);
                 }
-                StatusCode.Code code = retryableCode(e);
+                String code = retryableCode(e);
                 if (code == null) {
                     throw e;
                 }
@@ -81,21 +83,27 @@ public class ResilientChatModel implements ChatModel {
     }
 
     @Override
-    public ChatOptions getDefaultOptions() {
-        return delegate.getDefaultOptions();
+    public ChatOptions getOptions() {
+        return delegate.getOptions();
     }
 
     /**
      * Remonte la chaîne de causes à la recherche d'un statut fournisseur réessayable.
      * Renvoie {@code null} si l'échec n'est pas un throttle (bug applicatif, prompt invalide…).
      */
-    private static StatusCode.Code retryableCode(Throwable error) {
+    private static String retryableCode(Throwable error) {
         Throwable cause = error;
         for (int depth = 0; cause != null && depth < MAX_CAUSE_DEPTH; depth++) {
-            if (cause instanceof ApiException apiException && apiException.getStatusCode() != null) {
-                StatusCode.Code code = apiException.getStatusCode().getCode();
-                if (RETRYABLE_CODES.contains(code)) {
-                    return code;
+            if (cause instanceof ApiException apiException) {
+                String status = apiException.status();
+                if (status != null) {
+                    String normalized = status.trim().toUpperCase(Locale.ROOT);
+                    if (RETRYABLE_STATUSES.contains(normalized)) {
+                        return normalized;
+                    }
+                }
+                if (RETRYABLE_HTTP_CODES.contains(apiException.code())) {
+                    return "HTTP_" + apiException.code();
                 }
             }
             Throwable next = cause.getCause();
@@ -105,7 +113,7 @@ public class ResilientChatModel implements ChatModel {
     }
 
     /**
-     * PERMISSION_DENIED avec un refus de recouvrement (« dunning ») : le compte de facturation
+     * PERMISSION_DENIED (ou HTTP 403) avec un refus de recouvrement (« dunning ») : le compte de facturation
      * du fournisseur est bloqué. Les autres PERMISSION_DENIED (API désactivée, IAM) restent des erreurs.
      */
     private static boolean isBillingDenial(Throwable error) {
@@ -113,9 +121,15 @@ public class ResilientChatModel implements ChatModel {
         boolean dunning = false;
         Throwable cause = error;
         for (int depth = 0; cause != null && depth < MAX_CAUSE_DEPTH; depth++) {
-            if (cause instanceof ApiException apiException && apiException.getStatusCode() != null
-                    && apiException.getStatusCode().getCode() == StatusCode.Code.PERMISSION_DENIED) {
-                permissionDenied = true;
+            if (cause instanceof ApiException apiException) {
+                if (apiException.code() == 403
+                        || PERMISSION_DENIED_STATUS.equalsIgnoreCase(apiException.status())) {
+                    permissionDenied = true;
+                }
+                String apiMessage = apiException.message();
+                if (apiMessage != null && apiMessage.toLowerCase(Locale.ROOT).contains(BILLING_DENIAL_MARKER)) {
+                    dunning = true;
+                }
             }
             String message = cause.getMessage();
             if (message != null && message.toLowerCase(Locale.ROOT).contains(BILLING_DENIAL_MARKER)) {

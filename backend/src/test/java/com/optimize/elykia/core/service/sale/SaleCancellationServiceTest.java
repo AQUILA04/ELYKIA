@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.sale;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.security.services.UserService;
@@ -88,7 +88,7 @@ class SaleCancellationServiceTest {
                 fileRepository,
                 pdfService,
                 storageService,
-                new ObjectMapper());
+                JsonMapper.builder().build());
     }
 
     @Test

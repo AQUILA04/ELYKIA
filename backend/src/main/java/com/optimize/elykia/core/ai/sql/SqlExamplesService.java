@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.ai.sql;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.optimize.elykia.core.ai.config.AiProperties;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;

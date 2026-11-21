@@ -15,7 +15,7 @@ import com.optimize.elykia.core.dto.client.ClientPhotoUrlRequest;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
-import io.minio.http.Method;
+import io.minio.Http.Method;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
