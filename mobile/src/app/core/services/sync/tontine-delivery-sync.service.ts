@@ -184,8 +184,14 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
             await this.applyMergedOrder(delivery, syncedDelivery);
             return syncedDelivery;
         }
-        await this.repository.saveIdMapping(delivery.id, syncedDelivery.id.toString(), 'tontine-delivery');
-        await this.repository.markAsSynced(delivery.id, syncedDelivery.id.toString());
+        const serverId = syncedDelivery.id.toString();
+        await this.repository.saveIdMapping(delivery.id, serverId, 'tontine-delivery');
+        await this.repository.markAsSynced(delivery.id, serverId);
+        // Validation automatique côté serveur : la commande saisie hors ligne arrive « Validée ».
+        if (delivery.status === 'PENDING'
+            && String(syncedDelivery.deliveryStatus || syncedDelivery.status || '').toUpperCase() === 'VALIDATED') {
+            await this.repository.setStatus(serverId, 'VALIDATED');
+        }
         return syncedDelivery;
     }
 

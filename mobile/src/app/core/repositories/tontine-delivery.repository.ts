@@ -171,6 +171,15 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         );
     }
 
+    /** Statut renvoyé par le serveur (par ex. VALIDATED quand la validation automatique est activée). */
+    async setStatus(deliveryId: string, status: TontineDeliveryStatus): Promise<void> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        await this.databaseService.execute(
+            `UPDATE tontine_deliveries SET status = ? WHERE id = ?`,
+            [status, deliveryId]
+        );
+    }
+
     async markDeliverSynced(deliveryId: string): Promise<void> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
         await this.databaseService.execute(

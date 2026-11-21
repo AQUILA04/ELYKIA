@@ -57,6 +57,10 @@ app:
         key: RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY
         value: true
         description: "Ventes comptant. Activé : le prix unitaire et le montant de ligne sont réservés au gestionnaire et aux profils admin. Désactivé : tous les profils les voient. Le total reste affiché."
+      init-data[3]:
+        key: TONTINE_ORDER_AUTO_VALIDATION
+        value: false
+        description: "Commandes tontine. Activé : toute commande créée passe directement au statut Validée."
 
 minio:
   endpoint: http://localhost:9000
