@@ -138,7 +138,7 @@ public interface TontineMemberFieldControlRepository extends GenericRepository<T
                   AND m.delivery_status = 'SESSION_INPROGRESS'
                   AND c.observed_at >= :startAt
                   AND c.observed_at < :endAt
-                  AND LOWER(c.observed_by) = LOWER(:observer)
+                  AND (CAST(:observer AS text) IS NULL OR LOWER(c.observed_by) = LOWER(CAST(:observer AS text)))
                   AND (CAST(:commercial AS text) IS NULL
                        OR LOWER(cl.tontine_collector) = LOWER(CAST(:commercial AS text)))
                 ORDER BY c.tontine_member_id, c.observed_at DESC, c.id DESC
