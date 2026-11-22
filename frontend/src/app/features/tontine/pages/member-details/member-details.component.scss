@@ -4,10 +4,10 @@
    ============================================================ */
 
 :root {
-  --navy:          #003366;
-  --navy-dark:     #002244;
-  --navy-pale:     #e8eef6;
-  --navy-xpale:    #f0f4f9;
+  --navy:          var(--brand-primary, #003366);
+  --navy-dark:     var(--brand-primary-dark, #002244);
+  --navy-pale:     var(--brand-primary-pale, #e8eef6);
+  --navy-xpale:    var(--brand-primary-xpale, #f0f4f9);
   --bg-page:       #f2f4f8;
   --bg-white:      #ffffff;
   --border:        #dde3ec;
@@ -24,7 +24,7 @@
   --kpi-navy:      #003366;
   --kpi-red:       #b91c1c;
   --kpi-orange:    #c75000;
-  --kpi-cyan:      #0095c8;
+  --kpi-cyan:      var(--brand-secondary, #0095c8);
   --kpi-green:     #1d8a3c;
   --shadow-sm:     0 1px 3px rgba(0, 51, 102, 0.08);
   --shadow-md:     0 4px 16px rgba(0, 51, 102, 0.10);

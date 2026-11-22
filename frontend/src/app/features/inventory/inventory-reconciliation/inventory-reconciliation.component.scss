@@ -1,9 +1,9 @@
 :host {
   // Common theme variables
-  --navy: #003366;
-  --navy-dark: #002244;
-  --navy-pale: #e6f0fa;
-  --navy-xpale: #f4f8fc;
+  --navy: var(--brand-primary, #003366);
+  --navy-dark: var(--brand-primary-dark, #002244);
+  --navy-pale: var(--brand-primary-pale, #e6f0fa);
+  --navy-xpale: var(--brand-primary-xpale, #f4f8fc);
   --border: #e0e6ed;
   --border-dark: #c0cddb;
   --bg-page: #f8fafd;

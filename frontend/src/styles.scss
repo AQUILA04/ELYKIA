@@ -7,6 +7,37 @@
 
 // ── CSS Custom Properties ────────────────────────────────────
 :root {
+  // Configurable enterprise brand palette (overridden dynamically by CompanyBrandingService)
+  --brand-primary: #003366;
+  --brand-primary-dark: #002244;
+  --brand-primary-darker: #001a35;
+  --brand-primary-mid: #1a4775;
+  --brand-primary-light: #3b6fd4;
+  --brand-primary-pale: #e8eef6;
+  --brand-primary-xpale: #f0f4f9;
+  --brand-primary-rgb: 0, 51, 102;
+  --brand-primary-contrast: #ffffff;
+
+  --brand-secondary: #0095c8;
+  --brand-secondary-dark: #0077a0;
+  --brand-secondary-pale: #e0f2fe;
+  --brand-secondary-rgb: 0, 149, 200;
+
+  --brand-accent: #00c2a8;
+  --brand-accent-dark: #009e88;
+  --brand-accent-pale: #ccf5f1;
+  --brand-accent-rgb: 0, 194, 168;
+
+  --brand-sidebar-bg: #ffffff;
+  --brand-sidebar-bg-hover: #eef3fa;
+  --brand-sidebar-text: #1e293b;
+  --brand-sidebar-text-muted: #64748b;
+  --brand-sidebar-border: #e5eaef;
+  --brand-sidebar-active-bg: #003366;
+  --brand-sidebar-active-text: #ffffff;
+
+  --brand-bg: #f2f4f8;
+
   // Core palette
   --navy-900:  #071540;
   --navy-800:  #0d2055;
@@ -645,13 +676,63 @@ mat-paginator {
 }
 
 .client-link {
-  color: #003366;
+  color: var(--brand-primary, #003366);
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
 
   &:hover {
     text-decoration: underline;
+  }
+}
+
+// ── Dynamic Enterprise Branding Overrides (Sidebar & Navigation) ──
+aside.left-sidebar {
+  background-color: var(--brand-sidebar-bg, #ffffff) !important;
+  border-right: 1px solid var(--brand-sidebar-border, #e5eaef) !important;
+
+  .nav-small-cap {
+    color: var(--brand-sidebar-text-muted, #64748b) !important;
+  }
+
+  .sidebar-nav ul .sidebar-item .sidebar-link {
+    color: var(--brand-sidebar-text, #1e293b);
+
+    i,
+    mat-icon,
+    .material-icons {
+      color: inherit;
+    }
+
+    &:hover {
+      background-color: var(--brand-sidebar-bg-hover, #eef3fa);
+      color: var(--brand-primary, #003366);
+    }
+
+    &.active,
+    &.active:hover {
+      background-color: var(--brand-sidebar-active-bg, #003366) !important;
+      color: var(--brand-sidebar-active-text, #ffffff) !important;
+    }
+  }
+
+  .sidebar-nav ul .sidebar-item.selected > .sidebar-link,
+  .sidebar-nav ul .sidebar-item.selected > .sidebar-link.active,
+  .sidebar-nav ul .sidebar-item > .sidebar-link.active {
+    background-color: var(--brand-sidebar-active-bg, #003366) !important;
+    color: var(--brand-sidebar-active-text, #ffffff) !important;
+  }
+
+  .sidebar-nav .has-arrow::after {
+    border-color: var(--brand-sidebar-text-muted, #64748b);
+  }
+
+  .sidebar-nav .sidebar-link.active.has-arrow::after {
+    border-color: var(--brand-sidebar-active-text, #ffffff);
+  }
+
+  .close-btn {
+    color: var(--brand-sidebar-text, #1e293b);
   }
 }
 

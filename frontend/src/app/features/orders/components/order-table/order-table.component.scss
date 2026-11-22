@@ -1,9 +1,9 @@
 /* order-table — ViewEncapsulation.None */
 
 .order-table-host {
-  --navy: #003366;
-  --navy-pale: #e8eef6;
-  --navy-xpale: #f0f4f9;
+  --navy: var(--brand-primary, #003366);
+  --navy-pale: var(--brand-primary-pale, #e8eef6);
+  --navy-xpale: var(--brand-primary-xpale, #f0f4f9);
   --border: #dde3ec;
   --text-muted: #6b7a99;
   --green: #1d8a3c;
@@ -11,7 +11,7 @@
   --orange: #c75000;
   --red: #b91c1c;
   --red-pale: #fef2f2;
-  --kpi-cyan: #0095c8;
+  --kpi-cyan: var(--brand-secondary, #0095c8);
   --radius-sm: 8px;
 }
 

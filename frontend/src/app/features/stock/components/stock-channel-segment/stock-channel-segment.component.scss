@@ -1,6 +1,6 @@
 :host {
-  --navy: #003366;
-  --navy-xpale: #f0f4f9;
+  --navy: var(--brand-primary, #003366);
+  --navy-xpale: var(--brand-primary-xpale, #f0f4f9);
   --border: #dde3ec;
   --text-muted: #6b7a99;
   --radius: 12px;

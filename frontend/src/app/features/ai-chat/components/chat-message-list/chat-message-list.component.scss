@@ -8,8 +8,8 @@
 }
 
 .message-list {
-  --navy: #003366;
-  --navy-pale: #e8eef6;
+  --navy: var(--brand-primary, #003366);
+  --navy-pale: var(--brand-primary-pale, #e8eef6);
   --border: #dde3ec;
   --text-muted: #6b7a99;
   --bg-page: #f2f4f8;

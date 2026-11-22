@@ -1,5 +1,5 @@
 .dashboard-v2-page {
-  --navy: #003366;
+  --navy: var(--brand-primary, #003366);
   --bg-page: #f2f4f8;
   --bg-white: #ffffff;
   --border: #dde3ec;

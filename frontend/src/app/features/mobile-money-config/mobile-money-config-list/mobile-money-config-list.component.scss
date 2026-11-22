@@ -1,6 +1,6 @@
 .mobile-money-page {
-  --navy: #003366;
-  --navy-pale: #e8eef6;
+  --navy: var(--brand-primary, #003366);
+  --navy-pale: var(--brand-primary-pale, #e8eef6);
   --bg-page: #f2f4f8;
   --bg-white: #ffffff;
   --border: #dde3ec;

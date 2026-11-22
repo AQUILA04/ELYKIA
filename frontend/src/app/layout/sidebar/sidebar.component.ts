@@ -15,6 +15,10 @@ import {UserProfile} from "@shared/models/user-profile.enum";
 import { FeatureFlagService, FeatureFlags } from '@shared/service/feature-flag.service';
 import { environment } from '@env/environment';
 import { AiPermissions } from '@shared/constants/ai-permission.constant';
+import {
+  CompanyBrandingService,
+  DEFAULT_LOGO_FALLBACK_URL,
+} from '@core/services/company-branding.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -129,7 +133,8 @@ export class SidebarComponent implements OnInit {
   }
 
   isAdministrationRoute(): boolean {
-    return this.isSubRouteActive('/audit')
+    return this.isSubRouteActive('/administration')
+      || this.isSubRouteActive('/audit')
       || this.isSubRouteActive('/security')
       || this.isUserManagementRoute();
   }
@@ -253,7 +258,8 @@ export class SidebarComponent implements OnInit {
     public layoutService: LayoutService,
     private userService: UserService,
     private featureFlagService: FeatureFlagService,
-    private alertService: AlertService) {
+    private alertService: AlertService,
+    public brandingService: CompanyBrandingService) {
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
@@ -445,6 +451,13 @@ export class SidebarComponent implements OnInit {
 
   closeSidebar() {
     this.layoutService.closeSidebar();
+  }
+
+  onLogoError(event: Event): void {
+    const img = event.target as HTMLImageElement | null;
+    if (img && !img.src.endsWith(DEFAULT_LOGO_FALLBACK_URL)) {
+      img.src = DEFAULT_LOGO_FALLBACK_URL;
+    }
   }
 
   get mustChangePassword(): boolean {

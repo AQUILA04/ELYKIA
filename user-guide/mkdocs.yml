@@ -50,6 +50,7 @@ nav:
     - Application mobile: recovery-manager/mobile.md
   - Guide Administrateur:
     - Menu Administration: admin/index.md
+    - Entreprise & Charte graphique: admin/company_branding.md
     - Journal espace client (Audit): admin/customer_activity_audit.md
     - Annulation de ventes: admin/sale_cancellation.md
     - Annulation d'une dépense: admin/expense_cancellation.md

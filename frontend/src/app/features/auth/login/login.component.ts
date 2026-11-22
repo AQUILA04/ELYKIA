@@ -5,6 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { AuthService } from '../service/auth.service';
 import { TokenStorageService } from '@shared/service/token-storage.service';
 import { AlertService } from '@shared/service/alert.service';
+import { CompanyBrandingService } from '@core/services/company-branding.service';
 import { HttpErrorResponse } from '@angular/common/http';
 
 interface MobileSsoPayload {
@@ -31,6 +32,8 @@ export class LoginComponent implements OnInit {
   errorMessage: string | null = null;
   isDarkMode = true;
   returnUrl: string = '/home';
+  logoLoadFailed = false;
+  readonly currentYear = new Date().getFullYear();
 
   @HostBinding('class.light-mode') get lightMode() {
     return !this.isDarkMode;
@@ -43,6 +46,7 @@ export class LoginComponent implements OnInit {
     private tokenStorage: TokenStorageService,
     private route: ActivatedRoute,
     private alertService: AlertService,
+    public brandingService: CompanyBrandingService,
   ) {
     this.loginForm = this.formBuilder.group({
       username: ['', Validators.required],

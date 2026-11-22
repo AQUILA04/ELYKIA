@@ -1,12 +1,12 @@
 .billetage {
-  --navy: #003366;
-  --navy-dark: #002244;
-  --navy-pale: #e8eef6;
-  --navy-xpale: #f0f4f9;
+  --navy: var(--brand-primary, #003366);
+  --navy-dark: var(--brand-primary-dark, #002244);
+  --navy-pale: var(--brand-primary-pale, #e8eef6);
+  --navy-xpale: var(--brand-primary-xpale, #f0f4f9);
   --border: #dde3ec;
   --text-muted: #6b7a99;
   --text-light: #9aacc4;
-  --kpi-cyan: #0095c8;
+  --kpi-cyan: var(--brand-secondary, #0095c8);
   --cyan-pale: #e6f4fa;
   --radius: 12px;
   --radius-sm: 8px;

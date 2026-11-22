@@ -1,6 +1,6 @@
 .tontine-field-control-modal {
-  --navy: #003366;
-  --navy-dark: #002244;
+  --navy: var(--brand-primary, #003366);
+  --navy-dark: var(--brand-primary-dark, #002244);
   --border: #dde3ec;
   --text-muted: #6b7a99;
   --radius: 8px;

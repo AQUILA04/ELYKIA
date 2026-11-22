@@ -51,8 +51,8 @@
   }
 
   &--primary {
-    background: #e8eef6;
-    color: #003366;
+    background: var(--brand-primary-pale, #e8eef6);
+    color: var(--brand-primary, #003366);
   }
 
   &--danger {
@@ -66,8 +66,8 @@
   }
 
   &--info {
-    background: #e0f2fe;
-    color: #0095c8;
+    background: var(--brand-secondary-pale, #e0f2fe);
+    color: var(--brand-secondary, #0095c8);
   }
 }
 
@@ -81,7 +81,7 @@
   font-size: 18px;
   font-weight: 700;
   line-height: 1.3;
-  color: var(--navy-900, #002244);
+  color: var(--brand-primary-dark, #002244);
 }
 
 .elykia-alert-message {
@@ -132,8 +132,8 @@
   transition: border-color 150ms ease, box-shadow 150ms ease;
 
   &:focus {
-    border-color: #003366;
-    box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.14);
+    border-color: var(--brand-primary, #003366);
+    box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.14);
   }
 
   &--invalid {
@@ -179,7 +179,7 @@
   }
 
   &:focus-visible {
-    outline: 2px solid #003366;
+    outline: 2px solid var(--brand-primary, #003366);
     outline-offset: 2px;
   }
 
@@ -194,11 +194,11 @@
   }
 
   &--primary {
-    background: #003366;
-    color: #ffffff;
+    background: var(--brand-primary, #003366);
+    color: var(--brand-primary-contrast, #ffffff);
 
     &:hover {
-      background: #002244;
+      background: var(--brand-primary-dark, #002244);
     }
   }
 
@@ -221,11 +221,11 @@
   }
 
   &--info {
-    background: #0095c8;
+    background: var(--brand-secondary, #0095c8);
     color: #ffffff;
 
     &:hover {
-      background: #007aa6;
+      background: var(--brand-secondary-dark, #007aa6);
     }
   }
 }

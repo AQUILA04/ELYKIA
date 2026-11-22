@@ -23,6 +23,7 @@ import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 import { AuthInterceptor } from '@core/http/auth.interceptor';
 import { LicenseInterceptorService } from '@core/http/license-interceptor.service';
+import { CompanyBrandingService } from '@core/services/company-branding.service';
 import { FeatureFlagService } from '@shared/service/feature-flag.service';
 import { GoogleAnalyticsService } from '@shared/service/google-analytics.service';
 import { APP_ROUTES } from './app.routes';
@@ -60,8 +61,12 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const featureFlagService = inject(FeatureFlagService);
       const googleAnalyticsService = inject(GoogleAnalyticsService);
+      const companyBrandingService = inject(CompanyBrandingService);
       googleAnalyticsService.init();
-      return featureFlagService.init();
+      return Promise.all([
+        featureFlagService.init(),
+        companyBrandingService.init(),
+      ]);
     }),
   ],
 };

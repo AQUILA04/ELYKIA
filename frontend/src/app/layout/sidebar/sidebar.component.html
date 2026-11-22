@@ -6,7 +6,12 @@
   <div>
     <div class="brand-logo d-flex align-items-center justify-content-between">
       <a [routerLink]="mustChangePassword ? '/user/change-password' : '/home'" class="text-nowrap logo-img">
-        <img src="../assets/images/logos/elykiaa.png" width="180" alt="" />
+        <img
+          [src]="brandingService.sidebarLogoUrl()"
+          [alt]="brandingService.displayName()"
+          class="brand-logo-img"
+          (error)="onLogoError($event)"
+        />
       </a>
       <div class="close-btn d-xl-none d-block cursor-pointer" id="sidebarCollapse"
         (click)="closeSidebar()">
@@ -565,7 +570,7 @@
       </a>
     </li>
     <!-- MENU ADMINISTRATION (toujours en dernier) -->
-    <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_AUDIT', 'ROLE_EDIT_USER', 'ROLE_DEL_USER']"
+    <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ADMIN', 'ROLE_AUDIT', 'ROLE_EDIT_USER', 'ROLE_DEL_USER']"
       data-testid="e2e-sidebar-administration">
       <a class="sidebar-link has-arrow" (click)="onAdministrationClick()" aria-expanded="false"
         [ngClass]="{ 'active': isRouteActive('/administration') }">
@@ -575,6 +580,14 @@
         <span class="hide-menu">Administration</span>
       </a>
       <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isAdministrationOpen }">
+        <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_ADMIN']">
+          <a class="sidebar-link" routerLink="/administration/entreprise"
+            [ngClass]="{ 'active': isSubRouteActive('/administration/entreprise') }"
+            data-testid="e2e-sidebar-company">
+            <span class="material-icons">palette</span>
+            <span class="hide-menu">Entreprise &amp; Charte</span>
+          </a>
+        </li>
         <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_AUDIT']">
           <a class="sidebar-link" routerLink="/audit"
             [ngClass]="{ 'active': isSubRouteActive('/audit') }"

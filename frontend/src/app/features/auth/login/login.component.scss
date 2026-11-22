@@ -23,19 +23,17 @@ body, html {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Fond blanc cassé avec légère teinte bleue */
-  background-color: #eef2f8;
-  /* Motif grille très discret */
+  background-color: var(--brand-bg, #eef2f8);
   background-image:
-    linear-gradient(rgba(0, 51, 102, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 51, 102, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(var(--brand-primary-rgb, 0, 51, 102), 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--brand-primary-rgb, 0, 51, 102), 0.04) 1px, transparent 1px);
   background-size: 36px 36px;
   overflow: hidden;
   padding: 20px;
   z-index: 9999;
 }
 
-/* ── CERCLES ANIMÉS : discrets, couleur navy très atténuée ─── */
+/* ── CERCLES ANIMÉS : discrets, couleur primaire très atténuée ─── */
 .animated-bg {
   position: absolute;
   inset: 0;
@@ -53,7 +51,7 @@ body, html {
       height: 500px;
       top: -200px;
       left: -200px;
-      background: radial-gradient(circle, rgba(0, 51, 102, 0.07) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(var(--brand-primary-rgb, 0, 51, 102), 0.07) 0%, transparent 70%);
       animation-delay: 0s;
     }
 
@@ -62,7 +60,7 @@ body, html {
       height: 600px;
       bottom: -250px;
       right: -200px;
-      background: radial-gradient(circle, rgba(0, 149, 200, 0.07) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(var(--brand-secondary-rgb, 0, 149, 200), 0.08) 0%, transparent 70%);
       animation-delay: 8s;
     }
 
@@ -71,7 +69,7 @@ body, html {
       height: 300px;
       top: 40%;
       right: 5%;
-      background: radial-gradient(circle, rgba(0, 51, 102, 0.05) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(var(--brand-primary-rgb, 0, 51, 102), 0.05) 0%, transparent 70%);
       animation-delay: 16s;
     }
   }
@@ -101,33 +99,55 @@ body, html {
   text-align: center;
   margin-bottom: 28px;
 
+  .logo-custom-frame {
+    max-width: 220px;
+    max-height: 84px;
+    margin: 0 auto 16px;
+    padding: 8px 14px;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid rgba(var(--brand-primary-rgb, 0, 51, 102), 0.1);
+    box-shadow: 0 8px 24px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.12);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .logo-custom-img {
+    max-width: 192px;
+    max-height: 64px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+
   .logo-circle {
     width: 72px;
     height: 72px;
     margin: 0 auto 18px;
-    background: #003366;
+    background: var(--brand-primary, #003366);
     border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow:
-      0 8px 24px rgba(0, 51, 102, 0.25),
-      0 2px 6px rgba(0, 51, 102, 0.15);
-    color: white;
+      0 8px 24px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.25),
+      0 2px 6px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.15);
+    color: var(--brand-primary-contrast, #ffffff);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 
     &:hover {
       transform: translateY(-3px);
       box-shadow:
-        0 14px 32px rgba(0, 51, 102, 0.3),
-        0 4px 10px rgba(0, 51, 102, 0.2);
+        0 14px 32px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.3),
+        0 4px 10px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.2);
     }
   }
 
   .brand-name {
     font-size: 18px;
     font-weight: 800;
-    color: #003366;
+    color: var(--brand-primary, #003366);
     letter-spacing: 1.5px;
     text-transform: uppercase;
     margin-bottom: 5px;
@@ -146,14 +166,12 @@ body, html {
   background: #ffffff;
   border-radius: 20px;
   padding: 40px 40px 36px;
-  /* Ombre profonde portée vers le bas */
   box-shadow:
-    0 4px 6px rgba(0, 51, 102, 0.04),
-    0 12px 32px rgba(0, 51, 102, 0.10),
-    0 32px 60px rgba(0, 51, 102, 0.08);
-  border: 1px solid rgba(0, 51, 102, 0.08);
-  /* Liseré bleu navy tout en haut de la card */
-  border-top: 3px solid #003366;
+    0 4px 6px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.04),
+    0 12px 32px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.10),
+    0 32px 60px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.08);
+  border: 1px solid rgba(var(--brand-primary-rgb, 0, 51, 102), 0.08);
+  border-top: 3px solid var(--brand-primary, #003366);
 }
 
 /* ── EN-TÊTE DE LA CARD ─────────────────────────────────────── */
@@ -163,7 +181,7 @@ body, html {
   h2 {
     font-size: 24px;
     font-weight: 800;
-    color: #003366;
+    color: var(--brand-primary, #003366);
     margin-bottom: 5px;
     letter-spacing: -0.3px;
   }
@@ -190,7 +208,7 @@ body, html {
     letter-spacing: 0.02em;
 
     svg {
-      color: #003366;
+      color: var(--brand-primary, #003366);
       flex-shrink: 0;
     }
   }
@@ -213,9 +231,9 @@ body, html {
 
     &:focus {
       outline: none;
-      border-color: #003366;
+      border-color: var(--brand-primary, #003366);
       background: #ffffff;
-      box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.10);
+      box-shadow: 0 0 0 3px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.10);
     }
 
     &:disabled {
@@ -256,20 +274,20 @@ mat-error {
       width: 16px;
       height: 16px;
       cursor: pointer;
-      accent-color: #003366;
+      accent-color: var(--brand-primary, #003366);
       border-radius: 4px;
     }
   }
 
   .forgot-link {
-    color: #003366;
+    color: var(--brand-primary, #003366);
     text-decoration: none;
     font-weight: 600;
     font-size: 13px;
     transition: color 0.2s ease, text-decoration 0.2s ease;
 
     &:hover {
-      color: #002244;
+      color: var(--brand-primary-dark, #002244);
       text-decoration: underline;
     }
   }
@@ -282,8 +300,8 @@ mat-error {
   font-size: 15px;
   font-weight: 700;
   font-family: inherit;
-  color: white;
-  background: #003366;
+  color: var(--brand-primary-contrast, #ffffff);
+  background: var(--brand-primary, #003366);
   border: none;
   border-radius: 10px;
   cursor: pointer;
@@ -292,20 +310,20 @@ mat-error {
   text-transform: uppercase;
   position: relative;
   box-shadow:
-    0 4px 12px rgba(0, 51, 102, 0.3),
-    0 1px 3px rgba(0, 51, 102, 0.2);
+    0 4px 12px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.3),
+    0 1px 3px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.2);
 
   &:hover:not(:disabled) {
-    background: #002244;
+    background: var(--brand-primary-dark, #002244);
     transform: translateY(-2px);
     box-shadow:
-      0 8px 20px rgba(0, 51, 102, 0.35),
-      0 2px 6px rgba(0, 51, 102, 0.2);
+      0 8px 20px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.35),
+      0 2px 6px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.2);
   }
 
   &:active:not(:disabled) {
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(0, 51, 102, 0.25);
+    box-shadow: 0 2px 8px rgba(var(--brand-primary-rgb, 0, 51, 102), 0.25);
   }
 
   &:disabled {

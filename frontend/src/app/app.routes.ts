@@ -281,6 +281,22 @@ export const APP_ROUTES: Routes = [
           import('@features/expense/expense.module').then((m) => m.ExpenseModule),
       },
 
+      // Administration — Entreprise & Charte graphique
+      {
+        path: 'administration/entreprise',
+        loadChildren: () =>
+          import('@features/company-settings/company-settings.routes').then(
+            (m) => m.COMPANY_SETTINGS_ROUTES,
+          ),
+        canActivate: [NgxPermissionsGuard],
+        data: {
+          permissions: {
+            only: ['ROLE_ADMIN'],
+            redirectTo: '/home',
+          },
+        },
+      },
+
       // Sécurité, Paramètres & Configuration Mobile Money
       {
         path: 'security',

@@ -5,10 +5,10 @@
    ============================================================ */
 
 .notifications-page {
-  --navy: #003366;
-  --navy-dark: #002244;
-  --navy-pale: #e8eef6;
-  --navy-xpale: #f0f4f9;
+  --navy: var(--brand-primary, #003366);
+  --navy-dark: var(--brand-primary-dark, #002244);
+  --navy-pale: var(--brand-primary-pale, #e8eef6);
+  --navy-xpale: var(--brand-primary-xpale, #f0f4f9);
   --bg-page: #f2f4f8;
   --bg-white: #ffffff;
   --border: #dde3ec;
@@ -16,7 +16,7 @@
   --text-light: #9aacc4;
   --green: #1d8a3c;
   --orange: #c75000;
-  --kpi-cyan: #0095c8;
+  --kpi-cyan: var(--brand-secondary, #0095c8);
   --kpi-navy: #003366;
   --radius: 12px;
   --radius-sm: 8px;

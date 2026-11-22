@@ -205,6 +205,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [3.1.0] — 2026-11-22
+
+### Added
+
+- **Administration — Entreprise & Charte graphique (`/administration/entreprise`, `@features/company-settings/`) —** nouvelle gestion dédiée (indépendante d'Agence, réservée à `ROLE_ADMIN`) permettant de configurer l'identité de l'entreprise déployée (raison sociale, nom court, slogan, coordonnées, NIF/RCCM), son logo personnalisé (PNG/JPEG/WEBP/SVG ≤ 2 Mo avec drag-and-drop, double aperçu clair/menu latéral et suppression) et sa palette de 6 couleurs (5 thèmes prédéfinis + sélecteurs hexadécimaux avec aperçu temps réel sur toute l'interface, réinitialisation par défaut et rollback automatique si l'on quitte sans enregistrer).
+- **Moteur de charte dynamique & cache 3 niveaux (`@core/services/company-branding.service.ts`, `@core/utils/color-palette.util.ts`) —** hydratation synchrone depuis `localStorage` (`elykia.company-branding.v1`) sans clignotement visuel (anti-FOUC), revalidation HTTP conditionnelle `ETag` / `If-None-Match` (`304 Not Modified`) dans `provideAppInitializer`, synchronisation temps réel multi-onglets (`storage` event), mise à jour dynamique du `<title>` et du favicon, et génération harmonieuse des variables CSS `--brand-*` / `--navy-*` / `--teal-*` / `--ad-*`.
+
+### Changed
+
+- **Thémage dynamique de l'ensemble de l'application —** raccordement des 81 feuilles SCSS de composants (remplacement des `--navy*` / `--kpi-cyan` / `--bg` locaux figés par `var(--brand-*, ...)`), de la barre latérale (`SidebarComponent` : logo dynamique + entrée `Administration > Entreprise & Charte` + couleurs de fond/texte/actif), de l'écran de connexion (`LoginComponent` : logo, raison sociale, slogan et palette dynamiques) et de `AlertDialogComponent`.
+
 ## Frontend — [3.0.0] — 2026-11-21
 
 ### Changed
@@ -882,6 +893,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [2.10.0] — 2026-11-22
+
+### Added
+
+- **Module Spring Modulith `company` (`com.optimize.elykia.company`, 19e module vérifié par `ModularityTests`) —** nouvelle gestion autonome du profil entreprise et de la charte graphique (indépendante d'`Agency`) :
+  - **Migration Flyway `V046__company_profile_branding.sql` :** table singleton `public.company_profile` (`id = 1`) stockant raison sociale, nom court, slogan, coordonnées, 6 couleurs hexadécimales, logo binaire (`BYTEA` + MIME + nom de fichier) et compteur `theme_version` avec amorçage ELYKIA par défaut.
+  - **API publique cacheable (`/api/public/company/branding`, `/api/public/company/logo`) :** en-têtes `ETag`, gestion `If-None-Match` → `304 Not Modified`, `Cache-Control: no-cache, must-revalidate` pour la config et `public, max-age=31536000, immutable` pour le logo versionné (`?v={themeVersion}`), en-têtes de sécurité `X-Content-Type-Options: nosniff` et `Content-Security-Policy` sandbox sur les SVG ; exposition CORS de `ETag` et `Cache-Control` dans `WebSecurityConfig`.
+  - **API d'administration (`/api/v1/admin/company`, `ROLE_ADMIN`) :** lecture, mise à jour validée, upload logo (contrôle taille ≤ 2 Mo, MIME + magic bytes PNG/JPEG/WEBP, filtrage anti-XSS SVG), suppression logo et réinitialisation de la charte par défaut.
+  - **Cache Caffeine (`CacheNames.COMPANY_PROFILE`, `CacheNames.COMPANY_LOGO`) :** enregistré dans `CacheConfig` et invalidé automatiquement à chaque mutation avec incrément de `themeVersion`.
+- **Guide utilisateur & index RAG —** nouvelle page `user-guide/docs/admin/company_branding.md`, mise à jour de `user-guide/docs/admin/index.md` et `mkdocs.yml`, et régénération de `backend/src/main/resources/ai/user-guide-index.json` (346 chunks).
 
 ## Backend — [2.9.1] — 2026-11-21
 

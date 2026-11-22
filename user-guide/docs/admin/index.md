@@ -8,6 +8,7 @@ Ce guide accompagne les administrateurs de l’application. Les écrans d’admi
 
 1. Dans le menu latéral, descendez jusqu’au dernier menu et cliquez sur **Administration**.
 2. Les sous-menus se déplient :
+   - **Entreprise & Charte** : personnalise les informations de l’entreprise, le logo et les couleurs de la charte graphique (réservé à `ROLE_ADMIN`).
    - **Audit** : ouvre le **Journal espace client**.
    - **Utilisateurs** : ouvre la liste des comptes utilisateurs de l’application.
    - **Sécurité** : cliquez dessus pour afficher **Profils** et **Permissions**.
@@ -15,6 +16,7 @@ Ce guide accompagne les administrateurs de l’application. Les écrans d’admi
 
 | Sous-menu | Écran | Finalité |
 |---|---|---|
+| Entreprise & Charte | Entreprise & Charte graphique | Configurer le nom de l’entreprise, le logo et la palette de couleurs de la plateforme. |
 | Audit | Journal espace client | Analyser les connexions, parcours, paiements et erreurs de l’espace client. |
 | Utilisateurs | Liste des utilisateurs | Créer, consulter, modifier, activer ou désactiver et supprimer les comptes. |
 | Sécurité > Profils | Liste des Profils | Créer, modifier ou supprimer les profils d’utilisateur. |
@@ -22,6 +24,7 @@ Ce guide accompagne les administrateurs de l’application. Les écrans d’admi
 
 Consultez les pages suivantes selon la tâche à accomplir :
 
+- [Entreprise & Charte graphique](company_branding.md) pour personnaliser l’identité, le logo et la charte de couleurs de l’entreprise.
 - [Journal espace client (Audit)](customer_activity_audit.md) pour consulter les actions, erreurs et parcours de l’espace client.
 - [Annulation de ventes](sale_cancellation.md) pour annuler une ou plusieurs ventes à crédit d’un commercial (menu **Ventes > Annulation Ventes**).
 - [Annulation d'une dépense](expense_cancellation.md) pour retirer une ou plusieurs dépenses qui ne sont pas encore dans une remise.

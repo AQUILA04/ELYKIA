@@ -1,8 +1,8 @@
 .credit-list-page {
-  --navy: #003366;
-  --navy-dark: #002244;
-  --navy-pale: #e8eef6;
-  --navy-xpale: #f0f4f9;
+  --navy: var(--brand-primary, #003366);
+  --navy-dark: var(--brand-primary-dark, #002244);
+  --navy-pale: var(--brand-primary-pale, #e8eef6);
+  --navy-xpale: var(--brand-primary-xpale, #f0f4f9);
   --bg-page: #f2f4f8;
   --bg-white: #ffffff;
   --border: #dde3ec;
@@ -13,7 +13,7 @@
   --orange: #c75000;
   --orange-pale: #fff3e6;
   --red: #b91c1c;
-  --kpi-cyan: #0095c8;
+  --kpi-cyan: var(--brand-secondary, #0095c8);
   --shadow-sm: 0 1px 3px rgba(0, 51, 102, 0.08);
   --radius: 12px;
   --radius-sm: 8px;
@@ -656,8 +656,8 @@
 
 /* Modal changement commercial (hors .credit-list-page — tokens locaux) */
 .credit-list-bulk-modal {
-  --navy: #003366;
-  --navy-dark: #002244;
+  --navy: var(--brand-primary, #003366);
+  --navy-dark: var(--brand-primary-dark, #002244);
   --border: #dde3ec;
   --text-muted: #6b7a99;
   --radius: 12px;

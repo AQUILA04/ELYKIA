@@ -1,0 +1,472 @@
+<div class="company-page">
+  <!-- Breadcrumb + horloge -->
+  <div class="breadcrumb-bar">
+    <div class="breadcrumb-trail">
+      <mat-icon class="bc-icon">admin_panel_settings</mat-icon>
+      <span>Administration</span>
+      <mat-icon class="bc-sep">chevron_right</mat-icon>
+      <span class="bc-current">Entreprise &amp; Charte graphique</span>
+    </div>
+    <div class="live-clock">
+      <span class="clock-dot"></span>
+      <span>{{ currentTime() }}</span>
+    </div>
+  </div>
+
+  <!-- En-tête de page -->
+  <div class="page-header-card">
+    <div class="header-left">
+      <div class="header-icon-box">
+        <mat-icon>palette</mat-icon>
+      </div>
+      <div>
+        <h1 class="page-title">Entreprise &amp; Charte graphique</h1>
+        <p class="page-subtitle">
+          Personnalisez l'identité, le logo et les couleurs de l'entreprise déployée. Chaque modification met automatiquement à jour le cache global.
+        </p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button
+        type="button"
+        class="btn-outline"
+        (click)="loadProfile(true)"
+        [disabled]="isLoading() || isSaving()"
+      >
+        <mat-icon>refresh</mat-icon>
+        <span>Actualiser</span>
+      </button>
+      <button
+        type="button"
+        class="btn-outline"
+        (click)="onResetTheme()"
+        [disabled]="isResettingTheme() || isSaving()"
+      >
+        <mat-icon>restart_alt</mat-icon>
+        <span>Charte par défaut</span>
+      </button>
+      <button
+        type="button"
+        class="btn-primary"
+        (click)="onSave()"
+        [disabled]="isSaving() || form.invalid"
+        data-testid="company-save-btn"
+      >
+        <mat-icon>{{ isSaving() ? 'hourglass_top' : 'save' }}</mat-icon>
+        <span>{{ isSaving() ? 'Enregistrement...' : 'Enregistrer' }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Bandeau d'aperçu temps réel -->
+  @if (isPreviewing()) {
+    <div class="preview-banner" role="status" aria-live="polite">
+      <div class="preview-banner-left">
+        <mat-icon>visibility</mat-icon>
+        <span>
+          <strong>Aperçu en direct actif</strong> — Les nouvelles couleurs sont prévisualisées sur toute l'interface mais ne sont pas encore enregistrées.
+        </span>
+      </div>
+      <div class="preview-banner-actions">
+        <button type="button" class="btn-banner-ghost" (click)="cancelPreview()">
+          Annuler l'aperçu
+        </button>
+        <button type="button" class="btn-banner-solid" (click)="onSave()" [disabled]="isSaving() || form.invalid">
+          Enregistrer maintenant
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- KPI Strip -->
+  <div class="kpi-row">
+    <div class="kpi-card kpi-navy">
+      <div class="kpi-icon"><mat-icon>business</mat-icon></div>
+      <div class="kpi-body">
+        <span class="kpi-label">Entreprise configurée</span>
+        <span class="kpi-value kpi-value--text">{{ branding().companyName }}</span>
+        <span class="kpi-meta">{{ branding().shortName || 'Nom court non défini' }}</span>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-cyan">
+      <div class="kpi-icon"><mat-icon>cached</mat-icon></div>
+      <div class="kpi-body">
+        <span class="kpi-label">Version du thème &amp; cache</span>
+        <span class="kpi-value">v{{ branding().themeVersion }}</span>
+        <span class="kpi-meta">
+          @if (branding().updatedBy) {
+            Mis à jour par {{ branding().updatedBy }}
+          } @else {
+            Configuration initiale
+          }
+        </span>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-green">
+      <div class="kpi-icon"><mat-icon>image</mat-icon></div>
+      <div class="kpi-body">
+        <span class="kpi-label">Logo entreprise</span>
+        <span class="kpi-value kpi-value--text">
+          {{ branding().hasLogo ? 'Personnalisé' : 'Par défaut' }}
+        </span>
+        <span class="kpi-meta">{{ branding().logoFilename || 'Logo ELYKIA intégré' }}</span>
+      </div>
+    </div>
+
+    <div class="kpi-card kpi-amber">
+      <div class="kpi-icon"><mat-icon>color_lens</mat-icon></div>
+      <div class="kpi-body">
+        <span class="kpi-label">Palette active</span>
+        <div class="kpi-swatches">
+          <span class="swatch-dot" [style.background]="getColorValue('primaryColor')" title="Primaire"></span>
+          <span class="swatch-dot" [style.background]="getColorValue('secondaryColor')" title="Secondaire"></span>
+          <span class="swatch-dot" [style.background]="getColorValue('accentColor')" title="Accent"></span>
+          <span class="swatch-dot" [style.background]="getColorValue('sidebarBgColor')" title="Menu latéral"></span>
+        </div>
+        <span class="kpi-meta">{{ getColorValue('primaryColor').toUpperCase() }} · {{ getColorValue('secondaryColor').toUpperCase() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenu principal 2 colonnes -->
+  <form [formGroup]="form" (ngSubmit)="onSave()" class="settings-grid">
+    <!-- Colonne gauche : Identité & Couleurs -->
+    <div class="settings-main">
+      <!-- Carte Identité -->
+      <section class="section-card">
+        <div class="section-card-header">
+          <div class="section-title-group">
+            <mat-icon>domain</mat-icon>
+            <div>
+              <h2>Informations de l'entreprise</h2>
+              <p>Raison sociale, slogan et coordonnées affichés sur la plateforme</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card-body">
+          <div class="form-grid-2">
+            <div class="field-group">
+              <label for="companyName">Nom officiel de l'entreprise <span class="req">*</span></label>
+              <input
+                id="companyName"
+                type="text"
+                formControlName="companyName"
+                placeholder="Ex: AMENOUVEVE-YAVEH"
+                data-testid="company-name-input"
+              />
+              @if (form.get('companyName')?.invalid && form.get('companyName')?.touched) {
+                <span class="field-error">Le nom de l'entreprise est obligatoire (150 caractères max).</span>
+              }
+            </div>
+
+            <div class="field-group">
+              <label for="shortName">Nom court / Onglet navigateur</label>
+              <input
+                id="shortName"
+                type="text"
+                formControlName="shortName"
+                placeholder="Ex: ELYKIA"
+              />
+            </div>
+
+            <div class="field-group field-span-2">
+              <label for="tagline">Slogan / Sous-titre (écran de connexion)</label>
+              <input
+                id="tagline"
+                type="text"
+                formControlName="tagline"
+                placeholder="Ex: Gestion Elykia — Proximité & Confiance"
+              />
+            </div>
+
+            <div class="field-group field-span-2">
+              <label for="address">Adresse du siège</label>
+              <input
+                id="address"
+                type="text"
+                formControlName="address"
+                placeholder="Ex: Tokoin Hôpital, Lomé - Togo"
+              />
+            </div>
+
+            <div class="field-group">
+              <label for="phone">Téléphone</label>
+              <input
+                id="phone"
+                type="text"
+                formControlName="phone"
+                placeholder="Ex: +228 90 00 00 00"
+              />
+            </div>
+
+            <div class="field-group">
+              <label for="email">Adresse e-mail</label>
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                placeholder="Ex: contact@entreprise.tg"
+              />
+              @if (form.get('email')?.hasError('email') && form.get('email')?.touched) {
+                <span class="field-error">Adresse e-mail invalide.</span>
+              }
+            </div>
+
+            <div class="field-group">
+              <label for="website">Site web</label>
+              <input
+                id="website"
+                type="text"
+                formControlName="website"
+                placeholder="Ex: https://www.entreprise.tg"
+              />
+            </div>
+
+            <div class="field-group">
+              <label for="taxId">NIF / RCCM / Identifiant fiscal</label>
+              <input
+                id="taxId"
+                type="text"
+                formControlName="taxId"
+                placeholder="Ex: NIF-1000123456"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Carte Charte graphique -->
+      <section class="section-card">
+        <div class="section-card-header">
+          <div class="section-title-group">
+            <mat-icon>tune</mat-icon>
+            <div>
+              <h2>Charte graphique &amp; Palette de couleurs</h2>
+              <p>Choisissez un thème prédéfini ou ajustez chaque couleur avec aperçu instantané</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card-body">
+          <!-- Thèmes prédéfinis -->
+          <div class="presets-block">
+            <span class="block-label">Thèmes prédéfinis</span>
+            <div class="presets-grid">
+              @for (preset of presets; track preset.id) {
+                <button
+                  type="button"
+                  class="preset-chip"
+                  [class.preset-chip--active]="isPresetActive(preset)"
+                  (click)="applyPreset(preset)"
+                >
+                  <div class="preset-dots">
+                    <span [style.background]="preset.colors.primaryColor"></span>
+                    <span [style.background]="preset.colors.secondaryColor"></span>
+                    <span [style.background]="preset.colors.accentColor"></span>
+                    <span [style.background]="preset.colors.sidebarBgColor"></span>
+                  </div>
+                  <div class="preset-info">
+                    <span class="preset-name">{{ preset.name }}</span>
+                    <span class="preset-desc">{{ preset.description }}</span>
+                  </div>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Sélecteurs individuels -->
+          <div class="colors-grid">
+            @for (field of colorFields; track field.controlName) {
+              <div class="color-field-card">
+                <div class="color-field-meta">
+                  <label [attr.for]="'hex-' + field.controlName">{{ field.label }}</label>
+                  <span class="color-field-hint">{{ field.hint }}</span>
+                </div>
+                <div class="color-input-row">
+                  <input
+                    type="color"
+                    class="native-color-picker"
+                    [value]="getColorValue(field.controlName)"
+                    (input)="onColorPickerChange(field.controlName, $event)"
+                    [attr.aria-label]="field.label"
+                  />
+                  <input
+                    [id]="'hex-' + field.controlName"
+                    type="text"
+                    class="hex-text-input"
+                    [formControlName]="field.controlName"
+                    maxlength="7"
+                    placeholder="#003366"
+                  />
+                </div>
+                @if (form.get(field.controlName)?.invalid && form.get(field.controlName)?.touched) {
+                  <span class="field-error">Format hexadécimal attendu : #RRGGBB</span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Colonne droite : Logo & Aperçu en direct -->
+    <div class="settings-side">
+      <!-- Carte Logo -->
+      <section class="section-card">
+        <div class="section-card-header">
+          <div class="section-title-group">
+            <mat-icon>branding_watermark</mat-icon>
+            <div>
+              <h2>Logo de l'entreprise</h2>
+              <p>PNG, JPEG, WEBP ou SVG (max 2 Mo)</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card-body">
+          <div class="logo-preview-surfaces">
+            <div class="logo-surface logo-surface--light">
+              <span class="surface-tag">Sur fond clair</span>
+              <img
+                [src]="activeLogoPreviewUrl()"
+                [alt]="branding().companyName"
+                (error)="onPreviewLogoError($event)"
+              />
+            </div>
+            <div class="logo-surface logo-surface--sidebar" [style.background]="getColorValue('sidebarBgColor')">
+              <span class="surface-tag">Menu latéral</span>
+              <img
+                [src]="activeLogoPreviewUrl()"
+                [alt]="branding().companyName"
+                (error)="onPreviewLogoError($event)"
+              />
+            </div>
+          </div>
+
+          <div
+            class="logo-dropzone"
+            [class.logo-dropzone--dragover]="isDragOver()"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onDrop($event)"
+            (click)="logoFileInput.click()"
+          >
+            <input
+              #logoFileInput
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
+              class="visually-hidden"
+              (change)="onFileSelected($event)"
+            />
+            <mat-icon class="dropzone-icon">
+              {{ isUploadingLogo() ? 'hourglass_top' : 'cloud_upload' }}
+            </mat-icon>
+            <p class="dropzone-title">
+              {{ isUploadingLogo() ? 'Téléversement en cours...' : 'Cliquez ou déposez votre logo ici' }}
+            </p>
+            <span class="dropzone-subtitle">PNG transparent ou SVG recommandé · max 2 Mo</span>
+          </div>
+
+          @if (branding().hasLogo) {
+            <div class="logo-file-bar">
+              <div class="logo-file-info">
+                <mat-icon>check_circle</mat-icon>
+                <span class="logo-filename" [title]="branding().logoFilename || ''">
+                  {{ branding().logoFilename }}
+                </span>
+              </div>
+              <button
+                type="button"
+                class="btn-danger-outline"
+                (click)="onDeleteLogo()"
+                [disabled]="isDeletingLogo()"
+              >
+                <mat-icon>delete_outline</mat-icon>
+                <span>Supprimer</span>
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Carte Mini-aperçu + Cache -->
+      <section class="section-card">
+        <div class="section-card-header">
+          <div class="section-title-group">
+            <mat-icon>preview</mat-icon>
+            <div>
+              <h2>Aperçu de l'interface</h2>
+              <p>Rendu combiné de la barre latérale, des KPIs et des boutons</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-card-body">
+          <div class="mini-app-frame" [style.background]="getColorValue('backgroundColor')">
+            <div
+              class="mini-sidebar"
+              [style.background]="getColorValue('sidebarBgColor')"
+              [style.color]="getColorValue('sidebarTextColor')"
+            >
+              <div class="mini-sidebar-brand">
+                <img
+                  [src]="activeLogoPreviewUrl()"
+                  [alt]="branding().companyName"
+                  (error)="onPreviewLogoError($event)"
+                />
+              </div>
+              <div class="mini-nav-item mini-nav-item--active" [style.background]="getColorValue('primaryColor')">
+                Tableau de bord
+              </div>
+              <div class="mini-nav-item">Ventes &amp; Crédits</div>
+              <div class="mini-nav-item">Administration</div>
+            </div>
+
+            <div class="mini-content">
+              <div class="mini-header">
+                <strong [style.color]="getColorValue('primaryColor')">
+                  {{ form.get('companyName')?.value || branding().companyName }}
+                </strong>
+                <span>{{ form.get('tagline')?.value || 'Plateforme de gestion' }}</span>
+              </div>
+
+              <div class="mini-kpis">
+                <div class="mini-kpi" [style.border-top-color]="getColorValue('primaryColor')">
+                  <span>Primaire</span>
+                  <strong [style.color]="getColorValue('primaryColor')">128</strong>
+                </div>
+                <div class="mini-kpi" [style.border-top-color]="getColorValue('secondaryColor')">
+                  <span>Secondaire</span>
+                  <strong [style.color]="getColorValue('secondaryColor')">84%</strong>
+                </div>
+                <div class="mini-kpi" [style.border-top-color]="getColorValue('accentColor')">
+                  <span>Accent</span>
+                  <strong [style.color]="getColorValue('accentColor')">+14%</strong>
+                </div>
+              </div>
+
+              <div class="mini-actions">
+                <span class="mini-btn" [style.background]="getColorValue('primaryColor')">Action principale</span>
+                <span class="mini-btn mini-btn--secondary" [style.background]="getColorValue('secondaryColor')">Secondaire</span>
+                <span class="mini-badge" [style.background]="getColorValue('accentColor')">Actif</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="cache-info-box">
+            <mat-icon>verified_user</mat-icon>
+            <div>
+              <strong>Gestion automatique du cache</strong>
+              <p>
+                Les données sont persistées en base PostgreSQL, mises en cache côté serveur (Caffeine + HTTP ETag) et en local (<code>localStorage</code>) avec invalidation par version (<code>v{{ branding().themeVersion }}</code>) et synchronisation instantanée entre onglets.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </form>
+</div>
