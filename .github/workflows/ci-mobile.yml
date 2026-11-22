@@ -71,7 +71,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v6
       with:
-        node-version: '20.19.3'
+        node-version: '22'
         cache: 'npm'
         cache-dependency-path: 'mobile/package-lock.json'
 
@@ -93,7 +93,10 @@ jobs:
       working-directory: .
 
     - name: Install dependencies
-      run: npm install --legacy-peer-deps
+      run: npm ci
+
+    - name: Run unit tests (Vitest)
+      run: npm run test:ci
 
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps chromium
@@ -118,14 +121,12 @@ jobs:
 
     - name: Configure Gradle for Crashlytics
       run: |
-        sed -i "/dependencies {/a \        classpath 'com.google.gms:google-services:4.4.0'\n        classpath 'com.google.firebase:firebase-crashlytics-gradle:2.9.9'" android/build.gradle
-        sed -i "/apply plugin: 'com.android.application'/a apply plugin: 'com.google.gms.google-services'\napply plugin: 'com.google.firebase.crashlytics'" android/app/build.gradle
-        sed -i "/dependencies {/a \    implementation platform('com.google.firebase:firebase-bom:32.7.0')\n    implementation 'com.google.firebase:firebase-crashlytics'\n    implementation 'com.google.firebase:firebase-analytics'" android/app/build.gradle
+        ../.github/scripts/configure-android-firebase.sh android
 
     - name: Debug google-services.json
       run: |
         cat android/app/google-services.json
-        python -m json.tool android/app/google-services.json
+        python3 -m json.tool android/app/google-services.json
 
     - name: Sync Capacitor
       run: |
