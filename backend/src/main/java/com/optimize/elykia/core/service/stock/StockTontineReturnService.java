@@ -198,6 +198,26 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
         tontineStockService.processStockReturn(returnRequest);
         super.update(returnRequest);
 
+        String collector = returnRequest.getCollector();
+        for (StockTontineReturnItem item : returnRequest.getItems()) {
+            Articles article = articlesService.getById(item.getArticle().getId());
+            article.makeEntry(item.getQuantity());
+            articlesService.update(article);
+            stockMovementService.recordMovement(
+                    article,
+                    MovementType.RETURN,
+                    item.getQuantity(),
+                    "Retour tontine " + returnRequest.getId(),
+                    collector,
+                    null,
+                    article.getPurchasePrice(),
+                    ArticleHistoryContext.withReference(
+                            collector,
+                            StockHistoryReferenceType.STOCK_TONTINE_RETURN,
+                            returnRequest.getId(),
+                            null));
+        }
+
         double totalAmount = returnRequest.getItems().stream()
                 .mapToDouble(item -> item.getQuantity() * item.getArticle().getSellingPrice())
                 .sum();
