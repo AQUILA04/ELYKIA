@@ -95,7 +95,10 @@ public interface CommercialMonthlyStockRepository extends GenericRepository<Comm
 
     default CommercialMonthlyStock getCommercialMonthStock(String commercialUsername) {
         LocalDate currentDate = LocalDate.now();
-        return findByCollectorAndMonthAndYear(commercialUsername, currentDate.getMonthValue(), currentDate.getYear())
+        CommercialMonthlyStock stock = findByCollectorAndMonthAndYear(commercialUsername, currentDate.getMonthValue(), currentDate.getYear())
+                .orElseThrow(() -> new CustomValidationException("Aucun stock trouvé pour ce commercial ce mois-ci."));
+        // Recharger avec JOIN FETCH sur les items pour éviter le lazy loading partiel
+        return findByIdWithItems(stock.getId())
                 .orElseThrow(() -> new CustomValidationException("Aucun stock trouvé pour ce commercial ce mois-ci."));
     }
 }
