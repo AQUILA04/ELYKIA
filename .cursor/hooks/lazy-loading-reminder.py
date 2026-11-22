@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Cursor postToolUse hook: remind the agent to migrate eager frontend domains
-after editing files under frontend/src/app/{eager-domain}/.
+Cursor postToolUse hook: remind the agent to keep frontend feature domains
+lazy-loaded using Angular 21 standalone routes ({domain}.routes.ts) or existing
+NgModule ({domain}.module.ts) instead of declaring screens in AppModule.
 """
 
 from __future__ import annotations
@@ -14,10 +15,16 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_APP = REPO_ROOT / "frontend" / "src" / "app"
 
-EAGER_DOMAINS = frozenset({
-    "locality", "client", "dashboard-chart",
-    "accounting-day", "user", "cash-desk", "inventory", "gestion",
-    "operation", "deposit", "report", "history", "out", "commercial", "parameters",
+CORE_EXEMPT_FOLDERS = frozenset({
+    "shared",
+    "layout",
+    "interceptors",
+    "guards",
+    "services",
+    "auth",
+    "license",
+    "mobile-money-config",
+    "billetage",
 })
 
 
@@ -27,8 +34,12 @@ def domain_from_path(path: str) -> str | None:
     return match.group(1) if match else None
 
 
-def is_migrated(domain: str) -> bool:
-    return (FRONTEND_APP / domain / f"{domain}.module.ts").is_file()
+def is_lazy_configured(domain: str) -> bool:
+    domain_dir = FRONTEND_APP / domain
+    return (
+        (domain_dir / f"{domain}.routes.ts").is_file()
+        or (domain_dir / f"{domain}.module.ts").is_file()
+    )
 
 
 def extract_file_path(payload: dict) -> str | None:
@@ -58,16 +69,18 @@ def main() -> int:
         return 0
 
     domain = domain_from_path(file_path)
-    if not domain or domain not in EAGER_DOMAINS or is_migrated(domain):
+    if not domain or domain in CORE_EXEMPT_FOLDERS or is_lazy_configured(domain):
         print("{}")
         return 0
 
     context = (
-        f"RAPPEL OBLIGATOIRE lazy-loading ELYKIA : le fichier `{file_path}` appartient au "
-        f"domaine eager `{domain}`. La migration lazy-loading ({domain}.module.ts, "
-        f"loadChildren, URLs /{domain}/...) doit faire partie du scope de cette tâche. "
+        f"RAPPEL OBLIGATOIRE Angular 21 ELYKIA : le fichier `{file_path}` appartient au "
+        f"domaine `{domain}` qui n'a ni `{domain}.routes.ts` (standalone recommandé) ni "
+        f"`{domain}.module.ts`. Ne jamais déclarer un écran métier dans `AppModule` : "
+        f"utiliser des composants standalone + routes lazy (`{domain}.routes.ts`, "
+        f"`loadChildren`/`loadComponent`, URLs `/{domain}/...`). "
         f"Lire .cursor/rules/frontend-lazy-loading-migration.mdc et "
-        f".cursor/skills/frontend-lazy-loading-migration/SKILL.md avant de terminer."
+        f".cursor/skills/frontend-lazy-loading-migration/SKILL.md."
     )
     print(json.dumps({"additional_context": context}))
     return 0

@@ -6,7 +6,7 @@ These rules apply to all agent interactions across the project to ensure consist
 - **Contabo Patching (`contabo-patch-must-be-in-repo`)**: Any change applied to Contabo (VPS) must FIRST be committed to the repository (compose, Dockerfile, scripts, etc.). Hotfixing directly on the VPS without a Git commit is forbidden because the CD (`install.sh`, `deploy.sh`) will overwrite it.
 
 ## Frontend
-- **Lazy Loading Migration (`frontend-lazy-loading-migration`)**: If you modify a frontend domain that is still eager-loaded (e.g., `locality`, `account`, `client`, etc.), you MUST migrate it to lazy-loading in the same task. Create a module and a routing module, update `app.module.ts` and ensure routes use `loadChildren`.
+- **Lazy Loading & Standalone (`frontend-lazy-loading-migration`)**: All historical frontend domains are now lazy-loaded (Frontend `3.0.0`, Angular 21). For any new domain or screen, use **standalone components** (default in Angular 21) with lazy `{domaine}.routes.ts` / `loadChildren` or `loadComponent`, native control flow (`@if`/`@for`/`@switch`), and Vitest unit tests (`npm run test:ci`). Never declare a new feature screen in `AppModule`.
 - **UI Style (`frontend-ui-style`)**: Apply the standard ELYKIA UI style for any angular page modification (breadcrumb, KPI strip, toolbar, table-card). Do NOT use raw material buttons for primary actions. Refer to the skill `frontend-ui-style`.
 
 ## Mobile
