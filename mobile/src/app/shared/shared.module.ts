@@ -1,7 +1,26 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonBackButton,
+  IonButton,
+  IonButtons,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonCheckbox,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonSearchbar,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { IfUnitPriceDirective } from './directives/if-unit-price.directive';
 import { IfNoUnitPriceDirective } from './directives/if-no-unit-price.directive';
@@ -22,7 +41,7 @@ import { ReliquatDisplayComponent } from './components/reliquat-display/reliquat
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    IonicModule,
+    IonBackButton, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCheckbox, IonContent, IonFooter, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonSearchbar, IonTitle, IonToolbar,
     ScrollingModule,
     IfUnitPriceDirective,
     IfNoUnitPriceDirective
@@ -35,7 +54,6 @@ import { ReliquatDisplayComponent } from './components/reliquat-display/reliquat
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    IonicModule,
     ScrollingModule,
     IfUnitPriceDirective,
     IfNoUnitPriceDirective

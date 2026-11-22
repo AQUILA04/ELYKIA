@@ -1,6 +1,24 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
+import {
+  IonAccordion,
+  IonAccordionGroup,
+  IonButton,
+  IonButtons,
+  IonCol,
+  IonContent,
+  IonFooter,
+  IonGrid,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonRow,
+  IonTitle,
+  IonToolbar,
+  ModalController,
+} from '@ionic/angular';
 import { Camera, CameraResultType } from '@capacitor/camera';
 import { Client } from 'src/app/models/client.model';
 import { CommonModule } from '@angular/common';
@@ -9,7 +27,7 @@ import { CommonModule } from '@angular/common';
   selector: 'app-photo-edit-modal',
   templateUrl: './photo-edit-modal.component.html',
   styleUrls: ['./photo-edit-modal.component.scss'],
-  imports: [CommonModule, IonicModule, FormsModule, ReactiveFormsModule]
+  imports: [CommonModule, IonAccordion, IonAccordionGroup, IonButton, IonButtons, IonCol, IonContent, IonFooter, IonGrid, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonRow, IonTitle, IonToolbar, FormsModule, ReactiveFormsModule]
 })
 export class PhotoEditModalComponent implements OnInit {
 

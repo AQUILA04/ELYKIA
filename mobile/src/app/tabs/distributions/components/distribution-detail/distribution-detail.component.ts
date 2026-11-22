@@ -1,6 +1,19 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
-import { IonicModule, ModalController, AlertController, ToastController } from '@ionic/angular';
+import {
+  AlertController,
+  IonButton,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonProgressBar,
+  ModalController,
+  ToastController,
+} from '@ionic/angular';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { combineLatest, firstValueFrom } from 'rxjs';
@@ -19,7 +32,7 @@ import { IfUnitPriceDirective } from '../../../../shared/directives/if-unit-pric
   templateUrl: './distribution-detail.component.html',
   styleUrls: ['./distribution-detail.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, DistributionRecoveryHistoryComponent, IfUnitPriceDirective],
+  imports: [CommonModule, IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonHeader, IonIcon, IonProgressBar, DistributionRecoveryHistoryComponent, IfUnitPriceDirective],
   providers: [DecimalPipe]
 })
 export class DistributionDetailComponent implements OnInit {

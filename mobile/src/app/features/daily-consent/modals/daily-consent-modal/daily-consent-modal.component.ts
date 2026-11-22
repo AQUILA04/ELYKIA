@@ -1,7 +1,22 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ModalController, ToastController } from '@ionic/angular';
+import {
+  IonButton,
+  IonButtons,
+  IonCheckbox,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonTitle,
+  IonToolbar,
+  ModalController,
+  ToastController,
+} from '@ionic/angular';
 import { AuthService } from '../../../../core/services/auth.service';
 import { DailyConsentService } from '../../../../core/daily-consent/daily-consent.service';
 import { DAILY_CONSENT_MESSAGE_VERSION } from '../../../../core/daily-consent/models/daily-consent-history.model';
@@ -13,7 +28,7 @@ type ConsentStep = 'password' | 'confirmation';
   templateUrl: './daily-consent-modal.component.html',
   styleUrls: ['./daily-consent-modal.component.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule]
+  imports: [CommonModule, FormsModule, IonButton, IonButtons, IonCheckbox, IonContent, IonFooter, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonTitle, IonToolbar]
 })
 export class DailyConsentModalComponent implements OnInit {
   @Input() actionDate!: string;

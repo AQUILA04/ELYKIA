@@ -1,13 +1,21 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 import { ImagePreviewComponent } from './image-preview.component';
 
 @NgModule({
   declarations: [ImagePreviewComponent],
   imports: [
     CommonModule,
-    IonicModule
+    IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonTitle, IonToolbar
   ],
   exports: [ImagePreviewComponent]
 })

@@ -1,6 +1,19 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonButton,
+  IonButtons,
+  IonCol,
+  IonContent,
+  IonFooter,
+  IonGrid,
+  IonHeader,
+  IonIcon,
+  IonRow,
+  IonSpinner,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 import { OrderEditPage } from './order-edit.page';
 import { IfUnitPriceDirective } from 'src/app/shared/directives/if-unit-price.directive';
@@ -8,7 +21,7 @@ import { IfUnitPriceDirective } from 'src/app/shared/directives/if-unit-price.di
 const routes: Routes = [{ path: '', component: OrderEditPage }];
 
 @NgModule({
-  imports: [CommonModule, IonicModule, RouterModule.forChild(routes), IfUnitPriceDirective],
+  imports: [CommonModule, IonButton, IonButtons, IonCol, IonContent, IonFooter, IonGrid, IonHeader, IonIcon, IonRow, IonSpinner, IonTitle, IonToolbar, RouterModule.forChild(routes), IfUnitPriceDirective],
   declarations: [OrderEditPage]
 })
 export class OrderEditPageModule { }

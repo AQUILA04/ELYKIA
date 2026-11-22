@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonIcon } from '@ionic/angular';
 import {DistributionView} from "../../../../models/distribution-view.model";
 
 @Component({
@@ -8,7 +8,7 @@ import {DistributionView} from "../../../../models/distribution-view.model";
   templateUrl: './distribution-item.component.html',
   styleUrls: ['./distribution-item.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule]
+  imports: [CommonModule, IonIcon]
 })
 export class DistributionItemComponent  implements OnInit {
 

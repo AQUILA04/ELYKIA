@@ -4,7 +4,22 @@ import { firstValueFrom, Observable, Subject, combineLatest, BehaviorSubject } f
 import { takeUntil, filter, switchMap, take, map, debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ModalController, InfiniteScrollCustomEvent, IonInfiniteScroll } from '@ionic/angular';
+import {
+  InfiniteScrollCustomEvent,
+  IonButton,
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonList,
+  IonRefresher,
+  IonRefresherContent,
+  IonSearchbar,
+  IonSpinner,
+  ModalController,
+} from '@ionic/angular';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { Distribution } from '../../models/distribution.model';
@@ -32,7 +47,7 @@ interface DistributionsViewModel {
   templateUrl: './distributions-list.page.html',
   styleUrls: ['./distributions-list.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, DistributionItemComponent, ReactiveFormsModule],
+  imports: [CommonModule, IonButton, IonContent, IonFab, IonFabButton, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonList, IonRefresher, IonRefresherContent, IonSearchbar, IonSpinner, DistributionItemComponent, ReactiveFormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DistributionsListPage implements OnInit, OnDestroy {

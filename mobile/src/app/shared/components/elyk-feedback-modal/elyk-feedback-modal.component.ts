@@ -1,6 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { IonIcon, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { alertCircle, checkmarkCircle, informationCircle, warning } from 'ionicons/icons';
 
@@ -28,7 +28,7 @@ const ICONS: Record<ElykFeedbackKind, string> = {
 @Component({
   selector: 'app-elyk-feedback-modal',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonIcon],
   templateUrl: './elyk-feedback-modal.component.html',
   styleUrls: ['./elyk-feedback-modal.component.scss']
 })

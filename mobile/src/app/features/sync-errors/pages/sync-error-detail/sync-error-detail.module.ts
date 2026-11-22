@@ -2,7 +2,20 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { IonicModule } from '@ionic/angular';
+import {
+  IonBackButton,
+  IonButtons,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardSubtitle,
+  IonCardTitle,
+  IonContent,
+  IonHeader,
+  IonSkeletonText,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 
 import { SyncErrorDetailPageRoutingModule } from './sync-error-detail-routing.module';
 
@@ -12,7 +25,7 @@ import { SyncErrorDetailPage } from './sync-error-detail.page';
   imports: [
     CommonModule,
     FormsModule,
-    IonicModule,
+    IonBackButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardSubtitle, IonCardTitle, IonContent, IonHeader, IonSkeletonText, IonTitle, IonToolbar,
     SyncErrorDetailPageRoutingModule
   ],
   declarations: [SyncErrorDetailPage]

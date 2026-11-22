@@ -22,6 +22,7 @@ import { DeviceIdentityService } from './core/services/device-identity.service';
 import { AutoSyncSchedulerService } from './core/services/auto-sync-scheduler.service';
 import { environment } from '../environments/environment';
 import { resolveEnvironmentLabel } from './core/utils/environment-label.util';
+import { registerAllIcons } from './core/icons/register-icons';
 
 @Component({
   selector: 'app-root',
@@ -54,7 +55,10 @@ export class AppComponent implements OnInit, OnDestroy {
     private readonly featureFlagService: FeatureFlagService,
     private readonly deviceIdentityService: DeviceIdentityService,
     private readonly autoSyncSchedulerService: AutoSyncSchedulerService
-  ) { this.initializeApp().then(r => console.log(r) ); }
+  ) {
+    registerAllIcons();
+    this.initializeApp().then(r => console.log(r));
+  }
 
   async ngOnInit() {
     this.platform.ready().then(() => {
@@ -184,20 +188,25 @@ export class AppComponent implements OnInit, OnDestroy {
       return;
     }
 
-    await StatusBar.setOverlaysWebView({ overlay: false });
+    try {
+      await StatusBar.setOverlaysWebView({ overlay: false });
 
-    if (Capacitor.getPlatform() === 'android') {
-      // Style.Dark = icônes claires pour fond sombre/coloré (cf. @capacitor/status-bar Style enum).
-      const color = this.envLabel
-        ? AppComponent.STATUS_BAR_NON_PROD_COLOR
-        : AppComponent.STATUS_BAR_COLOR;
-      await StatusBar.setBackgroundColor({ color });
-      await StatusBar.setStyle({ style: Style.Dark });
-    } else {
-      await StatusBar.setStyle({ style: Style.Default });
+      if (Capacitor.getPlatform() === 'android') {
+        // Style.Dark = icônes claires pour fond sombre/coloré (cf. @capacitor/status-bar Style enum).
+        // Sur Android 16 (API 36), setBackgroundColor / overlaysWebView sont ignorés au profit de SystemBars.
+        const color = this.envLabel
+          ? AppComponent.STATUS_BAR_NON_PROD_COLOR
+          : AppComponent.STATUS_BAR_COLOR;
+        await StatusBar.setBackgroundColor({ color });
+        await StatusBar.setStyle({ style: Style.Dark });
+      } else {
+        await StatusBar.setStyle({ style: Style.Default });
+      }
+
+      await StatusBar.show();
+    } catch (err) {
+      console.warn('[StatusBar] Configuration ignorée sur cet environnement:', err);
     }
-
-    await StatusBar.show();
   }
 
   async saveToDownloads(imageData: string, fileName: string) {

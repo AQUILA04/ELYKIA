@@ -4,10 +4,20 @@ import localeFr from '@angular/common/locales/fr';
 import localeFrExtra from '@angular/common/locales/extra/fr';
 import {
   AlertController,
-  IonicModule,
+  IonButton,
+  IonButtons,
+  IonCheckbox,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonTitle,
+  IonToolbar,
   LoadingController,
   ModalController,
-  ToastController
+  ToastController,
 } from '@ionic/angular';
 import { LocalDataCleanupService } from '../../../../core/local-data-cleanup/local-data-cleanup.service';
 import { LocalDataCleanupTriggerAction } from '../../../../core/local-data-cleanup/models/local-data-cleanup-history.model';
@@ -20,7 +30,7 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
   templateUrl: './local-data-cleanup-modal.component.html',
   styleUrls: ['./local-data-cleanup-modal.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, DatePipe, DecimalPipe],
+  imports: [CommonModule, IonButton, IonButtons, IonCheckbox, IonContent, IonFooter, IonHeader, IonItem, IonLabel, IonList, IonTitle, IonToolbar, DatePipe, DecimalPipe],
   providers: [{ provide: LOCALE_ID, useValue: 'fr-FR' }]
 })
 export class LocalDataCleanupModalComponent implements OnInit {

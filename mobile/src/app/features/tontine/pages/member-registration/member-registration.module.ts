@@ -1,7 +1,24 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonButton,
+  IonButtons,
+  IonCard,
+  IonCardContent,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonRadio,
+  IonRadioGroup,
+  IonTextarea,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 
 import { MemberRegistrationPage } from './member-registration.page';
@@ -19,7 +36,7 @@ const routes: Routes = [
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
-        IonicModule,
+        IonButton, IonButtons, IonCard, IonCardContent, IonContent, IonFooter, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonRadio, IonRadioGroup, IonTextarea, IonTitle, IonToolbar,
         SharedModule,
         RouterModule.forChild(routes)
     ],

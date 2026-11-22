@@ -1,6 +1,18 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonButton,
+  IonButtons,
+  IonCol,
+  IonContent,
+  IonFooter,
+  IonGrid,
+  IonHeader,
+  IonIcon,
+  IonRow,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 import { OrderReceiptModalComponent } from './order-receipt-modal.component';
 import { ReceiptOrderLinesModule } from '../receipt-order-lines/receipt-order-lines.module';
 
@@ -8,7 +20,7 @@ import { ReceiptOrderLinesModule } from '../receipt-order-lines/receipt-order-li
   declarations: [OrderReceiptModalComponent],
   imports: [
     CommonModule,
-    IonicModule,
+    IonButton, IonButtons, IonCol, IonContent, IonFooter, IonGrid, IonHeader, IonIcon, IonRow, IonTitle, IonToolbar,
     ReceiptOrderLinesModule
   ],
   exports: [OrderReceiptModalComponent]

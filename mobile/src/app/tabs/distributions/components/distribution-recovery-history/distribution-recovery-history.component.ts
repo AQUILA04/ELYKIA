@@ -1,10 +1,20 @@
 import { Component, Input, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ModalController } from '@ionic/angular';
+import {
+  InfiniteScrollCustomEvent,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonSpinner,
+  ModalController,
+} from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { map, takeUntil, take, filter } from 'rxjs/operators';
-import { InfiniteScrollCustomEvent } from '@ionic/angular';
 
 import * as RecoveryActions from '../../../../store/recovery/recovery.actions';
 import {
@@ -30,7 +40,7 @@ export interface DistributionRecoveryHistoryVM {
   templateUrl: './distribution-recovery-history.component.html',
   styleUrls: ['./distribution-recovery-history.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonSpinner],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DistributionRecoveryHistoryComponent implements OnInit, OnDestroy {

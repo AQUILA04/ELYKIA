@@ -1,7 +1,24 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonBackButton,
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonLabel,
+  IonModal,
+  IonSearchbar,
+  IonSegment,
+  IonSegmentButton,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 
 import { DeliveryCreationPage } from './delivery-creation.page';
@@ -20,7 +37,7 @@ const routes: Routes = [
     imports: [
         CommonModule,
         FormsModule,
-        IonicModule,
+        IonBackButton, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonLabel, IonModal, IonSearchbar, IonSegment, IonSegmentButton, IonTitle, IonToolbar,
         RouterModule.forChild(routes),
         TontineDeliveryReceiptModalModule,
         TontineOrderReceiptModalModule,

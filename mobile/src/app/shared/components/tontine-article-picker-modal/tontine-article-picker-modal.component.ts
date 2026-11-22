@@ -1,7 +1,21 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonLabel,
+  IonSearchbar,
+  IonSegment,
+  IonSegmentButton,
+  IonSpinner,
+  IonTitle,
+  IonToolbar,
+  ModalController,
+} from '@ionic/angular';
 import { TontineStockRepository } from '../../../core/repositories/tontine-stock.repository';
 import { ArticleRepository } from '../../../core/repositories/article.repository';
 import { TontineStock } from '../../../models/tontine.model';
@@ -31,7 +45,7 @@ const PAGE_SIZE = 40;
 @Component({
   selector: 'app-tontine-article-picker-modal',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, IfUnitPriceDirective],
+  imports: [CommonModule, FormsModule, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonLabel, IonSearchbar, IonSegment, IonSegmentButton, IonSpinner, IonTitle, IonToolbar, IfUnitPriceDirective],
   templateUrl: './tontine-article-picker-modal.component.html',
   styleUrls: ['./tontine-article-picker-modal.component.scss']
 })

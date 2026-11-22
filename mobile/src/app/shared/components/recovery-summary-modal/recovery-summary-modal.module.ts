@@ -1,12 +1,21 @@
 import { CUSTOM_ELEMENTS_SCHEMA, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 // import { RecoverySummaryModalComponent } from './recovery-summary-modal.component';
 
 @NgModule({
   // declarations: [RecoverySummaryModalComponent],
   imports: [
-    IonicModule,
+    IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonTitle, IonToolbar,
     CommonModule
 
   ],

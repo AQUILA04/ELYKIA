@@ -1,7 +1,34 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonBackButton,
+  IonButton,
+  IonButtons,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonRouterLink,
+  IonSearchbar,
+  IonSelect,
+  IonSelectOption,
+  IonSpinner,
+  IonTitle,
+  IonToggle,
+  IonToolbar,
+} from '@ionic/angular';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 
 import { RecoveryPageRoutingModule } from './recovery-routing.module';
@@ -23,7 +50,7 @@ import { FormatNumberPipe } from '../../shared/pipes/format-number.pipe';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    IonicModule,
+    IonBackButton, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonFab, IonFabButton, IonFooter, IonHeader, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonInput, IonItem, IonLabel, IonRouterLink, IonSearchbar, IonSelect, IonSelectOption, IonSpinner, IonTitle, IonToggle, IonToolbar,
     RecoveryPageRoutingModule,
     ScrollingModule
   ],

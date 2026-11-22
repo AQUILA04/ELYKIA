@@ -1,7 +1,30 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonButton,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonCol,
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonFooter,
+  IonGrid,
+  IonHeader,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonList,
+  IonRefresher,
+  IonRefresherContent,
+  IonRow,
+  IonSearchbar,
+  IonSpinner,
+  IonToolbar,
+} from '@ionic/angular';
 
 import { OrdersRoutingModule } from './orders-routing.module';
 import { SharedModule } from '../../shared/shared.module';
@@ -18,7 +41,7 @@ import { OrderItemComponent } from './components/order-item/order-item.component
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    IonicModule,
+    IonButton, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonCol, IonContent, IonFab, IonFabButton, IonFooter, IonGrid, IonHeader, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonList, IonRefresher, IonRefresherContent, IonRow, IonSearchbar, IonSpinner, IonToolbar,
     OrdersRoutingModule,
     SharedModule,
     OrderReceiptModalModule

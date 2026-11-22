@@ -1,7 +1,30 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonBackButton,
+  IonButton,
+  IonButtons,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonSearchbar,
+  IonSegment,
+  IonSegmentButton,
+  IonSpinner,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 
 import { NewDistributionPageRoutingModule } from './new-distribution-routing.module';
@@ -19,7 +42,7 @@ import { IfUnitPriceDirective } from 'src/app/shared/directives/if-unit-price.di
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    IonicModule,
+    IonBackButton, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonFooter, IonHeader, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonInput, IonItem, IonLabel, IonSearchbar, IonSegment, IonSegmentButton, IonSpinner, IonTitle, IonToolbar,
     NewDistributionPageRoutingModule,
     PrintReceiptModalModule,
     ScrollingModule,

@@ -1,5 +1,16 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { LoadingController, ModalController, IonicModule } from '@ionic/angular';
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonTitle,
+  IonToolbar,
+  LoadingController,
+  ModalController,
+} from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { QRCodeComponent } from 'angularx-qrcode';
 import { Recovery } from '../../../models/recovery.model';
@@ -19,7 +30,7 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
   templateUrl: './recovery-summary-modal.component.html',
   styleUrls: ['./recovery-summary-modal.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, QRCodeComponent],
+  imports: [CommonModule, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonTitle, IonToolbar, QRCodeComponent],
 })
 export class RecoverySummaryModalComponent implements OnInit {
 

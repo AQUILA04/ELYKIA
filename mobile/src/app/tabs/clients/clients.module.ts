@@ -1,4 +1,17 @@
-import { IonicModule } from '@ionic/angular';
+import {
+  IonButton,
+  IonChip,
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonRouterLink,
+  IonRouterLinkWithHref,
+  IonSearchbar,
+  IonSpinner,
+} from '@ionic/angular';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -10,7 +23,7 @@ import { ClientsPageRoutingModule } from './clients-routing.module';
 
 @NgModule({
   imports: [
-    IonicModule,
+    IonButton, IonChip, IonContent, IonFab, IonFabButton, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonRouterLink, IonRouterLinkWithHref, IonSearchbar, IonSpinner,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

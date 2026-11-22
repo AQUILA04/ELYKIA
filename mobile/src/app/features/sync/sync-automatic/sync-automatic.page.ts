@@ -1,13 +1,19 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, LoadingController } from '@ionic/angular';
+import {
+  AlertController,
+  IonButton,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonProgressBar,
+  IonSpinner,
+  LoadingController,
+} from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Observable, Subject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 import { AsyncPipe, DecimalPipe, JsonPipe, CommonModule } from '@angular/common';
-import { IonItem, IonLabel,
-  IonIcon, IonSpinner, IonButton, IonProgressBar
-} from '@ionic/angular/standalone';
 
 import * as SyncActions from '../../../store/sync/sync.actions';
 import {

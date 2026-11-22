@@ -18,8 +18,6 @@ const config: CapacitorConfig = {
   android: {
     allowMixedContent: true,
     captureInput: true,
-    // Réserve l'espace pour la barre de statut / navigation (edge-to-edge Android 15+)
-    adjustMarginsForEdgeToEdge: 'force',
   },
   plugins: {
     CapacitorSQLite: {
@@ -28,6 +26,10 @@ const config: CapacitorConfig = {
     },
     CapacitorHttp: {
       enabled: true,
+    },
+    SystemBars: {
+      insetsHandling: 'css',
+      style: 'DARK',
     },
     StatusBar: {
       overlaysWebView: false,

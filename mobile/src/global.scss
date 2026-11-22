@@ -27,15 +27,16 @@
 
 @import "./theme/elyk-ds.scss";
 
-/* Safe areas — encoches / barre de navigation (Android edge-to-edge, iOS) */
+/* Safe areas — encoches / barre de navigation (Capacitor 8 SystemBars + Android edge-to-edge + iOS) */
 :root {
-  --ion-safe-area-top: env(safe-area-inset-top, 0px);
-  --ion-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --ion-safe-area-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --ion-safe-area-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --ion-safe-area-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+  --ion-safe-area-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
 }
 
 ion-app {
-  /* Pas de padding-top : évite une bande blanche au-dessus du contenu quand la
-     barre de statut native est déjà réservée (overlay: false + adjustMarginsForEdgeToEdge). */
+  /* Les barres d'en-tête Ionic consomment --ion-safe-area-top nativement. */
   padding-bottom: var(--ion-safe-area-bottom);
 }
 

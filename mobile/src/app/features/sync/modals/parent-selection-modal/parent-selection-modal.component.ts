@@ -2,24 +2,24 @@ import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButtons,
+  IonBadge,
   IonButton,
+  IonButtons,
   IonContent,
-  IonSearchbar,
-  IonList,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
   IonItem,
   IonLabel,
-  IonIcon,
-  IonBadge,
+  IonList,
+  IonSearchbar,
   IonSpinner,
-  IonFooter,
-  IonInfiniteScroll,
-  IonInfiniteScrollContent
-} from '@ionic/angular/standalone';
-import { ModalController } from '@ionic/angular';
+  IonTitle,
+  IonToolbar,
+  ModalController,
+} from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { takeUntil, map, tap } from 'rxjs/operators';

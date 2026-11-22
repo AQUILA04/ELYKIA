@@ -1,10 +1,10 @@
-import { NgModule, isDevMode, APP_INITIALIZER, LOCALE_ID } from '@angular/core';
+import { NgModule, isDevMode, LOCALE_ID, inject, provideAppInitializer } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
-import { IonicModule, IonicRouteStrategy, Platform } from '@ionic/angular';
-import { IonicStorageModule } from '@ionic/storage-angular';
+import { IonApp, IonRouterOutlet, IonicRouteStrategy, Platform, provideIonicAngular } from '@ionic/angular';
+import { IonicStorageModule, Storage } from '@ionic/storage-angular';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -53,7 +53,7 @@ import { OrderRepositoryExtensions } from './core/repositories/order.repository.
 import { TontineMemberRepositoryExtensions } from './core/repositories/tontine-member.repository.extensions';
 import { DataInitializationService } from './core/services/data-initialization.service';
 import { DatabaseService } from './core/services/database.service';
-import { Drivers, Storage } from '@ionic/storage';
+import { Drivers } from '@ionic/storage';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import localeFrExtra from '@angular/common/locales/extra/fr';
@@ -66,9 +66,6 @@ import { SecurityContextInterceptor } from './core/interceptors/security-context
 import { metaReducers } from './store/meta-reducers';
 import { LOCAL_DATA_CLEANUP_PROVIDERS } from './core/local-data-cleanup/local-data-cleanup.providers';
 
-function initializeDatabase(databaseService: DatabaseService, platform: Platform) {
-  return () => platform.ready().then(() => databaseService.initializeDatabase());
-}
 // Register French locale data
 registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
 
@@ -76,8 +73,8 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
   declarations: [AppComponent],
   imports: [
     BrowserModule,
-    HttpClientModule,
-    IonicModule.forRoot(),
+    IonApp,
+    IonRouterOutlet,
     IonicStorageModule.forRoot({
       driverOrder: [
         Drivers.LocalStorage,  // Utilise localStorage dans le navigateur
@@ -94,6 +91,8 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
     }),
   ],
   providers: [
+    provideIonicAngular(),
+    provideHttpClient(withInterceptorsFromDi()),
     // Montants et dates au format français partout (« 12 800 », pas « 12,800 »).
     { provide: LOCALE_ID, useValue: 'fr-FR' },
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
@@ -104,18 +103,15 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
     DistributionRepositoryExtensions,
     OrderRepositoryExtensions,
     TontineMemberRepositoryExtensions,
-    {
-      provide: APP_INITIALIZER,
-      useFactory: initializeDatabase,
-      deps: [DatabaseService, Platform],
-      multi: true,
-    },
-    {
-      provide: APP_INITIALIZER,
-      useFactory: (storage: Storage) => () => storage.create(),
-      deps: [Storage],
-      multi: true,
-    },
+    provideAppInitializer(() => {
+      const databaseService = inject(DatabaseService);
+      const platform = inject(Platform);
+      return platform.ready().then(() => databaseService.initializeDatabase());
+    }),
+    provideAppInitializer(() => {
+      const storage = inject(Storage);
+      return storage.create();
+    }),
     {
       // Le plus extérieur : un 401 avalé ne doit pas retomber dans le timeout.
       provide: HTTP_INTERCEPTORS,

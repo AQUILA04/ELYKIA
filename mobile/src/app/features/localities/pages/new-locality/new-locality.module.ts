@@ -2,7 +2,23 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
-import { IonicModule } from '@ionic/angular';
+import {
+  IonBackButton,
+  IonButton,
+  IonButtons,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonContent,
+  IonFooter,
+  IonHeader,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 
 import { NewLocalityPageRoutingModule } from './new-locality-routing.module';
 
@@ -12,7 +28,7 @@ import { NewLocalityPage } from './new-locality.page';
   imports: [
     CommonModule,
     FormsModule,
-    IonicModule,
+    IonBackButton, IonButton, IonButtons, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonContent, IonFooter, IonHeader, IonInput, IonItem, IonLabel, IonTitle, IonToolbar,
     ReactiveFormsModule,
     NewLocalityPageRoutingModule
   ],

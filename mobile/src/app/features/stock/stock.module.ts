@@ -1,6 +1,28 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonFooter,
+  IonHeader,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonSearchbar,
+  IonSelect,
+  IonSelectOption,
+  IonSpinner,
+  IonTextarea,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 import { StockRoutingModule } from './stock-routing.module';
 import { StockDashboardComponent } from './dashboard/stock-dashboard.component';
 
@@ -36,7 +58,7 @@ import { IfUnitPriceDirective } from 'src/app/shared/directives/if-unit-price.di
   imports: [
     CommonModule,
     FormsModule,
-    IonicModule,
+    IonButton, IonButtons, IonContent, IonFab, IonFabButton, IonFooter, IonHeader, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonInput, IonItem, IonLabel, IonList, IonSearchbar, IonSelect, IonSelectOption, IonSpinner, IonTextarea, IonTitle, IonToolbar,
     StockRoutingModule,
     IfUnitPriceDirective
   ],

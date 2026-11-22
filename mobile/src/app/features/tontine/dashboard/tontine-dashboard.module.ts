@@ -1,7 +1,16 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonChip,
+  IonContent,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonSearchbar,
+} from '@ionic/angular';
 import { TontineDashboardPage } from './tontine-dashboard.page';
 import { RouterModule } from '@angular/router';
 
@@ -9,7 +18,7 @@ import { RouterModule } from '@angular/router';
     imports: [
         CommonModule,
         FormsModule,
-        IonicModule,
+        IonChip, IonContent, IonFab, IonFabButton, IonIcon, IonInfiniteScroll, IonInfiniteScrollContent, IonSearchbar,
         RouterModule.forChild([
             {
                 path: '',

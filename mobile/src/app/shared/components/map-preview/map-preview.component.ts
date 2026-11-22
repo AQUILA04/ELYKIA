@@ -1,6 +1,16 @@
 import { Component, Input, AfterViewInit, ElementRef, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ModalController, Platform } from '@ionic/angular';
+import {
+  IonButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonTitle,
+  IonToolbar,
+  ModalController,
+  Platform,
+} from '@ionic/angular';
 import * as L from 'leaflet';
 import { Browser } from '@capacitor/browser';
 import { Network, ConnectionStatus } from '@capacitor/network';
@@ -77,7 +87,7 @@ L.Icon.Default.mergeOptions({
     .empty-icon { font-size: 5rem; margin-bottom: 1rem; }
   `],
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonTitle, IonToolbar],
 })
 export class MapPreviewComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() lat: number | undefined;

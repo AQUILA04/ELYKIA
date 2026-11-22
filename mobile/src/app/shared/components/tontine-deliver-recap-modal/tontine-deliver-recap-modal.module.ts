@@ -1,6 +1,18 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonButton,
+  IonButtons,
+  IonCol,
+  IonContent,
+  IonFooter,
+  IonGrid,
+  IonHeader,
+  IonIcon,
+  IonRow,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 import { TontineDeliverRecapModalComponent } from './tontine-deliver-recap-modal.component';
 import { IfUnitPriceDirective } from '../../directives/if-unit-price.directive';
 
@@ -8,7 +20,7 @@ import { IfUnitPriceDirective } from '../../directives/if-unit-price.directive';
   declarations: [TontineDeliverRecapModalComponent],
   imports: [
     CommonModule,
-    IonicModule,
+    IonButton, IonButtons, IonCol, IonContent, IonFooter, IonGrid, IonHeader, IonIcon, IonRow, IonTitle, IonToolbar,
     IfUnitPriceDirective
   ],
   exports: [TontineDeliverRecapModalComponent]

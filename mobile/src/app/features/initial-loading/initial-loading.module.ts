@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { IonicModule } from '@ionic/angular';
+import { IonContent } from '@ionic/angular';
 
 import { InitialLoadingPageRoutingModule } from './initial-loading-routing.module';
 
@@ -12,7 +12,7 @@ import { InitialLoadingPage } from './initial-loading.page';
   imports: [
     CommonModule,
     FormsModule,
-    IonicModule,
+    IonContent,
     InitialLoadingPageRoutingModule
   ],
   declarations: [InitialLoadingPage]

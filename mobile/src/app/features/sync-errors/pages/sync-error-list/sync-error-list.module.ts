@@ -2,7 +2,18 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { IonicModule } from '@ionic/angular';
+import {
+  IonBackButton,
+  IonButtons,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonRefresher,
+  IonRefresherContent,
+  IonSkeletonText,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 
 import { SyncErrorListPageRoutingModule } from './sync-error-list-routing.module';
 
@@ -12,7 +23,7 @@ import { SyncErrorListPage } from './sync-error-list.page';
   imports: [
     CommonModule,
     FormsModule,
-    IonicModule,
+    IonBackButton, IonButtons, IonContent, IonHeader, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, IonTitle, IonToolbar,
     SyncErrorListPageRoutingModule
   ],
   declarations: [SyncErrorListPage]

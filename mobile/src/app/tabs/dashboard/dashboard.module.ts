@@ -1,4 +1,13 @@
-import { IonicModule } from '@ionic/angular';
+import {
+  IonButton,
+  IonChip,
+  IonContent,
+  IonIcon,
+  IonItem,
+  IonLabel,
+  IonList,
+  IonSpinner,
+} from '@ionic/angular';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -9,7 +18,7 @@ import { DashboardPageRoutingModule } from './dashboard-routing.module';
 
 @NgModule({
   imports: [
-    IonicModule,
+    IonButton, IonChip, IonContent, IonIcon, IonItem, IonLabel, IonList, IonSpinner,
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

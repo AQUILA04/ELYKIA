@@ -2,7 +2,14 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonBadge,
+  IonButton,
+  IonCheckbox,
+  IonContent,
+  IonIcon,
+  IonSearchbar,
+} from '@ionic/angular';
 import { RmClientsPage } from './rm-clients.page';
 import { RmClientEditSheetModule } from '../../features/rm/client-edit/rm-client-edit-sheet.module';
 import { RmCollectorAssignSheetModule } from '../../features/rm/collector-assign/rm-collector-assign-sheet.module';
@@ -10,7 +17,7 @@ import { RmCollectorAssignSheetModule } from '../../features/rm/collector-assign
 const routes: Routes = [{ path: '', component: RmClientsPage }];
 
 @NgModule({
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes), RmClientEditSheetModule, RmCollectorAssignSheetModule],
+  imports: [CommonModule, FormsModule, IonBadge, IonButton, IonCheckbox, IonContent, IonIcon, IonSearchbar, RouterModule.forChild(routes), RmClientEditSheetModule, RmCollectorAssignSheetModule],
   declarations: [RmClientsPage]
 })
 export class RmClientsPageModule {}

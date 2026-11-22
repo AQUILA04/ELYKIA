@@ -2,7 +2,15 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { IonicModule } from '@ionic/angular';
+import {
+  IonButton,
+  IonContent,
+  IonIcon,
+  IonSelect,
+  IonSelectOption,
+  IonSpinner,
+  IonToggle,
+} from '@ionic/angular';
 
 import { MorePageRoutingModule } from './more-routing.module';
 
@@ -14,7 +22,7 @@ import { InitialsPipe } from '../../shared/pipes/initials.pipe';
   imports: [
     CommonModule,
     FormsModule,
-    IonicModule,
+    IonButton, IonContent, IonIcon, IonSelect, IonSelectOption, IonSpinner, IonToggle,
     MorePageRoutingModule,
     InitialsPipe
   ],

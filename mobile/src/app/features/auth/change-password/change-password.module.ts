@@ -1,7 +1,20 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import {
+  IonBackButton,
+  IonButton,
+  IonButtons,
+  IonCard,
+  IonContent,
+  IonHeader,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonLabel,
+  IonTitle,
+  IonToolbar,
+} from '@ionic/angular';
 import { ChangePasswordPageRoutingModule } from './change-password-routing.module';
 import { ChangePasswordPage } from './change-password.page';
 
@@ -9,7 +22,7 @@ import { ChangePasswordPage } from './change-password.page';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    IonicModule,
+    IonBackButton, IonButton, IonButtons, IonCard, IonContent, IonHeader, IonIcon, IonInput, IonItem, IonLabel, IonTitle, IonToolbar,
     ChangePasswordPageRoutingModule,
   ],
   declarations: [ChangePasswordPage],

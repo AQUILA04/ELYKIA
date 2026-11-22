@@ -1,4 +1,4 @@
-import { IonicModule } from '@ionic/angular';
+import { IonIcon, IonLabel, IonTabBar, IonTabButton, IonTabs } from '@ionic/angular';
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -9,7 +9,7 @@ import { TabsPage } from './tabs.page';
 
 @NgModule({
   imports: [
-    IonicModule,
+    IonIcon, IonLabel, IonTabBar, IonTabButton, IonTabs,
     CommonModule,
     FormsModule,
     TabsPageRoutingModule
