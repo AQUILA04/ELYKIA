@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-22 (plan de refonte domaine `Sale`)
+
+### Added
+
+- **Plan d'architecture (`.cursor/plans/sale_domain_refactoring.plan.md`) —** formalisation du plan incrémental en 4 phases de refonte de l'entité/service `Credit` vers un domaine `Sale` (`SaleType { CREDIT, CASH, TONTINE }`, `sealed interface SaleLifecyclePolicy`, éclatement de `CreditService`/`CreditRepository`, objets-valeur `@Embeddable` sur `@Table(name = "credit")` sans rupture SQL/Envers/REST) sur la branche `migration/sale-domain-refactoring` (intégrant `migration/architecture-refonte` + `migration/frontend-angular-21`).
+
 ## Docs & Infra — 2026-11-21 (migration frontend Angular 21 — Docker, CI Vitest & règles standalone)
 
 ### Changed
