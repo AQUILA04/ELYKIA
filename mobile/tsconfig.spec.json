@@ -4,15 +4,16 @@
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
     "types": [
-      "jasmine"
+      "vitest/globals"
     ]
   },
   "files": [
-    "src/test.ts",
-    "src/polyfills.ts"
+    "src/test-providers.ts",
+    "src/zone-flags.ts"
   ],
   "include": [
     "src/**/*.spec.ts",
+    "src/app/**/*.module.ts",
     "src/**/*.d.ts"
   ]
 }

@@ -1,5 +1,5 @@
+import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
 
 import { ExploreContainerComponentModule } from '../../explore-container/explore-container.module';
 
@@ -11,8 +11,9 @@ describe('DashboardPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
       declarations: [DashboardPage],
-      imports: [IonicModule.forRoot(), ExploreContainerComponentModule]
+      imports: [ExploreContainerComponentModule]
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardPage);

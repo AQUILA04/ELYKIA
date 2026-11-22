@@ -1,81 +1,90 @@
+import type { MockedObject } from "vitest";
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { SecurityContextInterceptor } from './security-context.interceptor';
 import { AuthService } from '../services/auth.service';
 import { LoggerService } from '../services/logger.service';
 
 describe('SecurityContextInterceptor', () => {
-  let client: HttpClient;
-  let httpMock: HttpTestingController;
-  let mockAuthService: Partial<{ currentUser: { username: string } | null }>;
-  let mockLoggerService: jasmine.SpyObj<LoggerService>;
+    let client: HttpClient;
+    let httpMock: HttpTestingController;
+    let mockAuthService: Partial<{
+        currentUser: {
+            username: string;
+        } | null;
+    }>;
+    let mockLoggerService: MockedObject<LoggerService>;
 
-  beforeEach(() => {
-    mockAuthService = {
-      currentUser: { username: 'testuser' }
-    };
+    beforeEach(() => {
+        mockAuthService = {
+            currentUser: { username: 'testuser' }
+        };
 
-    mockLoggerService = jasmine.createSpyObj('LoggerService', ['log']);
-    mockLoggerService.log.and.returnValue(Promise.resolve());
+        mockLoggerService = {
+            log: vi.fn().mockName("LoggerService.log")
+        } as unknown as MockedObject<LoggerService>;
+        mockLoggerService.log.mockReturnValue(Promise.resolve());
 
-    TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
-      providers: [
-        SecurityContextInterceptor,
-        { provide: AuthService, useValue: mockAuthService },
-        { provide: LoggerService, useValue: mockLoggerService },
-        { provide: HTTP_INTERCEPTORS, useClass: SecurityContextInterceptor, multi: true }
-      ]
+        TestBed.configureTestingModule({
+            imports: [],
+            providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+                SecurityContextInterceptor,
+                { provide: AuthService, useValue: mockAuthService },
+                { provide: LoggerService, useValue: mockLoggerService },
+                { provide: HTTP_INTERCEPTORS, useClass: SecurityContextInterceptor, multi: true }
+            ]
+        });
+
+        client = TestBed.inject(HttpClient);
+        httpMock = TestBed.inject(HttpTestingController);
     });
 
-    client = TestBed.inject(HttpClient);
-    httpMock = TestBed.inject(HttpTestingController);
-  });
-
-  afterEach(() => {
-    httpMock.verify();
-  });
-
-  it('should inject collector into StockRequestCreateDto.request', () => {
-    client.post('/api/stock-requests/create', {
-      request: { items: [{ article: { id: 1 }, quantity: 1 }] },
-      forNextMonth: false
-    }).subscribe();
-
-    const req = httpMock.expectOne('/api/stock-requests/create');
-    expect(req.request.body).toEqual({
-      request: { items: [{ article: { id: 1 }, quantity: 1 }], collector: 'testuser' },
-      forNextMonth: false
+    afterEach(() => {
+        httpMock.verify();
     });
-    req.flush({});
-  });
 
-  it('should inject collector into stock return create body', () => {
-    client.post('/api/stock-returns/create', { items: [] }).subscribe();
+    it('should inject collector into StockRequestCreateDto.request', () => {
+        client.post('/api/stock-requests/create', {
+            request: { items: [{ article: { id: 1 }, quantity: 1 }] },
+            forNextMonth: false
+        }).subscribe();
 
-    const req = httpMock.expectOne('/api/stock-returns/create');
-    expect(req.request.body).toEqual({ items: [], collector: 'testuser' });
-    req.flush({});
-  });
+        const req = httpMock.expectOne('/api/stock-requests/create');
+        expect(req.request.body).toEqual({
+            request: { items: [{ article: { id: 1 }, quantity: 1 }], collector: 'testuser' },
+            forNextMonth: false
+        });
+        req.flush({});
+    });
 
-  it('should NOT modify GET requests on target endpoints', () => {
-    client.get('/api/stock-requests').subscribe();
+    it('should inject collector into stock return create body', () => {
+        client.post('/api/stock-returns/create', { items: [] }).subscribe();
 
-    const req = httpMock.expectOne('/api/stock-requests');
-    expect(req.request.method).toBe('GET');
-    expect(req.request.body).toBeNull();
-    req.flush({});
-  });
+        const req = httpMock.expectOne('/api/stock-returns/create');
+        expect(req.request.body).toEqual({ items: [], collector: 'testuser' });
+        req.flush({});
+    });
 
-  it('should pass through without mutation when user is null', () => {
-    mockAuthService.currentUser = null;
+    it('should NOT modify GET requests on target endpoints', () => {
+        client.get('/api/stock-requests').subscribe();
 
-    client.post('/api/stock-requests/create', { request: { items: [] } }).subscribe();
+        const req = httpMock.expectOne('/api/stock-requests');
+        expect(req.request.method).toBe('GET');
+        expect(req.request.body).toBeNull();
+        req.flush({});
+    });
 
-    const req = httpMock.expectOne('/api/stock-requests/create');
-    expect(req.request.body).toEqual({ request: { items: [] } });
-    expect(mockLoggerService.log).toHaveBeenCalledWith(jasmine.stringContaining('collector could not be injected'));
-    req.flush({});
-  });
+    it('should pass through without mutation when user is null', () => {
+        mockAuthService.currentUser = null;
+
+        client.post('/api/stock-requests/create', { request: { items: [] } }).subscribe();
+
+        const req = httpMock.expectOne('/api/stock-requests/create');
+        expect(req.request.body).toEqual({ request: { items: [] } });
+        expect(mockLoggerService.log).toHaveBeenCalledWith(expect.stringContaining('collector could not be injected'));
+        req.flush({});
+    });
 });

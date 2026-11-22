@@ -1,37 +1,36 @@
+import type { MockedObject } from "vitest";
 import { LocalityRepository } from './locality.repository';
 import { DatabaseService } from '../services/database.service';
 
 describe('LocalityRepository markAsSynced', () => {
-  let repository: LocalityRepository;
-  let databaseService: jasmine.SpyObj<DatabaseService>;
+    let repository: LocalityRepository;
+    let databaseService: MockedObject<DatabaseService>;
 
-  beforeEach(() => {
-    databaseService = jasmine.createSpyObj('DatabaseService', ['execute', 'executeSet', 'query']);
-    (databaseService as any)['db'] = {};
-    databaseService.execute.and.resolveTo(undefined as any);
-    databaseService.executeSet.and.resolveTo(undefined as any);
-    databaseService.query.and.resolveTo({ values: [] } as any);
+    beforeEach(() => {
+        databaseService = {
+            execute: vi.fn().mockName("DatabaseService.execute"),
+            executeSet: vi.fn().mockName("DatabaseService.executeSet"),
+            query: vi.fn().mockName("DatabaseService.query")
+        } as unknown as MockedObject<DatabaseService>;
+        (databaseService as any)['db'] = {};
+        databaseService.execute.mockResolvedValue(undefined as any);
+        databaseService.executeSet.mockResolvedValue(undefined as any);
+        databaseService.query.mockResolvedValue({ values: [] } as any);
 
-    repository = new LocalityRepository(databaseService);
-  });
+        repository = new LocalityRepository(databaseService);
+    });
 
-  it('rewrites primary key when localId differs from serverId', async () => {
-    spyOn(repository, 'findById').and.resolveTo(null);
+    it('rewrites primary key when localId differs from serverId', async () => {
+        vi.spyOn(repository, 'findById').mockResolvedValue(null);
 
-    await repository.markAsSynced('uuid-loc', '55');
+        await repository.markAsSynced('uuid-loc', '55');
 
-    expect(databaseService.execute).toHaveBeenCalledWith(
-      jasmine.stringMatching(/UPDATE localities SET isSync = 1, isLocal = 0, id = \?/),
-      ['55', jasmine.any(String), 'uuid-loc']
-    );
-  });
+        expect(databaseService.execute).toHaveBeenCalledWith(expect.stringMatching(/UPDATE localities SET isSync = 1, isLocal = 0, id = \?/), ['55', expect.any(String), 'uuid-loc']);
+    });
 
-  it('sets flags only when ids are equal', async () => {
-    await repository.markAsSynced('55', '55');
+    it('sets flags only when ids are equal', async () => {
+        await repository.markAsSynced('55', '55');
 
-    expect(databaseService.execute).toHaveBeenCalledWith(
-      jasmine.stringMatching(/UPDATE localities SET isSync = 1, isLocal = 0, syncDate = \? WHERE id = \?/),
-      [jasmine.any(String), '55']
-    );
-  });
+        expect(databaseService.execute).toHaveBeenCalledWith(expect.stringMatching(/UPDATE localities SET isSync = 1, isLocal = 0, syncDate = \? WHERE id = \?/), [expect.any(String), '55']);
+    });
 });

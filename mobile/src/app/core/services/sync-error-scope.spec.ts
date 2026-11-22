@@ -1,19 +1,19 @@
 import { syncErrorScopeSql, syncErrorVisibleForScope } from './sync-error-scope';
 
 describe('sync error scope', () => {
-  it('montre au chef de recouvrement uniquement ses erreurs', () => {
-    expect(syncErrorVisibleForScope('rm-close', 'rm')).toBeTrue();
-    expect(syncErrorVisibleForScope('rm-contact', 'rm')).toBeTrue();
-    expect(syncErrorVisibleForScope('client', 'rm')).toBeFalse();
-    expect(syncErrorVisibleForScope('recovery', 'rm')).toBeFalse();
-    expect(syncErrorScopeSql('rm')).toContain("LIKE 'rm-%'");
-  });
+    it('montre au chef de recouvrement uniquement ses erreurs', () => {
+        expect(syncErrorVisibleForScope('rm-close', 'rm')).toBe(true);
+        expect(syncErrorVisibleForScope('rm-contact', 'rm')).toBe(true);
+        expect(syncErrorVisibleForScope('client', 'rm')).toBe(false);
+        expect(syncErrorVisibleForScope('recovery', 'rm')).toBe(false);
+        expect(syncErrorScopeSql('rm')).toContain("LIKE 'rm-%'");
+    });
 
-  it('masque au commercial les erreurs du chef de recouvrement', () => {
-    expect(syncErrorVisibleForScope('rm-close', 'commercial')).toBeFalse();
-    expect(syncErrorVisibleForScope('client', 'commercial')).toBeTrue();
-    expect(syncErrorVisibleForScope('recovery', 'commercial')).toBeTrue();
-    expect(syncErrorVisibleForScope(null, 'commercial')).toBeTrue();
-    expect(syncErrorScopeSql('commercial')).toContain('NOT LIKE');
-  });
+    it('masque au commercial les erreurs du chef de recouvrement', () => {
+        expect(syncErrorVisibleForScope('rm-close', 'commercial')).toBe(false);
+        expect(syncErrorVisibleForScope('client', 'commercial')).toBe(true);
+        expect(syncErrorVisibleForScope('recovery', 'commercial')).toBe(true);
+        expect(syncErrorVisibleForScope(null, 'commercial')).toBe(true);
+        expect(syncErrorScopeSql('commercial')).toContain('NOT LIKE');
+    });
 });

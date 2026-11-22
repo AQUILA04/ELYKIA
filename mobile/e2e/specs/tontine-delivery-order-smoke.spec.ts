@@ -106,7 +106,11 @@ async function goToTontineDashboard(page: Page): Promise<void> {
   }
 
   if (/\/tabs\/dashboard/.test(page.url())) {
-    await page.getByTestId('e2e-action-tontine').click();
+    // Delivery creation redirects via /tabs/dashboard then forwards to /tontine/dashboard after 100ms.
+    await page.waitForURL(/\/tontine\/dashboard/, { timeout: 500 }).catch(() => undefined);
+    if (!/\/tontine\/dashboard/.test(page.url())) {
+      await page.getByTestId('e2e-action-tontine').click();
+    }
   } else if (/\/tabs\//.test(page.url())) {
     await page.getByTestId('e2e-tab-dashboard').evaluate((el: HTMLElement) => el.click());
     await expect(page).toHaveURL(/\/tabs\/dashboard/, { timeout: 15_000 });

@@ -1,3 +1,4 @@
+import type { MockedObject } from "vitest";
 import { TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { OnlineFirstWriteCoordinator } from './online-first-write.coordinator';
@@ -7,102 +8,107 @@ import { LoggerService } from './logger.service';
 import { OnlineWriteError, WriteErrorKind } from './online-first-write.types';
 
 describe('OnlineFirstWriteCoordinator', () => {
-  let coordinator: OnlineFirstWriteCoordinator;
-  let connectivityService: jasmine.SpyObj<ConnectivityService>;
-  let hybridSyncPreferenceService: jasmine.SpyObj<HybridSyncPreferenceService>;
+    let coordinator: OnlineFirstWriteCoordinator;
+    let connectivityService: MockedObject<ConnectivityService>;
+    let hybridSyncPreferenceService: MockedObject<HybridSyncPreferenceService>;
 
-  beforeEach(() => {
-    connectivityService = jasmine.createSpyObj('ConnectivityService', ['checkBackendReachable']);
-    hybridSyncPreferenceService = jasmine.createSpyObj('HybridSyncPreferenceService', ['isHybridSyncEnabled']);
+    beforeEach(() => {
+        connectivityService = {
+            checkBackendReachable: vi.fn().mockName("ConnectivityService.checkBackendReachable")
+        } as unknown as MockedObject<ConnectivityService>;
+        hybridSyncPreferenceService = {
+            isHybridSyncEnabled: vi.fn().mockName("HybridSyncPreferenceService.isHybridSyncEnabled")
+        } as unknown as MockedObject<HybridSyncPreferenceService>;
 
-    TestBed.configureTestingModule({
-      providers: [
-        OnlineFirstWriteCoordinator,
-        { provide: ConnectivityService, useValue: connectivityService },
-        { provide: HybridSyncPreferenceService, useValue: hybridSyncPreferenceService },
-        { provide: LoggerService, useValue: { log: jasmine.createSpy('log') } }
-      ]
+        TestBed.configureTestingModule({
+            providers: [
+                OnlineFirstWriteCoordinator,
+                { provide: ConnectivityService, useValue: connectivityService },
+                { provide: HybridSyncPreferenceService, useValue: hybridSyncPreferenceService },
+                { provide: LoggerService, useValue: { log: vi.fn() } }
+            ]
+        });
+
+        coordinator = TestBed.inject(OnlineFirstWriteCoordinator);
     });
 
-    coordinator = TestBed.inject(OnlineFirstWriteCoordinator);
-  });
+    it('uses online path when backend is reachable', async () => {
+        hybridSyncPreferenceService.isHybridSyncEnabled.mockResolvedValue(true);
+        connectivityService.checkBackendReachable.mockResolvedValue(true);
 
-  it('uses online path when backend is reachable', async () => {
-    hybridSyncPreferenceService.isHybridSyncEnabled.and.resolveTo(true);
-    connectivityService.checkBackendReachable.and.resolveTo(true);
+        const saveOnline = vi.fn().mockResolvedValue({ id: 'server-1' });
+        const saveOffline = vi.fn();
 
-    const saveOnline = jasmine.createSpy('saveOnline').and.resolveTo({ id: 'server-1' });
-    const saveOffline = jasmine.createSpy('saveOffline');
+        const result = await coordinator.executeWrite({
+            entityLabel: 'client',
+            saveOnline,
+            saveOffline
+        });
 
-    const result = await coordinator.executeWrite({
-      entityLabel: 'client',
-      saveOnline,
-      saveOffline
+        expect(result.mode).toBe('online');
+        expect(saveOnline).toHaveBeenCalled();
+        expect(saveOffline).not.toHaveBeenCalled();
     });
 
-    expect(result.mode).toBe('online');
-    expect(saveOnline).toHaveBeenCalled();
-    expect(saveOffline).not.toHaveBeenCalled();
-  });
+    it('falls back to offline when backend is unreachable', async () => {
+        hybridSyncPreferenceService.isHybridSyncEnabled.mockResolvedValue(true);
+        connectivityService.checkBackendReachable.mockResolvedValue(false);
 
-  it('falls back to offline when backend is unreachable', async () => {
-    hybridSyncPreferenceService.isHybridSyncEnabled.and.resolveTo(true);
-    connectivityService.checkBackendReachable.and.resolveTo(false);
+        const saveOnline = vi.fn();
+        const saveOffline = vi.fn().mockResolvedValue({ id: 'local-1' });
 
-    const saveOnline = jasmine.createSpy('saveOnline');
-    const saveOffline = jasmine.createSpy('saveOffline').and.resolveTo({ id: 'local-1' });
+        const result = await coordinator.executeWrite({
+            entityLabel: 'client',
+            saveOnline,
+            saveOffline
+        });
 
-    const result = await coordinator.executeWrite({
-      entityLabel: 'client',
-      saveOnline,
-      saveOffline
+        expect(result.mode).toBe('offline');
+        expect(saveOffline).toHaveBeenCalled();
+        expect(saveOnline).not.toHaveBeenCalled();
     });
 
-    expect(result.mode).toBe('offline');
-    expect(saveOffline).toHaveBeenCalled();
-    expect(saveOnline).not.toHaveBeenCalled();
-  });
+    it('throws business errors without offline fallback', async () => {
+        hybridSyncPreferenceService.isHybridSyncEnabled.mockResolvedValue(true);
+        connectivityService.checkBackendReachable.mockResolvedValue(true);
 
-  it('throws business errors without offline fallback', async () => {
-    hybridSyncPreferenceService.isHybridSyncEnabled.and.resolveTo(true);
-    connectivityService.checkBackendReachable.and.resolveTo(true);
+        await expect(coordinator.executeWrite({
+            entityLabel: 'client',
+            saveOnline: async () => {
+                throw new OnlineWriteError(WriteErrorKind.BUSINESS, 'Code client déjà utilisé');
+            },
+            saveOffline: async () => ({ id: 'local' })
+        })).rejects.toThrowError('Code client déjà utilisé');
+    });
 
-    await expectAsync(coordinator.executeWrite({
-      entityLabel: 'client',
-      saveOnline: async () => {
-        throw new OnlineWriteError(WriteErrorKind.BUSINESS, 'Code client déjà utilisé');
-      },
-      saveOffline: async () => ({ id: 'local' })
-    })).toBeRejectedWithError('Code client déjà utilisé');
-  });
+    it('keeps the HTTP status so a 409 duplicate is not saved offline', async () => {
+        hybridSyncPreferenceService.isHybridSyncEnabled.mockResolvedValue(true);
+        connectivityService.checkBackendReachable.mockResolvedValue(true);
+        const saveOffline = vi.fn();
 
-  it('keeps the HTTP status so a 409 duplicate is not saved offline', async () => {
-    hybridSyncPreferenceService.isHybridSyncEnabled.and.resolveTo(true);
-    connectivityService.checkBackendReachable.and.resolveTo(true);
-    const saveOffline = jasmine.createSpy('saveOffline');
+        let caught: unknown;
+        try {
+            await coordinator.executeWrite({
+                entityLabel: 'tontine-delivery',
+                saveOnline: async () => {
+                    throw new HttpErrorResponse({ status: 409, error: { message: 'Ce membre a déjà été livré' } });
+                },
+                saveOffline
+            });
+        }
+        catch (error) {
+            caught = error;
+        }
 
-    let caught: unknown;
-    try {
-      await coordinator.executeWrite({
-        entityLabel: 'tontine-delivery',
-        saveOnline: async () => {
-          throw new HttpErrorResponse({ status: 409, error: { message: 'Ce membre a déjà été livré' } });
-        },
-        saveOffline
-      });
-    } catch (error) {
-      caught = error;
-    }
+        expect(caught instanceof OnlineWriteError).toBe(true);
+        expect((caught as OnlineWriteError).status).toBe(409);
+        expect((caught as OnlineWriteError).isServerConflict).toBe(true);
+        expect((caught as OnlineWriteError).message).toBe('Ce membre a déjà été livré');
+        expect(saveOffline).not.toHaveBeenCalled();
+    });
 
-    expect(caught instanceof OnlineWriteError).toBeTrue();
-    expect((caught as OnlineWriteError).status).toBe(409);
-    expect((caught as OnlineWriteError).isServerConflict).toBeTrue();
-    expect((caught as OnlineWriteError).message).toBe('Ce membre a déjà été livré');
-    expect(saveOffline).not.toHaveBeenCalled();
-  });
-
-  it('does not flag an ordinary 400 as a server conflict', () => {
-    expect(new OnlineWriteError(WriteErrorKind.BUSINESS, 'x', 400).isServerConflict).toBeFalse();
-    expect(new OnlineWriteError(WriteErrorKind.BUSINESS, 'x').isServerConflict).toBeFalse();
-  });
+    it('does not flag an ordinary 400 as a server conflict', () => {
+        expect(new OnlineWriteError(WriteErrorKind.BUSINESS, 'x', 400).isServerConflict).toBe(false);
+        expect(new OnlineWriteError(WriteErrorKind.BUSINESS, 'x').isServerConflict).toBe(false);
+    });
 });
