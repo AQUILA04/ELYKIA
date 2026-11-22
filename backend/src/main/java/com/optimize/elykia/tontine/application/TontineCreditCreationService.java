@@ -1,14 +1,11 @@
 package com.optimize.elykia.tontine.application;
 
-import com.optimize.elykia.client.enumeration.ClientType;
+import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.tontine.domain.TontineDelivery;
 import com.optimize.elykia.sale.application.CreditService;
 import com.optimize.elykia.sale.domain.Credit;
 import com.optimize.elykia.sale.domain.CreditArticles;
-import com.optimize.elykia.sale.domain.CreditStatus;
 import com.optimize.elykia.sale.domain.SaleLinePricing;
-import com.optimize.elykia.sale.domain.SolvencyStatus;
-import com.optimize.elykia.shared.domain.OperationType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,12 +41,6 @@ public class TontineCreditCreationService {
     }
 
     public static Credit buildFromDelivery(TontineDelivery delivery) {
-        Credit credit = new Credit();
-        credit.setType(OperationType.TONTINE);
-        credit.setStatus(CreditStatus.SETTLED);
-        credit.setTotalAmount(delivery.getTotalAmount());
-        credit.setTotalAmountPaid(delivery.getTotalAmount());
-        credit.setTotalAmountRemaining(0.0);
         double totalPurchase = delivery.getItems().stream()
                 .mapToDouble(item -> {
                     if (item.getSaleLine() != null && item.getSaleLine().getLinePurchaseAmount() != null
@@ -59,21 +50,7 @@ public class TontineCreditCreationService {
                     return item.getQuantity() * item.getArticles().getPurchasePrice();
                 })
                 .sum();
-        credit.setTotalPurchase(totalPurchase);
-        credit.setDailyStake(delivery.getTotalAmount());
-        LocalDate today = LocalDate.now();
-        credit.setBeginDate(today);
-        credit.setExpectedEndDate(today);
-        credit.setEffectiveEndDate(today);
-        credit.setSolvencyNote(SolvencyStatus.TIME);
-        credit.setRemainingDaysCount(0);
-        credit.setDailyPaid(true);
-        credit.setClientType(ClientType.CLIENT);
-        credit.setUpdatable(false);
-        credit.setClient(delivery.getTontineMember().getClient());
-        credit.setCollector(delivery.getTontineMember().getClient().getCollector());
 
-        final Credit finalCredit = credit;
         Set<CreditArticles> creditArticles = delivery.getItems().stream()
                 .map(tontineDeliveryItem -> {
                     CreditArticles ca = new CreditArticles();
@@ -93,11 +70,17 @@ public class TontineCreditCreationService {
                         copy.setLineMargin(source.getLineMargin());
                         ca.setSaleLine(copy);
                     }
-                    ca.setCredit(finalCredit);
                     return ca;
                 })
                 .collect(Collectors.toSet());
-        credit.setArticles(creditArticles);
-        return credit;
+
+        Client client = delivery.getTontineMember().getClient();
+        return Credit.newTontineSale(
+                client,
+                client.getCollector(),
+                delivery.getTotalAmount(),
+                totalPurchase,
+                creditArticles,
+                LocalDate.now());
     }
 }

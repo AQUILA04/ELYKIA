@@ -900,6 +900,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [2.11.1] — 2026-11-22
+
+### Added
+
+- **Refonte domaine `Sale` — Phase 1 (`SaleType` & `SaleLifecyclePolicy`) —** introduction du discriminateur métier typé `com.optimize.elykia.sale.domain.SaleType` (`CREDIT`, `CASH`, `TONTINE`, passerelles explicites vers/depuis `OperationType`) et du polymorphisme exhaustif Java 25 `sealed interface SaleLifecyclePolicy` (`CreditSalePolicy`, `CashSalePolicy`, `TontineSalePolicy`, résolveur `SaleLifecyclePolicies.forType` / `forCredit`).
+- **Fabriques explicites sur `Credit` —** ajout de `Credit.newCredit(...)`, `Credit.newCashSale(...)`, `Credit.initializeAsPendingCashSale(...)` et `Credit.newTontineSale(...)`, ainsi que des accesseurs `@JsonIgnore` `getSaleType()`, `isCredit()`, `isCash()`, `isTontine()` et `lifecyclePolicy()` (zéro changement sur la table `credit` ni sur le contrat JSON/REST).
+- **Tests unitaires —** ajout de `SaleTypeTest`, `CreditSalePolicyTest`, `CashSalePolicyTest` et `TontineSalePolicyTest` (1 230/1 230 tests verts, `ModularityTests` 19 modules, 6 seuils JaCoCo et boot PostgreSQL 15 `ddl-auto=validate` validés).
+
+### Changed
+
+- **Délégation polymorphique du cycle de vie —** `Credit.checkAdvance()`, `Credit.start()`, `Credit.resolveArticleLineUnitPrice()` et `Credit.checkInProgressStatus()`, ainsi que `CreditService` (`changeDailyStake`, `startCredit`, `marginAndBIAggregationOperation`, `deleteSoft`, `createCashSale`), délèguent désormais aux politiques `SaleLifecyclePolicy` ; `TontineCreditCreationService.buildFromDelivery()` s'appuie sur `Credit.newTontineSale(...)`.
+
 ## Backend — [2.11.0] — 2026-11-22
 
 ### Added

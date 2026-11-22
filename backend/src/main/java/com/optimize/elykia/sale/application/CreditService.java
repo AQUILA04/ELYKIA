@@ -228,17 +228,7 @@ public class CreditService extends GenericService<Credit, Long> {
             });
         }
 
-        credit.setTotalAmount(credit.getTotalAmountByCalcul());
-        credit.setAdvance(0.0);
-        credit.setTotalAmountPaid(credit.getTotalAmount());
-        credit.setTotalAmountRemaining(0.0);
-        credit.setDailyStake(credit.getTotalAmount());
-        credit.setRemainingDaysCount(0);
-        credit.setBeginDate(LocalDate.now());
-        credit.setExpectedEndDate(LocalDate.now());
-        credit.setEffectiveEndDate(null);
-        credit.setStatus(CreditStatus.VALIDATED);
-        credit.setPendingWarehouseDelivery(true);
+        credit.initializeAsPendingCashSale(LocalDate.now());
 
         if (!StringUtils.hasText(credit.getCollector())) {
             throw new CustomValidationException(
@@ -560,9 +550,7 @@ public class CreditService extends GenericService<Credit, Long> {
 
     public boolean changeDailyStake(ChangeDailyStakeDto dto) {
         Credit credit = getById(dto.creditId());
-        if (OperationType.CASH.equals(credit.getType())) {
-            throw new CustomValidationException("Une vente comptant n'a pas de mise journalière.");
-        }
+        credit.lifecyclePolicy().assertDailyStakeChangeAllowed(credit);
 
         CreditDailyStakeHistory history = new CreditDailyStakeHistory();
         history.setCredit(credit);
@@ -832,11 +820,8 @@ public class CreditService extends GenericService<Credit, Long> {
     @Transactional
     public Boolean startCredit(Long creditId, Boolean distribution) {
         Credit credit = getById(creditId);
-        if (OperationType.CASH.equals(credit.getType())) {
-            throw new CustomValidationException(
-                    "Une vente comptant se livre depuis la demande de sortie. Elle ne se démarre pas.");
-        }
-        if (Boolean.FALSE.equals(distribution) && !OperationType.TONTINE.equals(credit.getType())) {
+        credit.lifecyclePolicy().validateBeforeStart(credit);
+        if (Boolean.FALSE.equals(distribution) && !credit.isTontine()) {
             updateStockForCashSale(credit);
         }
 
@@ -971,7 +956,7 @@ public class CreditService extends GenericService<Credit, Long> {
         Double margin = totalAmount - (totalPurchase != null ? totalPurchase : 0.0);
 
         // Publish Event
-        if (eventPublisher != null && !OperationType.TONTINE.equals(credit.getType())) {
+        if (eventPublisher != null && credit.lifecyclePolicy().publishesCreditStartedEvent()) {
             eventPublisher.publishEvent(new com.optimize.elykia.sale.event.CreditStartedEvent(
                     this,
                     credit.getTotalAmount(),
@@ -1194,10 +1179,7 @@ public class CreditService extends GenericService<Credit, Long> {
     @Override
     public boolean deleteSoft(Long id) throws ApplicationException {
         Credit credit = getById(id);
-        if (OperationType.CASH.equals(credit.getType())) {
-            throw new CustomValidationException(
-                    "Une vente comptant s'annule tant qu'elle n'est pas livrée. Elle ne se supprime pas.");
-        }
+        credit.lifecyclePolicy().assertSoftDeleteAllowed(credit);
         boolean result = super.deleteSoft(id);
         if (result) {
             syncClientCreditFlagsAfterClose(credit);

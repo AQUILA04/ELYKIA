@@ -6,11 +6,12 @@ import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
+import com.optimize.elykia.sale.domain.policy.SaleLifecyclePolicies;
+import com.optimize.elykia.sale.domain.policy.SaleLifecyclePolicy;
 import com.optimize.elykia.sale.web.dto.DistributeArticleDto;
 import com.optimize.elykia.sale.web.dto.CreditSourceMonthlyStockDto;
 import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.shared.carnet.CarnetVerifiable;
-import com.optimize.elykia.shared.util.MoneyUtil;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -29,7 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -172,6 +172,31 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
         this.id = creditId;
     }
 
+    @JsonIgnore
+    public SaleType getSaleType() {
+        return SaleType.fromOperationTypeOptional(this.type).orElse(null);
+    }
+
+    @JsonIgnore
+    public boolean isCredit() {
+        return SaleType.CREDIT == getSaleType();
+    }
+
+    @JsonIgnore
+    public boolean isCash() {
+        return SaleType.CASH == getSaleType();
+    }
+
+    @JsonIgnore
+    public boolean isTontine() {
+        return SaleType.TONTINE == getSaleType();
+    }
+
+    @JsonIgnore
+    public SaleLifecyclePolicy lifecyclePolicy() {
+        return SaleLifecyclePolicies.forCredit(this);
+    }
+
     @PrePersist
     public void setUp() {
         // Le montant total des articles est calculé (sauf vente déjà démarrée ou sync mobile : montant figé)
@@ -221,19 +246,10 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
         if (CreditArticleUnitPricePolicy.isUnitPriceFrozen(this.status)) {
             return 0D;
         }
-        if (creditArticles.getArticles() != null) {
-            double creditSalePrice = creditArticles.getArticles().getCreditSalePrice();
-            if (creditSalePrice > 0) {
-                return creditSalePrice;
-            }
-            if (OperationType.CASH.equals(this.type)) {
-                double sellingPrice = creditArticles.getArticles().getSellingPrice();
-                if (sellingPrice > 0) {
-                    return sellingPrice;
-                }
-            }
+        if (creditArticles.getArticles() == null) {
+            return 0D;
         }
-        return 0D;
+        return lifecyclePolicy().resolveFallbackUnitPrice(creditArticles);
     }
 
     @JsonIgnore
@@ -300,48 +316,7 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
         return creditTimeline;
     }
     public void checkAdvance() {
-        if (mobileFinancialTermsLocked) {
-            if (this.beginDate == null) {
-                this.beginDate = LocalDate.now();
-            }
-            return;
-        }
-        // 1. On récupère l'avance (0 si elle est nulle)
-        if (List.of(CreditStatus.CREATED, CreditStatus.VALIDATED).contains(status)) {
-            if(this.beginDate == null){
-                this.beginDate = LocalDate.now();
-            }
-
-            if (OperationType.CASH.equals(this.type)) {
-                this.totalAmountPaid = this.totalAmount;
-                this.totalAmountRemaining = 0.0;
-                this.advance = 0.0;
-                this.remainingDaysCount = 0;
-                this.expectedEndDate = this.beginDate;
-                return;
-            }
-
-            this.advance = (this.advance != null && this.advance > 0) ? this.advance : 0.0;
-
-            // 2. Le montant restant est le total MOINS l'avance
-            this.totalAmountRemaining = this.totalAmount - this.advance;
-            this.totalAmountPaid = this.advance;
-
-            // 3. Calcul de la mise journalière brute (montant restant / 30 jours)
-            double rawDailyStake = this.totalAmountRemaining / 30;
-
-            // 4. Ajustement de la mise selon les règles métier
-            this.dailyStake = MoneyUtil.calculateDailyStake(rawDailyStake);
-
-            // 5. Recalcul du nombre de jours restants basé sur la mise ajustée
-            double exactDays = this.totalAmountRemaining / this.dailyStake;
-            this.remainingDaysCount = (int) Math.ceil(exactDays); // Arrondi par excès
-
-            // 6. Recalcul de la date de fin attendue
-            this.expectedEndDate = beginDate.plusDays(this.remainingDaysCount);
-        }
-
-
+        lifecyclePolicy().initializeFinancialTerms(this);
     }
 
     public void changeDailyStake(@NotNull(message = "La mise journalière ne peut pas être nulle") @Positive(message = "La mise journelière doit avoir une valeur supérieure à 0") Double newDailyStake) {
@@ -368,7 +343,7 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
     }
 
     public boolean awaitingWarehouseDelivery() {
-        return OperationType.CASH.equals(this.type) && pendingWarehouseDelivery;
+        return isCash() && pendingWarehouseDelivery;
     }
 
     public void settleAfterWarehouseDelivery() {
@@ -389,6 +364,8 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
     }
 
     public void start() {
+        SaleLifecyclePolicy policy = lifecyclePolicy();
+        policy.validateBeforeStart(this);
         LocalDate now = LocalDate.now();
         if (mobileFinancialTermsLocked) {
             LocalDate effectiveBeginDate = this.beginDate != null ? this.beginDate : now;
@@ -398,31 +375,8 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
             this.setAccountingDate(now);
             this.setReleaseDate(now);
         }
-        if (OperationType.CREDIT.equals(this.type)) {
-            if (!CreditStatus.VALIDATED.equals(status)) {
-                throw new ApplicationException("Le statut du credit est invalide pour le démarré");
-            }
-            this.status= CreditStatus.INPROGRESS;
-            if (mobileFinancialTermsLocked) {
-                if (this.beginDate == null) {
-                    this.beginDate = now;
-                }
-                if (this.expectedEndDate == null && this.remainingDaysCount != null) {
-                    this.expectedEndDate = this.beginDate.plusDays(this.remainingDaysCount);
-                }
-            } else {
-                this.beginDate = now;
-                int daysRemaining = resolveRemainingDaysCountOrDefault();
-                this.remainingDaysCount = daysRemaining;
-                if (this.expectedEndDate == null) {
-                    this.expectedEndDate = this.beginDate.plusDays(daysRemaining);
-                }
-            }
-        } else if (ClientType.PROMOTER.equals(this.clientType)) {
-            this.status = CreditStatus.INPROGRESS;
-        } else {
-            this.status = CreditStatus.SETTLED;
-        }
+        this.status = policy.statusOnStart(this);
+        policy.configureStartSchedule(this, now);
     }
 
     @JsonIgnore
@@ -431,8 +385,9 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
     }
 
     public void checkInProgressStatus() {
-        if (!CreditStatus.INPROGRESS.equals(status) && OperationType.CREDIT.equals(this.type)) {
-            throw new ApplicationException("Le statut de la vente doit être encours pour faire une mise journalière !");
+        SaleType saleType = getSaleType();
+        if (saleType != null) {
+            SaleLifecyclePolicies.forType(saleType).assertInProgressForRecovery(this);
         }
     }
 
@@ -478,7 +433,7 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
     }
 
     public boolean isClientCredit() {
-        return ClientType.CLIENT.equals(this.clientType) && OperationType.CREDIT.equals(this.type);
+        return ClientType.CLIENT.equals(this.clientType) && isCredit();
     }
     public void addNewArticles(Set<CreditArticles> creditArticles) {
         if ( Objects.isNull(creditArticles)) {
@@ -513,7 +468,7 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
 
         // Mettre à jour les montants et autres propriétés
         this.totalAmount = getTotalAmountByCalcul();
-        if (OperationType.CREDIT.equals(this.type)) {
+        if (isCredit()) {
             this.remainingDaysCount = this.remainingDaysCount == null ? 30 : remainingDaysCount;
             this.totalAmountPaid = this.totalAmountPaid == null ? 0D : totalAmountPaid;
             this.checkAdvance();
@@ -578,8 +533,97 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
         this.totalPurchase += tontine.getTotalPurchase();
     }
 
+    public static Credit newCredit(
+            Client client,
+            Set<CreditArticles> articles,
+            Double advance,
+            CreditPurpose purpose) {
+        Credit credit = new Credit();
+        credit.setType(OperationType.CREDIT);
+        credit.setStatus(CreditStatus.CREATED);
+        credit.setClient(client);
+        if (client != null) {
+            credit.setClientType(client.getClientType() != null ? client.getClientType() : ClientType.CLIENT);
+            credit.setCollector(client.getCollector());
+        } else {
+            credit.setClientType(ClientType.CLIENT);
+        }
+        credit.setArticles(articles != null ? new HashSet<>(articles) : new HashSet<>());
+        credit.setCreditToCreditArticles();
+        credit.setAdvance(advance != null && advance > 0 ? advance : 0.0);
+        credit.setCreditPurpose(purpose != null ? purpose : CreditPurpose.PERSONAL);
+        return credit;
+    }
+
+    public static Credit newCashSale(
+            Client client,
+            String collector,
+            String agencyCommercial,
+            Set<CreditArticles> articles,
+            LocalDate saleDate) {
+        LocalDate effectiveDate = saleDate != null ? saleDate : LocalDate.now();
+        Credit credit = new Credit();
+        credit.setType(OperationType.CASH);
+        credit.setClient(client);
+        credit.setClientType(ClientType.CLIENT);
+        credit.setCollector(collector);
+        credit.setAgencyCommercial(agencyCommercial);
+        credit.setArticles(articles != null ? new HashSet<>(articles) : new HashSet<>());
+        credit.setCreditToCreditArticles();
+        credit.initializeAsPendingCashSale(effectiveDate);
+        return credit;
+    }
+
+    public void initializeAsPendingCashSale(LocalDate saleDate) {
+        LocalDate effectiveDate = saleDate != null ? saleDate : LocalDate.now();
+        this.type = OperationType.CASH;
+        this.totalAmount = this.getTotalAmountByCalcul();
+        this.advance = 0.0;
+        this.totalAmountPaid = this.totalAmount;
+        this.totalAmountRemaining = 0.0;
+        this.dailyStake = this.totalAmount;
+        this.remainingDaysCount = 0;
+        this.beginDate = effectiveDate;
+        this.expectedEndDate = effectiveDate;
+        this.effectiveEndDate = null;
+        this.status = CreditStatus.VALIDATED;
+        this.pendingWarehouseDelivery = true;
+    }
+
+    public static Credit newTontineSale(
+            Client client,
+            String collector,
+            double totalAmount,
+            double totalPurchase,
+            Set<CreditArticles> articles,
+            LocalDate saleDate) {
+        LocalDate effectiveDate = saleDate != null ? saleDate : LocalDate.now();
+        Credit credit = new Credit();
+        credit.setType(OperationType.TONTINE);
+        credit.setStatus(CreditStatus.SETTLED);
+        credit.setTotalAmount(totalAmount);
+        credit.setTotalAmountPaid(totalAmount);
+        credit.setTotalAmountRemaining(0.0);
+        credit.setTotalPurchase(totalPurchase);
+        credit.setDailyStake(totalAmount);
+        credit.setBeginDate(effectiveDate);
+        credit.setExpectedEndDate(effectiveDate);
+        credit.setEffectiveEndDate(effectiveDate);
+        credit.setSolvencyNote(SolvencyStatus.TIME);
+        credit.setRemainingDaysCount(0);
+        credit.setDailyPaid(true);
+        credit.setClientType(ClientType.CLIENT);
+        credit.setUpdatable(false);
+        credit.setClient(client);
+        credit.setCollector(collector);
+        credit.setArticles(articles != null ? new HashSet<>(articles) : new HashSet<>());
+        credit.setCreditToCreditArticles();
+        return credit;
+    }
+
     public static Credit buildDistribution(Client client, DistributeArticleDto dto) {
         Credit credit = new Credit();
+        credit.setType(OperationType.CREDIT);
         credit.setClient(client);
         credit.setArticles(CreditArticles.from(dto.getArticles()));
         credit.setCreditToCreditArticles();
