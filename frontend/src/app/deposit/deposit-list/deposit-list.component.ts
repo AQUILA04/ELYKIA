@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { DepositService } from '../service/deposit.service';
 import { Router } from '@angular/router';
 import { NgxSpinnerService } from 'ngx-spinner';
-import Swal from 'sweetalert2';
 import { PageEvent } from '@angular/material/paginator';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { AlertService } from 'src/app/shared/service/alert.service';

@@ -62,10 +62,9 @@ export async function submitDailyStakeModal(page: Page): Promise<void> {
       await dismissSwalSuccess(page);
       return;
     }
-    if (await page.locator('.swal2-icon-error').isVisible().catch(() => false)) {
-      const msg =
-        (await page.locator('.swal2-html-container').textContent())?.trim() ??
-        'erreur inconnue';
+    const errorToast = page.locator('[data-sonner-toast][data-type="error"]').first();
+    if (await errorToast.isVisible().catch(() => false)) {
+      const msg = (await errorToast.textContent())?.trim() ?? 'erreur inconnue';
       throw new Error(`Mise journalière refusée : ${msg}`);
     }
     await page.waitForTimeout(400);
@@ -124,11 +123,13 @@ export async function submitCreditForm(page: Page): Promise<void> {
       return;
     }
 
-    for (const icon of ['.swal2-icon-error', '.swal2-icon-warning']) {
-      if (await page.locator(icon).isVisible().catch(() => false)) {
-        const msg =
-          (await page.locator('.swal2-html-container').textContent())?.trim() ??
-          'erreur inconnue';
+    for (const selector of [
+      '[data-sonner-toast][data-type="error"]',
+      '[data-sonner-toast][data-type="warning"]',
+    ]) {
+      const toastLocator = page.locator(selector).first();
+      if (await toastLocator.isVisible().catch(() => false)) {
+        const msg = (await toastLocator.textContent())?.trim() ?? 'erreur inconnue';
         throw new Error(`Soumission vente refusée : ${msg}`);
       }
     }

@@ -352,7 +352,7 @@ export class StockReceptionListComponent implements OnInit, OnDestroy {
           error: (err) => {
             const rawMessage = err.error?.message || 'Une erreur est survenue lors de l\'annulation.';
             const message = rawMessage.includes('; ')
-              ? rawMessage.replace(/; /g, '<br>• ')
+              ? rawMessage.replace(/; /g, '\n• ')
               : rawMessage;
             this.alertService.showError(message, 'Erreur');
           }

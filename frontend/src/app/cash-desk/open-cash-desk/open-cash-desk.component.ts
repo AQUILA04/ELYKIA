@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CashDeskService } from '../service/cash-desk.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { NgxPermissionsService } from 'ngx-permissions';
-import Swal from 'sweetalert2';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { AlertService } from 'src/app/shared/service/alert.service';

@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CashDeskService } from '../service/cash-desk.service';
 import { NgxSpinnerService } from 'ngx-spinner';
-import Swal from 'sweetalert2';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 

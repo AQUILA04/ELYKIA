@@ -416,12 +416,12 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
         this.loadHistory();
 
         this.alertService.showSuccess(
-          `
-            L'opération s'est terminée avec succès.<br>
-            - <b>${run.cancelledSalesCount}</b> vente(s) annulée(s)<br>
-            - <b>${run.excludedSalesCount}</b> vente(s) rejetée(s) pour recouvrements<br>
-            - <b>${run.pdfFileCount}</b> pièce(s) d'audit archivée(s)
-          `,
+          [
+            "L'opération s'est terminée avec succès.",
+            `• ${run.cancelledSalesCount} vente(s) annulée(s)`,
+            `• ${run.excludedSalesCount} vente(s) rejetée(s) pour recouvrements`,
+            `• ${run.pdfFileCount} pièce(s) d'audit archivée(s)`,
+          ].join('\n'),
           'Annulation réussie'
         );
       },

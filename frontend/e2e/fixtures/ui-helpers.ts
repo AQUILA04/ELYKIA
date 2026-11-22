@@ -159,20 +159,20 @@ export async function selectArticleInSelector(
   );
 }
 
-/** Confirme une boîte SweetAlert2 (Oui / OK / Confirmer). */
+/** Confirme une modale de confirmation AlertService (Angular CDK Dialog). */
 export async function confirmSwal(page: Page): Promise<void> {
-  const confirm = page.locator('.swal2-confirm, .custom-swal-confirm-button').first();
+  const confirm = page.getByTestId('elykia-alert-confirm').first();
   await confirm.waitFor({ state: 'visible', timeout: 10_000 });
   await confirm.click();
-  await page.locator('.swal2-container').waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {});
+  await page.getByTestId('elykia-alert-dialog').waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {});
 }
 
-/** Ferme une alerte de succès SweetAlert2 après création. */
+/** Ferme une éventuelle alerte modale restante après création (les succès rapides sont désormais des toasts ngx-sonner non bloquants). */
 export async function dismissSwalSuccess(page: Page): Promise<void> {
-  const confirm = page.locator('.swal2-confirm');
-  if (await confirm.isVisible({ timeout: 3000 }).catch(() => false)) {
+  const confirm = page.getByTestId('elykia-alert-confirm').first();
+  if (await confirm.isVisible({ timeout: 500 }).catch(() => false)) {
     await confirm.click();
-    await page.locator('.swal2-container').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+    await page.getByTestId('elykia-alert-dialog').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   }
 }
 

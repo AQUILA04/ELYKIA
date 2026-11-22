@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import Swal from 'sweetalert2';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 import { NgxPermissionsService } from 'ngx-permissions';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
@@ -250,7 +250,8 @@ export class SidebarComponent implements OnInit {
     private authService: AuthService,
     public layoutService: LayoutService,
     private userService: UserService,
-    private featureFlagService: FeatureFlagService) {
+    private featureFlagService: FeatureFlagService,
+    private alertService: AlertService) {
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
@@ -419,37 +420,18 @@ export class SidebarComponent implements OnInit {
   }
 
   confirmLogout(): void {
-    Swal.fire({
-      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">Êtes-vous sûr ?</span>',
-      html: '<span style="font-size: 16px; color: #555;">Vous êtes sur le point de vous déconnecter.</span>',
-      icon: 'question', // Ou 'info', 'warning', ou une icône personnalisée via imageUrl
-      // imageUrl: 'path/to/your/custom-logout-icon.svg', // Exemple avec icône personnalisée
-      // imageWidth: 80,
-      // imageHeight: 80,
-      showCancelButton: true,
-      confirmButtonText: 'Oui, déconnectez-moi !',
-      cancelButtonText: 'Annuler',
-      buttonsStyling: false, // Important pour appliquer nos propres classes
-      customClass: {
-        popup: 'custom-swal-popup',
-        title: 'custom-swal-title',
-        htmlContainer: 'custom-swal-html-container',
-        confirmButton: 'custom-swal-confirm-button btn btn-primary',
-        cancelButton: 'custom-swal-cancel-button btn btn-outline-secondary'
-      },
-      reverseButtons: true,
-      focusCancel: true, // Met le focus sur le bouton Annuler par défaut
-      backdrop: `
-        rgba(0,0,123,0.4)
-        url("assets/images/nyan-cat.gif")
-        left top
-        no-repeat
-      ` // Optionnel: pour un fond amusant ou thématique
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.logout();
-      }
-    });
+    this.alertService
+      .showConfirmation(
+        'Êtes-vous sûr ?',
+        'Vous êtes sur le point de vous déconnecter.',
+        'Oui, déconnectez-moi !',
+        'Annuler',
+      )
+      .then((confirmed) => {
+        if (confirmed) {
+          this.logout();
+        }
+      });
   }
 
   logout(): void {

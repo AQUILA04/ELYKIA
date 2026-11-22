@@ -13,7 +13,7 @@ import { NgxSpinnerService } from 'ngx-spinner';
 import { ToastrService } from 'ngx-toastr';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { UnitPriceVisibilityService } from 'src/app/shared/service/unit-price-visibility.service';
-import Swal from 'sweetalert2';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
   selector: 'app-parameter-list',
@@ -39,7 +39,8 @@ export class ParameterListComponent implements OnInit {
     private spinner: NgxSpinnerService,
     private toastr: ToastrService,
     private featureFlagService: FeatureFlagService,
-    private unitPriceVisibility: UnitPriceVisibilityService
+    private unitPriceVisibility: UnitPriceVisibilityService,
+    private alertService: AlertService
   ) { }
 
   ngOnInit(): void {
@@ -107,32 +108,25 @@ export class ParameterListComponent implements OnInit {
   }
 
   deleteParameter(id: number): void {
-    Swal.fire({
-      title: 'Êtes-vous sûr?',
-      text: "Vous ne pourrez pas revenir en arrière!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Oui, supprimer!',
-      cancelButtonText: 'Annuler'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.spinner.show();
-        this.parameterService.delete(id).subscribe({
-          next: () => {
-            this.spinner.hide();
-            this.toastr.success('Paramètre supprimé avec succès', 'Succès');
-            this.unitPriceVisibility.refresh(true).subscribe();
-            this.loadParameters();
-          },
-          error: (error) => {
-            this.spinner.hide();
-            this.toastr.error('Erreur lors de la suppression du paramètre', 'Erreur');
-          }
-        });
-      }
-    });
+    this.alertService
+      .showDeleteConfirmation('Vous ne pourrez pas revenir en arrière !')
+      .then((confirmed) => {
+        if (confirmed) {
+          this.spinner.show();
+          this.parameterService.delete(id).subscribe({
+            next: () => {
+              this.spinner.hide();
+              this.alertService.toastSuccess('Paramètre supprimé avec succès', 'Succès');
+              this.unitPriceVisibility.refresh(true).subscribe();
+              this.loadParameters();
+            },
+            error: () => {
+              this.spinner.hide();
+              this.alertService.toastError('Erreur lors de la suppression du paramètre', 'Erreur');
+            }
+          });
+        }
+      });
   }
 
   isBoolean(value: string): boolean {

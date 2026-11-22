@@ -4,25 +4,27 @@ globs: frontend/src/app/**/*.{ts,html}
 alwaysApply: false
 ---
 
-# Modales de confirmation — AlertService
+# Modales & Notifications — AlertService (`ngx-sonner` + `@angular/cdk/dialog`)
 
-Dans le frontend admin ELYKIA, les confirmations et messages bloquants passent par [`AlertService`](frontend/src/app/shared/service/alert.service.ts). C’est cette classe qui applique le thème SweetAlert de l’application.
+Dans le frontend admin ELYKIA (`3.0.0`, Angular 21), toutes les notifications rapides et modales de confirmation / alerte / saisie passent par [`AlertService`](frontend/src/app/shared/service/alert.service.ts), qui orchestre **`ngx-sonner`** (toasts non bloquants) et **`@angular/cdk/dialog`** (`AlertDialogComponent` standalone au thème Navy ELYKIA).
 
 ## Obligatoire
 
-- Confirmation : `alertService.showConfirmation(title, text, confirmButtonText, cancelButtonText)` (retourne `Promise<boolean>`).
-- Succès, erreur, info, avertissement : `showSuccess`, `showError`, `showInfo`, `showWarning`, `toastSuccess`, `toastError`.
-- Suppression : `showDeleteConfirmation`.
+- Notifications rapides (`ngx-sonner`) : `showSuccess`, `showError`, `showInfo`, `showWarning`, `showDefaultSucces`, `showDefaultError`, `toastSuccess`, `toastError`, `toastNotif`.
+- Confirmation (`@angular/cdk/dialog`) : `alertService.showConfirmation(title, text, confirmButtonText, cancelButtonText, variant?)` (retourne `Promise<boolean>`).
+- Suppression : `alertService.showDeleteConfirmation(text)` (variante `danger`, retourne `Promise<boolean>`).
+- Alerte bloquante avec action : `alertService.showActionAlert({ title, message, confirmButtonText, variant })` (retourne `Promise<boolean>`).
+- Invite de saisie validée : `alertService.showPrompt({ title, message, inputType, inputLabel, validator, ... })` (retourne `Promise<string | null>`).
 
 ## Interdit
 
 - `confirm()`, `alert()`, `prompt()`, `window.confirm`, `window.alert`.
-- `import Swal from 'sweetalert2'` et `Swal.fire` **en dehors de** `frontend/src/app/shared/service/alert.service.ts`.
-- Appeler SweetAlert directement depuis un composant, un service métier ou un guard.
+- Réintroduire `sweetalert2` (`Swal.fire`) ou appeler `toast(...)` de `ngx-sonner` directement depuis un composant métier sans passer par `AlertService`.
+- Ouvrir `AlertDialogComponent` directement depuis un composant, un service métier ou un guard.
 
 ## Exception
 
-Les formulaires ou parcours trop riches pour une alerte (saisie, onglets, liste éditable) restent des modales métier HTML ou `MatDialog`. Leur bouton de validation peut s’appeler `confirm()` : ce n’est pas le `confirm` du navigateur.
+Les formulaires ou parcours trop riches pour une alerte (onglets, listes éditables, prévisualisations métier) restent des modales métier dédiées (`MatDialog` ou `@angular/cdk/dialog`). Leur bouton de validation peut s’appeler `confirm()` : ce n’est pas le `confirm` du navigateur.
 
 ## Exemple
 

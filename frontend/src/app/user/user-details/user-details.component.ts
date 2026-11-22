@@ -8,7 +8,6 @@ import { PermissionService } from '../../security/services/permission.service';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { MOBILE_DEVICE_RESTRICTION_PARAMETER_KEY, ParameterService } from 'src/app/parameters/parameter.service';
 import { firstValueFrom } from 'rxjs';
-import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-user-details',
@@ -290,47 +289,23 @@ export class UserDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    Swal.fire({
+    this.alertService.showPrompt({
       title: 'Réinitialiser le mot de passe',
-      width: '28rem',
-      html: `<p class="swal-reset-password-intro">
-        Définissez un mot de passe temporaire pour <strong>${this.user.username}</strong>.
-        L'utilisateur devra le changer à sa prochaine connexion.
-      </p>`,
-      input: 'password',
+      message: `Définissez un mot de passe temporaire pour <strong>${this.user.username}</strong>. L'utilisateur devra le changer à sa prochaine connexion.`,
+      inputType: 'password',
       inputLabel: 'Mot de passe temporaire',
       inputPlaceholder: 'Au moins 6 caractères',
-      inputAttributes: {
-        minlength: '6',
-        autocapitalize: 'off',
-        autocorrect: 'off',
-      },
-      showCancelButton: true,
+      minLength: 6,
       confirmButtonText: 'Réinitialiser',
       cancelButtonText: 'Annuler',
-      buttonsStyling: false,
-      customClass: {
-        popup: 'custom-swal-popup custom-swal-popup--form',
-        title: 'custom-swal-title',
-        htmlContainer: 'custom-swal-html-container',
-        input: 'custom-swal-input',
-        inputLabel: 'custom-swal-input-label',
-        confirmButton: 'custom-swal-confirm-button btn btn-primary',
-        cancelButton: 'custom-swal-cancel-button btn btn-outline-secondary',
-      },
-      preConfirm: (value) => {
-        if (!value || value.length < 6) {
-          Swal.showValidationMessage('Le mot de passe doit contenir au moins 6 caractères.');
-          return false;
-        }
-        return value;
-      },
-    }).then((result) => {
-      if (!result.isConfirmed || !result.value) {
+      validator: (value) =>
+        !value || value.length < 6 ? 'Le mot de passe doit contenir au moins 6 caractères.' : null,
+    }).then((temporaryPassword) => {
+      if (!temporaryPassword) {
         return;
       }
 
-      this.userService.resetPassword(this.userId!, result.value).subscribe({
+      this.userService.resetPassword(this.userId!, temporaryPassword).subscribe({
         next: () => {
           this.alertService.showDefaultSucces(
             'Mot de passe réinitialisé. Communiquez le mot de passe temporaire à l\'utilisateur.'

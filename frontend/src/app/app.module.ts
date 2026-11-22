@@ -33,6 +33,8 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { NgxPermissionsModule } from 'ngx-permissions';
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { DialogModule } from '@angular/cdk/dialog';
+import { NgxSonnerToaster } from 'ngx-sonner';
 import { ToastrModule } from 'ngx-toastr';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
@@ -96,6 +98,8 @@ import { GoogleAnalyticsService } from './shared/service/google-analytics.servic
     MatDatepickerModule,
     MatNativeDateModule,
     SharedComponentsModule,
+    DialogModule,
+    NgxSonnerToaster,
     ToastrModule.forRoot(),
     MatExpansionModule,
   ],

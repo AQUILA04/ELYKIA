@@ -1,0 +1,131 @@
+<div
+  class="elykia-alert-card"
+  role="alertdialog"
+  aria-modal="true"
+  aria-labelledby="elykia-alert-title"
+  aria-describedby="elykia-alert-message"
+  data-testid="elykia-alert-dialog"
+  [class.elykia-alert-card--prompt]="data.mode === 'prompt'"
+>
+  <div class="elykia-alert-header">
+    <div class="elykia-alert-icon" [class]="'elykia-alert-icon elykia-alert-icon--' + data.variant" aria-hidden="true">
+      @switch (data.variant) {
+        @case ('danger') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 6h18" />
+            <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+            <path d="M10 11v6" />
+            <path d="M14 11v6" />
+          </svg>
+        }
+        @case ('warning') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        }
+        @case ('info') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+        }
+        @default {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+        }
+      }
+    </div>
+
+    <div class="elykia-alert-heading">
+      <h2 id="elykia-alert-title" class="elykia-alert-title" data-testid="elykia-alert-title">
+        {{ data.title }}
+      </h2>
+      <div
+        id="elykia-alert-message"
+        class="elykia-alert-message"
+        data-testid="elykia-alert-message"
+        [innerHTML]="data.message"
+      ></div>
+    </div>
+  </div>
+
+  @if (data.mode === 'prompt') {
+    <form class="elykia-alert-form" (ngSubmit)="confirm()">
+      @if (data.inputLabel) {
+        <label class="elykia-alert-label" for="elykia-alert-input">
+          {{ data.inputLabel }}
+        </label>
+      }
+      <input
+        id="elykia-alert-input"
+        name="alertPromptInput"
+        class="elykia-alert-input"
+        [class.elykia-alert-input--invalid]="validationError() !== null"
+        [type]="data.inputType || 'text'"
+        [placeholder]="data.inputPlaceholder || ''"
+        [attr.minlength]="data.minLength ?? null"
+        autocapitalize="off"
+        autocorrect="off"
+        [attr.autocomplete]="data.inputType === 'password' ? 'new-password' : 'off'"
+        data-testid="elykia-alert-input"
+        [(ngModel)]="inputValue"
+        (ngModelChange)="onInputChange()"
+      />
+      @if (validationError(); as err) {
+        <p class="elykia-alert-error" role="alert" data-testid="elykia-alert-error">
+          {{ err }}
+        </p>
+      }
+
+      <div class="elykia-alert-actions">
+        @if (data.showCancelButton) {
+          <button
+            type="button"
+            class="elykia-alert-btn elykia-alert-btn--cancel"
+            data-testid="elykia-alert-cancel"
+            (click)="cancel()"
+          >
+            {{ data.cancelButtonText || 'Annuler' }}
+          </button>
+        }
+        <button
+          type="submit"
+          class="elykia-alert-btn"
+          [class]="'elykia-alert-btn elykia-alert-btn--' + data.variant"
+          data-testid="elykia-alert-confirm"
+        >
+          {{ data.confirmButtonText }}
+        </button>
+      </div>
+    </form>
+  } @else {
+    <div class="elykia-alert-actions">
+      @if (data.showCancelButton) {
+        <button
+          type="button"
+          class="elykia-alert-btn elykia-alert-btn--cancel"
+          data-testid="elykia-alert-cancel"
+          (click)="cancel()"
+        >
+          {{ data.cancelButtonText || 'Annuler' }}
+        </button>
+      }
+      <button
+        type="button"
+        class="elykia-alert-btn"
+        [class]="'elykia-alert-btn elykia-alert-btn--' + data.variant"
+        data-testid="elykia-alert-confirm"
+        (click)="confirm()"
+      >
+        {{ data.confirmButtonText }}
+      </button>
+    </div>
+  }
+</div>

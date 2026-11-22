@@ -1,152 +1,107 @@
 import { Injectable } from '@angular/core';
-import Swal from 'sweetalert2';
-import {ToastrService} from "ngx-toastr";
+import { Dialog } from '@angular/cdk/dialog';
+import { firstValueFrom } from 'rxjs';
+import { toast } from 'ngx-sonner';
 import { SessionExpiryState } from './session-expiry.state';
+import {
+  AlertDialogComponent,
+  AlertDialogData,
+  AlertDialogResult,
+  AlertDialogVariant,
+} from '../components/alert-dialog/alert-dialog.component';
+
+export interface AlertActionOptions {
+  title: string;
+  message: string;
+  confirmButtonText?: string;
+  cancelButtonText?: string;
+  showCancelButton?: boolean;
+  variant?: AlertDialogVariant;
+  disableClose?: boolean;
+}
+
+export interface AlertPromptOptions {
+  title: string;
+  message: string;
+  inputType?: 'text' | 'password' | 'email';
+  inputLabel?: string;
+  inputPlaceholder?: string;
+  initialValue?: string;
+  minLength?: number;
+  confirmButtonText?: string;
+  cancelButtonText?: string;
+  variant?: AlertDialogVariant;
+  validator?: (value: string) => string | null;
+}
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AlertService {
-
   constructor(
-    private readonly toast: ToastrService,
-    private readonly sessionExpiry: SessionExpiryState
-  ) { }
+    private readonly dialog: Dialog,
+    private readonly sessionExpiry: SessionExpiryState,
+  ) {}
+
   showSuccess(message: string, title: string = 'Succès'): void {
-    Swal.fire({
-      icon: 'success',
-      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">' + title + '</span>',
-      html: '<span style="font-size: 16px; color: #555;">' + message + '</span>',
-      confirmButtonText: 'OK',
-      buttonsStyling: false,
-      customClass: {
-        popup: 'custom-swal-popup',
-        title: 'custom-swal-title',
-        htmlContainer: 'custom-swal-html-container',
-        confirmButton: 'custom-swal-confirm-button btn btn-success', // Ajout de btn-success
-        cancelButton: 'custom-swal-cancel-button btn btn-outline-secondary'
-      },
-      backdrop: `
-        rgba(0,0,123,0.4)
-        url("assets/images/nyan-cat.gif")
-        left top
-        no-repeat
-      `
+    toast.success(title, {
+      description: this.normalizeToastMessage(message),
     });
   }
 
   toastSuccess(message: string, title: string = 'Succès'): void {
-    this.toast.success(message, title);
+    this.showSuccess(message, title);
   }
 
   toastError(message: string, title: string = 'Erreur'): void {
-    if (this.sessionExpiry.isActive()) {
-      return;
-    }
-    this.toast.error(message, title);
+    this.showError(message, title);
   }
 
   /**
-   * Ferme une alerte déjà ouverte et prévient une seule fois que la session est finie.
+   * Ferme toute modale ouverte et prévient une seule fois que la session est finie.
    * Appelé après {@link SessionExpiryState.begin}, donc hors du garde de {@link toastError}.
    */
   notifySessionExpired(): void {
-    Swal.close();
-    this.toast.error('Votre session a expiré. Veuillez vous reconnecter.', 'Session expirée');
+    this.closeAllDialogs();
+    toast.error('Session expirée', {
+      description: 'Votre session a expiré. Veuillez vous reconnecter.',
+      duration: 6000,
+    });
   }
 
   toastNotif(message: string, title: string = 'Erreur', type?: string): void {
-    if (type && type === 'error') {
+    if (type === 'error') {
       this.toastError(message, title);
-    } else if (type && type === 'success') {
+    } else if (type === 'success') {
       this.toastSuccess(message, title);
+    } else if (type === 'info') {
+      this.showInfo(message, title);
     } else {
-      this.toast.warning(message, title);
+      this.showWarning(message, title);
     }
-
   }
 
   showError(message: string, title: string = 'Erreur'): void {
     if (this.sessionExpiry.isActive()) {
       return;
     }
-    Swal.fire({
-      icon: 'error',
-      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">' + title + '</span>',
-      html: '<span style="font-size: 16px; color: #555;">' + message + '</span>',
-      confirmButtonText: 'OK',
-      buttonsStyling: false,
-      customClass: {
-        popup: 'custom-swal-popup',
-        title: 'custom-swal-title',
-        htmlContainer: 'custom-swal-html-container',
-        confirmButton: 'custom-swal-confirm-button btn btn-danger', // Ajout de btn-danger
-        cancelButton: 'custom-swal-cancel-button btn btn-outline-secondary'
-      },
-      backdrop: `
-        rgba(0,0,123,0.4)
-        url("assets/images/nyan-cat.gif")
-        left top
-        no-repeat
-      `
+    toast.error(title, {
+      description: this.normalizeToastMessage(message),
+      duration: 6000,
     });
   }
 
   showWarning(message: string, title: string = 'Avertissement'): void {
-    Swal.fire({
-      icon: 'question',
-      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">' + title + '</span>',
-      html: '<span style="font-size: 16px; color: #555;">' + message + '</span>',
-      confirmButtonText: 'OK',
-      cancelButtonText: 'Annuler',
-      buttonsStyling: false,
-      customClass: {
-        popup: 'custom-swal-popup',
-        title: 'custom-swal-title',
-        htmlContainer: 'custom-swal-html-container',
-        confirmButton: 'custom-swal-confirm-button btn btn-primary', // Ajout de btn-warning
-        cancelButton: 'custom-swal-cancel-button btn btn-outline-secondary'
-      },
-      reverseButtons: true,
-      focusCancel: true,
-      backdrop: `
-        rgba(0,0,123,0.4)
-        url("assets/images/nyan-cat.gif")
-        left top
-        no-repeat
-      `
+    toast.warning(title, {
+      description: this.normalizeToastMessage(message),
+      duration: 5500,
     });
   }
 
-  showConfirmation(title: string, text: string, confirmButtonText: string = 'Oui', cancelButtonText: string = 'Annuler'): Promise<boolean> {
-    return Swal.fire({
-      icon: 'question',
-      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">' + title + '</span>',
-      html: '<span style="font-size: 16px; color: #555;">' + text + '</span>',
-      showCancelButton: true,
-      confirmButtonText: confirmButtonText,
-      cancelButtonText: cancelButtonText,
-      buttonsStyling: false,
-      customClass: {
-        popup: 'custom-swal-popup',
-        title: 'custom-swal-title',
-        htmlContainer: 'custom-swal-html-container',
-        confirmButton: 'custom-swal-confirm-button btn btn-primary', // Utilisation de btn-primary pour la confirmation standard
-        cancelButton: 'custom-swal-cancel-button btn btn-outline-secondary'
-      },
-      reverseButtons: true,
-      focusCancel: true,
-      backdrop: `
-        rgba(0,0,123,0.4)
-        url("assets/images/nyan-cat.gif")
-        left top
-        no-repeat
-      `
-    }).then(result => result.isConfirmed);
-  }
-
-  showDeleteConfirmation(text: string): Promise<boolean> {
-    return this.showConfirmation('Confimation de suppression', text, 'Supprimer', 'Annuler');
+  showInfo(message: string, title: string = 'Information'): void {
+    toast.info(title, {
+      description: this.normalizeToastMessage(message),
+    });
   }
 
   showDefaultSucces(message: string): void {
@@ -157,28 +112,103 @@ export class AlertService {
     this.showError(message, 'Opération échouée');
   }
 
-  showInfo(message: string, title: string = 'Information'): void {
-    Swal.fire({
-      icon: 'info', // Use info icon
-      title: '<span style="font-size: 22px; font-weight: 600; color: #333;">' + title + '</span>',
-      html: '<span style="font-size: 16px; color: #555;">' + message + '</span>',
-      confirmButtonText: 'OK',
-      buttonsStyling: false,
-      customClass: {
-        popup: 'custom-swal-popup',
-        title: 'custom-swal-title',
-        htmlContainer: 'custom-swal-html-container',
-        confirmButton: 'custom-swal-confirm-button btn btn-info', // Use btn-info
-        cancelButton: 'custom-swal-cancel-button btn btn-outline-secondary'
+  showConfirmation(
+    title: string,
+    text: string,
+    confirmButtonText: string = 'Oui',
+    cancelButtonText: string = 'Annuler',
+    variant: AlertDialogVariant = 'primary',
+  ): Promise<boolean> {
+    const dialogRef = this.dialog.open<AlertDialogResult, AlertDialogData>(AlertDialogComponent, {
+      data: {
+        mode: 'confirm',
+        variant,
+        title,
+        message: text,
+        confirmButtonText,
+        cancelButtonText,
+        showCancelButton: true,
       },
-      backdrop: `
-        rgba(0,0,123,0.4)
-        url("assets/images/nyan-cat.gif")
-        left top
-        no-repeat
-      `
+      backdropClass: 'elykia-alert-dialog-backdrop',
+      panelClass: 'elykia-alert-dialog-panel',
+      autoFocus: '[data-testid="elykia-alert-cancel"]',
+      restoreFocus: true,
     });
+
+    return firstValueFrom(dialogRef.closed).then((result) => result?.confirmed === true);
   }
 
-}
+  showDeleteConfirmation(text: string): Promise<boolean> {
+    return this.showConfirmation(
+      'Confirmation de suppression',
+      text,
+      'Supprimer',
+      'Annuler',
+      'danger',
+    );
+  }
 
+  showActionAlert(options: AlertActionOptions): Promise<boolean> {
+    const dialogRef = this.dialog.open<AlertDialogResult, AlertDialogData>(AlertDialogComponent, {
+      data: {
+        mode: 'action',
+        variant: options.variant ?? 'info',
+        title: options.title,
+        message: options.message,
+        confirmButtonText: options.confirmButtonText ?? 'OK',
+        cancelButtonText: options.cancelButtonText ?? 'Annuler',
+        showCancelButton: options.showCancelButton ?? false,
+      },
+      disableClose: options.disableClose ?? false,
+      backdropClass: 'elykia-alert-dialog-backdrop',
+      panelClass: 'elykia-alert-dialog-panel',
+      autoFocus: '[data-testid="elykia-alert-confirm"]',
+      restoreFocus: true,
+    });
+
+    return firstValueFrom(dialogRef.closed).then((result) => result?.confirmed === true);
+  }
+
+  showPrompt(options: AlertPromptOptions): Promise<string | null> {
+    const dialogRef = this.dialog.open<AlertDialogResult, AlertDialogData>(AlertDialogComponent, {
+      data: {
+        mode: 'prompt',
+        variant: options.variant ?? 'primary',
+        title: options.title,
+        message: options.message,
+        confirmButtonText: options.confirmButtonText ?? 'Valider',
+        cancelButtonText: options.cancelButtonText ?? 'Annuler',
+        showCancelButton: true,
+        inputType: options.inputType ?? 'text',
+        inputLabel: options.inputLabel,
+        inputPlaceholder: options.inputPlaceholder,
+        initialValue: options.initialValue,
+        minLength: options.minLength,
+        validator: options.validator,
+      },
+      backdropClass: 'elykia-alert-dialog-backdrop',
+      panelClass: 'elykia-alert-dialog-panel',
+      autoFocus: '[data-testid="elykia-alert-input"]',
+      restoreFocus: true,
+    });
+
+    return firstValueFrom(dialogRef.closed).then((result) =>
+      result?.confirmed ? (result.value ?? '') : null,
+    );
+  }
+
+  closeAllDialogs(): void {
+    this.dialog.closeAll();
+  }
+
+  private normalizeToastMessage(message: string): string {
+    if (!message) {
+      return '';
+    }
+    return message
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<[^>]+>/g, '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+}

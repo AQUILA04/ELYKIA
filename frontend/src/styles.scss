@@ -441,110 +441,24 @@ mat-error {
   overflow-y: auto;
 }
 
-// ── SweetAlert2 Custom Theme ─────────────────────────────────
-.custom-swal-popup {
-  border-radius: var(--radius-lg) !important;
-  padding: 28px !important;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
-  font-family: var(--font-main) !important;
-  box-sizing: border-box !important;
-  overflow: hidden !important;
+// ── Alert Dialog (Angular CDK) & Sonner Toasts ───────────────
+.elykia-alert-dialog-backdrop {
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(2px);
 }
 
-.custom-swal-popup--form {
-  max-width: calc(100vw - 32px) !important;
-
-  .swal2-html-container {
-    margin: 0 0 12px !important;
-    padding: 0 !important;
-    overflow: visible !important;
-  }
-
-  .swal-reset-password-intro {
-    margin: 0;
-    text-align: left;
-    color: var(--text-secondary);
-    line-height: 1.5;
-    word-break: break-word;
-  }
-
-  .custom-swal-input-label,
-  .swal2-input-label {
-    justify-content: flex-start !important;
-    margin: 0 0 6px !important;
-    padding: 0 !important;
-    font-size: 13px !important;
-    font-weight: 600 !important;
-    color: var(--text-primary) !important;
-  }
-
-  .custom-swal-input,
-  .swal2-input {
-    box-sizing: border-box !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-  }
+.elykia-alert-dialog-panel {
+  max-width: calc(100vw - 32px);
+  outline: none;
 }
 
-.custom-swal-title {
-  font-size: 20px !important;
-  font-weight: 700 !important;
-  color: var(--text-primary) !important;
+[data-sonner-toaster] {
+  font-family: var(--font-main, 'Inter', sans-serif) !important;
+  z-index: 10050 !important;
 }
 
-.custom-swal-html-container {
-  font-size: 14px !important;
-  color: var(--text-secondary) !important;
-  line-height: 1.6 !important;
-}
-
-.custom-swal-confirm-button {
-  background: var(--navy-700) !important;
-  color: white !important;
-  border: none !important;
-  border-radius: var(--radius-sm) !important;
-  padding: 10px 22px !important;
-  font-family: var(--font-main) !important;
-  font-weight: 600 !important;
-  font-size: 13px !important;
-  cursor: pointer !important;
-
-  &:hover { background: var(--navy-600) !important; }
-
-  &.btn-primary { background: var(--navy-700) !important; }
-  &.btn-success { background: var(--teal-500) !important; }
-  &.btn-danger  { background: var(--rose-500) !important; }
-  &.btn-warning { background: var(--amber-500) !important; color: #1a1a1a !important; }
-}
-
-.custom-swal-cancel-button {
-  background: #f1f5f9 !important;
-  color: var(--text-secondary) !important;
-  border: 1px solid var(--border-light) !important;
-  border-radius: var(--radius-sm) !important;
-  padding: 10px 22px !important;
-  font-family: var(--font-main) !important;
-  font-weight: 600 !important;
-  font-size: 13px !important;
-  cursor: pointer !important;
-
-  &:hover { background: var(--border-light) !important; }
-}
-
-.swal2-icon {
-  &.swal2-success {
-    border-color: var(--teal-500) !important;
-    .swal2-success-line-tip,
-    .swal2-success-line-long { background: var(--teal-500) !important; }
-  }
-  &.swal2-error {
-    border-color: var(--rose-500) !important;
-    .swal2-x-mark-line-left,
-    .swal2-x-mark-line-right { background: var(--rose-500) !important; }
-  }
-  &.swal2-warning { border-color: var(--amber-500) !important; color: var(--amber-500) !important; }
-  &.swal2-question { border-color: var(--navy-500) !important; color: var(--navy-500) !important; }
+[data-sonner-toast] [data-description] {
+  white-space: pre-line;
 }
 
 // ── Details Container (legacy) ────────────────────────────────

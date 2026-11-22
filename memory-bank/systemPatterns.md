@@ -58,7 +58,7 @@ Architecture **Spring Modulith `2.2.0`** (point d'entrée `com.optimize.elykia.O
 
 Angular 21 LTS (`@angular/build:application` esbuild/Vite, Vitest). **100 % des domaines métier** sous `frontend/src/app/` sont lazy-loaded via `loadChildren` dans `app-routing.module.ts` (y compris les 7 derniers domaines historiques migrés en `3.0.0` : `locality`, `cash-desk`, `gestion`, `operation`, `deposit`, `out`, `history`). Tout nouveau domaine suit le standard Angular 21 : composants **standalone** + routes lazy `{domaine}.routes.ts` (`loadChildren` / `loadComponent`) et control flow natif (`@if`/`@for`/`@switch`) — règle `frontend-lazy-loading-migration`.
 
-État : services Angular + RxJS + signals locaux, pas de store global. `Zone.js` conservé explicitement (`provideZoneChangeDetection({ eventCoalescing: true })`), `provideHttpClient(withInterceptorsFromDi())`, `provideAppInitializer`, `GoogleAnalyticsService` (`gtag.js` natif). Gardes : `AuthGuard`, `NgxPermissionsGuard`, `FeatureFlagGuard`, `AiChatGuard`. Confirmations : `AlertService` uniquement (pas de `confirm()` / SweetAlert direct).
+État : services Angular + RxJS + signals locaux, pas de store global. `Zone.js` conservé explicitement (`provideZoneChangeDetection({ eventCoalescing: true })`), `provideHttpClient(withInterceptorsFromDi())`, `provideAppInitializer`, `GoogleAnalyticsService` (`gtag.js` natif). Gardes : `AuthGuard`, `NgxPermissionsGuard`, `FeatureFlagGuard`, `AiChatGuard`. Notifications & confirmations : `AlertService` uniquement (`ngx-sonner` pour les toasts rapides + `@angular/cdk/dialog` `AlertDialogComponent` pour les modales de confirmation/action/prompt ; plus de `sweetalert2` ni de `confirm()`).
 
 ## Mobile
 

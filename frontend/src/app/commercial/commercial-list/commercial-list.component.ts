@@ -4,7 +4,6 @@ import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { UserService } from 'src/app/user/service/user.service';
-import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-commercial-list',

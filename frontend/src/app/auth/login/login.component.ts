@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../service/auth.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import Swal from 'sweetalert2';
+import { AlertService } from 'src/app/shared/service/alert.service';
 import { HttpErrorResponse } from '@angular/common/http';
 
 interface MobileSsoPayload {
@@ -41,6 +41,7 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private tokenStorage: TokenStorageService,
     private route: ActivatedRoute,
+    private alertService: AlertService,
   ) {
     this.loginForm = this.formBuilder.group({
       username: ['', Validators.required],
@@ -185,13 +186,13 @@ export class LoginComponent implements OnInit {
 
           // Gérer l'erreur de licence
           if (error?.statusCode === 509) {
-            Swal.fire({
+            this.alertService.showActionAlert({
               title: 'Licence Expirée',
-              text: 'Votre licence a expiré. Veuillez la réactiver pour continuer.',
-              icon: 'info',
-              confirmButtonText: 'Réactiver la Licence'
-            }).then((result) => {
-              if (result.isConfirmed) {
+              message: 'Votre licence a expiré. Veuillez la réactiver pour continuer.',
+              variant: 'info',
+              confirmButtonText: 'Réactiver la Licence',
+            }).then((confirmed) => {
+              if (confirmed) {
                 this.router.navigate(['/license']);
               }
             });

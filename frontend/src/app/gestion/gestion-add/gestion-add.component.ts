@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { GestionService } from '../service/gestion.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import Swal from 'sweetalert2';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';

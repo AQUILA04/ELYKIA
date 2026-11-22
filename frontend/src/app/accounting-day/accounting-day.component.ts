@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import Swal from 'sweetalert2';
 import { AccountingDayService } from './service/accounting-day.service';
 import { TokenStorageService } from '../shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';

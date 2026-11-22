@@ -4,11 +4,11 @@ import { E2eUserKey, resolveCredentials } from './test-data';
 
 export type { E2eUserKey };
 
-async function dismissSweetAlert(page: Page): Promise<void> {
-  const confirmButton = page.locator('.swal2-confirm');
-  if (await confirmButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+async function dismissAlertDialog(page: Page): Promise<void> {
+  const confirmButton = page.getByTestId('elykia-alert-confirm').first();
+  if (await confirmButton.isVisible({ timeout: 500 }).catch(() => false)) {
     await confirmButton.click();
-    await page.locator('.swal2-container').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+    await page.getByTestId('elykia-alert-dialog').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   }
 }
 
@@ -36,7 +36,7 @@ export async function loginAs(page: Page, userKey: E2eUserKey): Promise<void> {
 
   await expect(page).toHaveURL(/\/home/, { timeout: 30_000 });
   await page.getByTestId('e2e-app-shell').waitFor({ state: 'visible', timeout: 15_000 });
-  await dismissSweetAlert(page);
+  await dismissAlertDialog(page);
 }
 
 export async function loginAsGestionnaire(page: Page): Promise<void> {

@@ -43,7 +43,8 @@ describe('UserDetailsComponent', () => {
                 { provide: AlertService, useValue: {
                         showError: vi.fn().mockName("AlertService.showError"),
                         showDefaultSucces: vi.fn().mockName("AlertService.showDefaultSucces"),
-                        showConfirmation: vi.fn().mockName("AlertService.showConfirmation")
+                        showConfirmation: vi.fn().mockName("AlertService.showConfirmation"),
+                        showPrompt: vi.fn().mockName("AlertService.showPrompt")
                     } },
                 { provide: TokenStorageService, useValue: {
                         checkConnectedUser: vi.fn().mockName("TokenStorageService.checkConnectedUser")

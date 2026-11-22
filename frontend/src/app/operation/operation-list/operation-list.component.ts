@@ -3,7 +3,6 @@ import { OperationService } from '../service/operation.service';
 import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { NgxSpinnerService } from 'ngx-spinner';
-import Swal from 'sweetalert2';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 

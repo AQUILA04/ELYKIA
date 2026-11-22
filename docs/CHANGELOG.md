@@ -211,18 +211,20 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Angular 21 LTS (`21.2.26`) & Material/CDK (`21.2.14`) —** migration incrémentale d'Angular `18.2` vers `21.2.26` (`@angular/cli` & `@angular/build` `21.2.30`, TypeScript `5.9.3`, `zone.js ~0.16.0`, `rxjs ~7.8.2`), thème `indigo-pink.css` conservé, `standalone: false` explicite sur l'ensemble des déclarations `NgModule`, bootstrap migré vers `platformBrowser().bootstrapModule(AppModule)` avec `provideZoneChangeDetection({ eventCoalescing: true })`, `provideBrowserGlobalErrorListeners()`, `provideHttpClient(withInterceptorsFromDi())`, `provideAppInitializer` et `DOCUMENT` depuis `@angular/core`.
 - **Builder `@angular/build:application` (esbuild/Vite) —** remplacement du builder Webpack legacy (`@angular-devkit/build-angular:browser`), suppression de `src/polyfills.ts`, sortie préservée dans `dist/optimize-elykia-ui/` pour Nginx/Docker, `browserTarget` → `buildTarget`, imports par défaut `moment` et suppression de `--legacy-peer-deps` (`npm ci` strict).
-- **Dépendances tierces natives Angular 21 —** montée de `@ng-select/ng-select` (`21.8.2`), `ngx-permissions` (`19.0.0`), `ngx-spinner` (`21.1.0`), `ngx-toastr` (`20.0.5`), `ng2-charts` (`10.0.0`, `BaseChartDirective` + `provideCharts(withDefaultRegisterables())`), `ng-apexcharts` (`2.5.0` + `apexcharts` `5.10.3`) et `firebase` (`12.19.0`).
+- **Dépendances tierces natives Angular 21 —** montée de `@ng-select/ng-select` (`21.8.2`), `ngx-permissions` (`19.0.0`), `ngx-spinner` (`21.1.0`), `ngx-toastr` (`20.0.5`), `ng2-charts` (`10.0.0`, `BaseChartDirective` + `provideCharts(withDefaultRegisterables())`), `ng-apexcharts` (`2.5.0` + `apexcharts` `5.10.3`) et `firebase` (`12.19.0`), et ajout de **`ngx-sonner` (`3.1.0`)**.
+- **Notifications & modales centralisées dans `AlertService` —** migration complète de `sweetalert2` vers **`ngx-sonner`** (toasts non bloquants `showSuccess`, `showError`, `showWarning`, `showInfo`, `toast*`, `notifySessionExpired`, `<ngx-sonner-toaster>` dans `AppComponent`) et **`@angular/cdk/dialog`** via le composant standalone **`AlertDialogComponent`** (`showConfirmation`, `showDeleteConfirmation`, `showActionAlert`, `showPrompt`). Suppression des 4 derniers appels directs à `Swal.fire` (`LoginComponent`, `UserDetailsComponent`, `SidebarComponent`, `ParameterListComponent`) et mise à jour des fixtures Playwright E2E.
 - **Lazy-loading 100 % des domaines métier —** migration des 7 derniers domaines eager (`locality`, `cash-desk`, `gestion`, `operation`, `deposit`, `out`, `history`) vers `loadChildren` avec URLs normalisées (`/{domaine}/...`), mise à jour de la sidebar, des navigations internes et des tests E2E Playwright.
 - **Control Flow natif Angular —** migration automatique des templates HTML (`*ngIf`/`*ngFor`/`*ngSwitch` → `@if`/`@for`/`@switch`).
-- **Tests unitaires Vitest (`@angular/build:unit-test`) —** remplacement complet de Karma/Jasmine par Vitest `4.1` + `jsdom` (111/111 fichiers, 224/224 tests verts en ~15 s).
+- **Tests unitaires Vitest (`@angular/build:unit-test`) —** remplacement complet de Karma/Jasmine par Vitest `4.1` + `jsdom` (112/112 fichiers, 232/232 tests verts en ~15 s).
 
 ### Added
 
 - **`GoogleAnalyticsService` —** service léger natif `gtag.js` + suivi `NavigationEnd` remplaçant `ngx-google-analytics` (bloqué Angular 14), couvert par tests unitaires.
+- **`AlertDialogComponent` (standalone Angular 21 + `@angular/cdk/dialog`) —** modale accessible (`role="alertdialog"`) aux couleurs Navy ELYKIA gérant les confirmations, alertes d'action bloquantes (`showActionAlert`) et invites à saisie validée (`showPrompt`), avec sélecteurs `data-testid="elykia-alert-*"` et tests Vitest.
 
 ### Removed
 
-- Suppression des paquets inutilisés (`@angular/fire`, `@angular/pwa`, `ngx-pagination`, `@types/chart.js`), de `ngx-google-analytics`, de `@angular/animations` / `BrowserAnimationsModule` (animation `[@slideDown]` de la recherche avancée crédit remplacée par CSS natif), de `@angular/platform-browser-dynamic` et de la chaîne Karma/Jasmine (`karma.conf.js`, `src/test.ts`).
+- Suppression de **`sweetalert2`** (et de ses styles `.custom-swal-*`/`.swal2-*` ainsi que son entrée `allowedCommonJsDependencies`), des paquets inutilisés (`@angular/fire`, `@angular/pwa`, `ngx-pagination`, `@types/chart.js`), de `ngx-google-analytics`, de `@angular/animations` / `BrowserAnimationsModule` (animation `[@slideDown]` de la recherche avancée crédit remplacée par CSS natif), de `@angular/platform-browser-dynamic` et de la chaîne Karma/Jasmine (`karma.conf.js`, `src/test.ts`).
 
 ### Fixed
 

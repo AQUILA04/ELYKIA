@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { OutService } from '../out/service/out.service';
 import { NgxPermissionsService } from 'ngx-permissions';
 import { NgxSpinnerService } from 'ngx-spinner';
-import Swal from 'sweetalert2';
 import { Router } from '@angular/router';
 import { AlertService } from '../shared/service/alert.service';
 

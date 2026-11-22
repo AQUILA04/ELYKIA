@@ -31,8 +31,7 @@
             "allowedCommonJsDependencies": [
               "moment",
               "file-saver",
-              "apexcharts",
-              "sweetalert2"
+              "apexcharts"
             ],
             "assets": [
               "src/favicon.ico",
