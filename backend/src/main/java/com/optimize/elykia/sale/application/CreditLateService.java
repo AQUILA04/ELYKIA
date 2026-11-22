@@ -10,7 +10,7 @@ import com.optimize.elykia.sale.domain.LateType;
 import com.optimize.elykia.shared.carnet.RmFieldListProgress;
 import com.optimize.elykia.sale.infrastructure.persistence.ClientReliquatRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditFieldControlRepository;
-import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRecoveryQueryRepository;
 import com.optimize.elykia.sale.api.CreditCarnetRecontrolPort;
 import com.optimize.elykia.shared.carnet.EcartDecisionView;
 import com.optimize.elykia.sale.domain.ClientReliquatNetRemaining;
@@ -46,7 +46,7 @@ import java.io.ByteArrayOutputStream;
 @RequiredArgsConstructor
 public class CreditLateService {
 
-    private final CreditRepository creditRepository;
+    private final CreditRecoveryQueryRepository creditRepository;
     private final ClientReliquatRepository clientReliquatRepository;
     private final CreditFieldControlRepository creditFieldControlRepository;
     private final CreditCarnetRecontrolPort recontrolPolicy;

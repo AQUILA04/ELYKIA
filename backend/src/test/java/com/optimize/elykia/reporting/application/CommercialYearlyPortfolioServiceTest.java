@@ -6,7 +6,7 @@ import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.finance.infrastructure.persistence.CommercialReportMonthlyRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditCollectorHistoryRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditFieldControlRepository;
-import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRecoveryQueryRepository;
 import com.optimize.elykia.sale.application.DebtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 class CommercialYearlyPortfolioServiceTest {
 
     @Mock private CommercialReportMonthlyRepository monthlyRepository;
-    @Mock private CreditRepository creditRepository;
+    @Mock private CreditRecoveryQueryRepository creditRepository;
     @Mock private CreditCollectorHistoryRepository collectorHistoryRepository;
     @Mock private DebtService debtService;
     @Mock private CreditFieldControlRepository creditFieldControlRepository;

@@ -11,6 +11,7 @@ import com.optimize.elykia.reporting.domain.AccountancyReportView;
 import com.optimize.elykia.sale.domain.CreditStatus;
 import com.optimize.elykia.finance.domain.PeriodState;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.SaleSearchQueryRepository;
 import com.optimize.elykia.finance.infrastructure.persistence.DailyAccountingRepository;
 import com.optimize.elykia.reporting.infrastructure.persistence.AccountancyReportRepository;
 import com.optimize.elykia.finance.application.AccountingDayService;
@@ -33,6 +34,8 @@ public class ReportService {
     private final DailyAccountancyService dailyAccountancyService;
     @Getter
     private final CreditRepository creditRepository;
+    @Getter
+    private final SaleSearchQueryRepository saleSearchQueryRepository;
     private final AccountingDayService accountingDayService;
 
     public List<AccountancyReportView> getAccountancyReports(PeriodState periodState) {
@@ -73,9 +76,9 @@ public class ReportService {
         }
         List<DownloadData> articles;
         if ("TOUT".equals(collector)) {
-            articles = creditRepository.getReleaseDownloadData(now, ClientType.PROMOTER);
+            articles = saleSearchQueryRepository.getReleaseDownloadData(now, ClientType.PROMOTER);
         } else {
-            articles = creditRepository.getDownloadDataByCollector(now, collector, ClientType.PROMOTER);
+            articles = saleSearchQueryRepository.getDownloadDataByCollector(now, collector, ClientType.PROMOTER);
         }
 
 
@@ -88,7 +91,7 @@ public class ReportService {
 
     public List<ItemReleaseSheetDto> getItemReleaseSheetByCurrentDate() {
         List<ItemReleaseSheetDto>  dtos = new ArrayList<>();
-        List<String> collectors = creditRepository.getCollectorWhoReleaseItemCurrentDate(LocalDate.now(), ClientType.PROMOTER);
+        List<String> collectors = saleSearchQueryRepository.getCollectorWhoReleaseItemCurrentDate(LocalDate.now(), ClientType.PROMOTER);
         collectors.forEach(collector -> dtos.add(getItemReleaseSheetByCollector(collector, null)));
         return dtos;
     }

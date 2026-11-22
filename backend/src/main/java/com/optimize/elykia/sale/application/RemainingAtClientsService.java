@@ -5,7 +5,7 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.sale.web.dto.RemainingAtClientsCreditDto;
 import com.optimize.elykia.sale.web.dto.RemainingAtClientsPageDto;
 import com.optimize.elykia.shared.domain.OperationType;
-import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRecoveryQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RemainingAtClientsService {
 
-    private final CreditRepository creditRepository;
+    private final CreditRecoveryQueryRepository creditRepository;
 
     @Transactional(readOnly = true)
     public RemainingAtClientsPageDto getPage(String commercialUsername, int year, Pageable pageable) {

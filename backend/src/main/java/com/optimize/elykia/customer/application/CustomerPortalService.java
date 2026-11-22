@@ -56,6 +56,7 @@ import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberRepos
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineSessionRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.SaleSearchQueryRepository;
 import com.optimize.elykia.customer.infrastructure.persistence.CustomerMobileMoneySubmissionRepository;
 import com.optimize.elykia.customer.infrastructure.persistence.CustomerTontineMmSubmissionRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditArticlesRepository;
@@ -91,6 +92,7 @@ public class CustomerPortalService {
 
     private final CustomerContextService contextService;
     private final CreditRepository creditRepository;
+    private final SaleSearchQueryRepository saleSearchQueryRepository;
     private final CreditTimelineRepository creditTimelineRepository;
     private final CustomerMobileMoneySubmissionRepository submissionRepository;
     private final ArticlesService articlesService;
@@ -138,7 +140,7 @@ public class CustomerPortalService {
                     .build();
         }
 
-        List<Credit> credits = creditRepository.findByClient_IdAndTypeOrderByBeginDateDesc(client.getId(), OperationType.CREDIT);
+        List<Credit> credits = saleSearchQueryRepository.findByClient_IdAndTypeOrderByBeginDateDesc(client.getId(), OperationType.CREDIT);
         List<Credit> active = credits.stream()
                 .filter(c -> CreditStatus.INPROGRESS.equals(c.getStatus()))
                 .toList();
@@ -173,7 +175,7 @@ public class CustomerPortalService {
 
     public List<CustomerPurchaseDto> getPurchases() {
         Client client = requireActiveClient();
-        return creditRepository.findByClient_IdAndTypeOrderByBeginDateDesc(client.getId(), OperationType.CREDIT)
+        return saleSearchQueryRepository.findByClient_IdAndTypeOrderByBeginDateDesc(client.getId(), OperationType.CREDIT)
                 .stream()
                 .map(this::toPurchaseSummary)
                 .toList();

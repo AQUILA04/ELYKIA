@@ -5,7 +5,7 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.sale.web.dto.RemainingAtClientsCreditDto;
 import com.optimize.elykia.sale.web.dto.RemainingAtClientsPageDto;
 import com.optimize.elykia.shared.domain.OperationType;
-import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRecoveryQueryRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 class RemainingAtClientsServiceTest {
 
     @Mock
-    private CreditRepository creditRepository;
+    private CreditRecoveryQueryRepository creditRepository;
 
     private RemainingAtClientsService service;
 

@@ -7,6 +7,7 @@ import com.optimize.elykia.reporting.web.dto.ItemReleaseSheetDto;
 import com.optimize.elykia.finance.domain.DailyAccountancy;
 import com.optimize.elykia.finance.domain.PeriodState;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.SaleSearchQueryRepository;
 import com.optimize.elykia.finance.infrastructure.persistence.DailyAccountingRepository;
 import com.optimize.elykia.reporting.infrastructure.persistence.AccountancyReportRepository;
 import com.optimize.elykia.finance.application.AccountingDayService;
@@ -39,6 +40,8 @@ class ReportServiceTest {
     @Mock
     private CreditRepository creditRepository;
     @Mock
+    private SaleSearchQueryRepository saleSearchQueryRepository;
+    @Mock
     private AccountingDayService accountingDayService;
     @InjectMocks
     private ReportService service;
@@ -69,7 +72,7 @@ class ReportServiceTest {
         DownloadData second = org.mockito.Mockito.mock(DownloadData.class);
         when(first.getTotalPrice()).thenReturn(120.0);
         when(second.getTotalPrice()).thenReturn(80.0);
-        when(creditRepository.getReleaseDownloadData(releaseDate, ClientType.PROMOTER))
+        when(saleSearchQueryRepository.getReleaseDownloadData(releaseDate, ClientType.PROMOTER))
                 .thenReturn(List.of(first, second));
 
         // When
@@ -80,7 +83,7 @@ class ReportServiceTest {
         assertEquals(DateUtils.simpleDateFormat(releaseDate), result.getDate());
         assertEquals(List.of(first, second), result.getArticles());
         assertEquals(200.0, result.getTotalPrice());
-        verify(creditRepository).getReleaseDownloadData(releaseDate, ClientType.PROMOTER);
+        verify(saleSearchQueryRepository).getReleaseDownloadData(releaseDate, ClientType.PROMOTER);
     }
 
     @Test
@@ -90,7 +93,7 @@ class ReportServiceTest {
         DownloadData item = org.mockito.Mockito.mock(DownloadData.class);
         when(item.getTotalPrice()).thenReturn(75.0);
         when(accountingDayService.getOpenAccountingDate()).thenReturn(accountingDate);
-        when(creditRepository.getDownloadDataByCollector(accountingDate, "collector.a", ClientType.PROMOTER))
+        when(saleSearchQueryRepository.getDownloadDataByCollector(accountingDate, "collector.a", ClientType.PROMOTER))
                 .thenReturn(List.of(item));
 
         // When
@@ -99,7 +102,7 @@ class ReportServiceTest {
         // Then
         assertEquals(DateUtils.simpleDateFormat(accountingDate), result.getDate());
         assertEquals(75.0, result.getTotalPrice());
-        verify(creditRepository).getDownloadDataByCollector(accountingDate, "collector.a", ClientType.PROMOTER);
+        verify(saleSearchQueryRepository).getDownloadDataByCollector(accountingDate, "collector.a", ClientType.PROMOTER);
     }
 
     @Test

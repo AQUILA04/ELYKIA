@@ -6,7 +6,7 @@ import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.finance.infrastructure.persistence.CommercialReportMonthlyRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditCollectorHistoryRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditFieldControlRepository;
-import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRecoveryQueryRepository;
 import com.optimize.elykia.sale.application.DebtService;
 import com.optimize.elykia.finance.api.CommercialYearlyPortfolioPort;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +26,7 @@ import java.util.List;
 public class CommercialYearlyPortfolioService implements CommercialYearlyPortfolioPort {
 
     private final CommercialReportMonthlyRepository monthlyRepository;
-    private final CreditRepository creditRepository;
+    private final CreditRecoveryQueryRepository creditRepository;
     private final CreditCollectorHistoryRepository collectorHistoryRepository;
     private final DebtService debtService;
     private final CreditFieldControlRepository creditFieldControlRepository;

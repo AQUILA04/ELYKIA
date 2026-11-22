@@ -220,7 +220,7 @@ public class PdfService implements com.optimize.elykia.tontine.api.TontineHtmlPd
     @Transactional
     public String generateItemReleasePDfForCurrentDate() {
         LocalDate now = accountingDayService.getOpenAccountingDate();
-        this.reportService.getCreditRepository()
+        this.reportService.getSaleSearchQueryRepository()
                 .getCollectorWhoReleaseItemCurrentDate(now, ClientType.PROMOTER)
                 .forEach(collector -> {
                     try {
@@ -240,7 +240,7 @@ public class PdfService implements com.optimize.elykia.tontine.api.TontineHtmlPd
     }
 
     public String generateItemReleasePDfForReleaseDate(LocalDate releaseDate) {
-        this.reportService.getCreditRepository()
+        this.reportService.getSaleSearchQueryRepository()
                 .getCollectorWhoReleaseItemByReleaseDate(releaseDate, ClientType.PROMOTER)
                 .forEach(collector -> {
                     try {
@@ -260,7 +260,7 @@ public class PdfService implements com.optimize.elykia.tontine.api.TontineHtmlPd
     }
 
     public void generateReleasePrintedByDate() {
-        List<LocalDate> releaseDates = reportService.getCreditRepository().getAllNotPrintedReleaseDate();
+        List<LocalDate> releaseDates = reportService.getSaleSearchQueryRepository().getAllNotPrintedReleaseDate();
         releaseDates.stream()
                 .filter(date -> LocalDate.now().isEqual(date))
                 .forEach(this::generateItemReleasePDfForReleaseDate);

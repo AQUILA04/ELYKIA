@@ -23,6 +23,7 @@ import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditCollectorHistoryRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.SaleSearchQueryRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineCollectionRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberRepository;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
@@ -61,6 +62,7 @@ class FormerPortfolioServiceTest {
     @Mock private com.optimize.elykia.reporting.infrastructure.persistence.FormerPortfolioTontineQueryRepository formerTontineQueryRepository;
     @Mock private ClientCollectorHistoryRepository clientCollectorHistoryRepository;
     @Mock private CreditRepository creditRepository;
+    @Mock private SaleSearchQueryRepository saleSearchQueryRepository;
     @Mock private CreditTimelineRepository creditTimelineRepository;
     @Mock private com.optimize.elykia.reporting.infrastructure.persistence.FormerPortfolioCreditQueryRepository formerCreditQueryRepository;
     @Mock private com.optimize.elykia.reporting.infrastructure.persistence.FormerPortfolioTimelineQueryRepository formerTimelineQueryRepository;
@@ -78,6 +80,7 @@ class FormerPortfolioServiceTest {
                 formerTontineQueryRepository,
                 clientCollectorHistoryRepository,
                 creditRepository,
+                saleSearchQueryRepository,
                 creditTimelineRepository,
                 formerCreditQueryRepository,
                 formerTimelineQueryRepository,

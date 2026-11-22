@@ -2,7 +2,7 @@ package com.optimize.elykia.carnet.application;
 
 import com.optimize.elykia.carnet.web.dto.RecoveryManagerActivityDto;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditFieldControlRepository;
-import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRecoveryQueryRepository;
 import com.optimize.elykia.carnet.infrastructure.persistence.RecoveryManagerOperationRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberFieldControlRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberRepository;
@@ -27,7 +27,7 @@ class RecoveryManagerActivityServiceTest {
     @Mock
     private TontineMemberFieldControlRepository tontineFieldControlRepository;
     @Mock
-    private CreditRepository creditRepository;
+    private CreditRecoveryQueryRepository creditRepository;
     @Mock
     private TontineMemberRepository tontineMemberRepository;
     @Mock

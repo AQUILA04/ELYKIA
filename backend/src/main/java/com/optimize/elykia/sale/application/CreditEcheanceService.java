@@ -6,7 +6,7 @@ import com.optimize.elykia.sale.web.dto.CreditEcheanceSummaryDTO;
 import com.optimize.elykia.sale.domain.Credit;
 import com.optimize.elykia.sale.domain.CreditStatus;
 import com.optimize.elykia.sale.domain.UrgencyLevel;
-import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRecoveryQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CreditEcheanceService {
 
-    private final CreditRepository creditRepository;
+    private final CreditRecoveryQueryRepository creditRepository;
 
     private static final List<CreditStatus> ACTIVE_STATUSES = List.of(
             CreditStatus.INPROGRESS

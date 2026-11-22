@@ -1,25 +1,17 @@
 package com.optimize.elykia.sale.infrastructure.persistence;
 
-import com.optimize.elykia.shared.carnet.RmFieldListProgressSql;
-import com.optimize.elykia.sale.web.dto.CreditRespDto;
-import com.optimize.elykia.sale.web.dto.DailyUnrecoveredCreditDto;
-import com.optimize.elykia.sale.web.dto.DownloadData;
-import com.optimize.elykia.sale.web.dto.PromoterCreditTotalAmountPaid;
-import com.optimize.elykia.sale.web.dto.StockOutput;
-import com.optimize.elykia.sale.web.dto.StockOutputItem;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.sale.domain.Credit;
 import com.optimize.elykia.sale.domain.CreditPurpose;
 import com.optimize.elykia.sale.domain.CreditStatus;
-import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.sale.domain.SolvencyStatus;
-import org.apache.commons.lang3.StringUtils;
+import com.optimize.elykia.sale.web.dto.PromoterCreditTotalAmountPaid;
+import com.optimize.elykia.shared.domain.OperationType;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
-import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -31,50 +23,24 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static com.optimize.common.entities.repository.spec.BaseSpecifications.from;
-
+/**
+ * Dépôt cœur (CRUD, unicité, verrous, mutations bulk et agrégats métier) de l'agrégat {@link Credit}.
+ * Les requêtes de recouvrement / retards / échéances sont dans {@link CreditRecoveryQueryRepository} ;
+ * les recherches multi-critères et projections de listes sont dans {@link SaleSearchQueryRepository}.
+ */
 public interface CreditRepository extends GenericRepository<Credit, Long> {
-
-    @Query(value = "SELECT new com.optimize.elykia.sale.web.dto.DownloadData(a.name as name, ca.quantity as quantity, a.creditSalePrice as creditSalePrice, (a.creditSalePrice * ca.quantity) as totalPrice) " +
-            "FROM Credit c INNER JOIN CreditArticles ca ON c.id = ca.credit.id " +
-            "INNER JOIN Articles a ON a.id = ca.articles.id " +
-            "WHERE c.beginDate = :currentDate AND c.status = 'INPROGRESS' AND c.clientType = :clientType AND c.collector = :collector ")
-    List<DownloadData> getDownloadDataByCollector(@Param(value = "currentDate") LocalDate currentDate, @Param(value = "collector") String collector, ClientType clientType);
-
-    @Query(value = "SELECT new com.optimize.elykia.sale.web.dto.DownloadData(a.name as name, ca.quantity as quantity, a.creditSalePrice as creditSalePrice, (a.creditSalePrice * ca.quantity) as totalPrice) " +
-            "FROM Credit c INNER JOIN CreditArticles ca ON c.id = ca.credit.id " +
-            "INNER JOIN Articles a ON a.id = ca.articles.id " +
-            "WHERE c.releaseDate = :currentDate AND c.clientType = :clientType")
-    List<DownloadData> getReleaseDownloadData(@Param(value = "currentDate") LocalDate currentDate, ClientType clientType);
-
-    @Query(value = "SELECT distinct c.collector FROM Credit c WHERE c.beginDate = :currentDate and c.clientType = :clientType")
-    List<String> getCollectorWhoReleaseItemCurrentDate(@Param(value = "currentDate") LocalDate currentDate, ClientType clientType);
-
-    @Query(value = "SELECT distinct c.collector FROM Credit c WHERE c.releaseDate = :releaseDate and c.clientType = :clientType")
-    List<String> getCollectorWhoReleaseItemByReleaseDate(@Param(value = "releaseDate") LocalDate releaseDate, ClientType clientType);
-
-    Page<Credit> findByStatusOrderByIdDesc(CreditStatus status, Pageable pageable);
-
-    Page<Credit> findByOrderByIdDesc(Pageable pageable);
-
-    Page<Credit> findByCollectorAndState(String collector, State state, Pageable pageable);
-
-    Page<Credit> findByStatus(CreditStatus status, Pageable pageable);
-
-    Page<Credit> findByStatusAndClientTypeAndCollector(CreditStatus status, ClientType clientType, String collector, Pageable pageable);
-
-    Page<Credit> findByStatusInAndClientType(List<CreditStatus> status, ClientType clientType, Pageable pageable);
-
-    Page<Credit> findByRemainingDaysCountLessThanEqual(Integer daysCount, Pageable pageable);
-    // AJOUTEZ CETTE LIGNE si elle n'existe pas déjà
-    Page<Credit> findByState(State state, Pageable pageable);
 
     Optional<Credit> findByClient_idAndCollectorAndStatus(Long clientId, String collector, CreditStatus status);
 
     Optional<Credit> findByIdAndStatus(Long creditId, CreditStatus status);
 
-    List<Credit> findByStatusAndCollectorAndDailyPaidIsFalseAndClientTypeOrderByClient_quarterAsc
-            (CreditStatus status, String username, ClientType clientType);
+    boolean existsByReference(String reference);
+
+    Optional<Credit> findByReference(String reference);
+
+    List<Credit> findByParent_id(Long parentId);
+
+    Page<Credit> findByParent_id(Long parentId, Pageable pageable);
 
     /**
      * Remet daily_paid à false pour tous les crédits en cours — UPDATE SQL natif,
@@ -89,83 +55,9 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             """, nativeQuery = true)
     int updateDailyPaidForCredit();
 
-    @Query("""
-            SELECT new com.optimize.elykia.sale.web.dto.DailyUnrecoveredCreditDto(
-                c.id, c.reference, c.dailyStake, c.totalAmountRemaining, cl.id,
-                cl.firstname, cl.lastname, cl.quarter, cl.occupation
-            )
-            FROM Credit c
-            JOIN c.client cl
-            LEFT JOIN CreditTimeline ct ON ct.credit = c
-                AND ct.state = com.optimize.common.entities.enums.State.ENABLED
-                AND ct.createdDate >= :dayStart
-                AND ct.createdDate < :dayEnd
-            WHERE c.status = :status
-            AND c.collector = :collector
-            AND c.clientType = :clientType
-            AND c.state = com.optimize.common.entities.enums.State.ENABLED
-            AND ct IS NULL
-            ORDER BY cl.quarter ASC, cl.lastname ASC, cl.firstname ASC
-            """)
-    List<DailyUnrecoveredCreditDto> findUnrecoveredCreditsForDay(
-            @Param("status") CreditStatus status,
-            @Param("collector") String collector,
-            @Param("clientType") ClientType clientType,
-            @Param("dayStart") java.time.LocalDateTime dayStart,
-            @Param("dayEnd") java.time.LocalDateTime dayEnd);
-
-    @Query(value = """
-            SELECT new com.optimize.elykia.sale.web.dto.DailyUnrecoveredCreditDto(
-                c.id, c.reference, c.dailyStake, c.totalAmountRemaining, cl.id,
-                cl.firstname, cl.lastname, cl.quarter, cl.occupation
-            )
-            FROM Credit c
-            JOIN c.client cl
-            LEFT JOIN CreditTimeline ct ON ct.credit = c
-                AND ct.state = com.optimize.common.entities.enums.State.ENABLED
-                AND ct.createdDate >= :dayStart
-                AND ct.createdDate < :dayEnd
-            WHERE c.status = :status
-            AND c.collector = :collector
-            AND c.clientType = :clientType
-            AND c.state = com.optimize.common.entities.enums.State.ENABLED
-            AND ct IS NULL
-            ORDER BY cl.quarter ASC, cl.lastname ASC, cl.firstname ASC
-            """,
-            countQuery = """
-            SELECT COUNT(c)
-            FROM Credit c
-            JOIN c.client cl
-            LEFT JOIN CreditTimeline ct ON ct.credit = c
-                AND ct.state = com.optimize.common.entities.enums.State.ENABLED
-                AND ct.createdDate >= :dayStart
-                AND ct.createdDate < :dayEnd
-            WHERE c.status = :status
-            AND c.collector = :collector
-            AND c.clientType = :clientType
-            AND c.state = com.optimize.common.entities.enums.State.ENABLED
-            AND ct IS NULL
-            """)
-    Page<DailyUnrecoveredCreditDto> findUnrecoveredCreditsForDay(
-            @Param("status") CreditStatus status,
-            @Param("collector") String collector,
-            @Param("clientType") ClientType clientType,
-            @Param("dayStart") java.time.LocalDateTime dayStart,
-            @Param("dayEnd") java.time.LocalDateTime dayEnd,
-            Pageable pageable);
-
     @Query(value = "UPDATE Credit c SET c.releasePrinted = true WHERE c.releaseDate = :releaseDate")
     @Modifying
     void updateReleasePrinted(LocalDate releaseDate);
-
-    @Query(value = "SELECT DISTINCT c.releaseDate FROM Credit c WHERE c.releasePrinted = false")
-    List<LocalDate> getAllNotPrintedReleaseDate();
-
-    Page<Credit> findByStatusAndCollectorAndDailyPaidIsFalseAndClientTypeOrderByClient_quarterAsc(CreditStatus status, String username, ClientType clientType, Pageable pageable);
-
-    default Page<Credit> elasticsearch(String keyword, Pageable pageable) {
-        return findAll(getElasticsearchCriteria(keyword), pageable);
-    }
 
     @Query("SELECT SUM(c.totalAmount) FROM Credit c WHERE c.beginDate >= :dateFrom AND c.beginDate <= :dateTo AND c.status IN :statuses AND c.state = :state AND c.clientType = :clientType")
     Double sumTotalAmountByBeginDateBetweenAndStatusInAndState(
@@ -173,11 +65,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             @Param("dateTo") LocalDate dateTo,
             @Param("statuses") List<CreditStatus> statuses,
             @Param("state") State state,
-            @Param("clientType") ClientType clientType
-
-
-    );
-
+            @Param("clientType") ClientType clientType);
 
     @Query(value = "SELECT sum (total_amount) FROM Credit WHERE begin_date >= cast(:dateFrom as date) AND begin_date <= cast(:dateTo as date) AND status in (:statusList) AND (client_type= 'PROMOTER' OR (client_type= 'CLIENT' AND parent_id IS NULL)) ", nativeQuery = true)
     Double sumByBeginDateGreaterThanEqualAndBeginDateLessThanEqual(@Param(value = "dateFrom") LocalDate dateFrom, @Param(value = "dateTo") LocalDate dateTo, @Param(value = "statusList") List<String> satusList);
@@ -191,38 +79,6 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             "WHERE ca.articles_id = :articleId AND parent.id = :creditId ", nativeQuery = true)
     Integer sumTotalArticleDistributedForParentCredit(@Param(value = "articleId") Long articleId, @Param(value = "creditId") Long creditId);
 
-
-    // #################### MÉTHODE CORRIGÉE ####################
-    default Specification<Credit> getElasticsearchCriteria(String keyword) {
-        // CORRECTION 1 : La vérification isNumeric se fait sur le 'keyword' original
-        boolean isNumeric = StringUtils.isNumeric(keyword);
-        final String searchKeyword = String.format("%%%s%%", keyword.toLowerCase());
-
-        return (root, query, cb) -> {
-            // La recherche sur les champs texte
-            jakarta.persistence.criteria.Predicate p = cb.or(
-                    cb.like(cb.lower(from(root, "client.firstname")), searchKeyword),
-                    cb.like(cb.lower(from(root, "client.lastname")), searchKeyword),
-                    cb.like(cb.lower(root.get("type").as(String.class)), searchKeyword), // Robuste pour les Enums
-                    cb.like(cb.lower(root.get("collector")), searchKeyword),
-                    cb.like(cb.lower(root.get("reference")), searchKeyword),
-                    cb.like(cb.lower(root.get("status").as(String.class)), searchKeyword), // Robuste pour les Enums
-                    cb.like(cb.lower(root.get("solvencyNote").as(String.class)), searchKeyword)
-            );
-
-            // La logique pour les nombres est maintenant correcte
-            if (isNumeric) {
-                // CORRECTION 2 : On réassigne le résultat de cb.or() à p
-                p = cb.or(p, cb.equal(root.get("remainingDaysCount"), Integer.valueOf(keyword)));
-                p = cb.or(p, cb.equal(root.get("dailyStake"), Double.valueOf(keyword)));
-                p = cb.or(p, cb.equal(root.get("totalAmount"), Double.valueOf(keyword)));
-            }
-
-            // On s'assure de toujours exclure les éléments supprimés
-            return cb.and(p, cb.notEqual(root.get("state"), State.DELETED));
-        };
-    }
-    // ###########################################################
     @Query(value = "SELECT count(*) From Credit c where c.client.id = :clientId AND c.status in :status AND c.state= :state")
     Integer countByClient_idAndStatusAndVisibility(Long clientId, List<CreditStatus> status, State state);
 
@@ -242,18 +98,19 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                 State.ENABLED) > 0;
     }
 
-    default boolean hasCreditInProgress(Long clientId){
+    default boolean hasCreditInProgress(Long clientId) {
         return hasCreditInProgressForPurpose(clientId, CreditPurpose.PERSONAL)
                 || hasCreditInProgressForPurpose(clientId, CreditPurpose.BUSINESS)
                 || hasCreditInProgressForPurpose(clientId, CreditPurpose.EVENT);
     }
 
-
-
     Integer countByStatusAndCollectorAndClientType(CreditStatus status, String commercial, ClientType clientType);
+
     Integer countByStatusAndCollectorAndClientTypeAndSolvencyNote(CreditStatus status, String commercial, ClientType clientType, SolvencyStatus solvencyStatus);
+
     @Query(value = "SELECT count(*) FROM Client c where c.collector = :commercial and c.clientType = :clientType")
     Integer getTotalClientByCommercial(String commercial, ClientType clientType);
+
     @Query(value = """
             SELECT SUM(c.totalAmount)
             FROM Credit c
@@ -266,7 +123,8 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                 (c.clientType = :clientType AND c.parent.id IS NULL )
               )
             """)
-    Double getTotalInProgressAmountByCommercial(String commercial, ClientType clientType,ClientType promoterType, CreditStatus status, State state);
+    Double getTotalInProgressAmountByCommercial(String commercial, ClientType clientType, ClientType promoterType, CreditStatus status, State state);
+
     @Query(value = """
             SELECT SUM(c.totalAmountRemaining)
             FROM Credit c
@@ -279,41 +137,17 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                 (c.clientType = :clientType AND c.parent.id IS NULL )
               )
             """)
-    Double getTotalInProgressRemainingAmountByCommercial(String commercial, ClientType clientType,ClientType promoterType, CreditStatus status, State state);
+    Double getTotalInProgressRemainingAmountByCommercial(String commercial, ClientType clientType, ClientType promoterType, CreditStatus status, State state);
+
     @Query(value = "SELECT sum(c.totalAmountPaid) FROM Credit c WHERE c.collector = :commercial and c.clientType = :clientType and c.status = :status")
     Double getTotalInProgressAmountPaidByCommercial(String commercial, ClientType clientType, CreditStatus status);
 
-    @Query(value = "SELECT sum(c.daily_stake * get_days_between_dates(cast(c.begin_date as date), cast(c.expected_end_date as date))) FROM credit c WHERE c.collector = :commercial and c.client_type = 'CLIENT' and c.status = 'INPROGRESS'", nativeQuery = true)
-    Double getTotalAmountDueTodayByCommercial(String commercial);
-
-
-    Page<Credit> findByUpdatableFalseAndClientTypeAndCollector(ClientType clientType, String collector, Pageable pageable);
-
-    List<Credit> findByParent_id(Long parentId);
-    Page<Credit> findByParent_id(Long parentId, Pageable pageable);
-
-    @Query(value = """
-            SELECT new com.optimize.elykia.sale.web.dto.CreditRespDto(c.id, c.client.id, c.beginDate, c.expectedEndDate,
-            c.effectiveEndDate, c.solvencyNote, c.lateDaysCount, c.totalAmount, c.totalPurchase, c.totalAmountPaid,
-            c.totalAmountRemaining, c.advance, c.dailyStake, c.status, c.remainingDaysCount, c.collector, c.type, c.dailyPaid, c.clientType,
-            c.parent.id, c.updatable, c.reference, c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference, NULL, NULL,
-            c.operationConsentCode, c.confirmedAmount, c.syncConsentCode,
-            c.carnetVerified, c.carnetVerifiedAt, c.carnetVerifiedBy,
-            c.pendingWarehouseDelivery)
-            FROM Credit c
-            WHERE c.status = :creditStatus AND c.collector = :collector AND c.clientType = :clientType
-    """)
-    Page<CreditRespDto> findByStatusAndCollectorAndClientTypeOrderByClient_quarterAsc(CreditStatus creditStatus, String collector, ClientType clientType, Pageable pageable);
-
-    Page<Credit> findByStatusInAndCollectorAndClientTypeOrderByClient_quarterAsc(List<CreditStatus> creditStatus, String collector, ClientType clientType, Pageable pageable);
-
     @Query(value = "SELECT count(*) FROM Credit c WHERE c.client.id = :clientId and c.status = :status")
     Integer countCreditsByClientId(Long clientId, CreditStatus status);
-    //Total avances
+
     @Query("SELECT SUM(c.advance) FROM Credit c WHERE c.collector = :commercial AND c.clientType = :clientType AND c.status = :status")
-    Double getTotalAdvanceByCommercial(String commercial, ClientType clientType, CreditStatus status
-    );
-    // total totalAmount
+    Double getTotalAdvanceByCommercial(String commercial, ClientType clientType, CreditStatus status);
+
     @Query(value = """
                 SELECT
                                 SUM(
@@ -330,147 +164,58 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                                 AND visibility = 'ENABLED'
                                 AND status NOT IN ('CREATED', 'VALIDATED')
                                 AND client_type IN ('PROMOTER', 'CLIENT');
-            
 """, nativeQuery = true)
     Double getTotalNotDistributedAmountByCommercial(String commercial);
-    
+
     @Query(value = "SELECT sum(c.totalAmount) FROM Credit c WHERE c.client.id = :clientId and c.status = :status")
     Double getTotalInProgressAmountByClientId(Long clientId, CreditStatus status);
-    
+
     @Query(value = "SELECT sum(c.totalAmountPaid) FROM Credit c WHERE c.client.id = :clientId and c.status = :status")
     Double getTotalInProgressAmountPaidByClientId(Long clientId, CreditStatus status);
-    
-    @Query(value = "SELECT sum(((c.daily_stake * get_days_between_dates(cast(c.begin_date as date), cast(c.expected_end_date as date))) + c.advance)) FROM credit c WHERE c.client_id = :clientId and c.status = 'INPROGRESS'", nativeQuery = true)
-    Double getTotalAmountDueTodayByClientId(Long clientId);
-    
+
     Integer countByStatusAndClient_idAndSolvencyNote(CreditStatus status, Long clientId, SolvencyStatus solvencyStatus);
-    
+
     Integer countByStatusAndClient_id(CreditStatus status, Long clientId);
-
-    Page<Credit> findByClient_idAndStatus(Long clientId, CreditStatus status, Pageable pageable);
-    
-    Page<Credit> findByClient_idAndStatusIn(Long clientId, List<CreditStatus> statuses, Pageable pageable);
-
-    List<Credit> findByClient_IdAndTypeOrderByBeginDateDesc(Long clientId, OperationType type);
-
-    Page<Credit> findByCollectorAndClientTypeAndStatusInOrderByIdDesc(
-    String collector, 
-    ClientType clientType, 
-    List<CreditStatus> statuses, 
-    Pageable pageable);
-
-    Page<Credit> findByClientTypeAndStatusAndBeginDateBefore(
-    ClientType clientType, 
-    CreditStatus status, 
-    LocalDate date,
-    Pageable pageable
-    );
-
-    @Query(value = "SELECT c.* FROM Credit c WHERE c.status = 'INPROGRESS' AND ((get_days_between_dates(c.begin_date, c.expected_end_date) * c.daily_stake) > c.total_amount_paid) AND c.client_type = 'CLIENT' AND c.collector = :collector", nativeQuery = true)
-    Page<Credit> getDelayedCredits(String collector, Pageable pageable);
-
-    @Query(value = "SELECT c.* FROM Credit c WHERE c.status = 'INPROGRESS' AND ((30 - get_days_between_dates(c.begin_date, c.expected_end_date)) < 7  ) AND c.client_type = 'CLIENT' AND c.collector = :collector", nativeQuery = true)
-    Page<Credit> getEndingCredits(String collector, Pageable pageable);
 
     @Query(value = "SELECT sum(total_amount_paid) as total_amount_paid, sum(total_amount_remaining) as total_amount_remaining FROM credit WHERE parent_id = :creditId and status = 'INPROGRESS'", nativeQuery = true)
     PromoterCreditTotalAmountPaid getPromoterCreditTotalAmountPaidAndTotalAmountRemaining(Long creditId);
 
-    @Query("""
-        SELECT new com.optimize.elykia.sale.web.dto.StockOutput(
-            c.id, c.reference, c.status, c.updatable,
-            c.totalAmount, c.beginDate, c.collector, NULL)
-        FROM Credit c
-        WHERE c.parent.id IS NULL
-            AND c.clientType = 'PROMOTER'
-            AND c.status = 'INPROGRESS'
-            AND c.state = 'ENABLED'
-            AND c.collector = :commercialUsername
-        ORDER BY c.beginDate DESC
-        """)
-    List<StockOutput> findActiveCommercialCredits(@Param("commercialUsername") String commercialUsername);
-
-    @Query("""
-        SELECT new com.optimize.elykia.sale.web.dto.StockOutputItem(ca.id, c.id, art.id, CAST((ca.quantity - COALESCE((
-                SELECT SUM(caChild.quantity)
-                FROM CreditArticles caChild
-                JOIN caChild.credit child
-                WHERE child.parent.id = c.id
-                    AND child.state = 'ENABLED'
-                    AND child.status = 'INPROGRESS'
-                    AND caChild.state = 'ENABLED'
-                    AND caChild.articles.id = art.id), 0)) AS integer), art.creditSalePrice)
-        FROM CreditArticles ca
-        JOIN ca.credit c
-        JOIN ca.articles art
-        WHERE c.id = :creditId
-            AND c.parent.id IS NULL
-            AND c.clientType = 'PROMOTER'
-            AND c.status = 'INPROGRESS'
-            AND c.state = 'ENABLED'
-            AND ca.state = 'ENABLED'
-            AND art.state = 'ENABLED'
-            AND (ca.quantity - COALESCE((
-                SELECT SUM(caChild.quantity)
-                FROM CreditArticles caChild
-                JOIN caChild.credit child
-                WHERE child.parent.id = c.id
-                    AND child.state = 'ENABLED'
-                    AND child.status = 'INPROGRESS'
-                    AND caChild.state = 'ENABLED'
-                    AND caChild.articles.id = art.id ), 0)) > 0 ORDER BY ca.id
-        """)
-    List<StockOutputItem> findStockOutputItemsByCreditId(@Param("creditId") Long creditId);
-
-    Optional<Credit> findByCollectorAndClientTypeAndStatusAndState(String collector,ClientType clientType, CreditStatus status, State state);
+    Optional<Credit> findByCollectorAndClientTypeAndStatusAndState(String collector, ClientType clientType, CreditStatus status, State state);
 
     boolean existsByCollectorAndClientTypeAndStatusAndState(String collector, ClientType clientType, CreditStatus status, State state);
 
-    // Nouvelles méthodes pour la fusion des crédits
     List<Credit> findByCollectorAndClientTypeAndStatusAndUpdatableAndState(
-        String collector, ClientType clientType, CreditStatus status, Boolean updatable, State state);
+            String collector, ClientType clientType, CreditStatus status, Boolean updatable, State state);
 
     List<Credit> findByIdInAndCollectorAndClientTypeAndUpdatableAndState(
-        List<Long> ids, String collector, ClientType clientType, Boolean updatable, State state);
+            List<Long> ids, String collector, ClientType clientType, Boolean updatable, State state);
 
     // ===== MÉTHODES POUR BI DASHBOARD =====
     List<Credit> findByAccountingDateBetweenAndClientType(LocalDate startDate, LocalDate endDate, ClientType clientType);
+
     List<Credit> findByAccountingDateBetweenAndTypeAndClientType(LocalDate startDate, LocalDate endDate, OperationType type, ClientType clientType);
-    
+
     List<Credit> findByAccountingDate(LocalDate date);
-    
+
     List<Credit> findByStatusAndClientType(CreditStatus status, ClientType clientType);
-    List<Credit> findByStatusAndTypeAndClientType(CreditStatus status, com.optimize.elykia.shared.domain.OperationType type, ClientType clientType);
-    
+
+    List<Credit> findByStatusAndTypeAndClientType(CreditStatus status, OperationType type, ClientType clientType);
+
     List<Credit> findByCollectorAndAccountingDateBetweenAndClientType(String collector, LocalDate startDate, LocalDate endDate, ClientType clientType);
-    
+
     List<Credit> findByCollectorAndStatusAndClientType(String collector, CreditStatus status, ClientType clientType);
-    
+
     @Query("SELECT DISTINCT c.collector FROM Credit c WHERE c.state = 'ENABLED'")
     List<String> findDistinctCollectors();
-
-    @Query("""
-        SELECT DISTINCT cl.quarter FROM Credit c
-        JOIN c.client cl
-        WHERE c.collector = :collector
-          AND c.state = 'ENABLED'
-          AND cl.quarter IS NOT NULL
-          AND TRIM(cl.quarter) <> ''
-        """)
-    List<String> findDistinctClientQuartersByCollector(@Param("collector") String collector);
 
     boolean existsByTypeAndCollectorAndStatusInAndBeginDateBetween(OperationType type, String commercial, List<CreditStatus> statusList, LocalDate startDate, LocalDate endDate);
 
     boolean existsByTypeAndCollectorAndStatusAndClientTypeAndBeginDateBetween(OperationType type, String commercial, CreditStatus status, ClientType clientType, LocalDate startDate, LocalDate endDate);
 
     Optional<Credit> findByTypeAndCollectorAndStatusInAndClientTypeAndBeginDateBetween(OperationType type, String commercial, List<CreditStatus> statusList, ClientType clientType, LocalDate startDate, LocalDate endDate);
+
     Optional<Credit> findByTypeAndCollectorAndStatusAndClientTypeAndBeginDateBetween(OperationType type, String commercial, CreditStatus status, ClientType clientType, LocalDate startDate, LocalDate endDate);
 
-    // ===== OPTIMIZED NATIVE QUERY METHODS FOR BI PERFORMANCE =====
-    
-    /**
-     * Get aggregated sales metrics for a date range
-     * Optimized to prevent OutOfMemoryException by doing aggregation in database
-     */
     @Query(value = """
         SELECT COALESCE(SUM(c.daily_stake), 0)
         FROM credit c
@@ -479,11 +224,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
         AND c.client_type = 'CLIENT'
         """, nativeQuery = true)
     Double sumExpectedDailyCollection();
-    
-    /**
-     * Get total expected amount for active credits
-     * Optimized to prevent OutOfMemoryException by doing aggregation in database
-     */
+
     @Query(value = """
         SELECT 
             COALESCE(SUM(c.total_amount), 0) as totalExpected
@@ -493,71 +234,8 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
         AND c.client_type = 'CLIENT'
         """, nativeQuery = true)
     Double getTotalExpectedAmountForActiveCredits();
-    
-    /**
-     * Find all credits by type and client type for migration purposes
-     */
+
     List<Credit> findByTypeAndClientType(OperationType type, ClientType clientType);
-
-    boolean existsByReference(String reference);
-    Optional<Credit> findByReference(String reference);
-
-    @Query(""" 
-           SELECT new com.optimize.elykia.sale.web.dto.CreditRespDto(
-               c.id, c.client.id, c.beginDate, c.expectedEndDate, c.effectiveEndDate, c.solvencyNote,
-               c.lateDaysCount, c.totalAmount, c.totalPurchase, c.totalAmountPaid,
-               c.totalAmountRemaining, c.advance, c.dailyStake, c.status, c.remainingDaysCount, c.collector,
-               c.type, c.dailyPaid, c.clientType, c.parent.id, c.updatable, c.reference,
-               c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference,
-               null,
-               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.businessCreditInProgress, cl.businessCreditAuthorized, cl.businessCreditAuthorizedBy, cl.businessCreditAuthorizedAt, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate, cl.profilPhotoThumbUrl, cl.cardPhotoThumbUrl, cl.registrationSource),
-               c.operationConsentCode, c.confirmedAmount, c.syncConsentCode,
-               c.carnetVerified, c.carnetVerifiedAt, c.carnetVerifiedBy,
-               c.pendingWarehouseDelivery)
-           FROM Credit c
-           LEFT JOIN c.client cl
-           WHERE c.state = :state
-               AND (:collector IS NULL OR c.collector = :collector)
-               AND (:status IS NULL OR c.status = :status)
-               AND c.type = :type
-           """)
-    Page<CreditRespDto> findCreditsDto(
-            @Param("collector") String collector,
-            @Param("status") CreditStatus status,
-            @Param("type") OperationType type,
-            @Param("state") State state,
-            Pageable pageable);
-
-    @Query(""" 
-           SELECT new com.optimize.elykia.sale.web.dto.CreditRespDto(
-               c.id, c.client.id, c.beginDate, c.expectedEndDate, c.effectiveEndDate, c.solvencyNote,
-               c.lateDaysCount, c.totalAmount, c.totalPurchase, c.totalAmountPaid,
-               c.totalAmountRemaining, c.advance, c.dailyStake, c.status, c.remainingDaysCount, c.collector,
-               c.type, c.dailyPaid, c.clientType, c.parent.id, c.updatable, c.reference,
-               c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference,
-               null,
-               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.businessCreditInProgress, cl.businessCreditAuthorized, cl.businessCreditAuthorizedBy, cl.businessCreditAuthorizedAt, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate, cl.profilPhotoThumbUrl, cl.cardPhotoThumbUrl, cl.registrationSource),
-               c.operationConsentCode, c.confirmedAmount, c.syncConsentCode,
-               c.carnetVerified, c.carnetVerifiedAt, c.carnetVerifiedBy,
-               c.pendingWarehouseDelivery)
-           FROM Credit c
-           LEFT JOIN c.client cl
-           WHERE c.state = :state
-               AND (:collector IS NULL OR c.collector = :collector)
-               AND (:status IS NULL OR c.status = :status)
-               AND c.type = :type
-               AND (:searchTerm IS NULL OR (
-                   LOWER(c.reference) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR
-                   LOWER(cl.firstname) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR
-                   LOWER(cl.lastname) LIKE LOWER(CONCAT('%', :searchTerm, '%'))))
-           """)
-    Page<CreditRespDto> findCreditsDtoWithSearch(
-            @Param("searchTerm") String searchTerm,
-            @Param("collector") String collector,
-            @Param("status") CreditStatus status,
-            @Param("type") OperationType type,
-            @Param("state") State state,
-            Pageable pageable);
 
     @Modifying
     @Query("UPDATE Credit c SET c.collector = :newCollector WHERE c.id IN :creditIds")
@@ -576,285 +254,6 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
     @Query("UPDATE Client cl SET cl.recoveryCollector = :newCollector WHERE cl.id IN (SELECT c.client.id FROM Credit c WHERE c.id IN :creditIds)")
     void bulkUpdateClientRecoveryCollector(@Param("creditIds") List<Long> creditIds, @Param("newCollector") String newCollector);
 
-    // ==========================================
-    // MÉTHODES POUR LES CRÉDITS EN RETARD
-    // ==========================================
-
-    @Query(value = """
-        SELECT c.* FROM credit c 
-        WHERE c.status = 'INPROGRESS'
-          AND (
-               CAST(c.expected_end_date AS DATE) < CURRENT_DATE
-               OR 
-               (c.daily_stake > 0 AND c.total_amount_paid < (c.daily_stake * get_days_between_dates(CAST(c.begin_date AS DATE), CAST(LEAST(CURRENT_DATE, c.expected_end_date) AS DATE))))
-          )
-    """, nativeQuery = true)
-    List<Credit> findLateCredits();
-
-    @Query(value = """
-        SELECT c.* FROM credit c 
-        WHERE c.status = 'INPROGRESS'
-          AND c.collector = :collector
-          AND (
-               CAST(c.expected_end_date AS DATE) < CURRENT_DATE
-               OR 
-               (c.daily_stake > 0 AND c.total_amount_paid < (c.daily_stake * get_days_between_dates(CAST(c.begin_date AS DATE), CAST(LEAST(CURRENT_DATE, c.expected_end_date) AS DATE))))
-          )
-    """, nativeQuery = true)
-    List<Credit> findLateCreditsByCollector(@Param("collector") String collector);
-
-    /**
-     * Page of late credits for the recovery-manager field list.
-     * {@code search} and {@code digits} are already folded (lowercase, no accents). Empty string means no filter.
-     */
-    @Query(value = """
-        SELECT c.* FROM credit c
-        LEFT JOIN client cl ON cl.id = c.client_id
-        WHERE c.status = 'INPROGRESS'
-          AND (
-               CAST(c.expected_end_date AS DATE) < CURRENT_DATE
-               OR
-               (c.daily_stake > 0 AND c.total_amount_paid < (c.daily_stake * get_days_between_dates(CAST(c.begin_date AS DATE), CAST(LEAST(CURRENT_DATE, c.expected_end_date) AS DATE))))
-          )
-          AND (
-               :search = ''
-               OR translate(lower(coalesce(cl.firstname, '') || ' ' || coalesce(cl.lastname, '')),
-                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
-               OR translate(lower(coalesce(cl.quarter, '')),
-                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
-               OR translate(lower(coalesce(c.collector, '')),
-                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
-               OR lower(coalesce(c.reference, '')) LIKE '%' || :search || '%'
-               OR (:digits <> '' AND regexp_replace(coalesce(cl.phone, ''), '\\D', '', 'g') LIKE '%' || :digits || '%')
-          )
-        ORDER BY cl.lastname ASC NULLS LAST, cl.firstname ASC NULLS LAST, c.id ASC
-        """,
-        countQuery = """
-        SELECT count(c.id) FROM credit c
-        LEFT JOIN client cl ON cl.id = c.client_id
-        WHERE c.status = 'INPROGRESS'
-          AND (
-               CAST(c.expected_end_date AS DATE) < CURRENT_DATE
-               OR
-               (c.daily_stake > 0 AND c.total_amount_paid < (c.daily_stake * get_days_between_dates(CAST(c.begin_date AS DATE), CAST(LEAST(CURRENT_DATE, c.expected_end_date) AS DATE))))
-          )
-          AND (
-               :search = ''
-               OR translate(lower(coalesce(cl.firstname, '') || ' ' || coalesce(cl.lastname, '')),
-                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
-               OR translate(lower(coalesce(cl.quarter, '')),
-                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
-               OR translate(lower(coalesce(c.collector, '')),
-                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
-               OR lower(coalesce(c.reference, '')) LIKE '%' || :search || '%'
-               OR (:digits <> '' AND regexp_replace(coalesce(cl.phone, ''), '\\D', '', 'g') LIKE '%' || :digits || '%')
-          )
-        """,
-        nativeQuery = true)
-    Page<Credit> searchLateCredits(@Param("search") String search, @Param("digits") String digits, Pageable pageable);
-
-    @Query(value = """
-        SELECT c.* FROM credit c
-        WHERE c.status = 'INPROGRESS'
-          AND c.collector = :collector
-    """, nativeQuery = true)
-    List<Credit> findInProgressCreditsByCollector(@Param("collector") String collector);
-
-    /**
-     * Page of in-progress credits for the recovery-manager field list.
-     * {@code search} and {@code digits} are already folded (lowercase, no accents). Empty string means no filter.
-     */
-    @Query(value = """
-        SELECT c.* FROM credit c
-        LEFT JOIN client cl ON cl.id = c.client_id
-        WHERE c.status = 'INPROGRESS'
-          AND (
-               :search = ''
-               OR translate(lower(coalesce(cl.firstname, '') || ' ' || coalesce(cl.lastname, '')),
-                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
-               OR translate(lower(coalesce(cl.quarter, '')),
-                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
-               OR translate(lower(coalesce(c.collector, '')),
-                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
-               OR lower(coalesce(c.reference, '')) LIKE '%' || :search || '%'
-               OR (:digits <> '' AND regexp_replace(coalesce(cl.phone, ''), '\\D', '', 'g') LIKE '%' || :digits || '%')
-          )
-        """ + RmFieldListProgressSql.CREDIT_NATIVE + """
-        ORDER BY cl.lastname ASC NULLS LAST, cl.firstname ASC NULLS LAST, c.id ASC
-        """,
-        countQuery = """
-        SELECT count(c.id) FROM credit c
-        LEFT JOIN client cl ON cl.id = c.client_id
-        WHERE c.status = 'INPROGRESS'
-          AND (
-               :search = ''
-               OR translate(lower(coalesce(cl.firstname, '') || ' ' || coalesce(cl.lastname, '')),
-                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
-               OR translate(lower(coalesce(cl.quarter, '')),
-                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
-               OR translate(lower(coalesce(c.collector, '')),
-                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
-               OR lower(coalesce(c.reference, '')) LIKE '%' || :search || '%'
-               OR (:digits <> '' AND regexp_replace(coalesce(cl.phone, ''), '\\D', '', 'g') LIKE '%' || :digits || '%')
-          )
-        """ + RmFieldListProgressSql.CREDIT_NATIVE,
-        nativeQuery = true)
-    Page<Credit> searchInProgressCredits(
-            @Param("search") String search,
-            @Param("digits") String digits,
-            @Param("progress") String progress,
-            Pageable pageable);
-
-    @Query(value = """
-        SELECT DISTINCT c.collector FROM credit c 
-        WHERE c.status = 'INPROGRESS'
-          AND c.collector IS NOT NULL
-          AND (
-               CAST(c.expected_end_date AS DATE) < CURRENT_DATE
-               OR 
-               (c.daily_stake > 0 AND c.total_amount_paid < (c.daily_stake * get_days_between_dates(CAST(c.begin_date AS DATE), CAST(LEAST(CURRENT_DATE, c.expected_end_date) AS DATE))))
-          )
-    """, nativeQuery = true)
-    List<String> findLateCreditsCollectors();
-
-    // ==========================================
-    // MÉTHODES POUR LES CRÉDITS À ÉCHÉANCE
-    // ==========================================
-
-    /**
-     * Crédits actifs dont la date de fin est dans une plage.
-     * JOIN FETCH client pour éviter le problème N+1.
-     */
-    @Query("""
-        SELECT c FROM Credit c
-        LEFT JOIN FETCH c.client
-        WHERE c.status IN :statuses
-        AND c.expectedEndDate BETWEEN :from AND :to
-        ORDER BY c.expectedEndDate ASC
-    """)
-    List<Credit> findActiveByEndDateBetween(
-        @Param("statuses") List<CreditStatus> statuses,
-        @Param("from")     LocalDate from,
-        @Param("to")       LocalDate to
-    );
-
-    /**
-     * Idem, filtré par commercial.
-     */
-    @Query("""
-        SELECT c FROM Credit c
-        LEFT JOIN FETCH c.client
-        WHERE c.status IN :statuses
-        AND c.expectedEndDate BETWEEN :from AND :to
-        AND c.collector = :collector
-        ORDER BY c.expectedEndDate ASC
-    """)
-    List<Credit> findActiveByEndDateBetweenAndCollector(
-        @Param("statuses")  List<CreditStatus> statuses,
-        @Param("from")      LocalDate from,
-        @Param("to")        LocalDate to,
-        @Param("collector") String collector
-    );
-
-    // ==========================================
-    // RESTE CHEZ LES CLIENTS (bilan annuel)
-    // ==========================================
-
-    @Query(
-            value = """
-                    SELECT new com.optimize.elykia.sale.web.dto.RemainingAtClientsCreditDto(
-                        c.id, c.reference, cl.lastname, cl.firstname,
-                        c.beginDate, c.totalAmount, c.totalAmountRemaining)
-                    FROM Credit c
-                    JOIN c.client cl
-                    WHERE c.collector = :collector
-                      AND c.type = :type
-                      AND c.state = :state
-                      AND c.beginDate BETWEEN :startDate AND :endDate
-                      AND c.totalAmountRemaining > 0
-                    ORDER BY c.beginDate DESC, c.id DESC
-                    """,
-            countQuery = """
-                    SELECT COUNT(c.id)
-                    FROM Credit c
-                    WHERE c.collector = :collector
-                      AND c.type = :type
-                      AND c.state = :state
-                      AND c.beginDate BETWEEN :startDate AND :endDate
-                      AND c.totalAmountRemaining > 0
-                    """
-    )
-    Page<com.optimize.elykia.sale.web.dto.RemainingAtClientsCreditDto> findRemainingAtClientsCredits(
-            @Param("collector") String collector,
-            @Param("type") OperationType type,
-            @Param("state") State state,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate,
-            Pageable pageable);
-
-    @Query("""
-            SELECT new com.optimize.elykia.sale.web.dto.RemainingAtClientsCreditDto(
-                c.id, c.reference, cl.lastname, cl.firstname,
-                c.beginDate, c.totalAmount, c.totalAmountRemaining)
-            FROM Credit c
-            JOIN c.client cl
-            WHERE c.collector = :collector
-              AND c.type = :type
-              AND c.state = :state
-              AND c.beginDate BETWEEN :startDate AND :endDate
-              AND c.totalAmountRemaining > 0
-            ORDER BY c.beginDate DESC, c.id DESC
-            """)
-    List<com.optimize.elykia.sale.web.dto.RemainingAtClientsCreditDto> findAllRemainingAtClientsCredits(
-            @Param("collector") String collector,
-            @Param("type") OperationType type,
-            @Param("state") State state,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate);
-
-    @Query("""
-            SELECT COUNT(c.id), COALESCE(SUM(c.totalAmountRemaining), 0)
-            FROM Credit c
-            WHERE c.collector = :collector
-              AND c.type = :type
-              AND c.state = :state
-              AND c.beginDate BETWEEN :startDate AND :endDate
-              AND c.totalAmountRemaining > 0
-            """)
-    List<Object[]> sumRemainingAtClients(
-            @Param("collector") String collector,
-            @Param("type") OperationType type,
-            @Param("state") State state,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate);
-
-    @Query("""
-            SELECT COALESCE(SUM(c.totalAmountPaid), 0)
-            FROM Credit c
-            WHERE c.collector = :collector
-              AND c.type = :type
-              AND c.state = :state
-              AND c.beginDate BETWEEN :startDate AND :endDate
-            """)
-    Double sumTotalAmountPaidForYear(
-            @Param("collector") String collector,
-            @Param("type") OperationType type,
-            @Param("state") State state,
-            @Param("startDate") LocalDate startDate,
-            @Param("endDate") LocalDate endDate);
-
-    @Query("""
-            SELECT COALESCE(SUM(c.totalAmountPaid), 0)
-            FROM Credit c
-            WHERE c.collector = :collector
-              AND c.type = :type
-              AND c.state = :state
-            """)
-    Double sumTotalAmountPaidForCollector(
-            @Param("collector") String collector,
-            @Param("type") OperationType type,
-            @Param("state") State state);
-
     @Query("""
             SELECT COALESCE(SUM(c.totalAmount), 0)
             FROM Credit c
@@ -869,129 +268,6 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             @Param("start") LocalDate start,
             @Param("end") LocalDate end,
             @Param("state") State state);
-
-    // ==========================================
-    // PORTEFEUILLE LIVE (sans filtre beginDate)
-    // ==========================================
-
-    @Query(
-            value = """
-                    SELECT new com.optimize.elykia.sale.web.dto.RemainingAtClientsCreditDto(
-                        c.id, c.reference, cl.lastname, cl.firstname,
-                        c.beginDate, c.totalAmount, c.totalAmountRemaining)
-                    FROM Credit c
-                    JOIN c.client cl
-                    WHERE c.collector = :collector
-                      AND c.type = :type
-                      AND c.state = :state
-                      AND c.totalAmountRemaining > 0
-                    ORDER BY c.beginDate DESC, c.id DESC
-                    """,
-            countQuery = """
-                    SELECT COUNT(c.id)
-                    FROM Credit c
-                    WHERE c.collector = :collector
-                      AND c.type = :type
-                      AND c.state = :state
-                      AND c.totalAmountRemaining > 0
-                    """
-    )
-    Page<com.optimize.elykia.sale.web.dto.RemainingAtClientsCreditDto> findLiveRemainingAtClientsCredits(
-            @Param("collector") String collector,
-            @Param("type") OperationType type,
-            @Param("state") State state,
-            Pageable pageable);
-
-    @Query("""
-            SELECT new com.optimize.elykia.sale.web.dto.RemainingAtClientsCreditDto(
-                c.id, c.reference, cl.lastname, cl.firstname,
-                c.beginDate, c.totalAmount, c.totalAmountRemaining)
-            FROM Credit c
-            JOIN c.client cl
-            WHERE c.collector = :collector
-              AND c.type = :type
-              AND c.state = :state
-              AND c.totalAmountRemaining > 0
-            ORDER BY c.beginDate DESC, c.id DESC
-            """)
-    List<com.optimize.elykia.sale.web.dto.RemainingAtClientsCreditDto> findAllLiveRemainingAtClientsCredits(
-            @Param("collector") String collector,
-            @Param("type") OperationType type,
-            @Param("state") State state);
-
-    @Query("""
-            SELECT COUNT(c.id), COALESCE(SUM(c.totalAmountRemaining), 0)
-            FROM Credit c
-            WHERE c.collector = :collector
-              AND c.type = :type
-              AND c.state = :state
-              AND c.totalAmountRemaining > 0
-            """)
-    List<Object[]> sumLiveRemainingAtClients(
-            @Param("collector") String collector,
-            @Param("type") OperationType type,
-            @Param("state") State state);
-
-    @Query(value = """
-            WITH eligible AS (
-                SELECT c.id,
-                       c.collector,
-                       c.total_amount,
-                       COALESCE(c.advance, 0) AS advance
-                FROM credit c
-                WHERE c.visibility = 'ENABLED'
-                  AND c.type = 'CREDIT'
-                  AND c.begin_date < CAST(:asOfDate AS date)
-            ),
-            holder AS (
-                SELECT e.id,
-                       COALESCE(
-                           (
-                               SELECT h.new_collector
-                               FROM credit_collector_history h
-                               WHERE h.credit_id = e.id
-                                 AND h.visibility = 'ENABLED'
-                                 AND h.change_date < CAST(:asOfDateTime AS timestamp)
-                               ORDER BY h.change_date DESC, h.id DESC
-                               LIMIT 1
-                           ),
-                           COALESCE(
-                               (
-                                   SELECT h.old_collector
-                                   FROM credit_collector_history h
-                                   WHERE h.credit_id = e.id
-                                     AND h.visibility = 'ENABLED'
-                                     AND h.change_date >= CAST(:asOfDateTime AS timestamp)
-                                   ORDER BY h.change_date ASC, h.id ASC
-                                   LIMIT 1
-                               ),
-                               e.collector
-                           )
-                       ) AS holder_collector
-                FROM eligible e
-            ),
-            paid AS (
-                SELECT e.id,
-                       e.advance + COALESCE((
-                           SELECT SUM(ct.amount)
-                           FROM credit_timeline ct
-                           INNER JOIN daily_accountancy da ON da.id = ct.daily_accountancy_id
-                           WHERE ct.credit_id = e.id
-                             AND ct.visibility = 'ENABLED'
-                             AND CAST(da.accounting_date AS date) < CAST(:asOfDate AS date)
-                       ), 0) AS paid_before
-                FROM eligible e
-            )
-            SELECT COALESCE(SUM(GREATEST(0, e.total_amount - p.paid_before)), 0)
-            FROM eligible e
-            INNER JOIN holder h ON h.id = e.id
-            INNER JOIN paid p ON p.id = e.id
-            WHERE UPPER(h.holder_collector) = UPPER(CAST(:collector AS text))
-            """, nativeQuery = true)
-    Double sumOpeningStockAtDate(
-            @Param("collector") String collector,
-            @Param("asOfDate") LocalDate asOfDate,
-            @Param("asOfDateTime") java.time.LocalDateTime asOfDateTime);
 
     @Query("""
             SELECT c FROM Credit c
@@ -1020,7 +296,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             @Param("registeredToExclusive") LocalDateTime registeredToExclusive,
             @Param("type") OperationType type,
             @Param("statuses") Collection<CreditStatus> statuses,
-            @Param("state") com.optimize.common.entities.enums.State state);
+            @Param("state") State state);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
@@ -1050,58 +326,5 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             @Param("registeredToExclusive") LocalDateTime registeredToExclusive,
             @Param("type") OperationType type,
             @Param("statuses") Collection<CreditStatus> statuses,
-            @Param("state") com.optimize.common.entities.enums.State state);
-
-    @Query("""
-            SELECT COUNT(c) FROM Credit c
-            WHERE c.state = com.optimize.common.entities.enums.State.ENABLED
-              AND c.status = com.optimize.elykia.sale.domain.CreditStatus.INPROGRESS
-              AND (:commercial IS NULL OR LOWER(c.collector) = LOWER(:commercial))
-            """)
-    long countEnabledInProgress(@Param("commercial") String commercial);
-
-    @Query("""
-            SELECT COUNT(c) FROM Credit c
-            WHERE c.state = com.optimize.common.entities.enums.State.ENABLED
-              AND c.carnetVerified = true
-              AND c.carnetVerifiedBy IS NOT NULL
-              AND LOWER(c.carnetVerifiedBy) = LOWER(:observer)
-              AND c.carnetVerifiedAt >= :startAt
-              AND c.carnetVerifiedAt < :endAt
-              AND (:commercial IS NULL OR LOWER(c.collector) = LOWER(:commercial))
-            """)
-    long countCarnetVerifiedByObserver(
-            @Param("observer") String observer,
-            @Param("startAt") java.time.LocalDateTime startAt,
-            @Param("endAt") java.time.LocalDateTime endAt,
-            @Param("commercial") String commercial);
-
-    @Query(value = """
-            SELECT DISTINCT c.id
-            FROM Credit cr
-            JOIN cr.client c
-            WHERE cr.state = com.optimize.common.entities.enums.State.ENABLED
-              AND cr.type = com.optimize.elykia.shared.domain.OperationType.CASH
-              AND (
-                LOWER(cr.agencyCommercial) = LOWER(:commercial)
-                OR LOWER(cr.collector) = LOWER(:commercial)
-              )
-              AND (c.agencyCollector IS NULL OR LOWER(c.agencyCollector) <> LOWER(:commercial))
-            ORDER BY c.id DESC
-            """,
-            countQuery = """
-            SELECT COUNT(DISTINCT c.id)
-            FROM Credit cr
-            JOIN cr.client c
-            WHERE cr.state = com.optimize.common.entities.enums.State.ENABLED
-              AND cr.type = com.optimize.elykia.shared.domain.OperationType.CASH
-              AND (
-                LOWER(cr.agencyCommercial) = LOWER(:commercial)
-                OR LOWER(cr.collector) = LOWER(:commercial)
-              )
-              AND (c.agencyCollector IS NULL OR LOWER(c.agencyCollector) <> LOWER(:commercial))
-            """)
-    Page<Long> findFormerAgencyClientIds(
-            @Param("commercial") String commercial,
-            Pageable pageable);
+            @Param("state") State state);
 }

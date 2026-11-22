@@ -37,6 +37,7 @@ import com.optimize.elykia.carnet.domain.FieldDayPlanStatus;
 import com.optimize.elykia.shared.carnet.RmFieldListProgress;
 import com.optimize.elykia.tontine.domain.TontineMemberDeliveryStatus;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditFieldControlRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRecoveryQueryRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.carnet.infrastructure.persistence.RecoveryFieldDayPlanRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineCollectionRepository;
@@ -81,6 +82,7 @@ public class RecoveryFieldPlanService {
     private final RecoveryFieldDayPlanRepository planRepository;
     private final CreditLateService creditLateService;
     private final CreditRepository creditRepository;
+    private final CreditRecoveryQueryRepository creditRecoveryQueryRepository;
     private final CreditFieldControlRepository creditFieldControlRepository;
     private final TontineMemberRepository tontineMemberRepository;
     private final com.optimize.elykia.carnet.infrastructure.persistence.CarnetTontineQueryRepository carnetTontineQueryRepository;
@@ -296,7 +298,7 @@ public class RecoveryFieldPlanService {
 
     private List<String> loadPortfolioQuarters(String username, int sessionYear) {
         Set<String> quarters = new LinkedHashSet<>();
-        creditRepository.findDistinctClientQuartersByCollector(username).stream()
+        creditRecoveryQueryRepository.findDistinctClientQuartersByCollector(username).stream()
                 .filter(StringUtils::hasText)
                 .map(String::trim)
                 .forEach(quarters::add);

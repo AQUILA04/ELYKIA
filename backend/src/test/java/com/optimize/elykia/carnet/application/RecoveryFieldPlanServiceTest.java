@@ -17,6 +17,7 @@ import com.optimize.elykia.carnet.domain.FieldDayPlanStatus;
 import com.optimize.elykia.shared.carnet.EcartDecisionView;
 import com.optimize.elykia.tontine.domain.TontineMemberDeliveryStatus;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditFieldControlRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditRecoveryQueryRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.carnet.infrastructure.persistence.RecoveryFieldDayPlanRepository;
 import com.optimize.elykia.tontine.domain.TontineMember;
@@ -66,6 +67,8 @@ class RecoveryFieldPlanServiceTest {
     @Mock
     private CreditRepository creditRepository;
     @Mock
+    private CreditRecoveryQueryRepository creditRecoveryQueryRepository;
+    @Mock
     private CreditFieldControlRepository creditFieldControlRepository;
     @Mock
     private TontineMemberRepository tontineMemberRepository;
@@ -94,6 +97,7 @@ class RecoveryFieldPlanServiceTest {
                 planRepository,
                 creditLateService,
                 creditRepository,
+                creditRecoveryQueryRepository,
                 creditFieldControlRepository,
                 tontineMemberRepository,
                 carnetTontineQueryRepository,
@@ -115,7 +119,7 @@ class RecoveryFieldPlanServiceTest {
         when(tontineMemberRepository.findDistinctTontineCollectorsBySessionYear(
                 LocalDate.now().getYear(), State.ENABLED)).thenReturn(List.of());
         when(creditLateService.getLateCredits("commercial.a", null, null)).thenReturn(List.of());
-        when(creditRepository.findDistinctClientQuartersByCollector("commercial.a")).thenReturn(List.of("Nord"));
+        when(creditRecoveryQueryRepository.findDistinctClientQuartersByCollector("commercial.a")).thenReturn(List.of("Nord"));
         when(tontineMemberRepository.findDistinctQuartersBySessionYearAndTontineCollector(
                 LocalDate.now().getYear(), "commercial.a", State.ENABLED)).thenReturn(List.of());
 
@@ -137,7 +141,7 @@ class RecoveryFieldPlanServiceTest {
         when(tontineMemberRepository.findDistinctTontineCollectorsBySessionYear(
                 LocalDate.now().getYear(), State.ENABLED)).thenReturn(List.of("tontine.only"));
         when(creditLateService.getLateCredits("tontine.only", null, null)).thenReturn(List.of());
-        when(creditRepository.findDistinctClientQuartersByCollector("tontine.only")).thenReturn(List.of());
+        when(creditRecoveryQueryRepository.findDistinctClientQuartersByCollector("tontine.only")).thenReturn(List.of());
         when(tontineMemberRepository.findDistinctQuartersBySessionYearAndTontineCollector(
                 LocalDate.now().getYear(), "tontine.only", State.ENABLED)).thenReturn(List.of("Sud"));
 
@@ -163,7 +167,7 @@ class RecoveryFieldPlanServiceTest {
                 LocalDate.now().getYear(), State.ENABLED, TontineMemberDeliveryStatus.SESSION_INPROGRESS))
                 .thenReturn(Collections.singletonList(new Object[] { "tontine.courante", 4L }));
         when(creditLateService.getLateCredits("tontine.courante", null, null)).thenReturn(List.of());
-        when(creditRepository.findDistinctClientQuartersByCollector("tontine.courante")).thenReturn(List.of());
+        when(creditRecoveryQueryRepository.findDistinctClientQuartersByCollector("tontine.courante")).thenReturn(List.of());
         when(tontineMemberRepository.findDistinctQuartersBySessionYearAndTontineCollector(
                 LocalDate.now().getYear(), "tontine.courante", State.ENABLED)).thenReturn(List.of("Agoè"));
 
@@ -198,7 +202,7 @@ class RecoveryFieldPlanServiceTest {
         assertEquals(1L, stats.get(0).getLateCount());
         assertEquals(1200.0, stats.get(0).getTotalAmountRemaining());
         assertEquals(List.of("Centre"), stats.get(0).getQuarters());
-        verify(creditRepository, never()).findDistinctClientQuartersByCollector("commercial.b");
+        verify(creditRecoveryQueryRepository, never()).findDistinctClientQuartersByCollector("commercial.b");
     }
 
     @Test

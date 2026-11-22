@@ -25,6 +25,7 @@ import com.optimize.elykia.tontine.domain.TontineSessionStatus;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditArticlesRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.SaleSearchQueryRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineCollectionRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineSessionRepository;
@@ -67,6 +68,7 @@ class CustomerPortalServiceTest {
 
     @Mock private CustomerContextService contextService;
     @Mock private CreditRepository creditRepository;
+    @Mock private SaleSearchQueryRepository saleSearchQueryRepository;
     @Mock private CreditTimelineRepository creditTimelineRepository;
     @Mock private CustomerMobileMoneySubmissionRepository submissionRepository;
     @Mock private ArticlesService articlesService;
@@ -312,6 +314,7 @@ class CustomerPortalServiceTest {
         return new CustomerPortalService(
                 contextService,
                 creditRepository,
+                saleSearchQueryRepository,
                 creditTimelineRepository,
                 submissionRepository,
                 articlesService,

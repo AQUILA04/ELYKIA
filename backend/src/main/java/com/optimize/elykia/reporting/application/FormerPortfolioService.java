@@ -29,6 +29,7 @@ import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditCollectorHistoryRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
+import com.optimize.elykia.sale.infrastructure.persistence.SaleSearchQueryRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineCollectionRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberRepository;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
@@ -65,6 +66,7 @@ public class FormerPortfolioService {
     private final com.optimize.elykia.reporting.infrastructure.persistence.FormerPortfolioTontineQueryRepository formerTontineQueryRepository;
     private final ClientCollectorHistoryRepository clientCollectorHistoryRepository;
     private final CreditRepository creditRepository;
+    private final SaleSearchQueryRepository saleSearchQueryRepository;
     private final CreditTimelineRepository creditTimelineRepository;
     private final com.optimize.elykia.reporting.infrastructure.persistence.FormerPortfolioCreditQueryRepository formerCreditQueryRepository;
     private final com.optimize.elykia.reporting.infrastructure.persistence.FormerPortfolioTimelineQueryRepository formerTimelineQueryRepository;
@@ -130,7 +132,7 @@ public class FormerPortfolioService {
 
     public Page<FormerAgencyClientDto> listFormerAgencyClients(Pageable pageable) {
         User user = requirePromoter();
-        Page<Long> ids = creditRepository.findFormerAgencyClientIds(user.getUsername(), pageable);
+        Page<Long> ids = saleSearchQueryRepository.findFormerAgencyClientIds(user.getUsername(), pageable);
         List<FormerAgencyClientDto> content = groupAgency(ids.getContent(), user.getUsername());
         return new PageImpl<>(content, pageable, ids.getTotalElements());
     }
@@ -161,7 +163,7 @@ public class FormerPortfolioService {
         List<FormerCreditTimelineDto> timelines = creditIds.isEmpty()
                 ? List.of()
                 : formerTimelineQueryRepository.findOwnByCreditIds(creditIds, commercial);
-        List<Long> agencyIds = creditRepository.findFormerAgencyClientIds(commercial, cap).getContent();
+        List<Long> agencyIds = saleSearchQueryRepository.findFormerAgencyClientIds(commercial, cap).getContent();
         List<FormerAgencySaleDto> agencySales = agencyIds.isEmpty()
                 ? List.of()
                 : formerCreditQueryRepository.findFormerAgencySales(agencyIds, commercial);

@@ -900,6 +900,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [2.11.2] — 2026-11-22
+
+### Added
+
+- **Refonte domaine `Sale` — Phase 2 (éclatement de `CreditService` & `CreditRepository`) —** extraction de 5 services applicatifs cohésifs 100 % injectés par constructeur dans `com.optimize.elykia.sale.application` (`CashSaleService`, `CreditSaleService`, `TontineSaleService`, `SaleCollectorService`, `SaleQueryService`) appuyés par `SalePostStartPublisher` et `SaleReferenceGenerator`.
+- **Dépôts spécialisés de lecture —** scission de `CreditRepository` (1 108 LOC → 330 LOC) avec extraction de `CreditRecoveryQueryRepository` (recouvrement du jour, retards, échéances, reste chez les clients, indicateurs chef de recouvrement) et `SaleSearchQueryRepository` (recherche multi-critères/Elasticsearch, projections paginées `CreditRespDto`, sorties de stock, anciens clients agence, exports).
+- **Tests unitaires —** ajout de 7 suites dédiées (`CashSaleServiceTest`, `CreditSaleServiceTest`, `TontineSaleServiceTest`, `SaleCollectorServiceTest`, `SaleQueryServiceTest`, `SalePostStartPublisherTest`, `CreditServiceFacadeTest`) : **1 260/1 260 tests** verts, `ModularityTests` (19 modules), 6 seuils JaCoCo et boot PostgreSQL 15 (`V000→V046`, `ddl-auto=validate`, `ELYKIA_JPA_BOOTSTRAP_MODE=default`) validés.
+
+### Changed
+
+- **Façade mince `CreditService` —** réduction de 1 405 LOC à **122 LOC** et suppression intégrale des ~15 setters `@Autowired` circulaires ; 100 % des signatures publiques et des endpoints `/api/v1/credits/**` restent rétrocompatibles. `TontineCreditCreationService` consomme désormais `TontineSaleService.createTontineSale(...)` directement, et les services aval (`CreditLateService`, `CreditEcheanceService`, `RemainingAtClientsService`, `CommercialYearlyPortfolioService`, `RecoveryManagerActivityService`, `RecoveryFieldPlanService`, `FormerPortfolioService`, `ReportService`, `PdfService`, `CustomerPortalService`) ciblent les nouveaux dépôts spécialisés.
+
 ## Backend — [2.11.1] — 2026-11-22
 
 ### Added

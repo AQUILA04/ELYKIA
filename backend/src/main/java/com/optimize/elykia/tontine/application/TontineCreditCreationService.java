@@ -2,7 +2,7 @@ package com.optimize.elykia.tontine.application;
 
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.tontine.domain.TontineDelivery;
-import com.optimize.elykia.sale.application.CreditService;
+import com.optimize.elykia.sale.application.TontineSaleService;
 import com.optimize.elykia.sale.domain.Credit;
 import com.optimize.elykia.sale.domain.CreditArticles;
 import com.optimize.elykia.sale.domain.SaleLinePricing;
@@ -22,13 +22,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TontineCreditCreationService {
 
-    private final CreditService creditService;
+    private final TontineSaleService tontineSaleService;
     private final TontineStockService tontineStockService;
 
     @Transactional
     public void createTontineCredit(TontineDelivery delivery) {
         Credit credit = buildFromDelivery(delivery);
-        creditService.createTontineCredit(
+        tontineSaleService.createTontineSale(
                 credit,
                 String.valueOf(delivery.getTontineMember().getClient().getId()),
                 () -> tontineStockService.validateTontineStockAvailability(credit.getArticles(), credit.getCollector()),
