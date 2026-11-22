@@ -44,6 +44,6 @@ describe('report-period', () => {
             .toEqual({ startDate: '2026-11-19', endDate: '2026-11-19', collector: 'COM005' });
         expect(classicParams({ preset: 'today', start: '2026-11-19', end: '2026-11-19', commercial: null }))
             .toEqual({ startDate: '2026-11-19', endDate: '2026-11-19' });
-        expect(isSingleDay({ preset: 'today', start: '2026-11-19', end: '2026-11-19', commercial: null })).toBeTrue();
+        expect(isSingleDay({ preset: 'today', start: '2026-11-19', end: '2026-11-19', commercial: null })).toBe(true);
     });
 });

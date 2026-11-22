@@ -25,30 +25,30 @@ describe('GuidedTourService', () => {
     });
 
     it('walks through the steps then remembers the tour as seen', () => {
-        expect(service.start(tour)).toBeTrue();
+        expect(service.start(tour)).toBe(true);
         expect(service.step()?.title).toBe('A');
-        expect(service.isFirst()).toBeTrue();
+        expect(service.isFirst()).toBe(true);
         service.next();
         expect(service.step()?.title).toBe('B');
-        expect(service.isLast()).toBeTrue();
+        expect(service.isLast()).toBe(true);
         service.previous();
         expect(service.index()).toBe(0);
         service.next();
         service.next();
-        expect(service.active()).toBeFalse();
-        expect(service.hasSeen(tour)).toBeTrue();
+        expect(service.active()).toBe(false);
+        expect(service.hasSeen(tour)).toBe(true);
     });
 
     it('skipping also marks the tour as seen', () => {
         service.start(tour);
         service.finish();
-        expect(service.active()).toBeFalse();
-        expect(service.hasSeen(tour)).toBeTrue();
+        expect(service.active()).toBe(false);
+        expect(service.hasSeen(tour)).toBe(true);
     });
 
     it('does not start automatically once seen, but can always be replayed', () => {
         service.markSeen(tour);
-        expect(service.startIfFirstVisit(tour)).toBeFalse();
-        expect(service.start(tour)).toBeTrue();
+        expect(service.startIfFirstVisit(tour)).toBe(false);
+        expect(service.start(tour)).toBe(true);
     });
 });

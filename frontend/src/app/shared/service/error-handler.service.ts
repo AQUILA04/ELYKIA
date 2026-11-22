@@ -27,8 +27,13 @@ export class ErrorHandlerService {
     let details = null;
     let statusCode = error?.status || 0;
 
+    // Cas 0: Erreur côté client (réseau, etc.)
+    if (error?.error instanceof ErrorEvent) {
+      message = error.error.message || 'Erreur de connexion';
+      code = 'CLIENT_ERROR';
+    }
     // Cas 1: Erreur avec structure API standard { message: "...", code: "...", data: ... }
-    if (error?.error?.message) {
+    else if (error?.error?.message) {
       message = error.error.message;
       code = error.error.code || 'API_ERROR';
       details = error.error.data || error.error.details;
@@ -54,11 +59,6 @@ export class ErrorHandlerService {
     else if (error?.message && !String(error.message).startsWith('Http failure response')) {
       message = error.message;
       code = 'ERROR_MESSAGE';
-    }
-    // Cas 3: Erreur côté client (réseau, etc.)
-    else if (error?.error instanceof ErrorEvent) {
-      message = error.error.message || 'Erreur de connexion';
-      code = 'CLIENT_ERROR';
     }
     // Cas 4: Erreurs HTTP standard basées sur le code de statut
     else {

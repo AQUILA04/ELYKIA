@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ExpenseService } from './expense.service';
 import { environment } from 'src/environments/environment';
 import { Expense, ExpenseType, ApiResponse, PaginatedResponse } from '../models/expense.model';
@@ -12,8 +13,7 @@ describe('ExpenseService', () => {
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            imports: [HttpClientTestingModule],
-            providers: [ExpenseService]
+            providers: [ExpenseService, provideHttpClient(), provideHttpClientTesting()]
         });
         service = TestBed.inject(ExpenseService);
         httpMock = TestBed.inject(HttpTestingController);
@@ -36,10 +36,12 @@ describe('ExpenseService', () => {
                 timestamp: new Date().toISOString(),
                 data: {
                     content: [],
-                    totalElements: 0,
-                    totalPages: 0,
-                    size: 10,
-                    number: 0
+                    page: {
+                        totalElements: 0,
+                        totalPages: 0,
+                        size: 10,
+                        number: 0
+                    }
                 }
             };
 

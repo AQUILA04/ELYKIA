@@ -1,3 +1,5 @@
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import type { MockedObject } from "vitest";
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ExpenseFormComponent } from './form.component';
 import { ExpenseService } from '../../services/expense.service';
@@ -9,7 +11,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatCardModule } from '@angular/material/card';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { of } from 'rxjs';
 import { ExpenseType } from '../../models/expense.model';
@@ -17,12 +18,18 @@ import { ExpenseType } from '../../models/expense.model';
 describe('ExpenseFormComponent', () => {
     let component: ExpenseFormComponent;
     let fixture: ComponentFixture<ExpenseFormComponent>;
-    let expenseServiceSpy: jasmine.SpyObj<ExpenseService>;
+    let expenseServiceSpy: MockedObject<ExpenseService>;
 
     beforeEach(async () => {
-        const spy = jasmine.createSpyObj('ExpenseService', ['createExpense', 'updateExpense', 'getExpense', 'getExpenseTypes']);
+        const spy = {
+            createExpense: vi.fn().mockName("ExpenseService.createExpense"),
+            updateExpense: vi.fn().mockName("ExpenseService.updateExpense"),
+            getExpense: vi.fn().mockName("ExpenseService.getExpense"),
+            getExpenseTypes: vi.fn().mockName("ExpenseService.getExpenseTypes")
+        };
 
         await TestBed.configureTestingModule({
+            schemas: [NO_ERRORS_SCHEMA],
             declarations: [ExpenseFormComponent],
             imports: [
                 ReactiveFormsModule,
@@ -34,7 +41,6 @@ describe('ExpenseFormComponent', () => {
                 MatDatepickerModule,
                 MatNativeDateModule,
                 MatCardModule,
-                BrowserAnimationsModule,
                 RouterTestingModule
             ],
             providers: [
@@ -43,7 +49,7 @@ describe('ExpenseFormComponent', () => {
         })
             .compileComponents();
 
-        expenseServiceSpy = TestBed.inject(ExpenseService) as jasmine.SpyObj<ExpenseService>;
+        expenseServiceSpy = TestBed.inject(ExpenseService) as MockedObject<ExpenseService>;
     });
 
     beforeEach(() => {
@@ -52,7 +58,7 @@ describe('ExpenseFormComponent', () => {
 
         // Mock getExpenseTypes
         const dummyTypes: ExpenseType[] = [{ id: 1, name: 'Type 1', code: 'T1' }];
-        expenseServiceSpy.getExpenseTypes.and.returnValue(of(dummyTypes));
+        expenseServiceSpy.getExpenseTypes.mockReturnValue(of(dummyTypes));
 
         fixture.detectChanges();
     });
@@ -65,4 +71,3 @@ describe('ExpenseFormComponent', () => {
         expect(expenseServiceSpy.getExpenseTypes).toHaveBeenCalled();
     });
 });
-

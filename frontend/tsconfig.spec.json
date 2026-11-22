@@ -7,8 +7,12 @@
       "vitest/globals"
     ]
   },
+  "files": [
+    "src/test-providers.ts"
+  ],
   "include": [
     "src/**/*.spec.ts",
-    "src/**/*.d.ts"
+    "src/**/*.d.ts",
+    "src/app/**/*.module.ts"
   ]
 }

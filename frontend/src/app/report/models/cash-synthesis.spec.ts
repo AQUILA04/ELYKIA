@@ -1,13 +1,4 @@
-import {
-    cashDeskBalance,
-    cashDueBreakdown,
-    cashEncaisseBreakdown,
-    depositedForCashDesk,
-    EMPTY_CATCHUP_CASH_ADJUSTMENT,
-    isSupplyExpense,
-    normalizeCatchupCashAdjustment,
-    sumExpenseAmounts
-} from './cash-synthesis';
+import { cashDeskBalance, cashDueBreakdown, cashEncaisseBreakdown, depositedForCashDesk, EMPTY_CATCHUP_CASH_ADJUSTMENT, isSupplyExpense, normalizeCatchupCashAdjustment, sumExpenseAmounts } from './cash-synthesis';
 
 describe('cash-synthesis', () => {
     const expenses = [
@@ -18,10 +9,10 @@ describe('cash-synthesis', () => {
     ];
 
     it('detects the supply expense type regardless of case', () => {
-        expect(isSupplyExpense('Approvisionnement')).toBeTrue();
-        expect(isSupplyExpense('  approvisionnement ')).toBeTrue();
-        expect(isSupplyExpense('Carburant')).toBeFalse();
-        expect(isSupplyExpense(null)).toBeFalse();
+        expect(isSupplyExpense('Approvisionnement')).toBe(true);
+        expect(isSupplyExpense('  approvisionnement ')).toBe(true);
+        expect(isSupplyExpense('Carburant')).toBe(false);
+        expect(isSupplyExpense(null)).toBe(false);
     });
 
     it('sums every expense, including supply', () => {

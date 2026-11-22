@@ -1,28 +1,24 @@
+import type { Mock } from "vitest";
 import { of } from 'rxjs';
 import { CashDepositModalComponent } from './cash-deposit-modal.component';
 
 describe('CashDepositModalComponent (répartition)', () => {
-    let createDeposit: jasmine.Spy;
+    let createDeposit: Mock;
 
     function modal(): CashDepositModalComponent {
-        createDeposit = jasmine.createSpy('createDeposit').and.returnValue(of({}));
-        const component = new CashDepositModalComponent(
-            { close: jasmine.createSpy('close') } as any,
-            {
-                commercialUsername: 'COM005',
-                remainingAmount: 0,
-                remainingCredit: 300,
-                remainingTontine: 500,
-                remainingNewBalance: 0,
-                date: '2026-11-19',
-                catchupCaps: [
-                    { collectionDate: '2026-11-17', capturedAmount: 400, openRemaining: 400 },
-                    { collectionDate: '2026-11-18', capturedAmount: 600, openRemaining: 600 }
-                ]
-            },
-            { createDeposit } as any,
-            { open: jasmine.createSpy('open') } as any
-        );
+        createDeposit = vi.fn().mockReturnValue(of({}));
+        const component = new CashDepositModalComponent({ close: vi.fn() } as any, {
+            commercialUsername: 'COM005',
+            remainingAmount: 0,
+            remainingCredit: 300,
+            remainingTontine: 500,
+            remainingNewBalance: 0,
+            date: '2026-11-19',
+            catchupCaps: [
+                { collectionDate: '2026-11-17', capturedAmount: 400, openRemaining: 400 },
+                { collectionDate: '2026-11-18', capturedAmount: 600, openRemaining: 600 }
+            ]
+        }, { createDeposit } as any, { open: vi.fn() } as any);
         return component;
     }
 
@@ -45,7 +41,7 @@ describe('CashDepositModalComponent (répartition)', () => {
             { collectionDate: '2026-11-17', amount: 400 },
             { collectionDate: '2026-11-18', amount: 600 }
         ]);
-        expect(component.allocationMismatch).toBeFalse();
+        expect(component.allocationMismatch).toBe(false);
     });
 
     it('gives nothing to catch-ups when the billetage does not cover the day', () => {
@@ -67,7 +63,7 @@ describe('CashDepositModalComponent (répartition)', () => {
         expect(component.tontineAmount).toBe(0);
         expect(component.catchupLines[0].amount).toBe(400);
         expect(component.catchupLines[1].amount).toBe(100);
-        expect(component.allocationMismatch).toBeFalse();
+        expect(component.allocationMismatch).toBe(false);
     });
 
     it('flags a catch-up above what is owed and blocks the submit', () => {
@@ -75,7 +71,7 @@ describe('CashDepositModalComponent (répartition)', () => {
         billetage(component, 3000);
         component.catchupAmount = 1500;
         component.onCategoryChange('catchup');
-        expect(component.catchupExceeded).toBeTrue();
+        expect(component.catchupExceeded).toBe(true);
         component.submitDeposit();
         expect(createDeposit).not.toHaveBeenCalled();
     });
@@ -84,7 +80,7 @@ describe('CashDepositModalComponent (répartition)', () => {
         const component = modal();
         billetage(component, 1800);
         component.submitDeposit();
-        expect(createDeposit).toHaveBeenCalledWith(jasmine.objectContaining({
+        expect(createDeposit).toHaveBeenCalledWith(expect.objectContaining({
             amount: 1800, creditAmount: 300, tontineAmount: 500, catchupAmount: 1000, surplusAmount: 0
         }));
     });

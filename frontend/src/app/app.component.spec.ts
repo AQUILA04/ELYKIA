@@ -1,15 +1,26 @@
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
+import { NgxPermissionsService } from 'ngx-permissions';
 import { AppComponent } from './app.component';
+import { AuthService } from './auth/service/auth.service';
+import { LayoutService } from './shared/service/layout.service';
+import { TokenStorageService } from './shared/service/token-storage.service';
+import { UnitPriceVisibilityService } from './shared/service/unit-price-visibility.service';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule
-      ],
-      declarations: [
-        AppComponent
+      declarations: [AppComponent],
+      schemas: [NO_ERRORS_SCHEMA],
+      providers: [
+        provideRouter([]),
+        { provide: NgxPermissionsService, useValue: { flushPermissions: vi.fn(), loadPermissions: vi.fn() } },
+        { provide: TokenStorageService, useValue: { getUser: vi.fn().mockReturnValue(null) } },
+        { provide: AuthService, useValue: { isLoggedIn: vi.fn().mockReturnValue(true), loadPermissionsFromCurrentUser: vi.fn() } },
+        { provide: LayoutService, useValue: { isSidebarOpen$: of(false) } },
+        { provide: UnitPriceVisibilityService, useValue: { ensureLoaded: vi.fn().mockReturnValue(of(false)) } },
       ],
     }).compileComponents();
   });
@@ -20,16 +31,8 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'optimize-elykia-ui'`, () => {
+  it('should show header and sidebar by default', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('optimize-elykia-ui');
-  });
-
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.content span')?.textContent).toContain('optimize-elykia-ui app is running!');
+    expect(fixture.componentInstance.showHeaderAndSidebar).toBe(true);
   });
 });

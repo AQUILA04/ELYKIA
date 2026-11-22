@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { CreditModule } from '../credit.module';
 import { CreditAddComponent } from './credit-add.component';
 
 describe('CreditAddComponent', () => {
@@ -8,7 +8,7 @@ describe('CreditAddComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CreditAddComponent ]
+      imports: [CreditModule]
     })
     .compileComponents();
 

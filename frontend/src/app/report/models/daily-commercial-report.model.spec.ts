@@ -2,6 +2,7 @@ import {
   creditToDeposit,
   newBalanceToDeposit,
   remainingCredit,
+  remainingTontine,
   tontineToDeposit,
   totalRemainingToDeposit
 } from './daily-commercial-report.model';

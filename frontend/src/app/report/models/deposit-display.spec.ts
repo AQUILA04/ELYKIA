@@ -21,21 +21,21 @@ describe('deposit-display', () => {
         expect(depositCatchup(dep)).toBe(400);
         expect(depositTotal(dep)).toBe(900);
         expect(depositTotal(row({ amount: 700 }))).toBe(700);
-        expect(showCaptureHint(dep)).toBeFalse();
-        expect(showCaptureHint(row({ captureDate: '2026-11-20' }))).toBeTrue();
+        expect(showCaptureHint(dep)).toBe(false);
+        expect(showCaptureHint(row({ captureDate: '2026-11-20' }))).toBe(true);
     });
 
     it('lets a manager cancel within 3 days and an admin at any time, never twice', () => {
         const today = new Date(2026, 10, 19);
         const recent = row({ reference: 'DEP-1', captureDate: '2026-11-17' });
         const old = row({ reference: 'DEP-2', date: '2026-11-10' });
-        expect(canCancelDeposit(recent, [recent], { isManager: true, isAdmin: false }, today)).toBeTrue();
-        expect(canCancelDeposit(old, [old], { isManager: true, isAdmin: false }, today)).toBeFalse();
-        expect(canCancelDeposit(old, [old], { isManager: false, isAdmin: true }, today)).toBeTrue();
+        expect(canCancelDeposit(recent, [recent], { isManager: true, isAdmin: false }, today)).toBe(true);
+        expect(canCancelDeposit(old, [old], { isManager: true, isAdmin: false }, today)).toBe(false);
+        expect(canCancelDeposit(old, [old], { isManager: false, isAdmin: true }, today)).toBe(true);
         const cancelled = row({ reference: 'CANCEL-DEP-1', amount: -1000 });
-        expect(canCancelDeposit(recent, [recent, cancelled], { isManager: true, isAdmin: false }, today)).toBeFalse();
-        expect(canCancelDeposit(cancelled, [cancelled], { isManager: false, isAdmin: true }, today)).toBeFalse();
-        expect(canCancelDeposit(recent, [recent], { isManager: false, isAdmin: false }, today)).toBeFalse();
+        expect(canCancelDeposit(recent, [recent, cancelled], { isManager: true, isAdmin: false }, today)).toBe(false);
+        expect(canCancelDeposit(cancelled, [cancelled], { isManager: false, isAdmin: true }, today)).toBe(false);
+        expect(canCancelDeposit(recent, [recent], { isManager: false, isAdmin: false }, today)).toBe(false);
     });
 
     it('labels operation types in French with a family tone', () => {

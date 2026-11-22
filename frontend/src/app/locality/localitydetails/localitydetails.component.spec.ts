@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LocalitydetailsComponent } from './localitydetails.component';
+import { LocalityDetailsComponent } from './localitydetails.component';
 
-describe('LocalitydetailsComponent', () => {
-  let component: LocalitydetailsComponent;
-  let fixture: ComponentFixture<LocalitydetailsComponent>;
+describe('LocalityDetailsComponent', () => {
+  let component: LocalityDetailsComponent;
+  let fixture: ComponentFixture<LocalityDetailsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ LocalitydetailsComponent ]
+      declarations: [ LocalityDetailsComponent ]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(LocalitydetailsComponent);
+    fixture = TestBed.createComponent(LocalityDetailsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

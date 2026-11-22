@@ -1,8 +1,10 @@
+import type { MockedObject } from "vitest";
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ExpenseTypeListComponent } from './type-list.component';
 import { ExpenseService } from '../../services/expense.service';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { PaginatedResponse, ExpenseType } from '../../models/expense.model';
 import { AlertService } from 'src/app/shared/service/alert.service';
@@ -10,26 +12,32 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 describe('ExpenseTypeListComponent', () => {
     let component: ExpenseTypeListComponent;
     let fixture: ComponentFixture<ExpenseTypeListComponent>;
-    let expenseServiceSpy: jasmine.SpyObj<ExpenseService>;
+    let expenseServiceSpy: MockedObject<ExpenseService>;
 
     beforeEach(async () => {
-        const spy = jasmine.createSpyObj('ExpenseService', ['getPaginatedExpenseTypes', 'deleteExpenseType']);
-        const alertSpy = jasmine.createSpyObj('AlertService', ['showConfirmation']);
+        const spy = {
+            getPaginatedExpenseTypes: vi.fn().mockName("ExpenseService.getPaginatedExpenseTypes"),
+            deleteExpenseType: vi.fn().mockName("ExpenseService.deleteExpenseType")
+        };
+        const alertSpy = {
+            showConfirmation: vi.fn().mockName("AlertService.showConfirmation")
+        };
 
         await TestBed.configureTestingModule({
             declarations: [ExpenseTypeListComponent],
             imports: [
-                MatSnackBarModule,
-                RouterTestingModule
+                MatSnackBarModule
             ],
+            schemas: [NO_ERRORS_SCHEMA],
             providers: [
+                provideRouter([]),
                 { provide: ExpenseService, useValue: spy },
                 { provide: AlertService, useValue: alertSpy }
             ]
         })
             .compileComponents();
 
-        expenseServiceSpy = TestBed.inject(ExpenseService) as jasmine.SpyObj<ExpenseService>;
+        expenseServiceSpy = TestBed.inject(ExpenseService) as MockedObject<ExpenseService>;
     });
 
     beforeEach(() => {
@@ -45,7 +53,7 @@ describe('ExpenseTypeListComponent', () => {
                 totalPages: 0
             }
         };
-        expenseServiceSpy.getPaginatedExpenseTypes.and.returnValue(of(dummyResponse));
+        expenseServiceSpy.getPaginatedExpenseTypes.mockReturnValue(of(dummyResponse));
 
         fixture.detectChanges();
     });

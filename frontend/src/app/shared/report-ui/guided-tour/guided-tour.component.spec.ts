@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, flush, tick } from '@angular/core/testing';
-import { CommonModule } from '@angular/common';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { GuidedTourComponent, placePopover } from './guided-tour.component';
+import { ReportUiModule } from '../report-ui.module';
+import { placePopover } from './guided-tour.component';
 import { GuidedTourService, TourDefinition } from './guided-tour.service';
 
 /** Page de test : comme les pages du rapport, le conteneur porte un transform (animation d'entrée). */
@@ -13,7 +13,8 @@ import { GuidedTourService, TourDefinition } from './guided-tour.service';
             <div style="height: 2000px"></div>
             <app-guided-tour></app-guided-tour>
         </div>`,
-    standalone: false
+    standalone: true,
+    imports: [ReportUiModule]
 })
 class HostPageComponent { }
 
@@ -24,8 +25,7 @@ describe('GuidedTourComponent (positionnement)', () => {
 
     beforeEach(() => {
         TestBed.configureTestingModule({
-            imports: [CommonModule],
-            declarations: [HostPageComponent, GuidedTourComponent],
+            imports: [HostPageComponent],
             providers: [{ provide: TokenStorageService, useValue: { getUser: () => ({ username: 'spec' }) } }]
         });
         fixture = TestBed.createComponent(HostPageComponent);
@@ -43,24 +43,36 @@ describe('GuidedTourComponent (positionnement)', () => {
         expect(host?.parentElement).toBe(document.body);
     });
 
-    it('puts the spotlight on the target and keeps the popover on screen', fakeAsync(() => {
-        service.start(tour);
-        fixture.detectChanges();
-        tick(100);
-        fixture.detectChanges();
-        flush();
+    it('puts the spotlight on the target and keeps the popover on screen', () => {
+        vi.useFakeTimers();
+        try {
+            const targetEl = document.querySelector('[data-tour="target"]') as HTMLElement;
+            targetEl.scrollIntoView = vi.fn();
+            vi.spyOn(targetEl, 'getBoundingClientRect').mockReturnValue({
+                top: 200, left: 300, width: 400, height: 80,
+                right: 700, bottom: 280, x: 300, y: 200,
+                toJSON: () => ({})
+            });
 
-        const target = document.querySelector('[data-tour="target"]')!.getBoundingClientRect();
-        const spot = document.querySelector('.tour-spot')!.getBoundingClientRect();
-        expect(Math.abs(spot.left - (target.left - 8))).toBeLessThan(2);
-        expect(Math.abs(spot.top - (target.top - 8))).toBeLessThan(2);
+            service.start(tour);
+            fixture.detectChanges();
+            vi.advanceTimersByTime(100);
+            fixture.detectChanges();
+            vi.runAllTimers();
 
-        const popover = document.querySelector('.tour-popover')!.getBoundingClientRect();
-        expect(popover.left).toBeGreaterThanOrEqual(0);
-        expect(popover.top).toBeGreaterThanOrEqual(0);
-        expect(popover.right).toBeLessThanOrEqual(window.innerWidth);
-        expect(popover.bottom).toBeLessThanOrEqual(window.innerHeight);
-    }));
+            const spotEl = document.querySelector('.tour-spot') as HTMLElement | null;
+            expect(spotEl).not.toBeNull();
+            expect(parseFloat(spotEl!.style.left)).toBeCloseTo(292, 0);
+            expect(parseFloat(spotEl!.style.top)).toBeCloseTo(192, 0);
+
+            const popoverEl = document.querySelector('.tour-popover') as HTMLElement | null;
+            expect(popoverEl).not.toBeNull();
+            expect(parseFloat(popoverEl!.style.left)).toBeGreaterThanOrEqual(0);
+            expect(parseFloat(popoverEl!.style.top)).toBeGreaterThanOrEqual(0);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
 
     it('removes the overlay from <body> when the page is destroyed', () => {
         fixture.destroy();

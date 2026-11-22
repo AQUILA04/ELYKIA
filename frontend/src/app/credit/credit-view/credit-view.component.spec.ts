@@ -1,3 +1,8 @@
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NgxPermissionsModule } from 'ngx-permissions';
+import { StatusBadgePipe } from 'src/app/shared/pipes/status-badge.pipe';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CreditViewComponent } from './credit-view.component';
@@ -8,7 +13,9 @@ describe('CreditViewComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CreditViewComponent ]
+      imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPermissionsModule],
+      schemas: [NO_ERRORS_SCHEMA],
+      declarations: [CreditViewComponent, StatusBadgePipe]
     })
     .compileComponents();
 
