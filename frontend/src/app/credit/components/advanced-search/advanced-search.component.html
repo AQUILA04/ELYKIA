@@ -1,133 +1,128 @@
-<div
-  class="advanced-search-panel"
-  *ngIf="isVisible"
-  data-testid="e2e-credit-advanced-search">
-  <form [formGroup]="searchForm" class="search-form">
-    <div class="form-grid">
-      <div class="filter-group filter-group-full">
-        <span class="toolbar-label">Mot-clé</span>
-        <input
-          id="keyword"
-          type="text"
-          formControlName="keyword"
-          class="search-input"
-          placeholder="Nom, référence, commercial…"
-          autocomplete="off"
-          data-testid="e2e-credit-search-keyword">
-        <label class="reference-only-toggle">
-          <input type="checkbox" formControlName="searchByReference" data-testid="e2e-credit-search-by-reference">
-          <span>Rechercher uniquement par référence</span>
-        </label>
-      </div>
-
-      <div class="filter-group" [style.min-width.px]="clientTypeMinWidth">
-        <span class="toolbar-label">Type client</span>
-        <div class="select-wrap">
-          <ng-select
-            id="clientType"
-            formControlName="clientType"
-            [items]="clientTypeOptions"
-            bindLabel="label"
-            bindValue="value"
-            [clearable]="true"
-            placeholder="Tous les types"
-            notFoundText="Aucun type trouvé">
-          </ng-select>
+@if (isVisible) {
+  <div
+    class="advanced-search-panel"
+    data-testid="e2e-credit-advanced-search">
+    <form [formGroup]="searchForm" class="search-form">
+      <div class="form-grid">
+        <div class="filter-group filter-group-full">
+          <span class="toolbar-label">Mot-clé</span>
+          <input
+            id="keyword"
+            type="text"
+            formControlName="keyword"
+            class="search-input"
+            placeholder="Nom, référence, commercial…"
+            autocomplete="off"
+            data-testid="e2e-credit-search-keyword">
+          <label class="reference-only-toggle">
+            <input type="checkbox" formControlName="searchByReference" data-testid="e2e-credit-search-by-reference">
+            <span>Rechercher uniquement par référence</span>
+          </label>
+        </div>
+        <div class="filter-group" [style.min-width.px]="clientTypeMinWidth">
+          <span class="toolbar-label">Type client</span>
+          <div class="select-wrap">
+            <ng-select
+              id="clientType"
+              formControlName="clientType"
+              [items]="clientTypeOptions"
+              bindLabel="label"
+              bindValue="value"
+              [clearable]="true"
+              placeholder="Tous les types"
+              notFoundText="Aucun type trouvé">
+            </ng-select>
+          </div>
+        </div>
+        <div class="filter-group" [style.min-width.px]="operationTypeMinWidth">
+          <span class="toolbar-label">Type vente</span>
+          <div class="select-wrap">
+            <ng-select
+              id="type"
+              formControlName="type"
+              [items]="operationTypeOptions"
+              bindLabel="label"
+              bindValue="value"
+              [clearable]="true"
+              placeholder="Tous les types"
+              notFoundText="Aucun type trouvé">
+            </ng-select>
+          </div>
+        </div>
+        <div class="filter-group" [style.min-width.px]="statusMinWidth">
+          <span class="toolbar-label">Statut</span>
+          <div class="select-wrap">
+            <ng-select
+              id="status"
+              formControlName="status"
+              [items]="statusOptions"
+              bindLabel="label"
+              bindValue="value"
+              [clearable]="true"
+              placeholder="Tous les statuts"
+              notFoundText="Aucun statut trouvé">
+            </ng-select>
+          </div>
+        </div>
+        <div class="filter-group" [style.min-width.px]="commercialMinWidth()">
+          <span class="toolbar-label">Commercial</span>
+          <div class="select-wrap">
+            <ng-select
+              id="commercial"
+              formControlName="commercial"
+              [items]="commercials"
+              bindLabel="username"
+              bindValue="username"
+              [searchFn]="searchCommercial"
+              [clearable]="true"
+              placeholder="Tous"
+              notFoundText="Aucun commercial trouvé">
+              <ng-template ng-label-tmp let-item="item">
+                {{ item.firstname }} {{ item.lastname }}
+              </ng-template>
+              <ng-template ng-option-tmp let-item="item">
+                <div class="commercial-option">
+                  <div class="commercial-name">{{ item.firstname }} {{ item.lastname }}</div>
+                  <small class="commercial-username">{{ '@' }}{{ item.username }}</small>
+                </div>
+              </ng-template>
+            </ng-select>
+          </div>
+        </div>
+        <div class="filter-group" [style.min-width.px]="carnetStatusMinWidth">
+          <span class="toolbar-label">Carnet</span>
+          <div class="select-wrap">
+            <ng-select
+              id="carnetStatus"
+              formControlName="carnetStatus"
+              [items]="carnetStatusOptions"
+              bindLabel="label"
+              bindValue="value"
+              [clearable]="true"
+              placeholder="Tous les carnets"
+              notFoundText="Aucun statut trouvé"
+              data-testid="e2e-credit-carnet-filter">
+            </ng-select>
+          </div>
         </div>
       </div>
-
-      <div class="filter-group" [style.min-width.px]="operationTypeMinWidth">
-        <span class="toolbar-label">Type vente</span>
-        <div class="select-wrap">
-          <ng-select
-            id="type"
-            formControlName="type"
-            [items]="operationTypeOptions"
-            bindLabel="label"
-            bindValue="value"
-            [clearable]="true"
-            placeholder="Tous les types"
-            notFoundText="Aucun type trouvé">
-          </ng-select>
-        </div>
+      <div class="search-actions">
+        <button
+          type="button"
+          class="btn-clear"
+          (click)="onReset()"
+          [disabled]="!hasActiveFilters()">
+          Réinitialiser
+        </button>
+        <button
+          type="button"
+          class="btn-primary"
+          (click)="onSearch()"
+          [disabled]="!hasActiveFilters()"
+          data-testid="e2e-credit-search-submit">
+          Rechercher
+        </button>
       </div>
-
-      <div class="filter-group" [style.min-width.px]="statusMinWidth">
-        <span class="toolbar-label">Statut</span>
-        <div class="select-wrap">
-          <ng-select
-            id="status"
-            formControlName="status"
-            [items]="statusOptions"
-            bindLabel="label"
-            bindValue="value"
-            [clearable]="true"
-            placeholder="Tous les statuts"
-            notFoundText="Aucun statut trouvé">
-          </ng-select>
-        </div>
-      </div>
-
-      <div class="filter-group" [style.min-width.px]="commercialMinWidth()">
-        <span class="toolbar-label">Commercial</span>
-        <div class="select-wrap">
-          <ng-select
-            id="commercial"
-            formControlName="commercial"
-            [items]="commercials"
-            bindLabel="username"
-            bindValue="username"
-            [searchFn]="searchCommercial"
-            [clearable]="true"
-            placeholder="Tous"
-            notFoundText="Aucun commercial trouvé">
-            <ng-template ng-label-tmp let-item="item">
-              {{ item.firstname }} {{ item.lastname }}
-            </ng-template>
-            <ng-template ng-option-tmp let-item="item">
-              <div class="commercial-option">
-                <div class="commercial-name">{{ item.firstname }} {{ item.lastname }}</div>
-                <small class="commercial-username">{{ '@' }}{{ item.username }}</small>
-              </div>
-            </ng-template>
-          </ng-select>
-        </div>
-      </div>
-
-      <div class="filter-group" [style.min-width.px]="carnetStatusMinWidth">
-        <span class="toolbar-label">Carnet</span>
-        <div class="select-wrap">
-          <ng-select
-            id="carnetStatus"
-            formControlName="carnetStatus"
-            [items]="carnetStatusOptions"
-            bindLabel="label"
-            bindValue="value"
-            [clearable]="true"
-            placeholder="Tous les carnets"
-            notFoundText="Aucun statut trouvé"
-            data-testid="e2e-credit-carnet-filter">
-          </ng-select>
-        </div>
-      </div>
-    </div>
-
-    <div class="search-actions">
-      <button
-        type="button"
-        class="btn-clear"
-        (click)="onReset()"
-        [disabled]="!hasActiveFilters()">
-        Réinitialiser
-      </button>
-      <button
-        type="button"
-        class="btn-primary"
-        (click)="onSearch()"
-        [disabled]="!hasActiveFilters()"
-        data-testid="e2e-credit-search-submit">
-        Rechercher
-      </button>
-    </div>
-  </form>
-</div>
+    </form>
+  </div>
+}

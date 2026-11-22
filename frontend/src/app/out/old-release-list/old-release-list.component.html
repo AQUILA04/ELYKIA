@@ -6,21 +6,25 @@
   </div>
   <table class="pdf-table">
     <thead>
-    <tr>
-      <th>Nom du fichier</th>
-      <th>Action</th>
-    </tr>
+      <tr>
+        <th>Nom du fichier</th>
+        <th>Action</th>
+      </tr>
     </thead>
     <tbody>
-    <tr *ngFor="let file of oldReleaseFolder">
-      <td>{{ file }}</td>
-      <td>
-        <button mat-icon-button (click)="downloadFile(file)">
-          <mat-icon>download</mat-icon>
-        </button>
-      </td>
-    </tr>
-    <tr *ngIf="oldReleaseFolder.length < 1 "> <td colspan="3">Aucune ancienne sortie d'article existante</td></tr>
+      @for (file of oldReleaseFolder; track file) {
+        <tr>
+          <td>{{ file }}</td>
+          <td>
+            <button mat-icon-button (click)="downloadFile(file)">
+              <mat-icon>download</mat-icon>
+            </button>
+          </td>
+        </tr>
+      }
+      @if (oldReleaseFolder.length < 1 ) {
+        <tr> <td colspan="3">Aucune ancienne sortie d'article existante</td></tr>
+      }
     </tbody>
   </table>
 </div>

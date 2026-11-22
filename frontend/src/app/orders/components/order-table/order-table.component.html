@@ -1,109 +1,143 @@
 <div class="order-table-host">
   <div class="table-inner" [class.loading]="loading">
-    <table class="data-table" *ngIf="orders.length > 0">
-      <thead>
-        <tr>
-          <th *ngIf="selectable" class="col-check">
-            <input
-              type="checkbox"
-              class="row-checkbox"
-              [checked]="isAllSelected()"
-              [indeterminate]="isIndeterminate()"
-              (change)="masterToggle()"
-              [disabled]="loading"
-              aria-label="Tout sélectionner">
-          </th>
-          <th>N° Commande</th>
-          <th>Client</th>
-          <th>Commercial</th>
-          <th>Date</th>
-          <th>Montant</th>
-          <th>Statut</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          *ngFor="let order of paginatedOrders; trackBy: trackByOrderId"
-          class="data-row"
-          [class.selected]="isSelected(order)"
-          [class.clickable]="!loading"
-          (click)="onRowClick(order, $event)">
-          <td *ngIf="selectable" class="col-check">
-            <input
-              type="checkbox"
-              class="row-checkbox"
-              [checked]="isSelected(order)"
-              (change)="onRowSelectionChange(order)"
-              (click)="$event.stopPropagation()"
-              [disabled]="loading"
-              [attr.aria-label]="'Sélectionner commande ' + order.id">
-          </td>
-          <td>
-            <span class="col-ref-main">#{{ order.id }}</span>
-            <span class="online-badge" *ngIf="showOnlineBadge && isOnlineOrder(order)">En ligne</span>
-            <span class="stock-req-ref" *ngIf="order.activeStockRequest" [title]="order.activeStockRequest.reference">
-              {{ order.activeStockRequest.reference }}
-            </span>
-          </td>
-          <td>
-            <span class="col-name">{{ getClientName(order) }}</span>
-            <span class="col-sub" *ngIf="getClientCode(order)">{{ getClientCode(order) }}</span>
-          </td>
-          <td><span class="col-commercial">{{ getCommercial(order) }}</span></td>
-          <td><span class="col-date">{{ formatCellValue(order, { key: 'orderDate', label: '', sortable: true, type: 'date' }) }}</span></td>
-          <td><span class="col-amount">{{ formatCellValue(order, { key: 'totalAmount', label: '', sortable: true, type: 'currency' }) }}</span></td>
-          <td>
-            <span class="status-badge" [ngClass]="getStatusBadgeClass(order.status)">
-              {{ getOrderStatusLabel(order.status) }}
-            </span>
-          </td>
-          <td class="col-actions">
-            <button
-              type="button"
-              class="btn-detail"
-              (click)="onDownloadClick(order, $event)"
-              title="Télécharger la fiche">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 10 5 5 5-5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 21h14"/></svg>
-              Fiche
-            </button>
-            <button
-              *ngFor="let action of getOrderActions(order); trackBy: trackByAction"
-              type="button"
-              class="btn-detail"
-              [ngClass]="getActionButtonClass(action)"
-              (click)="onActionClick(order, action, $event)"
-              [title]="getActionLabel(action)">
-              <svg *ngIf="action === OrderAction.VIEW" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-              <svg *ngIf="action === OrderAction.EDIT" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-              <svg *ngIf="action === OrderAction.DELETE" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              <svg *ngIf="action === OrderAction.ACCEPT" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-              <svg *ngIf="action === OrderAction.DENY" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12"/></svg>
-              <svg *ngIf="action === OrderAction.SELL" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
-              <svg *ngIf="action === OrderAction.CANCEL" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-              <svg *ngIf="action === OrderAction.STOCK_REQUEST" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-              {{ getActionLabel(action) }}
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    @if (orders.length > 0) {
+      <table class="data-table">
+        <thead>
+          <tr>
+            @if (selectable) {
+              <th class="col-check">
+                <input
+                  type="checkbox"
+                  class="row-checkbox"
+                  [checked]="isAllSelected()"
+                  [indeterminate]="isIndeterminate()"
+                  (change)="masterToggle()"
+                  [disabled]="loading"
+                  aria-label="Tout sélectionner">
+              </th>
+            }
+            <th>N° Commande</th>
+            <th>Client</th>
+            <th>Commercial</th>
+            <th>Date</th>
+            <th>Montant</th>
+            <th>Statut</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of paginatedOrders; track trackByOrderId($index, order)) {
+            <tr
+              class="data-row"
+              [class.selected]="isSelected(order)"
+              [class.clickable]="!loading"
+              (click)="onRowClick(order, $event)">
+              @if (selectable) {
+                <td class="col-check">
+                  <input
+                    type="checkbox"
+                    class="row-checkbox"
+                    [checked]="isSelected(order)"
+                    (change)="onRowSelectionChange(order)"
+                    (click)="$event.stopPropagation()"
+                    [disabled]="loading"
+                    [attr.aria-label]="'Sélectionner commande ' + order.id">
+                </td>
+              }
+              <td>
+                <span class="col-ref-main">#{{ order.id }}</span>
+                @if (showOnlineBadge && isOnlineOrder(order)) {
+                  <span class="online-badge">En ligne</span>
+                }
+                @if (order.activeStockRequest) {
+                  <span class="stock-req-ref" [title]="order.activeStockRequest.reference">
+                    {{ order.activeStockRequest.reference }}
+                  </span>
+                }
+              </td>
+              <td>
+                <span class="col-name">{{ getClientName(order) }}</span>
+                @if (getClientCode(order)) {
+                  <span class="col-sub">{{ getClientCode(order) }}</span>
+                }
+              </td>
+              <td><span class="col-commercial">{{ getCommercial(order) }}</span></td>
+              <td><span class="col-date">{{ formatCellValue(order, { key: 'orderDate', label: '', sortable: true, type: 'date' }) }}</span></td>
+              <td><span class="col-amount">{{ formatCellValue(order, { key: 'totalAmount', label: '', sortable: true, type: 'currency' }) }}</span></td>
+              <td>
+                <span class="status-badge" [ngClass]="getStatusBadgeClass(order.status)">
+                  {{ getOrderStatusLabel(order.status) }}
+                </span>
+              </td>
+              <td class="col-actions">
+                <button
+                  type="button"
+                  class="btn-detail"
+                  (click)="onDownloadClick(order, $event)"
+                  title="Télécharger la fiche">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 10 5 5 5-5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 21h14"/></svg>
+                  Fiche
+                </button>
+                @for (action of getOrderActions(order); track trackByAction($index, action)) {
+                  <button
+                    type="button"
+                    class="btn-detail"
+                    [ngClass]="getActionButtonClass(action)"
+                    (click)="onActionClick(order, action, $event)"
+                    [title]="getActionLabel(action)">
+                    @if (action === OrderAction.VIEW) {
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    }
+                    @if (action === OrderAction.EDIT) {
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    }
+                    @if (action === OrderAction.DELETE) {
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    }
+                    @if (action === OrderAction.ACCEPT) {
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    }
+                    @if (action === OrderAction.DENY) {
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12"/></svg>
+                    }
+                    @if (action === OrderAction.SELL) {
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+                    }
+                    @if (action === OrderAction.CANCEL) {
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                    }
+                    @if (action === OrderAction.STOCK_REQUEST) {
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    }
+                    {{ getActionLabel(action) }}
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
 
-    <div class="empty-state" *ngIf="!loading && orders.length === 0">
-      <div class="empty-icon">📦</div>
-      <div class="empty-title">Aucune commande trouvée</div>
-      <div class="empty-sub">Aucune commande ne correspond à vos critères.</div>
+    @if (!loading && orders.length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">📦</div>
+        <div class="empty-title">Aucune commande trouvée</div>
+        <div class="empty-sub">Aucune commande ne correspond à vos critères.</div>
+      </div>
+    }
+  </div>
+
+  @if (showPagination && orders.length > 0) {
+    <div class="order-pagination">
+      <mat-paginator
+        [length]="paginatorLength"
+        [pageSize]="pageSize"
+        [pageIndex]="pageIndex"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
     </div>
-  </div>
-
-  <div class="order-pagination" *ngIf="showPagination && orders.length > 0">
-    <mat-paginator
-      [length]="paginatorLength"
-      [pageSize]="pageSize"
-      [pageIndex]="pageIndex"
-      [pageSizeOptions]="pageSizeOptions"
-      (page)="onPageChange($event)"
-      showFirstLastButtons>
-    </mat-paginator>
-  </div>
+  }
 </div>

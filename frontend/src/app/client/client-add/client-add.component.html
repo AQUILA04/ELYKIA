@@ -1,258 +1,306 @@
 <div class="main-container client-form-page a1">
   <div class="page-fixed-head">
-  <div class="breadcrumb-bar">
-    <a routerLink="/client/list" class="breadcrumb-link">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
-      </svg>
-      Liste des clients
-    </a>
-  </div>
-
-  <div class="page-header-card a2">
-    <div class="header-card-top">
-      <span class="header-surtitle">GESTION DES CLIENTS</span>
-    </div>
-    <div class="header-card-main">
-      <div class="title-group">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    <div class="breadcrumb-bar">
+      <a routerLink="/client/list" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
         </svg>
-        <h1 class="page-title">{{ clientId ? 'Modifier un client' : 'Nouveau client' }}</h1>
-      </div>
+        Liste des clients
+      </a>
     </div>
-    <p class="page-subtitle">Identité, coordonnées, pièce d'identité et commerciaux associés</p>
-  </div>
+
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">GESTION DES CLIENTS</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <h1 class="page-title">{{ clientId ? 'Modifier un client' : 'Nouveau client' }}</h1>
+        </div>
+      </div>
+      <p class="page-subtitle">Identité, coordonnées, pièce d'identité et commerciaux associés</p>
+    </div>
   </div>
 
   <div class="page-scroll-body">
-  <div class="form-card a3">
-    <form [formGroup]="clientForm" (ngSubmit)="onSubmit()" class="client-form" data-testid="e2e-client-form">
+    <div class="form-card a3">
+      <form [formGroup]="clientForm" (ngSubmit)="onSubmit()" class="client-form" data-testid="e2e-client-form">
 
-      <div class="form-section">
-        <h3 class="form-section-title">Identité</h3>
-        <div class="profile-photo-upload">
-          <label class="profile-photo-label">Photo de profil</label>
-          <div class="profile-photo-card">
-            <div class="profile-photo-ring" [class.has-photo]="!!profilePhotoBase64">
-              <img *ngIf="profilePhotoBase64" [src]="profilePhotoBase64" alt="" class="profile-photo-img">
-              <div *ngIf="!profilePhotoBase64" class="profile-photo-placeholder" aria-label="Aucune photo">
-                <mat-icon>person</mat-icon>
+        <div class="form-section">
+          <h3 class="form-section-title">Identité</h3>
+          <div class="profile-photo-upload">
+            <label class="profile-photo-label">Photo de profil</label>
+            <div class="profile-photo-card">
+              <div class="profile-photo-ring" [class.has-photo]="!!profilePhotoBase64">
+                @if (profilePhotoBase64) {
+                  <img [src]="profilePhotoBase64" alt="" class="profile-photo-img">
+                }
+                @if (!profilePhotoBase64) {
+                  <div class="profile-photo-placeholder" aria-label="Aucune photo">
+                    <mat-icon>person</mat-icon>
+                  </div>
+                }
+                <label class="profile-photo-overlay" for="profilePhotoInput">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
+                  </svg>
+                  <span>{{ profilePhotoBase64 ? 'Modifier' : 'Ajouter' }}</span>
+                </label>
               </div>
-              <label class="profile-photo-overlay" for="profilePhotoInput">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
-                </svg>
-                <span>{{ profilePhotoBase64 ? 'Modifier' : 'Ajouter' }}</span>
-              </label>
-            </div>
-            <input
-              id="profilePhotoInput"
-              type="file"
-              class="profile-photo-input"
-              (change)="onProfilePhotoSelected($event)"
-              accept=".jpeg,.jpg,.png">
-            <div class="profile-photo-meta">
-              <p class="profile-photo-hint">Format JPG ou PNG · photo carrée recommandée</p>
-              <button type="button" class="btn-photo-remove" *ngIf="profilePhotoBase64" (click)="clearProfilePhoto()">
-                Retirer la photo
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="lastname">Nom <span class="required">*</span></label>
-            <input id="lastname" formControlName="lastname" class="field-input" data-testid="e2e-client-lastname" />
-            <span class="field-error" *ngIf="clientForm.get('lastname')?.invalid && clientForm.get('lastname')?.touched">Nom est requis.</span>
-          </div>
-          <div class="form-field">
-            <label for="firstname">Prénom <span class="required">*</span></label>
-            <input id="firstname" formControlName="firstname" class="field-input" data-testid="e2e-client-firstname" />
-            <span class="field-error" *ngIf="clientForm.get('firstname')?.invalid && clientForm.get('firstname')?.touched">Prénom est requis.</span>
-          </div>
-          <div class="form-field">
-            <label for="address">Adresse <span class="required">*</span></label>
-            <input id="address" formControlName="address" class="field-input" data-testid="e2e-client-address" />
-            <span class="field-error" *ngIf="clientForm.get('address')?.invalid && clientForm.get('address')?.touched">L'adresse est requise.</span>
-          </div>
-          <div class="form-field">
-            <label for="phone">Numéro de téléphone <span class="required">*</span></label>
-            <input id="phone" formControlName="phone" class="field-input field-mono" pattern="[0-9]{8}$" data-testid="e2e-client-phone" />
-            <span class="field-error" *ngIf="clientForm.get('phone')?.hasError('pattern') && clientForm.get('phone')?.touched">8 chiffres requis.</span>
-            <span class="field-error" *ngIf="clientForm.get('phone')?.invalid && clientForm.get('phone')?.touched && !clientForm.get('phone')?.hasError('pattern')">Numéro requis.</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3 class="form-section-title">Pièce d'identité</h3>
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="cardType">Type de pièce <span class="required">*</span></label>
-            <select id="cardType" formControlName="cardType" class="field-input" data-testid="e2e-client-card-type">
-              <option value="" disabled>Sélectionnez le type</option>
-              <option value="CENI">Carte d'électeur</option>
-              <option value="Passport">Passport</option>
-              <option value="ID Card">Carte d'identité</option>
-              <option value="NIU">Carte e-ID (NIU)</option>
-              <option value="Driver License">Permis de conduire</option>
-            </select>
-            <span class="field-error" *ngIf="clientForm.get('cardType')?.invalid && clientForm.get('cardType')?.touched">Type requis.</span>
-          </div>
-          <div class="form-field">
-            <label for="cardID">Numéro de pièce <span class="required">*</span></label>
-            <input id="cardID" formControlName="cardID" class="field-input" data-testid="e2e-client-card-id" />
-            <span class="field-error" *ngIf="clientForm.get('cardID')?.invalid && clientForm.get('cardID')?.touched">Numéro requis.</span>
-          </div>
-        </div>
-        <div class="form-field form-field-full">
-          <label for="file">Document (pdf, jpeg, png)</label>
-          <input type="file" id="file" (change)="onIdDocSelected($event)" class="field-input field-file" accept=".pdf, .jpeg, .jpg, .png">
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3 class="form-section-title">Informations personnelles</h3>
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="dateOfBirth">Date de naissance <span class="required">*</span></label>
-            <input type="date" id="dateOfBirth" formControlName="dateOfBirth" class="field-input" data-testid="e2e-client-birthdate" [max]="today | date: 'yyyy-MM-dd'" />
-            <span class="field-error" *ngIf="clientForm.get('dateOfBirth')?.invalid && clientForm.get('dateOfBirth')?.touched && !clientForm.get('dateOfBirth')?.hasError('minAge')">Date requise.</span>
-            <span class="field-error" *ngIf="clientForm.get('dateOfBirth')?.hasError('minAge') && clientForm.get('dateOfBirth')?.touched">Âge minimum 16 ans.</span>
-          </div>
-          <div class="form-field">
-            <label for="occupation">Occupation <span class="required">*</span></label>
-            <input id="occupation" formControlName="occupation" class="field-input" data-testid="e2e-client-occupation" />
-            <span class="field-error" *ngIf="clientForm.get('occupation')?.invalid && clientForm.get('occupation')?.touched">Occupation requise.</span>
-          </div>
-          <div class="form-field form-field-full">
-            <label for="quarter">Localité <span class="required">*</span></label>
-            <ng-select
-              id="quarter"
-              data-testid="e2e-client-quarter"
-              formControlName="quarter"
-              [items]="localities"
-              bindLabel="name"
-              bindValue="name"
-              [searchFn]="searchLocality"
-              placeholder="Rechercher une localité"
-              notFoundText="Aucune localité trouvée">
-            </ng-select>
-            <span class="field-error" *ngIf="clientForm.get('quarter')?.invalid && clientForm.get('quarter')?.touched">Localité requise.</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3 class="form-section-title">Personne à contacter</h3>
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="contactPersonName">Nom complet</label>
-            <input id="contactPersonName" formControlName="contactPersonName" class="field-input" />
-          </div>
-          <div class="form-field">
-            <label for="contactPersonPhone">Téléphone</label>
-            <input id="contactPersonPhone" formControlName="contactPersonPhone" class="field-input field-mono" />
-          </div>
-          <div class="form-field form-field-full">
-            <label for="contactPersonAddress">Adresse</label>
-            <input id="contactPersonAddress" formControlName="contactPersonAddress" class="field-input" />
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3 class="form-section-title">Géolocalisation</h3>
-        <div class="geo-row">
-          <div class="geo-main">
-            <div *ngIf="!manualGeolocation">
-              <button type="button" class="btn-geo" (click)="getGeolocation()">Obtenir la position GPS</button>
-              <div *ngIf="coordinates" class="coordinates-display">
-                Latitude: {{ coordinates.latitude }} · Longitude: {{ coordinates.longitude }}
-              </div>
-            </div>
-            <div *ngIf="manualGeolocation" class="form-grid form-grid-geo">
-              <div class="form-field">
-                <input id="latitude" type="number" formControlName="latitude" class="field-input" placeholder="Latitude">
-              </div>
-              <div class="form-field">
-                <input id="longitude" type="number" formControlName="longitude" class="field-input" placeholder="Longitude">
+              <input
+                id="profilePhotoInput"
+                type="file"
+                class="profile-photo-input"
+                (change)="onProfilePhotoSelected($event)"
+                accept=".jpeg,.jpg,.png">
+              <div class="profile-photo-meta">
+                <p class="profile-photo-hint">Format JPG ou PNG · photo carrée recommandée</p>
+                @if (profilePhotoBase64) {
+                  <button type="button" class="btn-photo-remove" (click)="clearProfilePhoto()">
+                    Retirer la photo
+                  </button>
+                }
               </div>
             </div>
           </div>
-          <div class="geo-toggle">
-            <span>Saisie manuelle</span>
-            <label class="switch">
-              <input type="checkbox" (change)="manualGeolocation = $any($event.target).checked">
-              <span class="slider round"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3 class="form-section-title">Commerciaux associés</h3>
-        <div class="form-grid">
-          <div class="form-field form-field-full">
-            <label for="collector">Commercial crédit <span class="required">*</span></label>
-            <ng-select id="collector" data-testid="e2e-client-collector" formControlName="collector" [items]="agents" bindLabel="username" bindValue="username"
-              [searchFn]="searchAgent" placeholder="Sélectionner un commercial" notFoundText="Aucun commercial trouvé" [clearable]="false">
-            </ng-select>
-            <span class="field-error" *ngIf="clientForm.get('collector')?.invalid && clientForm.get('collector')?.touched">Requis.</span>
-          </div>
-          <div class="form-field form-field-full">
-            <label for="tontineCollector">Commercial tontine <span class="required">*</span></label>
-            <ng-select id="tontineCollector" data-testid="e2e-client-tontine-collector" formControlName="tontineCollector" [items]="agents" bindLabel="username" bindValue="username"
-              [searchFn]="searchAgent" placeholder="Sélectionner un commercial" notFoundText="Aucun commercial trouvé" [clearable]="false">
-            </ng-select>
-            <span class="field-error" *ngIf="clientForm.get('tontineCollector')?.invalid && clientForm.get('tontineCollector')?.touched">Requis.</span>
-          </div>
-          <div class="form-field form-field-full">
-            <label for="agencyCollector">Commercial agence <span class="required">*</span></label>
-            <ng-select id="agencyCollector" data-testid="e2e-client-agency-collector" formControlName="agencyCollector" [items]="agents" bindLabel="username" bindValue="username"
-              [searchFn]="searchAgent" placeholder="Sélectionner un commercial" notFoundText="Aucun commercial trouvé">
-            </ng-select>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h3 class="form-section-title">Type & compte</h3>
-        <div class="form-grid">
-          <div class="form-field">
-            <label for="clientType">Type de client <span class="required">*</span></label>
-            <select id="clientType" formControlName="clientType" class="field-input" data-testid="e2e-client-type">
-              <option value="" disabled>Sélectionnez le type</option>
-              <option value="CLIENT">Client</option>
-              <option value="PROMOTER">Commercial</option>
-            </select>
-            <span class="field-error" *ngIf="clientForm.get('clientType')?.invalid && clientForm.get('clientType')?.touched">Type requis.</span>
-          </div>
-        </div>
-
-        <div *ngIf="isAccountSectionVisible" class="account-block">
           <div class="form-grid">
             <div class="form-field">
-              <label for="accountNumber">Numéro de compte</label>
-              <input id="accountNumber" formControlName="accountNumber" class="field-input field-mono" readonly />
+              <label for="lastname">Nom <span class="required">*</span></label>
+              <input id="lastname" formControlName="lastname" class="field-input" data-testid="e2e-client-lastname" />
+              @if (clientForm.get('lastname')?.invalid && clientForm.get('lastname')?.touched) {
+                <span class="field-error">Nom est requis.</span>
+              }
             </div>
             <div class="form-field">
-              <label for="accountBalance">Solde initial (FCFA) <span class="required">*</span></label>
-              <input id="accountBalance" type="number" formControlName="accountBalance" class="field-input field-mono" data-testid="e2e-client-account-balance" />
-              <span class="field-error" *ngIf="clientForm.get('accountBalance')?.hasError('required') && clientForm.get('accountBalance')?.touched">Solde requis.</span>
-              <span class="field-error" *ngIf="clientForm.get('accountBalance')?.hasError('min') && clientForm.get('accountBalance')?.touched">Minimum 500.</span>
-              <span class="field-error" *ngIf="clientForm.get('accountBalance')?.hasError('max') && clientForm.get('accountBalance')?.touched">Maximum 2 000 000.</span>
+              <label for="firstname">Prénom <span class="required">*</span></label>
+              <input id="firstname" formControlName="firstname" class="field-input" data-testid="e2e-client-firstname" />
+              @if (clientForm.get('firstname')?.invalid && clientForm.get('firstname')?.touched) {
+                <span class="field-error">Prénom est requis.</span>
+              }
+            </div>
+            <div class="form-field">
+              <label for="address">Adresse <span class="required">*</span></label>
+              <input id="address" formControlName="address" class="field-input" data-testid="e2e-client-address" />
+              @if (clientForm.get('address')?.invalid && clientForm.get('address')?.touched) {
+                <span class="field-error">L'adresse est requise.</span>
+              }
+            </div>
+            <div class="form-field">
+              <label for="phone">Numéro de téléphone <span class="required">*</span></label>
+              <input id="phone" formControlName="phone" class="field-input field-mono" pattern="[0-9]{8}$" data-testid="e2e-client-phone" />
+              @if (clientForm.get('phone')?.hasError('pattern') && clientForm.get('phone')?.touched) {
+                <span class="field-error">8 chiffres requis.</span>
+              }
+              @if (clientForm.get('phone')?.invalid && clientForm.get('phone')?.touched && !clientForm.get('phone')?.hasError('pattern')) {
+                <span class="field-error">Numéro requis.</span>
+              }
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="form-actions">
-        <button type="button" class="btn-outline" (click)="onCancel()">Annuler</button>
-        <button type="submit" class="btn-primary" [disabled]="clientForm.invalid" data-testid="e2e-client-submit">Enregistrer</button>
-      </div>
-    </form>
-  </div>
+        <div class="form-section">
+          <h3 class="form-section-title">Pièce d'identité</h3>
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="cardType">Type de pièce <span class="required">*</span></label>
+              <select id="cardType" formControlName="cardType" class="field-input" data-testid="e2e-client-card-type">
+                <option value="" disabled>Sélectionnez le type</option>
+                <option value="CENI">Carte d'électeur</option>
+                <option value="Passport">Passport</option>
+                <option value="ID Card">Carte d'identité</option>
+                <option value="NIU">Carte e-ID (NIU)</option>
+                <option value="Driver License">Permis de conduire</option>
+              </select>
+              @if (clientForm.get('cardType')?.invalid && clientForm.get('cardType')?.touched) {
+                <span class="field-error">Type requis.</span>
+              }
+            </div>
+            <div class="form-field">
+              <label for="cardID">Numéro de pièce <span class="required">*</span></label>
+              <input id="cardID" formControlName="cardID" class="field-input" data-testid="e2e-client-card-id" />
+              @if (clientForm.get('cardID')?.invalid && clientForm.get('cardID')?.touched) {
+                <span class="field-error">Numéro requis.</span>
+              }
+            </div>
+          </div>
+          <div class="form-field form-field-full">
+            <label for="file">Document (pdf, jpeg, png)</label>
+            <input type="file" id="file" (change)="onIdDocSelected($event)" class="field-input field-file" accept=".pdf, .jpeg, .jpg, .png">
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Informations personnelles</h3>
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="dateOfBirth">Date de naissance <span class="required">*</span></label>
+              <input type="date" id="dateOfBirth" formControlName="dateOfBirth" class="field-input" data-testid="e2e-client-birthdate" [max]="today | date: 'yyyy-MM-dd'" />
+              @if (clientForm.get('dateOfBirth')?.invalid && clientForm.get('dateOfBirth')?.touched && !clientForm.get('dateOfBirth')?.hasError('minAge')) {
+                <span class="field-error">Date requise.</span>
+              }
+              @if (clientForm.get('dateOfBirth')?.hasError('minAge') && clientForm.get('dateOfBirth')?.touched) {
+                <span class="field-error">Âge minimum 16 ans.</span>
+              }
+            </div>
+            <div class="form-field">
+              <label for="occupation">Occupation <span class="required">*</span></label>
+              <input id="occupation" formControlName="occupation" class="field-input" data-testid="e2e-client-occupation" />
+              @if (clientForm.get('occupation')?.invalid && clientForm.get('occupation')?.touched) {
+                <span class="field-error">Occupation requise.</span>
+              }
+            </div>
+            <div class="form-field form-field-full">
+              <label for="quarter">Localité <span class="required">*</span></label>
+              <ng-select
+                id="quarter"
+                data-testid="e2e-client-quarter"
+                formControlName="quarter"
+                [items]="localities"
+                bindLabel="name"
+                bindValue="name"
+                [searchFn]="searchLocality"
+                placeholder="Rechercher une localité"
+                notFoundText="Aucune localité trouvée">
+              </ng-select>
+              @if (clientForm.get('quarter')?.invalid && clientForm.get('quarter')?.touched) {
+                <span class="field-error">Localité requise.</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Personne à contacter</h3>
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="contactPersonName">Nom complet</label>
+              <input id="contactPersonName" formControlName="contactPersonName" class="field-input" />
+            </div>
+            <div class="form-field">
+              <label for="contactPersonPhone">Téléphone</label>
+              <input id="contactPersonPhone" formControlName="contactPersonPhone" class="field-input field-mono" />
+            </div>
+            <div class="form-field form-field-full">
+              <label for="contactPersonAddress">Adresse</label>
+              <input id="contactPersonAddress" formControlName="contactPersonAddress" class="field-input" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Géolocalisation</h3>
+          <div class="geo-row">
+            <div class="geo-main">
+              @if (!manualGeolocation) {
+                <div>
+                  <button type="button" class="btn-geo" (click)="getGeolocation()">Obtenir la position GPS</button>
+                  @if (coordinates) {
+                    <div class="coordinates-display">
+                      Latitude: {{ coordinates.latitude }} · Longitude: {{ coordinates.longitude }}
+                    </div>
+                  }
+                </div>
+              }
+              @if (manualGeolocation) {
+                <div class="form-grid form-grid-geo">
+                  <div class="form-field">
+                    <input id="latitude" type="number" formControlName="latitude" class="field-input" placeholder="Latitude">
+                  </div>
+                  <div class="form-field">
+                    <input id="longitude" type="number" formControlName="longitude" class="field-input" placeholder="Longitude">
+                  </div>
+                </div>
+              }
+            </div>
+            <div class="geo-toggle">
+              <span>Saisie manuelle</span>
+              <label class="switch">
+                <input type="checkbox" (change)="manualGeolocation = $any($event.target).checked">
+                <span class="slider round"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Commerciaux associés</h3>
+          <div class="form-grid">
+            <div class="form-field form-field-full">
+              <label for="collector">Commercial crédit <span class="required">*</span></label>
+              <ng-select id="collector" data-testid="e2e-client-collector" formControlName="collector" [items]="agents" bindLabel="username" bindValue="username"
+                [searchFn]="searchAgent" placeholder="Sélectionner un commercial" notFoundText="Aucun commercial trouvé" [clearable]="false">
+              </ng-select>
+              @if (clientForm.get('collector')?.invalid && clientForm.get('collector')?.touched) {
+                <span class="field-error">Requis.</span>
+              }
+            </div>
+            <div class="form-field form-field-full">
+              <label for="tontineCollector">Commercial tontine <span class="required">*</span></label>
+              <ng-select id="tontineCollector" data-testid="e2e-client-tontine-collector" formControlName="tontineCollector" [items]="agents" bindLabel="username" bindValue="username"
+                [searchFn]="searchAgent" placeholder="Sélectionner un commercial" notFoundText="Aucun commercial trouvé" [clearable]="false">
+              </ng-select>
+              @if (clientForm.get('tontineCollector')?.invalid && clientForm.get('tontineCollector')?.touched) {
+                <span class="field-error">Requis.</span>
+              }
+            </div>
+            <div class="form-field form-field-full">
+              <label for="agencyCollector">Commercial agence <span class="required">*</span></label>
+              <ng-select id="agencyCollector" data-testid="e2e-client-agency-collector" formControlName="agencyCollector" [items]="agents" bindLabel="username" bindValue="username"
+                [searchFn]="searchAgent" placeholder="Sélectionner un commercial" notFoundText="Aucun commercial trouvé">
+              </ng-select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3 class="form-section-title">Type & compte</h3>
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="clientType">Type de client <span class="required">*</span></label>
+              <select id="clientType" formControlName="clientType" class="field-input" data-testid="e2e-client-type">
+                <option value="" disabled>Sélectionnez le type</option>
+                <option value="CLIENT">Client</option>
+                <option value="PROMOTER">Commercial</option>
+              </select>
+              @if (clientForm.get('clientType')?.invalid && clientForm.get('clientType')?.touched) {
+                <span class="field-error">Type requis.</span>
+              }
+            </div>
+          </div>
+
+          @if (isAccountSectionVisible) {
+            <div class="account-block">
+              <div class="form-grid">
+                <div class="form-field">
+                  <label for="accountNumber">Numéro de compte</label>
+                  <input id="accountNumber" formControlName="accountNumber" class="field-input field-mono" readonly />
+                </div>
+                <div class="form-field">
+                  <label for="accountBalance">Solde initial (FCFA) <span class="required">*</span></label>
+                  <input id="accountBalance" type="number" formControlName="accountBalance" class="field-input field-mono" data-testid="e2e-client-account-balance" />
+                  @if (clientForm.get('accountBalance')?.hasError('required') && clientForm.get('accountBalance')?.touched) {
+                    <span class="field-error">Solde requis.</span>
+                  }
+                  @if (clientForm.get('accountBalance')?.hasError('min') && clientForm.get('accountBalance')?.touched) {
+                    <span class="field-error">Minimum 500.</span>
+                  }
+                  @if (clientForm.get('accountBalance')?.hasError('max') && clientForm.get('accountBalance')?.touched) {
+                    <span class="field-error">Maximum 2 000 000.</span>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-outline" (click)="onCancel()">Annuler</button>
+          <button type="submit" class="btn-primary" [disabled]="clientForm.invalid" data-testid="e2e-client-submit">Enregistrer</button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>

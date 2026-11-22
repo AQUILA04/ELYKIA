@@ -3,7 +3,9 @@
 <mat-dialog-content data-testid="e2e-tontine-deliver-preview">
   <p class="preview-subtitle">
     <strong>{{ data.clientName || 'Membre' }}</strong>
-    <span *ngIf="data.reference"> · Commande {{ data.reference }}</span>
+    @if (data.reference) {
+      <span> · Commande {{ data.reference }}</span>
+    }
   </p>
 
   <table class="preview-lines">
@@ -15,11 +17,13 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let item of data.items">
-        <td>{{ item.articleName }}</td>
-        <td class="num">{{ item.quantity }}</td>
-        <td class="num" *appIfUnitPrice="'CASH'">{{ item.totalPrice | number:'1.0-0' }} FCFA</td>
-      </tr>
+      @for (item of data.items; track item) {
+        <tr>
+          <td>{{ item.articleName }}</td>
+          <td class="num">{{ item.quantity }}</td>
+          <td class="num" *appIfUnitPrice="'CASH'">{{ item.totalPrice | number:'1.0-0' }} FCFA</td>
+        </tr>
+      }
     </tbody>
   </table>
 
@@ -32,22 +36,30 @@
       <span>Montant de la commande</span>
       <b>{{ total | number:'1.0-0' }} FCFA</b>
     </div>
-    <div class="balance-row balance-due" *ngIf="amountDue > 0">
-      <span>Reste à payer</span>
-      <b>{{ amountDue | number:'1.0-0' }} FCFA</b>
-    </div>
-    <div class="balance-row balance-refund" *ngIf="amountDue <= 0">
-      <span>Reliquat à restituer</span>
-      <b>{{ refundableBalance | number:'1.0-0' }} FCFA</b>
-    </div>
+    @if (amountDue > 0) {
+      <div class="balance-row balance-due">
+        <span>Reste à payer</span>
+        <b>{{ amountDue | number:'1.0-0' }} FCFA</b>
+      </div>
+    }
+    @if (amountDue <= 0) {
+      <div class="balance-row balance-refund">
+        <span>Reliquat à restituer</span>
+        <b>{{ refundableBalance | number:'1.0-0' }} FCFA</b>
+      </div>
+    }
   </div>
 
-  <p class="preview-warning" *ngIf="amountDue > 0">
-    Le solde ne couvre pas la commande. Réduisez la commande, ou faites compléter le solde depuis l'application mobile, puis revenez livrer.
-  </p>
-  <p class="preview-note" *ngIf="amountDue <= 0 && refundableBalance > 0">
-    À la livraison, le reliquat est versé sur le compte du client.
-  </p>
+  @if (amountDue > 0) {
+    <p class="preview-warning">
+      Le solde ne couvre pas la commande. Réduisez la commande, ou faites compléter le solde depuis l'application mobile, puis revenez livrer.
+    </p>
+  }
+  @if (amountDue <= 0 && refundableBalance > 0) {
+    <p class="preview-note">
+      À la livraison, le reliquat est versé sur le compte du client.
+    </p>
+  }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
@@ -56,7 +68,7 @@
     Réduire la commande
   </button>
   <button type="button" class="btn-primary" (click)="confirm()" [disabled]="!canConfirm"
-          data-testid="e2e-tontine-deliver-preview-confirm">
+    data-testid="e2e-tontine-deliver-preview-confirm">
     Confirmer la livraison
   </button>
 </mat-dialog-actions>

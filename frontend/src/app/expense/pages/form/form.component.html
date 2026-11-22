@@ -10,9 +10,11 @@
     </a>
   </div>
 
-  <div class="accounted-banner" *ngIf="isAccounted">
-    Cette dépense est comptabilisée dans une remise réceptionnée et ne peut plus être modifiée.
-  </div>
+  @if (isAccounted) {
+    <div class="accounted-banner">
+      Cette dépense est comptabilisée dans une remise réceptionnée et ne peut plus être modifiée.
+    </div>
+  }
 
   <!-- HEADER -->
   <div class="page-header-card">
@@ -22,8 +24,8 @@
     <div class="header-card-main">
       <div class="title-group">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-             class="expense-icon" style="display:block;flex-shrink:0">
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="expense-icon" style="display:block;flex-shrink:0">
           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
           <path d="M12 6v6l4 2"/>
         </svg>
@@ -46,11 +48,15 @@
         <label class="field-label">Type de dépense <span class="req">*</span></label>
         <select class="field-select" formControlName="expenseTypeId">
           <option [value]="null" disabled>Sélectionner un type…</option>
-          <option *ngFor="let type of expenseTypes" [value]="type.id">{{ type.name }}</option>
+          @for (type of expenseTypes; track type) {
+            <option [value]="type.id">{{ type.name }}</option>
+          }
         </select>
-        <span class="field-error" *ngIf="expenseForm.get('expenseTypeId')?.invalid && expenseForm.get('expenseTypeId')?.touched">
-          Ce champ est requis
-        </span>
+        @if (expenseForm.get('expenseTypeId')?.invalid && expenseForm.get('expenseTypeId')?.touched) {
+          <span class="field-error">
+            Ce champ est requis
+          </span>
+        }
       </div>
 
       <!-- Montant + Date -->
@@ -61,16 +67,20 @@
             <span class="input-prefix">XOF</span>
             <input class="field-input with-prefix" type="number" formControlName="amount" placeholder="0">
           </div>
-          <span class="field-error" *ngIf="expenseForm.get('amount')?.invalid && expenseForm.get('amount')?.touched">
-            Montant requis et positif
-          </span>
+          @if (expenseForm.get('amount')?.invalid && expenseForm.get('amount')?.touched) {
+            <span class="field-error">
+              Montant requis et positif
+            </span>
+          }
         </div>
         <div class="field-group">
           <label class="field-label">Date <span class="req">*</span></label>
           <input class="field-input" type="date" formControlName="expenseDate">
-          <span class="field-error" *ngIf="expenseForm.get('expenseDate')?.invalid && expenseForm.get('expenseDate')?.touched">
-            Date requise
-          </span>
+          @if (expenseForm.get('expenseDate')?.invalid && expenseForm.get('expenseDate')?.touched) {
+            <span class="field-error">
+              Date requise
+            </span>
+          }
         </div>
       </div>
 
@@ -84,7 +94,7 @@
       <div class="field-group">
         <label class="field-label">Description</label>
         <textarea class="field-textarea" formControlName="description" rows="4"
-                  placeholder="Détails sur la dépense…"></textarea>
+        placeholder="Détails sur la dépense…"></textarea>
       </div>
 
       <!-- Actions -->

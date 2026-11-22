@@ -1,8 +1,9 @@
-<div
-  *ngIf="label"
-  class="env-ribbon"
-  role="status"
-  [attr.aria-label]="'Environnement ' + label"
-  data-testid="e2e-environment-ribbon">
-  <span class="env-ribbon__band">{{ label }}</span>
-</div>
+@if (label) {
+  <div
+    class="env-ribbon"
+    role="status"
+    [attr.aria-label]="'Environnement ' + label"
+    data-testid="e2e-environment-ribbon">
+    <span class="env-ribbon__band">{{ label }}</span>
+  </div>
+}

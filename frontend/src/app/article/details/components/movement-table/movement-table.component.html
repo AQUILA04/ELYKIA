@@ -1,68 +1,75 @@
-<div *ngIf="movements.length > 0; else noMovements">
+@if (movements.length > 0) {
+  <div>
     <div class="table-wrap">
-        <table>
-            <thead>
-                <tr>
-                    <th>Type</th>
-                    <th>Qté</th>
-                    <th>Stock</th>
-                    <th>Date</th>
-                    <th>Pour</th>
-                    <th>Demande</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr *ngFor="let m of displayedMovements">
-                    <td>
-                        <span [class]="'op-badge ' + badgeClass(m.operationType)">
-                            {{ formatOperationType(m.operationType) }}
-                        </span>
-                    </td>
-                    <td>
-                        <span [class]="qtyClass(m.operationType)">
-                            {{ qtyPrefix(m.operationType) }}{{ m.operationQuantity }}
-                        </span>
-                    </td>
-                    <td class="stock-flow">
-                        {{ m.initialQuantity }}&nbsp;<span class="arrow">→</span>&nbsp;{{ m.finalQuantity }}
-                    </td>
-                    <td>{{ formatDate(m.operationDate) }}</td>
-                    <td class="col-beneficiary">
-                        <span class="beneficiary-name">{{ getBeneficiary(m) }}</span>
-                        <span class="author-hint" *ngIf="showAuthor(m)">par {{ m.operationUser }}</span>
-                    </td>
-                    <td class="col-reference">
-                        <ng-container *ngIf="m.referenceLabel; else noReference">
-                            <span class="reference-label">{{ m.referenceLabel }}</span>
-                            <a *ngIf="hasReferenceLink(m)"
-                               class="reference-link"
-                               [routerLink]="getReferenceRoute(m)"
-                               [queryParams]="getReferenceQueryParams(m)">
-                                Voir la demande
-                            </a>
-                        </ng-container>
-                        <ng-template #noReference>
-                            <span class="reference-empty">—</span>
-                        </ng-template>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+      <table>
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Qté</th>
+            <th>Stock</th>
+            <th>Date</th>
+            <th>Pour</th>
+            <th>Demande</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of displayedMovements; track m) {
+            <tr>
+              <td>
+                <span [class]="'op-badge ' + badgeClass(m.operationType)">
+                  {{ formatOperationType(m.operationType) }}
+                </span>
+              </td>
+              <td>
+                <span [class]="qtyClass(m.operationType)">
+                  {{ qtyPrefix(m.operationType) }}{{ m.operationQuantity }}
+                </span>
+              </td>
+              <td class="stock-flow">
+                {{ m.initialQuantity }}&nbsp;<span class="arrow">→</span>&nbsp;{{ m.finalQuantity }}
+              </td>
+              <td>{{ formatDate(m.operationDate) }}</td>
+              <td class="col-beneficiary">
+                <span class="beneficiary-name">{{ getBeneficiary(m) }}</span>
+                @if (showAuthor(m)) {
+                  <span class="author-hint">par {{ m.operationUser }}</span>
+                }
+              </td>
+              <td class="col-reference">
+                @if (m.referenceLabel) {
+                  <span class="reference-label">{{ m.referenceLabel }}</span>
+                  @if (hasReferenceLink(m)) {
+                    <a
+                      class="reference-link"
+                      [routerLink]="getReferenceRoute(m)"
+                      [queryParams]="getReferenceQueryParams(m)">
+                      Voir la demande
+                    </a>
+                  }
+                } @else {
+                  <span class="reference-empty">—</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
     </div>
-
-    <div class="view-all" *ngIf="movements.length > limit">
+    @if (movements.length > limit) {
+      <div class="view-all">
         <button type="button" class="count-badge" (click)="openAllMovements()">
-            +{{ movements.length - limit }} mouvements supplémentaires
+          +{{ movements.length - limit }} mouvements supplémentaires
         </button>
-    </div>
-</div>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="empty-state">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
+      <line x1="12" y1="12" x2="12" y2="12" />
+    </svg>
+    <p>Aucun mouvement enregistré</p>
+  </div>
+}
 
-<ng-template #noMovements>
-    <div class="empty-state">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M20 7H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
-            <line x1="12" y1="12" x2="12" y2="12" />
-        </svg>
-        <p>Aucun mouvement enregistré</p>
-    </div>
-</ng-template>

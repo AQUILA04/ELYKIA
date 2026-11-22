@@ -5,25 +5,32 @@
   <app-environment-ribbon></app-environment-ribbon>
 
   <!-- Mobile sidebar backdrop -->
-  <div
-    class="sidebar-backdrop"
-    *ngIf="showHeaderAndSidebar && (layoutService.isSidebarOpen$ | async)"
-    (click)="layoutService.closeSidebar()"
+  @if (showHeaderAndSidebar && (layoutService.isSidebarOpen$ | async)) {
+    <div
+      class="sidebar-backdrop"
+      (click)="layoutService.closeSidebar()"
     aria-hidden="true"></div>
+  }
 
   <!-- Sidebar -->
-  <div *ngIf="showHeaderAndSidebar" class="sidebar">
-    <app-sidebar></app-sidebar>
-  </div>
+  @if (showHeaderAndSidebar) {
+    <div class="sidebar">
+      <app-sidebar></app-sidebar>
+    </div>
+  }
 
   <!-- Content -->
   <div class="content">
     <!-- Header -->
-    <app-header *ngIf="showHeaderAndSidebar"></app-header>
+    @if (showHeaderAndSidebar) {
+      <app-header></app-header>
+    }
 
     <!-- Page Content -->
     <div class="page-content">
-      <app-breadcrumb *ngIf="showHeaderAndSidebar"></app-breadcrumb>
+      @if (showHeaderAndSidebar) {
+        <app-breadcrumb></app-breadcrumb>
+      }
 
       <!-- Main Router Outlet for Pages -->
       <router-outlet></router-outlet>

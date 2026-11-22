@@ -1,5 +1,7 @@
 <div class="kpi-card" [ngClass]="getKpiClass()">
   <div class="kpi-label">{{ config.title }}</div>
   <div class="kpi-value">{{ config.value }}</div>
-  <div class="kpi-sub" *ngIf="config.subtitle">{{ config.subtitle }}</div>
+  @if (config.subtitle) {
+    <div class="kpi-sub">{{ config.subtitle }}</div>
+  }
 </div>

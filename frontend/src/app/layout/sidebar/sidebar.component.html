@@ -16,646 +16,669 @@
     <!-- Sidebar navigation-->
     <nav class="sidebar-nav scroll-sidebar" data-simplebar="">
       <ul id="sidebarnav">
-        <ng-container *ngIf="!mustChangePassword">
-        <li class="nav-small-cap">
-          <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
-          <span class="hide-menu">Menu</span>
-        </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_DASHBOARD', 'ROLE_STOREKEEPER_DASHBOARD']">
-          <a class="sidebar-link" routerLink="/home" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/home') }">
-            <span>
-              <i class="ti ti-home"></i>
-            </span>
-            <span class="hide-menu">Dashboard</span>
-          </a>
-        </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']">
-          <a class="sidebar-link" routerLink="/bi" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/bi') }">
-            <span>
-              <mat-icon>analytics</mat-icon>
-            </span>
-            <span class="hide-menu">Dashboard BI</span>
-          </a>
-        </li>
-        <li hidden="hidden" class="sidebar-item" *ngxPermissionsOnly="['ROLE_OPEN_ACCOUNTING_DAY', 'ROLE_CLOSE_ACCOUNTING_DAY']">
-          <a class="sidebar-link" routerLink="/accounting-day" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/accounting-day') }">
-            <span>
-              <i class="material-icons">calendar_today</i>
-            </span>
-            <span class="hide-menu">Journée comptable</span>
-          </a>
-        </li>
-        <li class="sidebar-item" *ngIf="hasCaisseAccess()">
-          <a class="sidebar-link has-arrow" (click)="onCaisseClick()" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/cash-desk') }">
-            <span>
-              <mat-icon>point_of_sale</mat-icon>
-            </span>
-            <span class="hide-menu">Caisse</span>
-          </a>
-          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isCaisseOpen }">
-            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_OPEN_CASH_DESK', 'ROLE_CLOSE_CASH_DESK']">
-              <a class="sidebar-link" routerLink="/cash-desk/open"
-                 [ngClass]="{ 'active': isSubRouteActive('/cash-desk/open') }">
-                <span class="material-icons">add_box</span>
-                <span class="hide-menu">Ouverture / Fermeture</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/cash-desk/daily-operation"
-                 [ngClass]="{ 'active': isSubRouteActive('/cash-desk/daily-operation') }">
-                <span class="material-icons">receipt</span>
-                <span class="hide-menu">Opération Journalière</span>
-              </a>
-            </li>
-          </ul>
-        </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT']">
-          <a class="sidebar-link" routerLink="/client/list" aria-expanded="false"
-             data-testid="e2e-sidebar-clients"
-             [ngClass]="{ 'active': isRouteActive('/client/list') }">
-            <span>
-              <mat-icon>account_circle</mat-icon>
-            </span>
-            <span class="hide-menu">Clients</span>
-          </a>
-        </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_MANAGE_COMMERCIAL_STAFF']">
-          <a class="sidebar-link has-arrow" (click)="onCommercialStaffClick()" aria-expanded="false"
-             data-testid="e2e-sidebar-commercial-staff"
-             [ngClass]="{ 'active': isRouteActive('/commercial') }">
-            <span>
-              <mat-icon>badge</mat-icon>
-            </span>
-            <span class="hide-menu">Commerciaux</span>
-          </a>
-          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isCommercialStaffOpen }">
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/commercial/accounts"
-                 [ngClass]="{ 'active': isSubRouteActive('/commercial/accounts') }">
-                <span class="material-icons">account_circle</span>
-                <span class="hide-menu">Comptes</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/commercial/staff"
-                 [ngClass]="{ 'active': isSubRouteActive('/commercial/staff') }">
-                <span class="material-icons">groups</span>
-                <span class="hide-menu">Personnel</span>
-              </a>
-            </li>
-          </ul>
-        </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ACCOUNT', 'ROLE_EDIT_ACCOUNT']">
-          <a class="sidebar-link" routerLink="/account/list" aria-expanded="false"
-             data-testid="e2e-sidebar-accounts"
-             [ngClass]="{ 'active': isSubRouteActive('/account') }">
-            <span>
-              <mat-icon>account_balance</mat-icon>
-            </span>
-            <span class="hide-menu">Comptes</span>
-          </a>
-        </li>
-
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_ARTICLE', 'ROLE_STOREKEEPER']">
-          <a class="sidebar-link" routerLink="/article/list" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/article') }">
-            <span>
-              <mat-icon>shopping_bag</mat-icon>
-            </span>
-            <span class="hide-menu">Articles</span>
-          </a>
-        </li>
-        <!-- MENU STOCK COMMERCIAL -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOCK_MANAGEMENT', 'ROLE_STOREKEEPER', 'ROLE_REPORT']">
-          <a class="sidebar-link has-arrow" (click)="onStockClick()" aria-expanded="false"
-             data-testid="e2e-sidebar-stock-commercial"
-             [ngClass]="{ 'active': isRouteActive('/stock') }">
-            <span>
-              <mat-icon>inventory_2</mat-icon>
-            </span>
-            <span class="hide-menu">Stock Commercial</span>
-          </a>
-          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isStockOpen }">
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/stock/request"
-                 data-testid="e2e-sidebar-stock-request"
-                 [ngClass]="{ 'active': isSubRouteActive('/stock/request') }">
-                <span class="material-icons">add_shopping_cart</span>
-                <span class="hide-menu">Demandes Sortie</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_STOCK_MANAGEMENT', 'ROLE_STOREKEEPER', 'ROLE_REPORT']">
-              <a class="sidebar-link" routerLink="/stock/my-stock"
-                 data-testid="e2e-sidebar-stock-my-stock"
-                 [ngClass]="{ 'active': isSubRouteActive('/stock/my-stock') }">
-                <span class="material-icons">dashboard</span>
-                <span class="hide-menu">Stock</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/stock/return"
-                 data-testid="e2e-sidebar-stock-return"
-                 [ngClass]="{ 'active': isSubRouteActive('/stock/return') }">
-                <span class="material-icons">undo</span>
-                <span class="hide-menu">Retours</span>
-              </a>
-            </li>
-          </ul>
-        </li>
-
-        <!-- MENU VENTES -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT']">
-          <a class="sidebar-link has-arrow" (click)="onVentesClick()" aria-expanded="false"
-             data-testid="e2e-sidebar-ventes"
-             [ngClass]="{ 'active': isRouteActive('/ventes') }">
-            <span>
-              <mat-icon>monetization_on</mat-icon>
-            </span>
-            <span class="hide-menu">Ventes</span>
-          </a>
-          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isVentesOpen }">
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/credit/list"
-                 data-testid="e2e-sidebar-credit-list"
-                 [ngClass]="{ 'active': isSubRouteActive('/credit/list') }">
-                <span class="material-icons">list</span>
-                <span class="hide-menu">Liste</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngIf="isPromoterOnly()">
-              <a class="sidebar-link" routerLink="/credit/ancien-portefeuille"
-                 [queryParams]="{ tab: 'credit' }"
-                 [ngClass]="{ 'active': isSubRouteActive('/credit/ancien-portefeuille') }">
-                <span class="material-icons">history</span>
-                <span class="hide-menu">Ancien portefeuille</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/credit/late"
-                 [ngClass]="{ 'active': isSubRouteActive('/credit/late') }">
-                <span class="material-icons">assignment_late</span>
-                <span class="hide-menu">Retards</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/credit/echeance"
-                 [ngClass]="{ 'active': isSubRouteActive('/credit/echeance') }">
-                <span class="material-icons">event_available</span>
-                <span class="hide-menu">Échéances</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/credit/recouvrements"
-                 [ngClass]="{ 'active': isSubRouteActive('/credit/recouvrements') }">
-                <span class="material-icons">history</span>
-                <span class="hide-menu">Recouvrements</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngIf="canViewCollectorTransfers()">
-              <a class="sidebar-link" routerLink="/credit/transferts-commerciaux"
-                 [ngClass]="{ 'active': isSubRouteActive('/credit/transferts-commerciaux') }">
-                <span class="material-icons">swap_horiz</span>
-                <span class="hide-menu">Transfert Ventes</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_RATTRAPAGE']">
-              <a class="sidebar-link" routerLink="/stock/credit/rattrapage"
-                 [ngClass]="{ 'active': isSubRouteActive('/stock/credit/rattrapage') }"
-                 data-testid="e2e-sidebar-rattrapage">
-                <span class="material-icons">settings_backup_restore</span>
-                <span class="hide-menu">Rattrapages</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/credit/articles-vendus"
-                 [ngClass]="{ 'active': isSubRouteActive('/credit/articles-vendus') }">
-                <span class="material-icons">sell</span>
-                <span class="hide-menu">Articles</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_ADMIN', 'ROLE_GESTIONNAIRE']">
-              <a class="sidebar-link" routerLink="/credit/annulation"
-                 data-testid="e2e-sidebar-credit-annulation"
-                 [ngClass]="{ 'active': isSubRouteActive('/credit/annulation') }">
-                <span class="material-icons">cancel_presentation</span>
-                <span class="hide-menu">Annulation Ventes</span>
-              </a>
-            </li>
-          </ul>
-        </li>
-
-<!--        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER']"-->
-<!--          [ngClass]="{ 'active': isRouteActive('/out-list') }">-->
-<!--          <a class="sidebar-link" routerLink="/out-list" aria-expanded="false">-->
-<!--            <span>-->
-<!--              <mat-icon>exit_to_app</mat-icon>-->
-<!--            </span>-->
-<!--            <span class="hide-menu">Sortie</span>-->
-<!--          </a>-->
-<!--        </li>-->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_TONTINE','ROLE_CONSULT_TONTINE','ROLE_EDIT_TONTINE','ROLE_ADMIN']">
-          <a class="sidebar-link has-arrow" (click)="onTontineClick()" aria-expanded="false"
-             data-testid="e2e-sidebar-tontines"
-             [ngClass]="{ 'active': isRouteActive('/tontine') }">
-            <span>
-              <mat-icon>savings</mat-icon>
-            </span>
-            <span class="hide-menu">Tontines</span>
-          </a>
-          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isTontineOpen }">
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/tontine"
-                 data-testid="e2e-sidebar-tontine-list"
-                 [ngClass]="{ 'active': activeRoute === '/tontine' }">
-                <span class="material-icons">list</span>
-                <span class="hide-menu">Liste</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngIf="isPromoterOnly()">
-              <a class="sidebar-link" routerLink="/credit/ancien-portefeuille"
-                 [queryParams]="{ tab: 'tontine' }"
-                 [ngClass]="{ 'active': isSubRouteActive('/credit/ancien-portefeuille') }">
-                <span class="material-icons">history</span>
-                <span class="hide-menu">Ancien portefeuille</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/tontine/collectes"
-                 data-testid="e2e-sidebar-tontine-collectes"
-                 [ngClass]="{ 'active': isSubRouteActive('/tontine/collectes') }">
-                <span class="material-icons">history</span>
-                <span class="hide-menu">Collectes</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/tontine/livraisons"
-                 data-testid="e2e-sidebar-tontine-livraisons"
-                 [ngClass]="{ 'active': isSubRouteActive('/tontine/livraisons') }">
-                <span class="material-icons">local_shipping</span>
-                <span class="hide-menu">Livraison</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_ADMIN','ROLE_DEL_TONTINE']">
-              <a class="sidebar-link" routerLink="/tontine/doublons"
-                 data-testid="e2e-sidebar-tontine-doublons"
-                 [ngClass]="{ 'active': isSubRouteActive('/tontine/doublons') }">
-                <span class="material-icons">content_copy</span>
-                <span class="hide-menu">Doublons</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_CONSULT_TONTINE_COLLECTION_RESET','ROLE_RESET_TONTINE_COLLECTIONS','ROLE_ADMIN']">
-              <a class="sidebar-link" routerLink="/tontine/reset-collectes"
-                 [ngClass]="{ 'active': isSubRouteActive('/tontine/reset-collectes') }">
-                <span class="material-icons">restart_alt</span>
-                <span class="hide-menu">Archives collectes</span>
-              </a>
-            </li>
-          </ul>
-        </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_ORDER','ROLE_EDIT_ORDER','ROLE_ADMIN']">
-          <a class="sidebar-link" routerLink="/orders" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/orders') }">
-            <span>
-              <mat-icon>shopping_cart</mat-icon>
-            </span>
-            <span class="hide-menu">Commandes</span>
-          </a>
-        </li>
-
-        <!-- MENU SERVICES EN LIGNE -->
-        <li class="sidebar-item"
-            *ngIf="!isStorekeeper() && !isRecoveryManager()"
-            data-testid="e2e-sidebar-services-en-ligne">
-          <a class="sidebar-link has-arrow" (click)="onServicesEnLigneClick()"
-             [attr.aria-expanded]="isServicesEnLigneOpen"
-             [ngClass]="{ 'active': isRouteActive('/services-en-ligne') }">
-            <span>
-              <mat-icon>language</mat-icon>
-            </span>
-            <span class="hide-menu">Services en ligne</span>
-          </a>
-          <ul [attr.aria-expanded]="isServicesEnLigneOpen" class="collapse first-level"
-              [ngClass]="{ 'show': isServicesEnLigneOpen, 'in': isServicesEnLigneOpen }">
-            <li class="sidebar-item submenu-item"
-                *ngxPermissionsOnly="['ROLE_VALIDATE_CLIENT_REGISTRATION','ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT','ROLE_ADMIN']">
-              <a class="sidebar-link" routerLink="/client-registrations"
-                 [ngClass]="{ 'active': isSubRouteActive('/client-registrations') }"
-                 data-testid="e2e-sidebar-client-registrations">
-                <span class="material-icons">person_add</span>
-                <span class="hide-menu">Inscriptions</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item"
-                *ngxPermissionsOnly="['ROLE_CONSULT_ORDER','ROLE_EDIT_ORDER','ROLE_ADMIN']">
-              <a class="sidebar-link" routerLink="/orders/online"
-                 [ngClass]="{ 'active': isSubRouteActive('/orders/online') }"
-                 data-testid="e2e-sidebar-online-orders">
-                <span class="material-icons">shopping_cart</span>
-                <span class="hide-menu">Commandes</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/customer-payments"
-                 [ngClass]="{ 'active': isSubRouteActive('/customer-payments') }"
-                 data-testid="e2e-sidebar-customer-payments">
-                <span class="material-icons">payments</span>
-                <span class="hide-menu">Paiements</span>
-              </a>
-            </li>
-          </ul>
-        </li>
-
-        <li class="sidebar-item" *ngIf="!isStorekeeper() && !isRecoveryManager()">
-          <a class="sidebar-link" routerLink="/notifications" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/notifications') }"
-             data-testid="e2e-sidebar-notifications">
-            <span>
-              <mat-icon>notifications</mat-icon>
-            </span>
-            <span class="hide-menu">Notifications</span>
-          </a>
-        </li>
-        <li class="sidebar-item" *ngIf="!isStorekeeper() && !isPromoter() && !isRecoveryManager()">
-          <a class="sidebar-link" routerLink="/expense" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/expense') }">
-            <span>
-              <mat-icon>money_off</mat-icon>
-            </span>
-            <span class="hide-menu">Dépenses</span>
-          </a>
-        </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN', 'ROLE_PROMOTER', 'ROLE_STOREKEEPER']">
-          <a class="sidebar-link" routerLink="/debts" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/debts') }"
-             data-testid="e2e-sidebar-debts">
-            <span>
-              <mat-icon>account_balance_wallet</mat-icon>
-            </span>
-            <span class="hide-menu">Dettes</span>
-          </a>
-        </li>
-        <li class="sidebar-item" *ngIf="canSeeCarnetEcarts()">
-          <a class="sidebar-link" routerLink="/carnet-ecarts" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/carnet-ecarts') }"
-             data-testid="e2e-sidebar-carnet-ecarts">
-            <span>
-              <mat-icon>menu_book</mat-icon>
-            </span>
-            <span class="hide-menu">Écarts de carnet</span>
-          </a>
-        </li>
-
-        <!-- MENU CONFIGURATION -->
-        <li class="sidebar-item" *ngIf="!isStorekeeper() && !isRecoveryManager()">
-          <a class="sidebar-link has-arrow" (click)="onConfigurationClick()" aria-expanded="false"
-             data-testid="e2e-sidebar-configuration"
-             [ngClass]="{ 'active': isRouteActive('/configuration') }">
-            <span>
-              <mat-icon>settings</mat-icon>
-            </span>
-            <span class="hide-menu">Configuration</span>
-          </a>
-          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isConfigurationOpen }">
-            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_LOCALITY','ROLE_EDIT_LOCALITY']">
-              <a class="sidebar-link" routerLink="/locality/list"
-                 data-testid="e2e-sidebar-localities"
-                 [ngClass]="{ 'active': isSubRouteActive('/locality') }">
-                <i class="ti ti-map"></i>
-                <span class="hide-menu">Localités</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_EDIT_ARTICLE', 'ROLE_STOREKEEPER']">
-              <a class="sidebar-link" routerLink="/article-type"
-                 [ngClass]="{ 'active': isSubRouteActive('/article-type') }">
-                <span class="material-icons">category</span>
-                <span class="hide-menu">Type d'Article</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/expense/types"
-                 [ngClass]="{ 'active': isSubRouteActive('/expense/types') }">
-                <span class="material-icons">style</span>
-                <span class="hide-menu">Types de Dépense</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngIf="hasAccessToParameters() && !isPromoter()">
-              <a class="sidebar-link" routerLink="/parameters"
-                 data-testid="e2e-sidebar-parameters"
-                 [ngClass]="{ 'active': isSubRouteActive('/parameters') }">
-                <span class="material-icons">tune</span>
-                <span class="hide-menu">Paramètres</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngIf="hasAccessToParameters() && !isPromoter()">
-              <a class="sidebar-link" routerLink="/configuration/mobile-money"
-                 data-testid="e2e-sidebar-mobile-money-config"
-                 [ngClass]="{ 'active': isExactRoute('/configuration/mobile-money') }">
-                <span class="material-icons">payments</span>
-                <span class="hide-menu">Mobile Money</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngIf="hasAccessToParameters() && !isPromoter()">
-              <a class="sidebar-link" routerLink="/configuration/mobile-money/frais-retrait"
-                 data-testid="e2e-sidebar-withdrawal-fees"
-                 [ngClass]="{ 'active': isSubRouteActive('/configuration/mobile-money/frais-retrait') }">
-                <span class="material-icons">receipt_long</span>
-                <span class="hide-menu">Frais de retrait</span>
-              </a>
-            </li>
-          </ul>
-        </li>
-
-        <li class="sidebar-item" *ngIf="!isStorekeeper()">
-          <a class="sidebar-link" routerLink="/report/daily" aria-expanded="false"
-             data-testid="e2e-sidebar-daily-report"
-             [ngClass]="{ 'active': isRouteActive('/report/daily') }">
-            <span>
-              <mat-icon>today</mat-icon>
-            </span>
-            <span class="hide-menu">Rapport Journalier</span>
-          </a>
-        </li>
-        <ng-container *ngIf="showMonthlyReports">
-          <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']">
-            <a class="sidebar-link" routerLink="/report/monthly" aria-expanded="false"
-               [ngClass]="{ 'active': isRouteActive('/report/monthly') }">
+        @if (!mustChangePassword) {
+          <li class="nav-small-cap">
+            <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
+            <span class="hide-menu">Menu</span>
+          </li>
+          <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_DASHBOARD', 'ROLE_STOREKEEPER_DASHBOARD']">
+            <a class="sidebar-link" routerLink="/home" aria-expanded="false"
+              [ngClass]="{ 'active': isRouteActive('/home') }">
               <span>
-                <mat-icon>calendar_month</mat-icon>
+                <i class="ti ti-home"></i>
               </span>
-              <span class="hide-menu">Rapports Mensuels</span>
+              <span class="hide-menu">Dashboard</span>
             </a>
           </li>
-        </ng-container>
-
-        <ng-container *ngIf="showRecruitment">
-          <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ADMIN', 'ROLE_RECRUITMENT']">
-            <a class="sidebar-link" routerLink="/recruitment/offers"
-               [ngClass]="{ 'active': isRouteActive('/recruitment') }">
-              <span><mat-icon>work</mat-icon></span>
-              <span class="hide-menu">Recrutement</span>
+          <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']">
+            <a class="sidebar-link" routerLink="/bi" aria-expanded="false"
+              [ngClass]="{ 'active': isRouteActive('/bi') }">
+              <span>
+                <mat-icon>analytics</mat-icon>
+              </span>
+              <span class="hide-menu">Dashboard BI</span>
             </a>
           </li>
-        </ng-container>
-
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER','ROLE_REPORT']">
-          <a class="sidebar-link" routerLink="/inventory/list" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/inventory') }"
-             data-testid="e2e-sidebar-inventory">
-            <span>
-              <mat-icon>inventory</mat-icon>
-            </span>
-            <span class="hide-menu">Inventaires</span>
-          </a>
-        </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER', 'ROLE_REPORT']">
-          <a class="sidebar-link" routerLink="/stock/receptions" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/stock/receptions') }"
-             data-testid="e2e-sidebar-stock-receptions">
-            <span>
-              <mat-icon>history</mat-icon>
-            </span>
-            <span class="hide-menu">Historique Entrée</span>
-          </a>
-        </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_DEPOSIT','ROLE_EDIT_AGENCY_DEPOSIT']">
-          <a class="sidebar-link" routerLink="/gestion/list" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/gestion') }">
-            <span>
-              <mat-icon>business</mat-icon>
-            </span>
-            <span class="hide-menu">Agences</span>
-          </a>
-        </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_REPORT','ROLE_EDIT_AGENCY_REPORT']">
-          <a class="sidebar-link" routerLink="/operation/list" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/operation') }">
-            <span>
-              <mat-icon>event</mat-icon>
-            </span>
-            <span class="hide-menu">Opération</span>
-          </a>
-        </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_DEPOSIT','ROLE_EDIT_AGENCY_DEPOSIT']">
-          <a class="sidebar-link" routerLink="/deposit/list" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/deposit') }">
-            <span>
-              <mat-icon>savings</mat-icon>
-            </span>
-            <span class="hide-menu">Dépôt</span>
-          </a>
-        </li>
-        <!-- MENU ADMINISTRATION (toujours en dernier) -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_AUDIT', 'ROLE_EDIT_USER', 'ROLE_DEL_USER']"
-            data-testid="e2e-sidebar-administration">
-          <a class="sidebar-link has-arrow" (click)="onAdministrationClick()" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/administration') }">
-            <span>
-              <mat-icon>admin_panel_settings</mat-icon>
-            </span>
-            <span class="hide-menu">Administration</span>
-          </a>
-          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isAdministrationOpen }">
-            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_AUDIT']">
-              <a class="sidebar-link" routerLink="/audit"
-                 [ngClass]="{ 'active': isSubRouteActive('/audit') }"
-                 data-testid="e2e-sidebar-audit">
-                <span class="material-icons">fact_check</span>
-                <span class="hide-menu">Audit</span>
+          <li hidden="hidden" class="sidebar-item" *ngxPermissionsOnly="['ROLE_OPEN_ACCOUNTING_DAY', 'ROLE_CLOSE_ACCOUNTING_DAY']">
+            <a class="sidebar-link" routerLink="/accounting-day" aria-expanded="false"
+              [ngClass]="{ 'active': isRouteActive('/accounting-day') }">
+              <span>
+                <i class="material-icons">calendar_today</i>
+              </span>
+              <span class="hide-menu">Journée comptable</span>
+            </a>
+          </li>
+          @if (hasCaisseAccess()) {
+            <li class="sidebar-item">
+              <a class="sidebar-link has-arrow" (click)="onCaisseClick()" aria-expanded="false"
+                [ngClass]="{ 'active': isRouteActive('/cash-desk') }">
+                <span>
+                  <mat-icon>point_of_sale</mat-icon>
+                </span>
+                <span class="hide-menu">Caisse</span>
               </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_EDIT_USER','ROLE_DEL_USER']">
-              <a class="sidebar-link" routerLink="/user/list"
-                 [ngClass]="{ 'active': isUserManagementRoute() }">
-                <span class="material-icons">person</span>
-                <span class="hide-menu">Utilisateurs</span>
-              </a>
-            </li>
-            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
-              <a class="sidebar-link has-arrow" (click)="onSecurityClick()" aria-expanded="false"
-                 [ngClass]="{ 'active': isRouteActive('/security') }">
-                <span class="material-icons">security</span>
-                <span class="hide-menu">Sécurité</span>
-              </a>
-              <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isSecurityOpen }">
-                <li class="sidebar-item submenu-item">
-                  <a class="sidebar-link" routerLink="/security/profils"
-                     [ngClass]="{ 'active': isSubRouteActive('/security/profils') }">
-                    <span class="material-icons">badge</span>
-                    <span class="hide-menu">Profils</span>
+              <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isCaisseOpen }">
+                <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_OPEN_CASH_DESK', 'ROLE_CLOSE_CASH_DESK']">
+                  <a class="sidebar-link" routerLink="/cash-desk/open"
+                    [ngClass]="{ 'active': isSubRouteActive('/cash-desk/open') }">
+                    <span class="material-icons">add_box</span>
+                    <span class="hide-menu">Ouverture / Fermeture</span>
                   </a>
                 </li>
                 <li class="sidebar-item submenu-item">
-                  <a class="sidebar-link" routerLink="/security/permissions"
-                     [ngClass]="{ 'active': isSubRouteActive('/security/permissions') }">
-                    <span class="material-icons">vpn_key</span>
-                    <span class="hide-menu">Permissions</span>
+                  <a class="sidebar-link" routerLink="/cash-desk/daily-operation"
+                    [ngClass]="{ 'active': isSubRouteActive('/cash-desk/daily-operation') }">
+                    <span class="material-icons">receipt</span>
+                    <span class="hide-menu">Opération Journalière</span>
                   </a>
                 </li>
               </ul>
             </li>
-          </ul>
-        </li>
-
-        </ng-container>
-
-        <li class="nav-small-cap" *ngIf="mustChangePassword">
-          <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
-          <span class="hide-menu">Sécurité du compte</span>
-        </li>
-        <li class="sidebar-item sidebar-security-notice" *ngIf="mustChangePassword">
-          <div class="security-notice-box" role="status" aria-live="polite">
-            <mat-icon>lock_reset</mat-icon>
-            <p>Le changement de mot de passe est obligatoire avant d'accéder au reste de l'application.</p>
-          </div>
-        </li>
-
-        <li class="nav-small-cap">
-          <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
-          <span class="hide-menu">Aide</span>
-        </li>
-        <li class="sidebar-item" *ngIf="showElykiaAi && !mustChangePassword">
-          <a class="sidebar-link" routerLink="/ai-chat" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/ai-chat') }">
-            <span>
-              <mat-icon>auto_awesome</mat-icon>
-            </span>
-            <span class="hide-menu">Elykia IA</span>
+          }
+          <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT']">
+            <a class="sidebar-link" routerLink="/client/list" aria-expanded="false"
+              data-testid="e2e-sidebar-clients"
+              [ngClass]="{ 'active': isRouteActive('/client/list') }">
+              <span>
+                <mat-icon>account_circle</mat-icon>
+              </span>
+              <span class="hide-menu">Clients</span>
+            </a>
+          </li>
+          <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_MANAGE_COMMERCIAL_STAFF']">
+            <a class="sidebar-link has-arrow" (click)="onCommercialStaffClick()" aria-expanded="false"
+              data-testid="e2e-sidebar-commercial-staff"
+              [ngClass]="{ 'active': isRouteActive('/commercial') }">
+              <span>
+                <mat-icon>badge</mat-icon>
+              </span>
+              <span class="hide-menu">Commerciaux</span>
+            </a>
+            <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isCommercialStaffOpen }">
+              <li class="sidebar-item submenu-item">
+                <a class="sidebar-link" routerLink="/commercial/accounts"
+                  [ngClass]="{ 'active': isSubRouteActive('/commercial/accounts') }">
+                  <span class="material-icons">account_circle</span>
+                  <span class="hide-menu">Comptes</span>
+                </a>
+              </li>
+              <li class="sidebar-item submenu-item">
+                <a class="sidebar-link" routerLink="/commercial/staff"
+                  [ngClass]="{ 'active': isSubRouteActive('/commercial/staff') }">
+                  <span class="material-icons">groups</span>
+                  <span class="hide-menu">Personnel</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+          <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ACCOUNT', 'ROLE_EDIT_ACCOUNT']">
+            <a class="sidebar-link" routerLink="/account/list" aria-expanded="false"
+              data-testid="e2e-sidebar-accounts"
+              [ngClass]="{ 'active': isSubRouteActive('/account') }">
+              <span>
+                <mat-icon>account_balance</mat-icon>
+              </span>
+              <span class="hide-menu">Comptes</span>
+            </a>
+          </li>
+          <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_ARTICLE', 'ROLE_STOREKEEPER']">
+            <a class="sidebar-link" routerLink="/article/list" aria-expanded="false"
+              [ngClass]="{ 'active': isRouteActive('/article') }">
+              <span>
+                <mat-icon>shopping_bag</mat-icon>
+              </span>
+              <span class="hide-menu">Articles</span>
+            </a>
+          </li>
+          <!-- MENU STOCK COMMERCIAL -->
+          <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOCK_MANAGEMENT', 'ROLE_STOREKEEPER', 'ROLE_REPORT']">
+            <a class="sidebar-link has-arrow" (click)="onStockClick()" aria-expanded="false"
+              data-testid="e2e-sidebar-stock-commercial"
+              [ngClass]="{ 'active': isRouteActive('/stock') }">
+              <span>
+                <mat-icon>inventory_2</mat-icon>
+              </span>
+              <span class="hide-menu">Stock Commercial</span>
+            </a>
+            <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isStockOpen }">
+              <li class="sidebar-item submenu-item">
+                <a class="sidebar-link" routerLink="/stock/request"
+                  data-testid="e2e-sidebar-stock-request"
+                  [ngClass]="{ 'active': isSubRouteActive('/stock/request') }">
+                  <span class="material-icons">add_shopping_cart</span>
+                  <span class="hide-menu">Demandes Sortie</span>
+                </a>
+              </li>
+              <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_STOCK_MANAGEMENT', 'ROLE_STOREKEEPER', 'ROLE_REPORT']">
+                <a class="sidebar-link" routerLink="/stock/my-stock"
+                  data-testid="e2e-sidebar-stock-my-stock"
+                  [ngClass]="{ 'active': isSubRouteActive('/stock/my-stock') }">
+                  <span class="material-icons">dashboard</span>
+                  <span class="hide-menu">Stock</span>
+                </a>
+              </li>
+              <li class="sidebar-item submenu-item">
+                <a class="sidebar-link" routerLink="/stock/return"
+                  data-testid="e2e-sidebar-stock-return"
+                  [ngClass]="{ 'active': isSubRouteActive('/stock/return') }">
+                  <span class="material-icons">undo</span>
+                  <span class="hide-menu">Retours</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+          <!-- MENU VENTES -->
+          <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT']">
+            <a class="sidebar-link has-arrow" (click)="onVentesClick()" aria-expanded="false"
+              data-testid="e2e-sidebar-ventes"
+              [ngClass]="{ 'active': isRouteActive('/ventes') }">
+              <span>
+                <mat-icon>monetization_on</mat-icon>
+              </span>
+              <span class="hide-menu">Ventes</span>
+            </a>
+            <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isVentesOpen }">
+              <li class="sidebar-item submenu-item">
+                <a class="sidebar-link" routerLink="/credit/list"
+                  data-testid="e2e-sidebar-credit-list"
+                  [ngClass]="{ 'active': isSubRouteActive('/credit/list') }">
+                  <span class="material-icons">list</span>
+                  <span class="hide-menu">Liste</span>
+                </a>
+              </li>
+              @if (isPromoterOnly()) {
+                <li class="sidebar-item submenu-item">
+                  <a class="sidebar-link" routerLink="/credit/ancien-portefeuille"
+                    [queryParams]="{ tab: 'credit' }"
+                    [ngClass]="{ 'active': isSubRouteActive('/credit/ancien-portefeuille') }">
+                    <span class="material-icons">history</span>
+                    <span class="hide-menu">Ancien portefeuille</span>
+                  </a>
+                </li>
+              }
+              <li class="sidebar-item submenu-item">
+                <a class="sidebar-link" routerLink="/credit/late"
+                  [ngClass]="{ 'active': isSubRouteActive('/credit/late') }">
+                  <span class="material-icons">assignment_late</span>
+                  <span class="hide-menu">Retards</span>
+                </a>
+              </li>
+              <li class="sidebar-item submenu-item">
+                <a class="sidebar-link" routerLink="/credit/echeance"
+                  [ngClass]="{ 'active': isSubRouteActive('/credit/echeance') }">
+                  <span class="material-icons">event_available</span>
+                  <span class="hide-menu">Échéances</span>
+                </a>
+              </li>
+              <li class="sidebar-item submenu-item">
+                <a class="sidebar-link" routerLink="/credit/recouvrements"
+                  [ngClass]="{ 'active': isSubRouteActive('/credit/recouvrements') }">
+                  <span class="material-icons">history</span>
+                  <span class="hide-menu">Recouvrements</span>
+                </a>
+              </li>
+              @if (canViewCollectorTransfers()) {
+                <li class="sidebar-item submenu-item">
+                  <a class="sidebar-link" routerLink="/credit/transferts-commerciaux"
+                    [ngClass]="{ 'active': isSubRouteActive('/credit/transferts-commerciaux') }">
+                    <span class="material-icons">swap_horiz</span>
+                    <span class="hide-menu">Transfert Ventes</span>
+                  </a>
+                </li>
+              }
+              <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_RATTRAPAGE']">
+                <a class="sidebar-link" routerLink="/stock/credit/rattrapage"
+                  [ngClass]="{ 'active': isSubRouteActive('/stock/credit/rattrapage') }"
+                  data-testid="e2e-sidebar-rattrapage">
+                  <span class="material-icons">settings_backup_restore</span>
+                  <span class="hide-menu">Rattrapages</span>
+                </a>
+              </li>
+              <li class="sidebar-item submenu-item">
+                <a class="sidebar-link" routerLink="/credit/articles-vendus"
+                  [ngClass]="{ 'active': isSubRouteActive('/credit/articles-vendus') }">
+                  <span class="material-icons">sell</span>
+                  <span class="hide-menu">Articles</span>
+                </a>
+              </li>
+              <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_ADMIN', 'ROLE_GESTIONNAIRE']">
+                <a class="sidebar-link" routerLink="/credit/annulation"
+                  data-testid="e2e-sidebar-credit-annulation"
+                  [ngClass]="{ 'active': isSubRouteActive('/credit/annulation') }">
+                  <span class="material-icons">cancel_presentation</span>
+                  <span class="hide-menu">Annulation Ventes</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+          <!--        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER']"-->
+          <!--          [ngClass]="{ 'active': isRouteActive('/out-list') }">-->
+          <!--          <a class="sidebar-link" routerLink="/out-list" aria-expanded="false">-->
+          <!--            <span>-->
+          <!--              <mat-icon>exit_to_app</mat-icon>-->
+        <!--            </span>-->
+        <!--            <span class="hide-menu">Sortie</span>-->
+      <!--          </a>-->
+    <!--        </li>-->
+    <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_TONTINE','ROLE_CONSULT_TONTINE','ROLE_EDIT_TONTINE','ROLE_ADMIN']">
+      <a class="sidebar-link has-arrow" (click)="onTontineClick()" aria-expanded="false"
+        data-testid="e2e-sidebar-tontines"
+        [ngClass]="{ 'active': isRouteActive('/tontine') }">
+        <span>
+          <mat-icon>savings</mat-icon>
+        </span>
+        <span class="hide-menu">Tontines</span>
+      </a>
+      <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isTontineOpen }">
+        <li class="sidebar-item submenu-item">
+          <a class="sidebar-link" routerLink="/tontine"
+            data-testid="e2e-sidebar-tontine-list"
+            [ngClass]="{ 'active': activeRoute === '/tontine' }">
+            <span class="material-icons">list</span>
+            <span class="hide-menu">Liste</span>
           </a>
         </li>
-        <li class="sidebar-item">
-          <a class="sidebar-link" routerLink="/user/change-password" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/user/change-password') }">
-            <span>
-              <mat-icon>lock_reset</mat-icon>
-            </span>
-            <span class="hide-menu">Changer le mot de passe</span>
+        @if (isPromoterOnly()) {
+          <li class="sidebar-item submenu-item">
+            <a class="sidebar-link" routerLink="/credit/ancien-portefeuille"
+              [queryParams]="{ tab: 'tontine' }"
+              [ngClass]="{ 'active': isSubRouteActive('/credit/ancien-portefeuille') }">
+              <span class="material-icons">history</span>
+              <span class="hide-menu">Ancien portefeuille</span>
+            </a>
+          </li>
+        }
+        <li class="sidebar-item submenu-item">
+          <a class="sidebar-link" routerLink="/tontine/collectes"
+            data-testid="e2e-sidebar-tontine-collectes"
+            [ngClass]="{ 'active': isSubRouteActive('/tontine/collectes') }">
+            <span class="material-icons">history</span>
+            <span class="hide-menu">Collectes</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngIf="!mustChangePassword">
-          <a class="sidebar-link" [href]="getUserGuideLink()" target="_blank">
-            <span>
-              <mat-icon>help_outline</mat-icon>
-            </span>
-            <span class="hide-menu">Guide d'utilisation</span>
+        <li class="sidebar-item submenu-item">
+          <a class="sidebar-link" routerLink="/tontine/livraisons"
+            data-testid="e2e-sidebar-tontine-livraisons"
+            [ngClass]="{ 'active': isSubRouteActive('/tontine/livraisons') }">
+            <span class="material-icons">local_shipping</span>
+            <span class="hide-menu">Livraison</span>
           </a>
         </li>
-
-        <li class="sidebar-item">
-          <a class="sidebar-link" (click)="confirmLogout()">
-            <span>
-              <i class="ti ti-power"></i>
-            </span>
-            <span class="hide-menu">Déconnexion</span>
+        <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_ADMIN','ROLE_DEL_TONTINE']">
+          <a class="sidebar-link" routerLink="/tontine/doublons"
+            data-testid="e2e-sidebar-tontine-doublons"
+            [ngClass]="{ 'active': isSubRouteActive('/tontine/doublons') }">
+            <span class="material-icons">content_copy</span>
+            <span class="hide-menu">Doublons</span>
+          </a>
+        </li>
+        <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_CONSULT_TONTINE_COLLECTION_RESET','ROLE_RESET_TONTINE_COLLECTIONS','ROLE_ADMIN']">
+          <a class="sidebar-link" routerLink="/tontine/reset-collectes"
+            [ngClass]="{ 'active': isSubRouteActive('/tontine/reset-collectes') }">
+            <span class="material-icons">restart_alt</span>
+            <span class="hide-menu">Archives collectes</span>
           </a>
         </li>
       </ul>
-    </nav>
-    <!-- End Sidebar navigation -->
-  </div>
-  <!-- End Sidebar scroll-->
+    </li>
+    <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_ORDER','ROLE_EDIT_ORDER','ROLE_ADMIN']">
+      <a class="sidebar-link" routerLink="/orders" aria-expanded="false"
+        [ngClass]="{ 'active': isRouteActive('/orders') }">
+        <span>
+          <mat-icon>shopping_cart</mat-icon>
+        </span>
+        <span class="hide-menu">Commandes</span>
+      </a>
+    </li>
+    <!-- MENU SERVICES EN LIGNE -->
+    @if (!isStorekeeper() && !isRecoveryManager()) {
+      <li class="sidebar-item"
+        data-testid="e2e-sidebar-services-en-ligne">
+        <a class="sidebar-link has-arrow" (click)="onServicesEnLigneClick()"
+          [attr.aria-expanded]="isServicesEnLigneOpen"
+          [ngClass]="{ 'active': isRouteActive('/services-en-ligne') }">
+          <span>
+            <mat-icon>language</mat-icon>
+          </span>
+          <span class="hide-menu">Services en ligne</span>
+        </a>
+        <ul [attr.aria-expanded]="isServicesEnLigneOpen" class="collapse first-level"
+          [ngClass]="{ 'show': isServicesEnLigneOpen, 'in': isServicesEnLigneOpen }">
+          <li class="sidebar-item submenu-item"
+            *ngxPermissionsOnly="['ROLE_VALIDATE_CLIENT_REGISTRATION','ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT','ROLE_ADMIN']">
+            <a class="sidebar-link" routerLink="/client-registrations"
+              [ngClass]="{ 'active': isSubRouteActive('/client-registrations') }"
+              data-testid="e2e-sidebar-client-registrations">
+              <span class="material-icons">person_add</span>
+              <span class="hide-menu">Inscriptions</span>
+            </a>
+          </li>
+          <li class="sidebar-item submenu-item"
+            *ngxPermissionsOnly="['ROLE_CONSULT_ORDER','ROLE_EDIT_ORDER','ROLE_ADMIN']">
+            <a class="sidebar-link" routerLink="/orders/online"
+              [ngClass]="{ 'active': isSubRouteActive('/orders/online') }"
+              data-testid="e2e-sidebar-online-orders">
+              <span class="material-icons">shopping_cart</span>
+              <span class="hide-menu">Commandes</span>
+            </a>
+          </li>
+          <li class="sidebar-item submenu-item">
+            <a class="sidebar-link" routerLink="/customer-payments"
+              [ngClass]="{ 'active': isSubRouteActive('/customer-payments') }"
+              data-testid="e2e-sidebar-customer-payments">
+              <span class="material-icons">payments</span>
+              <span class="hide-menu">Paiements</span>
+            </a>
+          </li>
+        </ul>
+      </li>
+    }
+    @if (!isStorekeeper() && !isRecoveryManager()) {
+      <li class="sidebar-item">
+        <a class="sidebar-link" routerLink="/notifications" aria-expanded="false"
+          [ngClass]="{ 'active': isRouteActive('/notifications') }"
+          data-testid="e2e-sidebar-notifications">
+          <span>
+            <mat-icon>notifications</mat-icon>
+          </span>
+          <span class="hide-menu">Notifications</span>
+        </a>
+      </li>
+    }
+    @if (!isStorekeeper() && !isPromoter() && !isRecoveryManager()) {
+      <li class="sidebar-item">
+        <a class="sidebar-link" routerLink="/expense" aria-expanded="false"
+          [ngClass]="{ 'active': isRouteActive('/expense') }">
+          <span>
+            <mat-icon>money_off</mat-icon>
+          </span>
+          <span class="hide-menu">Dépenses</span>
+        </a>
+      </li>
+    }
+    <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN', 'ROLE_PROMOTER', 'ROLE_STOREKEEPER']">
+      <a class="sidebar-link" routerLink="/debts" aria-expanded="false"
+        [ngClass]="{ 'active': isRouteActive('/debts') }"
+        data-testid="e2e-sidebar-debts">
+        <span>
+          <mat-icon>account_balance_wallet</mat-icon>
+        </span>
+        <span class="hide-menu">Dettes</span>
+      </a>
+    </li>
+    @if (canSeeCarnetEcarts()) {
+      <li class="sidebar-item">
+        <a class="sidebar-link" routerLink="/carnet-ecarts" aria-expanded="false"
+          [ngClass]="{ 'active': isRouteActive('/carnet-ecarts') }"
+          data-testid="e2e-sidebar-carnet-ecarts">
+          <span>
+            <mat-icon>menu_book</mat-icon>
+          </span>
+          <span class="hide-menu">Écarts de carnet</span>
+        </a>
+      </li>
+    }
+    <!-- MENU CONFIGURATION -->
+    @if (!isStorekeeper() && !isRecoveryManager()) {
+      <li class="sidebar-item">
+        <a class="sidebar-link has-arrow" (click)="onConfigurationClick()" aria-expanded="false"
+          data-testid="e2e-sidebar-configuration"
+          [ngClass]="{ 'active': isRouteActive('/configuration') }">
+          <span>
+            <mat-icon>settings</mat-icon>
+          </span>
+          <span class="hide-menu">Configuration</span>
+        </a>
+        <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isConfigurationOpen }">
+          <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_LOCALITY','ROLE_EDIT_LOCALITY']">
+            <a class="sidebar-link" routerLink="/locality/list"
+              data-testid="e2e-sidebar-localities"
+              [ngClass]="{ 'active': isSubRouteActive('/locality') }">
+              <i class="ti ti-map"></i>
+              <span class="hide-menu">Localités</span>
+            </a>
+          </li>
+          <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_EDIT_ARTICLE', 'ROLE_STOREKEEPER']">
+            <a class="sidebar-link" routerLink="/article-type"
+              [ngClass]="{ 'active': isSubRouteActive('/article-type') }">
+              <span class="material-icons">category</span>
+              <span class="hide-menu">Type d'Article</span>
+            </a>
+          </li>
+          <li class="sidebar-item submenu-item">
+            <a class="sidebar-link" routerLink="/expense/types"
+              [ngClass]="{ 'active': isSubRouteActive('/expense/types') }">
+              <span class="material-icons">style</span>
+              <span class="hide-menu">Types de Dépense</span>
+            </a>
+          </li>
+          @if (hasAccessToParameters() && !isPromoter()) {
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/parameters"
+                data-testid="e2e-sidebar-parameters"
+                [ngClass]="{ 'active': isSubRouteActive('/parameters') }">
+                <span class="material-icons">tune</span>
+                <span class="hide-menu">Paramètres</span>
+              </a>
+            </li>
+          }
+          @if (hasAccessToParameters() && !isPromoter()) {
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/configuration/mobile-money"
+                data-testid="e2e-sidebar-mobile-money-config"
+                [ngClass]="{ 'active': isExactRoute('/configuration/mobile-money') }">
+                <span class="material-icons">payments</span>
+                <span class="hide-menu">Mobile Money</span>
+              </a>
+            </li>
+          }
+          @if (hasAccessToParameters() && !isPromoter()) {
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/configuration/mobile-money/frais-retrait"
+                data-testid="e2e-sidebar-withdrawal-fees"
+                [ngClass]="{ 'active': isSubRouteActive('/configuration/mobile-money/frais-retrait') }">
+                <span class="material-icons">receipt_long</span>
+                <span class="hide-menu">Frais de retrait</span>
+              </a>
+            </li>
+          }
+        </ul>
+      </li>
+    }
+    @if (!isStorekeeper()) {
+      <li class="sidebar-item">
+        <a class="sidebar-link" routerLink="/report/daily" aria-expanded="false"
+          data-testid="e2e-sidebar-daily-report"
+          [ngClass]="{ 'active': isRouteActive('/report/daily') }">
+          <span>
+            <mat-icon>today</mat-icon>
+          </span>
+          <span class="hide-menu">Rapport Journalier</span>
+        </a>
+      </li>
+    }
+    @if (showMonthlyReports) {
+      <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_REPORT']">
+        <a class="sidebar-link" routerLink="/report/monthly" aria-expanded="false"
+          [ngClass]="{ 'active': isRouteActive('/report/monthly') }">
+          <span>
+            <mat-icon>calendar_month</mat-icon>
+          </span>
+          <span class="hide-menu">Rapports Mensuels</span>
+        </a>
+      </li>
+    }
+    @if (showRecruitment) {
+      <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ADMIN', 'ROLE_RECRUITMENT']">
+        <a class="sidebar-link" routerLink="/recruitment/offers"
+          [ngClass]="{ 'active': isRouteActive('/recruitment') }">
+          <span><mat-icon>work</mat-icon></span>
+          <span class="hide-menu">Recrutement</span>
+        </a>
+      </li>
+    }
+    <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER','ROLE_REPORT']">
+      <a class="sidebar-link" routerLink="/inventory/list" aria-expanded="false"
+        [ngClass]="{ 'active': isRouteActive('/inventory') }"
+        data-testid="e2e-sidebar-inventory">
+        <span>
+          <mat-icon>inventory</mat-icon>
+        </span>
+        <span class="hide-menu">Inventaires</span>
+      </a>
+    </li>
+    <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER', 'ROLE_REPORT']">
+      <a class="sidebar-link" routerLink="/stock/receptions" aria-expanded="false"
+        [ngClass]="{ 'active': isRouteActive('/stock/receptions') }"
+        data-testid="e2e-sidebar-stock-receptions">
+        <span>
+          <mat-icon>history</mat-icon>
+        </span>
+        <span class="hide-menu">Historique Entrée</span>
+      </a>
+    </li>
+    <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_DEPOSIT','ROLE_EDIT_AGENCY_DEPOSIT']">
+      <a class="sidebar-link" routerLink="/gestion/list" aria-expanded="false"
+        [ngClass]="{ 'active': isRouteActive('/gestion') }">
+        <span>
+          <mat-icon>business</mat-icon>
+        </span>
+        <span class="hide-menu">Agences</span>
+      </a>
+    </li>
+    <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_REPORT','ROLE_EDIT_AGENCY_REPORT']">
+      <a class="sidebar-link" routerLink="/operation/list" aria-expanded="false"
+        [ngClass]="{ 'active': isRouteActive('/operation') }">
+        <span>
+          <mat-icon>event</mat-icon>
+        </span>
+        <span class="hide-menu">Opération</span>
+      </a>
+    </li>
+    <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_DEPOSIT','ROLE_EDIT_AGENCY_DEPOSIT']">
+      <a class="sidebar-link" routerLink="/deposit/list" aria-expanded="false"
+        [ngClass]="{ 'active': isRouteActive('/deposit') }">
+        <span>
+          <mat-icon>savings</mat-icon>
+        </span>
+        <span class="hide-menu">Dépôt</span>
+      </a>
+    </li>
+    <!-- MENU ADMINISTRATION (toujours en dernier) -->
+    <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_AUDIT', 'ROLE_EDIT_USER', 'ROLE_DEL_USER']"
+      data-testid="e2e-sidebar-administration">
+      <a class="sidebar-link has-arrow" (click)="onAdministrationClick()" aria-expanded="false"
+        [ngClass]="{ 'active': isRouteActive('/administration') }">
+        <span>
+          <mat-icon>admin_panel_settings</mat-icon>
+        </span>
+        <span class="hide-menu">Administration</span>
+      </a>
+      <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isAdministrationOpen }">
+        <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_AUDIT']">
+          <a class="sidebar-link" routerLink="/audit"
+            [ngClass]="{ 'active': isSubRouteActive('/audit') }"
+            data-testid="e2e-sidebar-audit">
+            <span class="material-icons">fact_check</span>
+            <span class="hide-menu">Audit</span>
+          </a>
+        </li>
+        <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_EDIT_USER','ROLE_DEL_USER']">
+          <a class="sidebar-link" routerLink="/user/list"
+            [ngClass]="{ 'active': isUserManagementRoute() }">
+            <span class="material-icons">person</span>
+            <span class="hide-menu">Utilisateurs</span>
+          </a>
+        </li>
+        <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
+          <a class="sidebar-link has-arrow" (click)="onSecurityClick()" aria-expanded="false"
+            [ngClass]="{ 'active': isRouteActive('/security') }">
+            <span class="material-icons">security</span>
+            <span class="hide-menu">Sécurité</span>
+          </a>
+          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isSecurityOpen }">
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/security/profils"
+                [ngClass]="{ 'active': isSubRouteActive('/security/profils') }">
+                <span class="material-icons">badge</span>
+                <span class="hide-menu">Profils</span>
+              </a>
+            </li>
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/security/permissions"
+                [ngClass]="{ 'active': isSubRouteActive('/security/permissions') }">
+                <span class="material-icons">vpn_key</span>
+                <span class="hide-menu">Permissions</span>
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </li>
+  }
+
+  @if (mustChangePassword) {
+    <li class="nav-small-cap">
+      <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
+      <span class="hide-menu">Sécurité du compte</span>
+    </li>
+  }
+  @if (mustChangePassword) {
+    <li class="sidebar-item sidebar-security-notice">
+      <div class="security-notice-box" role="status" aria-live="polite">
+        <mat-icon>lock_reset</mat-icon>
+        <p>Le changement de mot de passe est obligatoire avant d'accéder au reste de l'application.</p>
+      </div>
+    </li>
+  }
+
+  <li class="nav-small-cap">
+    <i class="ti ti-dots nav-small-cap-icon fs-4"></i>
+    <span class="hide-menu">Aide</span>
+  </li>
+  @if (showElykiaAi && !mustChangePassword) {
+    <li class="sidebar-item">
+      <a class="sidebar-link" routerLink="/ai-chat" aria-expanded="false"
+        [ngClass]="{ 'active': isRouteActive('/ai-chat') }">
+        <span>
+          <mat-icon>auto_awesome</mat-icon>
+        </span>
+        <span class="hide-menu">Elykia IA</span>
+      </a>
+    </li>
+  }
+  <li class="sidebar-item">
+    <a class="sidebar-link" routerLink="/user/change-password" aria-expanded="false"
+      [ngClass]="{ 'active': isRouteActive('/user/change-password') }">
+      <span>
+        <mat-icon>lock_reset</mat-icon>
+      </span>
+      <span class="hide-menu">Changer le mot de passe</span>
+    </a>
+  </li>
+  @if (!mustChangePassword) {
+    <li class="sidebar-item">
+      <a class="sidebar-link" [href]="getUserGuideLink()" target="_blank">
+        <span>
+          <mat-icon>help_outline</mat-icon>
+        </span>
+        <span class="hide-menu">Guide d'utilisation</span>
+      </a>
+    </li>
+  }
+
+  <li class="sidebar-item">
+    <a class="sidebar-link" (click)="confirmLogout()">
+      <span>
+        <i class="ti ti-power"></i>
+      </span>
+      <span class="hide-menu">Déconnexion</span>
+    </a>
+  </li>
+</ul>
+</nav>
+<!-- End Sidebar navigation -->
+</div>
+<!-- End Sidebar scroll-->
 </aside>
 <!--  Sidebar End -->

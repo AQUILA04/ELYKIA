@@ -14,11 +14,13 @@
     </button>
   </div>
 
-  <div class="stats-loading" *ngIf="loading">
-    <mat-spinner diameter="36"></mat-spinner>
-  </div>
+  @if (loading) {
+    <div class="stats-loading">
+      <mat-spinner diameter="36"></mat-spinner>
+    </div>
+  }
 
-  <ng-container *ngIf="!loading && stats">
+  @if (!loading && stats) {
     <div class="kpi-strip">
       <div class="kpi-card">
         <span class="kpi-label">Latence DATA moyenne</span>
@@ -33,60 +35,66 @@
         <span class="kpi-value">{{ stats.rejectedSql?.length ?? 0 }}</span>
       </div>
     </div>
-
     <div class="stats-grid">
       <section class="stats-card">
         <h3>Distribution des intents</h3>
-        <ul class="intent-list" *ngIf="intentEntries.length; else emptyIntents">
-          <li *ngFor="let item of intentEntries">
-            <span>{{ item.intent }}</span>
-            <strong>{{ item.count }}</strong>
-          </li>
-        </ul>
-        <ng-template #emptyIntents>
+        @if (intentEntries.length) {
+          <ul class="intent-list">
+            @for (item of intentEntries; track item) {
+              <li>
+                <span>{{ item.intent }}</span>
+                <strong>{{ item.count }}</strong>
+              </li>
+            }
+          </ul>
+        } @else {
           <p class="empty">Aucune donnée sur la période.</p>
-        </ng-template>
+        }
       </section>
-
       <section class="stats-card">
         <h3>Requêtes fréquentes</h3>
-        <ul class="question-list" *ngIf="stats.frequentQuestions?.length; else emptyQuestions">
-          <li *ngFor="let item of stats.frequentQuestions">
-            <span class="question">{{ item.question }}</span>
-            <span class="count">{{ item.count }}×</span>
-          </li>
-        </ul>
-        <ng-template #emptyQuestions>
+        @if (stats.frequentQuestions?.length) {
+          <ul class="question-list">
+            @for (item of stats.frequentQuestions; track item) {
+              <li>
+                <span class="question">{{ item.question }}</span>
+                <span class="count">{{ item.count }}×</span>
+              </li>
+            }
+          </ul>
+        } @else {
           <p class="empty">Aucune requête enregistrée.</p>
-        </ng-template>
+        }
       </section>
-
       <section class="stats-card full-width">
         <h3>SQL rejetés ou en échec</h3>
-        <div class="table-wrap" *ngIf="stats.rejectedSql?.length; else emptyRejected">
-          <table>
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Utilisateur</th>
-                <th>Question</th>
-                <th>Erreur</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of stats.rejectedSql">
-                <td>{{ formatDate(row.createdAt) }}</td>
-                <td>{{ row.username || '—' }}</td>
-                <td>{{ row.question }}</td>
-                <td class="error-cell">{{ row.error || '—' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <ng-template #emptyRejected>
+        @if (stats.rejectedSql?.length) {
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Utilisateur</th>
+                  <th>Question</th>
+                  <th>Erreur</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of stats.rejectedSql; track row) {
+                  <tr>
+                    <td>{{ formatDate(row.createdAt) }}</td>
+                    <td>{{ row.username || '—' }}</td>
+                    <td>{{ row.question }}</td>
+                    <td class="error-cell">{{ row.error || '—' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
           <p class="empty">Aucun SQL rejeté sur la période.</p>
-        </ng-template>
+        }
       </section>
     </div>
-  </ng-container>
+  }
 </div>

@@ -16,7 +16,7 @@
     <div class="header-card-main">
       <div class="title-group">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
           <rect width="20" height="12" x="2" y="6" rx="2"/>
           <circle cx="12" cy="12" r="2"/>
           <path d="M6 12h.01M18 12h.01"/>
@@ -39,9 +39,11 @@
           [username]="currentUser?.username"
           placeholder="Rechercher et sélectionner un client">
         </app-client-select>
-        <span class="field-error" *ngIf="accountForm.get('clientId')?.invalid && accountForm.get('clientId')?.touched">
-          Le client est requis.
-        </span>
+        @if (accountForm.get('clientId')?.invalid && accountForm.get('clientId')?.touched) {
+          <span class="field-error">
+            Le client est requis.
+          </span>
+        }
       </div>
 
       <div class="field-group">
@@ -54,15 +56,21 @@
           readonly
           placeholder="Généré automatiquement à la création">
         <span class="field-hint">Le numéro de compte n'est pas modifiable.</span>
-        <span class="field-error" *ngIf="accountForm.get('accountNumber')?.errors?.['required'] && accountForm.get('accountNumber')?.touched">
-          Le numéro de compte est requis.
-        </span>
-        <span class="field-error" *ngIf="accountForm.get('accountNumber')?.errors?.['minlength'] && accountForm.get('accountNumber')?.touched">
-          Le numéro de compte doit contenir 10 caractères.
-        </span>
-        <span class="field-error" *ngIf="accountForm.get('accountNumber')?.errors?.['maxlength'] && accountForm.get('accountNumber')?.touched">
-          Le numéro de compte doit contenir 10 caractères.
-        </span>
+        @if (accountForm.get('accountNumber')?.errors?.['required'] && accountForm.get('accountNumber')?.touched) {
+          <span class="field-error">
+            Le numéro de compte est requis.
+          </span>
+        }
+        @if (accountForm.get('accountNumber')?.errors?.['minlength'] && accountForm.get('accountNumber')?.touched) {
+          <span class="field-error">
+            Le numéro de compte doit contenir 10 caractères.
+          </span>
+        }
+        @if (accountForm.get('accountNumber')?.errors?.['maxlength'] && accountForm.get('accountNumber')?.touched) {
+          <span class="field-error">
+            Le numéro de compte doit contenir 10 caractères.
+          </span>
+        }
       </div>
 
       <div class="field-group">
@@ -75,17 +83,27 @@
           min="500"
           max="2000000"
           placeholder="Ex : 5000">
-        <span class="field-hint" *ngIf="dualCreditEnabled">Ce dépôt devient le solde de l'adhésion personnelle. Le crédit personnel reste plafonné à 35 000 FCFA. Montant entre 500 et 2 000 000 XOF.</span>
-        <span class="field-hint" *ngIf="!dualCreditEnabled">Montant entre 500 et 2 000 000 XOF.</span>
-        <span class="field-error" *ngIf="accountForm.get('accountBalance')?.errors?.['required'] && accountForm.get('accountBalance')?.touched">
-          Le solde du compte est requis.
-        </span>
-        <span class="field-error" *ngIf="accountForm.get('accountBalance')?.errors?.['min'] && accountForm.get('accountBalance')?.touched">
-          Le solde du compte doit être au minimum de 500.
-        </span>
-        <span class="field-error" *ngIf="accountForm.get('accountBalance')?.errors?.['max'] && accountForm.get('accountBalance')?.touched">
-          Le solde du compte ne doit pas dépasser 2 000 000.
-        </span>
+        @if (dualCreditEnabled) {
+          <span class="field-hint">Ce dépôt devient le solde de l'adhésion personnelle. Le crédit personnel reste plafonné à 35 000 FCFA. Montant entre 500 et 2 000 000 XOF.</span>
+        }
+        @if (!dualCreditEnabled) {
+          <span class="field-hint">Montant entre 500 et 2 000 000 XOF.</span>
+        }
+        @if (accountForm.get('accountBalance')?.errors?.['required'] && accountForm.get('accountBalance')?.touched) {
+          <span class="field-error">
+            Le solde du compte est requis.
+          </span>
+        }
+        @if (accountForm.get('accountBalance')?.errors?.['min'] && accountForm.get('accountBalance')?.touched) {
+          <span class="field-error">
+            Le solde du compte doit être au minimum de 500.
+          </span>
+        }
+        @if (accountForm.get('accountBalance')?.errors?.['max'] && accountForm.get('accountBalance')?.touched) {
+          <span class="field-error">
+            Le solde du compte ne doit pas dépasser 2 000 000.
+          </span>
+        }
       </div>
 
       <div class="form-actions">

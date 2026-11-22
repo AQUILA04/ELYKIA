@@ -18,7 +18,7 @@
       <div class="header-card-main">
         <div class="title-group">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
             <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
             <line x1="12" y1="22.08" x2="12" y2="12"/>
@@ -91,53 +91,63 @@
 
     <div class="table-card a5">
       <div class="table-wrapper">
-        <div *ngIf="isLoading" class="table-loading">
-          <div class="empty-state">
-            <div class="empty-icon">⏳</div>
-            <div class="empty-title">Chargement…</div>
+        @if (isLoading) {
+          <div class="table-loading">
+            <div class="empty-state">
+              <div class="empty-icon">⏳</div>
+              <div class="empty-title">Chargement…</div>
+            </div>
           </div>
-        </div>
+        }
 
-        <div *ngIf="!isLoading && types.length === 0" class="table-empty-static">
-          <div class="empty-state">
-            <div class="empty-icon">📦</div>
-            <div class="empty-title">Aucun type d'article</div>
-            <div class="empty-sub">Modifiez votre recherche ou créez un premier type.</div>
+        @if (!isLoading && types.length === 0) {
+          <div class="table-empty-static">
+            <div class="empty-state">
+              <div class="empty-icon">📦</div>
+              <div class="empty-title">Aucun type d'article</div>
+              <div class="empty-sub">Modifiez votre recherche ou créez un premier type.</div>
+            </div>
           </div>
-        </div>
+        }
 
-        <table class="data-table" *ngIf="!isLoading && types.length > 0">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Nom</th>
-              <th>Code</th>
-              <th>Description</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let type of types; let i = index">
-              <td><span class="col-ref">{{ (page * size) + (i + 1) }}</span></td>
-              <td>
-                <span class="col-name name-with-photo">
-                  <img *ngIf="type.displayPhotoUrl" class="article-thumb" [src]="type.displayPhotoUrl" [alt]="type.name" />
-                  {{ type.name }}
-                </span>
-              </td>
-              <td><span class="col-code">{{ type.code }}</span></td>
-              <td>{{ type.description || '—' }}</td>
-              <td class="col-actions">
-                <button type="button" class="btn-detail" (click)="editType(type.id!)" title="Modifier">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                </button>
-                <button type="button" class="btn-detail btn-danger" (click)="onDelete(type.id!)" title="Supprimer">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        @if (!isLoading && types.length > 0) {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nom</th>
+                <th>Code</th>
+                <th>Description</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (type of types; track type; let i = $index) {
+                <tr>
+                  <td><span class="col-ref">{{ (page * size) + (i + 1) }}</span></td>
+                  <td>
+                    <span class="col-name name-with-photo">
+                      @if (type.displayPhotoUrl) {
+                        <img class="article-thumb" [src]="type.displayPhotoUrl" [alt]="type.name" />
+                      }
+                      {{ type.name }}
+                    </span>
+                  </td>
+                  <td><span class="col-code">{{ type.code }}</span></td>
+                  <td>{{ type.description || '—' }}</td>
+                  <td class="col-actions">
+                    <button type="button" class="btn-detail" (click)="editType(type.id!)" title="Modifier">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    </button>
+                    <button type="button" class="btn-detail btn-danger" (click)="onDelete(type.id!)" title="Supprimer">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </div>
 
       <div class="pagination article-type-pagination">

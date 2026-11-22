@@ -58,18 +58,21 @@
 
       <span class="result-count">
         <strong>{{ totalElement }}</strong> utilisateur(s)
-        <span *ngIf="selectedUsers.size > 0"> · {{ selectedUsers.size }} sélectionné(s)</span>
+        @if (selectedUsers.size > 0) {
+          <span> · {{ selectedUsers.size }} sélectionné(s)</span>
+        }
       </span>
 
       <div class="toolbar-actions">
         <ng-container *ngxPermissionsOnly="['ROLE_EDIT_USER']">
-          <button
-            class="btn-outline btn-sm"
-            *ngIf="selectedUsers.size > 0"
-            (click)="requirePasswordChangeSelected()">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-            Exiger changement mot de passe
-          </button>
+          @if (selectedUsers.size > 0) {
+            <button
+              class="btn-outline btn-sm"
+              (click)="requirePasswordChangeSelected()">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+              Exiger changement mot de passe
+            </button>
+          }
         </ng-container>
         <button class="btn-primary" (click)="addUser()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
@@ -80,89 +83,103 @@
 
     <div class="table-card a5">
       <div class="table-wrapper">
-        <div *ngIf="isLoading" class="table-loading">
-          <div class="empty-state">
-            <div class="empty-icon">⏳</div>
-            <div class="empty-title">Chargement…</div>
+        @if (isLoading) {
+          <div class="table-loading">
+            <div class="empty-state">
+              <div class="empty-icon">⏳</div>
+              <div class="empty-title">Chargement…</div>
+            </div>
           </div>
-        </div>
+        }
 
-        <div *ngIf="!isLoading && users.length === 0" class="table-empty-static">
-          <div class="empty-state">
-            <div class="empty-icon">👤</div>
-            <div class="empty-title">Aucun utilisateur trouvé</div>
-            <div class="empty-sub">Modifiez votre recherche ou ajoutez un nouvel utilisateur.</div>
+        @if (!isLoading && users.length === 0) {
+          <div class="table-empty-static">
+            <div class="empty-state">
+              <div class="empty-icon">👤</div>
+              <div class="empty-title">Aucun utilisateur trouvé</div>
+              <div class="empty-sub">Modifiez votre recherche ou ajoutez un nouvel utilisateur.</div>
+            </div>
           </div>
-        </div>
+        }
 
-        <table class="data-table" *ngIf="!isLoading && users.length > 0">
-          <thead>
-            <tr>
-              <th class="col-check" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
-                <input
-                  type="checkbox"
-                  class="row-checkbox"
-                  [checked]="isAllSelected"
-                  [indeterminate]="selectedUsers.size > 0 && !isAllSelected"
-                  (change)="toggleAllSelection()"
-                  aria-label="Tout sélectionner">
-              </th>
-              <th>#</th>
-              <th>Identifiant</th>
-              <th>Nom et prénom</th>
-              <th>Email</th>
-              <th>Téléphone</th>
-              <th>Statut</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let user of users; let i = index" class="table-row" [class.selected-row]="selectedUsers.has(user.id)">
-              <td class="col-check" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
-                <input
-                  type="checkbox"
-                  class="row-checkbox"
-                  [checked]="selectedUsers.has(user.id)"
-                  (change)="toggleSelection(user)"
-                  [attr.aria-label]="'Sélectionner ' + user.username">
-              </td>
-              <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
-              <td>
-                <a class="col-user-link" [routerLink]="['/user/details', user.id]">{{ user.username }}</a>
-              </td>
-              <td><span class="col-user">{{ user.firstname }} {{ user.lastname }}</span></td>
-              <td>{{ user.email || '—' }}</td>
-              <td><span class="col-phone">{{ user.phone || '—' }}</span></td>
-              <td>
-                <span class="status-badge" [ngClass]="getStatusBadgeClass(user)">{{ getStatusLabel(user) }}</span>
-                <span class="status-badge status-warn" *ngIf="user.mustChangePassword">MDP requis</span>
-              </td>
-              <td class="col-actions">
-                <button class="btn-detail" (click)="viewDetails(user.id)" title="Détails">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                  Voir
-                </button>
-                <button *ngxPermissionsOnly="['ROLE_EDIT_USER']" class="btn-detail" (click)="editUser(user.id)" title="Modifier">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                </button>
-                <button
-                  *ngxPermissionsOnly="['ROLE_EDIT_USER']"
-                  class="btn-detail"
-                  [class.btn-warn]="isUserActive(user)"
-                  [class.btn-success]="!isUserActive(user)"
-                  (click)="toggleActive(user)"
-                  [title]="isUserActive(user) ? 'Désactiver' : 'Activer'">
-                  <svg *ngIf="isUserActive(user)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6 6 18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 6 12 12"/></svg>
-                  <svg *ngIf="!isUserActive(user)" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  {{ isUserActive(user) ? 'Désactiver' : 'Activer' }}
-                </button>
-                <button *ngxPermissionsOnly="['ROLE_DEL_USER']" class="btn-detail btn-danger" (click)="deleteUser(user.id)" title="Supprimer">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        @if (!isLoading && users.length > 0) {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="col-check" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
+                  <input
+                    type="checkbox"
+                    class="row-checkbox"
+                    [checked]="isAllSelected"
+                    [indeterminate]="selectedUsers.size > 0 && !isAllSelected"
+                    (change)="toggleAllSelection()"
+                    aria-label="Tout sélectionner">
+                </th>
+                <th>#</th>
+                <th>Identifiant</th>
+                <th>Nom et prénom</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Statut</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (user of users; track user; let i = $index) {
+                <tr class="table-row" [class.selected-row]="selectedUsers.has(user.id)">
+                  <td class="col-check" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
+                    <input
+                      type="checkbox"
+                      class="row-checkbox"
+                      [checked]="selectedUsers.has(user.id)"
+                      (change)="toggleSelection(user)"
+                      [attr.aria-label]="'Sélectionner ' + user.username">
+                  </td>
+                  <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
+                  <td>
+                    <a class="col-user-link" [routerLink]="['/user/details', user.id]">{{ user.username }}</a>
+                  </td>
+                  <td><span class="col-user">{{ user.firstname }} {{ user.lastname }}</span></td>
+                  <td>{{ user.email || '—' }}</td>
+                  <td><span class="col-phone">{{ user.phone || '—' }}</span></td>
+                  <td>
+                    <span class="status-badge" [ngClass]="getStatusBadgeClass(user)">{{ getStatusLabel(user) }}</span>
+                    @if (user.mustChangePassword) {
+                      <span class="status-badge status-warn">MDP requis</span>
+                    }
+                  </td>
+                  <td class="col-actions">
+                    <button class="btn-detail" (click)="viewDetails(user.id)" title="Détails">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                      Voir
+                    </button>
+                    <button *ngxPermissionsOnly="['ROLE_EDIT_USER']" class="btn-detail" (click)="editUser(user.id)" title="Modifier">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    </button>
+                    <button
+                      *ngxPermissionsOnly="['ROLE_EDIT_USER']"
+                      class="btn-detail"
+                      [class.btn-warn]="isUserActive(user)"
+                      [class.btn-success]="!isUserActive(user)"
+                      (click)="toggleActive(user)"
+                      [title]="isUserActive(user) ? 'Désactiver' : 'Activer'">
+                      @if (isUserActive(user)) {
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6 6 18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 6 12 12"/></svg>
+                      }
+                      @if (!isUserActive(user)) {
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                      }
+                      {{ isUserActive(user) ? 'Désactiver' : 'Activer' }}
+                    </button>
+                    <button *ngxPermissionsOnly="['ROLE_DEL_USER']" class="btn-detail btn-danger" (click)="deleteUser(user.id)" title="Supprimer">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </div>
 
       <div class="pagination user-pagination">

@@ -1,227 +1,250 @@
 <ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fff" type="ball-pulse"
-  [fullScreen]="true"></ngx-spinner>
+[fullScreen]="true"></ngx-spinner>
 
-<div class="cd-page-wrapper" *ngIf="!isLoading && credit" data-testid="e2e-credit-details">
-
-  <!-- TOPBAR -->
-  <div class="cd-topbar a1">
-    <a class="back-link" (click)="onCancel()">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-      </svg>
-      Retour à la liste
-    </a>
-    <div class="cd-topbar-actions">
-      <ng-container *ngxPermissionsOnly="['ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']">
-        <button
-          *ngIf="credit.type === 'CREDIT' && credit.status === 'INPROGRESS'"
-          class="cd-btn cd-btn-carnet"
-          type="button"
-          (click)="onToggleCarnetVerification()"
-          [disabled]="isCarnetBusy"
-          data-testid="e2e-credit-carnet-verify-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          {{ isCarnetBusy ? 'Enregistrement…' : (credit.carnetVerified ? 'Annuler la vérification' : 'Vérifier') }}
-        </button>
-      </ng-container>
-      <button class="cd-btn cd-btn-outline" [disabled]="true">
+@if (!isLoading && credit) {
+  <div class="cd-page-wrapper" data-testid="e2e-credit-details">
+    <!-- TOPBAR -->
+    <div class="cd-topbar a1">
+      <a class="back-link" (click)="onCancel()">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
-        Imprimer
-      </button>
+        Retour à la liste
+      </a>
+      <div class="cd-topbar-actions">
+        <ng-container *ngxPermissionsOnly="['ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']">
+          @if (credit.type === 'CREDIT' && credit.status === 'INPROGRESS') {
+            <button
+              class="cd-btn cd-btn-carnet"
+              type="button"
+              (click)="onToggleCarnetVerification()"
+              [disabled]="isCarnetBusy"
+              data-testid="e2e-credit-carnet-verify-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              {{ isCarnetBusy ? 'Enregistrement…' : (credit.carnetVerified ? 'Annuler la vérification' : 'Vérifier') }}
+            </button>
+          }
+        </ng-container>
+        <button class="cd-btn cd-btn-outline" [disabled]="true">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          Imprimer
+        </button>
+      </div>
     </div>
-  </div>
-
-  <!-- HEADER -->
-  <div class="cd-page-header a2">
-    <div>
-      <div class="header-eyebrow">Réf. {{ credit.reference }}</div>
-      <div class="header-title" *ngIf="credit.type == 'CREDIT'">Détails de la vente à crédit</div>
-      <div class="header-title" *ngIf="credit.type == 'TONTINE'">Détails de la livraison tontine</div>
-      <div class="header-title" *ngIf="credit.type == 'CASH'">Détails de la vente Cash</div>
-      <div class="header-sub">{{ credit.client?.firstname }} {{ credit.client?.lastname }} — Ouvert le {{
+    <!-- HEADER -->
+    <div class="cd-page-header a2">
+      <div>
+        <div class="header-eyebrow">Réf. {{ credit.reference }}</div>
+        @if (credit.type == 'CREDIT') {
+          <div class="header-title">Détails de la vente à crédit</div>
+        }
+        @if (credit.type == 'TONTINE') {
+          <div class="header-title">Détails de la livraison tontine</div>
+        }
+        @if (credit.type == 'CASH') {
+          <div class="header-title">Détails de la vente Cash</div>
+        }
+        <div class="header-sub">{{ credit.client?.firstname }} {{ credit.client?.lastname }} — Ouvert le {{
         credit.beginDate | date:'dd/MM/yyyy' }}</div>
-      <p class="carnet-meta" *ngIf="credit.type === 'CREDIT' && credit.carnetVerified" data-testid="e2e-credit-carnet-meta">
-        Vérifié le {{ credit.carnetVerifiedAt | date:'dd/MM/yyyy HH:mm' }}
-        par {{ credit.carnetVerifiedBy }}
-      </p>
-    </div>
-    <div class="header-right">
-      <span class="cd-badge"
-        [ngClass]="{'cd-badge-success': credit.status === 'INPROGRESS', 'cd-badge-secondary': credit.status !== 'INPROGRESS'}">{{
-          (credit.status | statusBadge).label }}</span>
-      <span *ngIf="credit.type === 'CREDIT'"
+        @if (credit.type === 'CREDIT' && credit.carnetVerified) {
+          <p class="carnet-meta" data-testid="e2e-credit-carnet-meta">
+            Vérifié le {{ credit.carnetVerifiedAt | date:'dd/MM/yyyy HH:mm' }}
+            par {{ credit.carnetVerifiedBy }}
+          </p>
+        }
+      </div>
+      <div class="header-right">
+        <span class="cd-badge"
+          [ngClass]="{'cd-badge-success': credit.status === 'INPROGRESS', 'cd-badge-secondary': credit.status !== 'INPROGRESS'}">{{
+        (credit.status | statusBadge).label }}</span>
+        @if (credit.type === 'CREDIT') {
+          <span
             class="carnet-badge"
             [class.is-verified]="credit.carnetVerified"
             [class.is-pending]="!credit.carnetVerified"
             data-testid="e2e-credit-carnet-badge">
-        {{ credit.carnetVerified ? 'Carnet vérifié' : 'Carnet non vérifié' }}
-      </span>
-      <span style="font-size:12px;color:var(--text-muted);">Mise journalière : <strong style="color:var(--navy);">{{
-          credit.dailyStake | number }} FCFA</strong></span>
-    </div>
-  </div>
-
-  <!-- PROGRESSION -->
-  <div class="cd-progress-card a3">
-    <div class="progress-header">
-      <span class="progress-label">Progression du remboursement</span>
-      <div class="progress-amounts">
-        <span class="progress-paid">{{ credit.totalAmountPaid | number }} FCFA</span>
-        <span class="progress-sep">payés sur</span>
-        <span class="progress-total">{{ credit.totalAmount | number }} FCFA</span>
+            {{ credit.carnetVerified ? 'Carnet vérifié' : 'Carnet non vérifié' }}
+          </span>
+        }
+        <span style="font-size:12px;color:var(--text-muted);">Mise journalière : <strong style="color:var(--navy);">{{
+        credit.dailyStake | number }} FCFA</strong></span>
       </div>
     </div>
-    <div class="progress-track">
-      <div class="progress-fill" [style.width]="((credit.totalAmountPaid / credit.totalAmount) * 100) + '%'">
-        <div class="progress-thumb"></div>
-        <div class="progress-pct-label">{{ (credit.totalAmountPaid / credit.totalAmount * 100) | number:'1.0-0' }}%
+    <!-- PROGRESSION -->
+    <div class="cd-progress-card a3">
+      <div class="progress-header">
+        <span class="progress-label">Progression du remboursement</span>
+        <div class="progress-amounts">
+          <span class="progress-paid">{{ credit.totalAmountPaid | number }} FCFA</span>
+          <span class="progress-sep">payés sur</span>
+          <span class="progress-total">{{ credit.totalAmount | number }} FCFA</span>
         </div>
       </div>
-    </div>
-    <div class="progress-footer">
-      <span>Début : {{ credit.beginDate | date:'dd/MM/yyyy' }}</span>
-      <span class="progress-remaining">⏳ {{ credit.totalAmountRemaining | number }} FCFA restants · {{
+      <div class="progress-track">
+        <div class="progress-fill" [style.width]="((credit.totalAmountPaid / credit.totalAmount) * 100) + '%'">
+          <div class="progress-thumb"></div>
+          <div class="progress-pct-label">{{ (credit.totalAmountPaid / credit.totalAmount * 100) | number:'1.0-0' }}%
+          </div>
+        </div>
+      </div>
+      <div class="progress-footer">
+        <span>Début : {{ credit.beginDate | date:'dd/MM/yyyy' }}</span>
+        <span class="progress-remaining">⏳ {{ credit.totalAmountRemaining | number }} FCFA restants · {{
         credit.remainingDaysCount }} jours</span>
-      <span *ngIf="credit.status !== 'SETTLED'">Fin prévue : {{ credit.expectedEndDate | date:'dd/MM/yyyy' }}</span>
-      <span *ngIf="credit.status === 'SETTLED'">Cloturé le : {{ credit.effectiveEndDate | date:'dd/MM/yyyy' }}</span>
-    </div>
-  </div>
-
-  <!-- KPI -->
-  <div class="kpi-strip">
-    <div class="cd-kpi-card cd-kpi-navy a4">
-      <div class="kpi-label">Montant total</div>
-      <div class="kpi-value">{{ credit.totalAmount | number }}</div>
-      <div class="kpi-unit">FCFA</div>
-    </div>
-    <div class="cd-kpi-card cd-kpi-green a4">
-      <div class="kpi-label">Déjà payé</div>
-      <div class="kpi-value">{{ credit.totalAmountPaid | number }}</div>
-      <div class="kpi-unit">FCFA <span style="font-size: 10px; color: var(--text-light); margin-left: 5px;">(Avance : {{
-          credit.advance || 0 | number }} FCFA)</span></div>
-    </div>
-    <div class="cd-kpi-card cd-kpi-orange a4">
-      <div class="kpi-label">Restant dû</div>
-      <div class="kpi-value">{{ credit.totalAmountRemaining | number }}</div>
-      <div class="kpi-unit">FCFA · {{ credit.remainingDaysCount }} jours</div>
-      <div class="kpi-effective" data-testid="e2e-credit-details-effective-remaining">
-        Reste effectif chez le client :
-        <strong>{{ effectiveRemainingAmount | number:'1.0-0' }} FCFA</strong>
+        @if (credit.status !== 'SETTLED') {
+          <span>Fin prévue : {{ credit.expectedEndDate | date:'dd/MM/yyyy' }}</span>
+        }
+        @if (credit.status === 'SETTLED') {
+          <span>Cloturé le : {{ credit.effectiveEndDate | date:'dd/MM/yyyy' }}</span>
+        }
       </div>
     </div>
-    <div class="cd-kpi-card cd-kpi-info a4">
-      <div class="kpi-label">Mise journalière</div>
-      <div class="kpi-value">{{ credit.dailyStake | number }}</div>
-      <div class="kpi-unit">FCFA / jour</div>
-    </div>
-  </div>
-
-  <!-- DATES -->
-  <div class="dates-strip a5">
-    <div class="cd-date-card">
-      <div class="date-icon start">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
+    <!-- KPI -->
+    <div class="kpi-strip">
+      <div class="cd-kpi-card cd-kpi-navy a4">
+        <div class="kpi-label">Montant total</div>
+        <div class="kpi-value">{{ credit.totalAmount | number }}</div>
+        <div class="kpi-unit">FCFA</div>
       </div>
-      <div>
-        <div class="date-lbl">Date de début</div>
-        <div class="date-val navy">{{ credit.beginDate | date:'dd MMMM yyyy' }}</div>
+      <div class="cd-kpi-card cd-kpi-green a4">
+        <div class="kpi-label">Déjà payé</div>
+        <div class="kpi-value">{{ credit.totalAmountPaid | number }}</div>
+        <div class="kpi-unit">FCFA <span style="font-size: 10px; color: var(--text-light); margin-left: 5px;">(Avance : {{
+        credit.advance || 0 | number }} FCFA)</span></div>
       </div>
-    </div>
-    <div class="cd-date-card">
-      <div class="date-icon end">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      </div>
-      <div>
-        <div class="date-lbl" *ngIf="credit.status !== 'SETTLED'">Date fin prévue</div>
-        <div class="date-val red" *ngIf="credit.status !== 'SETTLED'">{{ credit.expectedEndDate | date:'dd MMMM yyyy' }}</div>
-        <div class="date-lbl" *ngIf="credit.status === 'SETTLED'">Date fin </div>
-        <div class="date-val red" *ngIf="credit.status === 'SETTLED'">{{ credit.effectiveEndDate | date:'dd MMMM yyyy' }}</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CLIENT + AGENT -->
-  <div class="main-grid a5">
-    <div class="cd-card">
-      <div class="section-title">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-        Informations du client
-      </div>
-      <div class="client-hero">
-        <div class="avatar">{{ credit.client?.firstname?.charAt(0) }}{{ credit.client?.lastname?.charAt(0) }}</div>
-        <div>
-          <a *ngIf="credit.client?.id; else creditClientPlain"
-             class="client-name client-link"
-             [routerLink]="['/client/details', credit.client.id]">
-            {{ credit.client?.firstname }} {{ credit.client?.lastname }}
-          </a>
-          <ng-template #creditClientPlain>
-            <div class="client-name">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</div>
-          </ng-template>
-          <div class="client-phone">{{ credit.client?.phone || credit.client?.phoneNumbers?.[0] || 'N/A' }}</div>
+      <div class="cd-kpi-card cd-kpi-orange a4">
+        <div class="kpi-label">Restant dû</div>
+        <div class="kpi-value">{{ credit.totalAmountRemaining | number }}</div>
+        <div class="kpi-unit">FCFA · {{ credit.remainingDaysCount }} jours</div>
+        <div class="kpi-effective" data-testid="e2e-credit-details-effective-remaining">
+          Reste effectif chez le client :
+          <strong>{{ effectiveRemainingAmount | number:'1.0-0' }} FCFA</strong>
         </div>
       </div>
-      <div class="info-row"><span class="info-key">Nom</span><span class="info-val">{{ credit.client?.lastname }}</span>
-      </div>
-      <div class="info-row"><span class="info-key">Prénom</span><span class="info-val">{{ credit.client?.firstname
-          }}</span></div>
-      <div class="info-row" *ngIf="credit.client?.cni"><span class="info-key">CNI</span><span class="info-val mono">{{
-          credit.client?.cni }}</span></div>
-      <div class="info-row" *ngIf="credit">
-        <span class="info-key">Reliquat</span>
-        <span class="info-val"
-              [style.color]="clientReliquatAmount > 0 ? 'var(--success)' : null"
-              [style.font-weight]="clientReliquatAmount > 0 ? 'bold' : null"
-              data-testid="e2e-credit-details-reliquat">
-          {{ clientReliquatAmount | number:'1.0-0' }} FCFA
-        </span>
+      <div class="cd-kpi-card cd-kpi-info a4">
+        <div class="kpi-label">Mise journalière</div>
+        <div class="kpi-value">{{ credit.dailyStake | number }}</div>
+        <div class="kpi-unit">FCFA / jour</div>
       </div>
     </div>
-
-    <div class="cd-card">
-      <div class="section-title">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-        Agent collecteur
-      </div>
-
-      <div class="collector-block" *ngIf="credit.collector">
-        <div class="collector-avatar">{{ credit.collector.charAt(0) }}{{ credit.collector.charAt(1) }}</div>
-        <div>
-          <div class="collector-name">{{ credit.collector }}</div>
-          <div class="collector-sub">Agent actuel</div>
+    <!-- DATES -->
+    <div class="dates-strip a5">
+      <div class="cd-date-card">
+        <div class="date-icon start">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
         </div>
-        <button class="cd-btn-edit" (click)="changeCollector()" *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']">
+        <div>
+          <div class="date-lbl">Date de début</div>
+          <div class="date-val navy">{{ credit.beginDate | date:'dd MMMM yyyy' }}</div>
+        </div>
+      </div>
+      <div class="cd-date-card">
+        <div class="date-icon end">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          @if (credit.status !== 'SETTLED') {
+            <div class="date-lbl">Date fin prévue</div>
+          }
+          @if (credit.status !== 'SETTLED') {
+            <div class="date-val red">{{ credit.expectedEndDate | date:'dd MMMM yyyy' }}</div>
+          }
+          @if (credit.status === 'SETTLED') {
+            <div class="date-lbl">Date fin </div>
+          }
+          @if (credit.status === 'SETTLED') {
+            <div class="date-val red">{{ credit.effectiveEndDate | date:'dd MMMM yyyy' }}</div>
+          }
+        </div>
+      </div>
+    </div>
+    <!-- CLIENT + AGENT -->
+    <div class="main-grid a5">
+      <div class="cd-card">
+        <div class="section-title">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
           </svg>
-          Modifier
-        </button>
+          Informations du client
+        </div>
+        <div class="client-hero">
+          <div class="avatar">{{ credit.client?.firstname?.charAt(0) }}{{ credit.client?.lastname?.charAt(0) }}</div>
+          <div>
+            @if (credit.client?.id) {
+              <a
+                class="client-name client-link"
+                [routerLink]="['/client/details', credit.client.id]">
+                {{ credit.client?.firstname }} {{ credit.client?.lastname }}
+              </a>
+            } @else {
+              <div class="client-name">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</div>
+            }
+            <div class="client-phone">{{ credit.client?.phone || credit.client?.phoneNumbers?.[0] || 'N/A' }}</div>
+          </div>
+        </div>
+        <div class="info-row"><span class="info-key">Nom</span><span class="info-val">{{ credit.client?.lastname }}</span>
       </div>
-
-      <div class="source-stock-block" *ngIf="credit.sourceMonthlyStocks?.length">
-        <div class="source-stock-label">Stock mensuel source</div>
+      <div class="info-row"><span class="info-key">Prénom</span><span class="info-val">{{ credit.client?.firstname
+    }}</span></div>
+    @if (credit.client?.cni) {
+      <div class="info-row"><span class="info-key">CNI</span><span class="info-val mono">{{
+    credit.client?.cni }}</span></div>
+  }
+  @if (credit) {
+    <div class="info-row">
+      <span class="info-key">Reliquat</span>
+      <span class="info-val"
+        [style.color]="clientReliquatAmount > 0 ? 'var(--success)' : null"
+        [style.font-weight]="clientReliquatAmount > 0 ? 'bold' : null"
+        data-testid="e2e-credit-details-reliquat">
+        {{ clientReliquatAmount | number:'1.0-0' }} FCFA
+      </span>
+    </div>
+  }
+</div>
+<div class="cd-card">
+  <div class="section-title">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+    </svg>
+    Agent collecteur
+  </div>
+  @if (credit.collector) {
+    <div class="collector-block">
+      <div class="collector-avatar">{{ credit.collector.charAt(0) }}{{ credit.collector.charAt(1) }}</div>
+      <div>
+        <div class="collector-name">{{ credit.collector }}</div>
+        <div class="collector-sub">Agent actuel</div>
+      </div>
+      <button class="cd-btn-edit" (click)="changeCollector()" *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+        Modifier
+      </button>
+    </div>
+  }
+  @if (credit.sourceMonthlyStocks?.length) {
+    <div class="source-stock-block">
+      <div class="source-stock-label">Stock mensuel source</div>
+      @for (stock of credit.sourceMonthlyStocks; track stock) {
         <button
           type="button"
           class="source-stock-link"
-          *ngFor="let stock of credit.sourceMonthlyStocks"
           data-testid="e2e-credit-source-stock"
           [attr.data-collector]="stock.collector"
           [attr.data-year]="stock.year"
@@ -229,40 +252,45 @@
           (click)="openSourceMonthlyStock(stock)">
           Stock {{ stock.collector }} — {{ getMonthName(stock.month) }} {{ stock.year }}
         </button>
-      </div>
-
-      <div
-        style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-light);margin-bottom:12px;">
-        Historique des transferts</div>
-
-      <div class="agent-timeline">
-        <!-- Collector History Items -->
-        <div class="at-item" *ngFor="let hist of collectorHistory; let first = first">
-          <div class="at-dot" [class.active]="first"></div>
-          <div class="at-date">{{ hist.changeDate | date:'dd MMM yyyy HH:mm' }}</div>
-          <div class="at-name">{{ hist.newCollector }} <span
-              style="font-weight: normal; font-size: 11px; color: var(--text-muted);"> (depuis {{ hist.oldCollector
-              }})</span></div>
-          <div class="at-sub">Restant au transfert : {{ hist.totalAmountRemaining | number }} FCFA</div>
-        </div>
-
-        <!-- Opening Record -->
-        <div class="at-item" *ngIf="credit.beginDate">
-          <div class="at-dot" [class.active]="collectorHistory.length === 0"></div>
-          <div class="at-date">{{ credit.beginDate | date:'dd MMM yyyy' }} — Ouverture</div>
-          <div class="at-name" *ngIf="collectorHistory.length > 0">{{ collectorHistory[collectorHistory.length -
-            1].oldCollector }}</div>
-          <div class="at-name" *ngIf="collectorHistory.length === 0">{{ credit.collector }}</div>
-          <div class="at-sub">Montant total : {{ credit.totalAmount | number }} FCFA</div>
-        </div>
-      </div>
+      }
     </div>
+  }
+  <div
+    style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-light);margin-bottom:12px;">
+  Historique des transferts</div>
+  <div class="agent-timeline">
+    <!-- Collector History Items -->
+    @for (hist of collectorHistory; track hist; let first = $first) {
+      <div class="at-item">
+        <div class="at-dot" [class.active]="first"></div>
+        <div class="at-date">{{ hist.changeDate | date:'dd MMM yyyy HH:mm' }}</div>
+        <div class="at-name">{{ hist.newCollector }} <span
+          style="font-weight: normal; font-size: 11px; color: var(--text-muted);"> (depuis {{ hist.oldCollector
+        }})</span></div>
+        <div class="at-sub">Restant au transfert : {{ hist.totalAmountRemaining | number }} FCFA</div>
+      </div>
+    }
+    <!-- Opening Record -->
+    @if (credit.beginDate) {
+      <div class="at-item">
+        <div class="at-dot" [class.active]="collectorHistory.length === 0"></div>
+        <div class="at-date">{{ credit.beginDate | date:'dd MMM yyyy' }} — Ouverture</div>
+        @if (collectorHistory.length > 0) {
+          <div class="at-name">{{ collectorHistory[collectorHistory.length -
+          1].oldCollector }}</div>
+        }
+        @if (collectorHistory.length === 0) {
+          <div class="at-name">{{ credit.collector }}</div>
+        }
+        <div class="at-sub">Montant total : {{ credit.totalAmount | number }} FCFA</div>
+      </div>
+    }
   </div>
-
-
-
-  <!-- CONSENTEMENT -->
-  <div class="cd-full-card a6" *ngIf="credit.operationConsentCode || credit.syncConsentCode || credit.confirmedAmount !== null">
+</div>
+</div>
+<!-- CONSENTEMENT -->
+@if (credit.operationConsentCode || credit.syncConsentCode || credit.confirmedAmount !== null) {
+  <div class="cd-full-card a6">
     <div class="section-title">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -284,16 +312,16 @@
       </div>
     </div>
   </div>
-
-  <!-- CONTROLE TERRAIN -->
-  <div class="cd-full-card a6" *ngIf="fieldControlLatest">
+}
+<!-- CONTROLE TERRAIN -->
+@if (fieldControlLatest) {
+  <div class="cd-full-card a6">
     <div class="section-title">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2z" />
       </svg>
       Contrôle terrain
     </div>
-
     <div class="field-control-grid">
       <div class="field-control-item">
         <span class="field-control-label">Montant payé (système)</span>
@@ -306,94 +334,100 @@
       <div class="field-control-item">
         <span class="field-control-label">Écart constaté</span>
         <span class="field-control-value"
-              [ngClass]="fieldControlLatest.differenceAmount === 0 ? 'is-ok' : 'is-gap'">
+          [ngClass]="fieldControlLatest.differenceAmount === 0 ? 'is-ok' : 'is-gap'">
           {{ fieldControlLatest.differenceAmount | number }} FCFA
         </span>
       </div>
       <div class="field-control-item">
         <span class="field-control-label">Statut</span>
         <span class="field-control-badge"
-              [ngClass]="fieldControlLatest.status === 'CONFORME' ? 'badge-ok' : 'badge-gap'">
+          [ngClass]="fieldControlLatest.status === 'CONFORME' ? 'badge-ok' : 'badge-gap'">
           {{ fieldControlLatest.status === 'CONFORME' ? 'Conforme' : 'Disparité' }}
         </span>
       </div>
     </div>
-
     <div class="field-control-meta">
       Saisi le {{ fieldControlLatest.observedAt | date:'dd/MM/yyyy HH:mm' }} par <strong>{{ fieldControlLatest.observedBy }}</strong>
     </div>
-    <div class="field-control-note" *ngIf="fieldControlLatest.note">
-      {{ fieldControlLatest.note }}
-    </div>
+    @if (fieldControlLatest.note) {
+      <div class="field-control-note">
+        {{ fieldControlLatest.note }}
+      </div>
+    }
   </div>
-
-  <!-- ARTICLES -->
-  <div class="cd-full-card a6">
-    <div class="section-title">
-      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-          d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>
-      Information des articles
-    </div>
-
-    <div class="articles-desktop-table">
-      <table class="credit-table">
-        <thead>
+}
+<!-- ARTICLES -->
+<div class="cd-full-card a6">
+  <div class="section-title">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+    </svg>
+    Information des articles
+  </div>
+  <div class="articles-desktop-table">
+    <table class="credit-table">
+      <thead>
+        <tr>
+          <th>Nom de l'article</th>
+          <th>Type</th>
+          <th>Quantité</th>
+          <th *appIfUnitPrice="credit.type">Prix unitaire</th>
+          <th *appIfUnitPrice="credit.type">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of credit.articles; track item) {
           <tr>
-            <th>Nom de l'article</th>
-            <th>Type</th>
-            <th>Quantité</th>
-            <th *appIfUnitPrice="credit.type">Prix unitaire</th>
-            <th *appIfUnitPrice="credit.type">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of credit.articles">
             <td><span class="article-name">{{ item.articles?.commercialName }}</span>
-              <div *ngIf="item.salePackMode && item.salePackMode !== 'UNIT'">{{ packCaption(item) }}</div>
-            </td>
-            <td><span class="article-type-badge">{{ item.articles?.type || 'N/A' }}</span></td>
-            <td><span class="mono-cell">{{ item.quantity }}</span></td>
-            <td *appIfUnitPrice="credit.type"><span class="mono-cell">{{ linePriceLabel(item) }}</span></td>
-            <td *appIfUnitPrice="credit.type"><span class="total-cell">{{ (item.lineAmount || item.totalPrice || (item.quantity * item.unitPrice)) | number }} FCFA</span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="articles-mobile-cards">
-      <div class="article-card" *ngFor="let item of credit.articles">
-        <div class="article-card-name">{{ item.articles?.commercialName }}</div>
-        <div class="article-card-meta">
-          <span class="article-type-badge">{{ item.articles?.type || 'N/A' }}</span>
-          <span class="article-card-qty">Qté {{ item.quantity }}</span>
+            @if (item.salePackMode && item.salePackMode !== 'UNIT') {
+              <div>{{ packCaption(item) }}</div>
+            }
+          </td>
+          <td><span class="article-type-badge">{{ item.articles?.type || 'N/A' }}</span></td>
+          <td><span class="mono-cell">{{ item.quantity }}</span></td>
+          <td *appIfUnitPrice="credit.type"><span class="mono-cell">{{ linePriceLabel(item) }}</span></td>
+          <td *appIfUnitPrice="credit.type"><span class="total-cell">{{ (item.lineAmount || item.totalPrice || (item.quantity * item.unitPrice)) | number }} FCFA</span>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
+</div>
+<div class="articles-mobile-cards">
+  @for (item of credit.articles; track item) {
+    <div class="article-card">
+      <div class="article-card-name">{{ item.articles?.commercialName }}</div>
+      <div class="article-card-meta">
+        <span class="article-type-badge">{{ item.articles?.type || 'N/A' }}</span>
+        <span class="article-card-qty">Qté {{ item.quantity }}</span>
+      </div>
+      <div class="article-card-prices" *appIfUnitPrice="credit.type">
+        <div>
+          <span class="article-card-label">Prix unitaire</span>
+          <span class="mono-cell">{{ linePriceLabel(item) }}</span>
         </div>
-        <div class="article-card-prices" *appIfUnitPrice="credit.type">
-          <div>
-            <span class="article-card-label">Prix unitaire</span>
-            <span class="mono-cell">{{ linePriceLabel(item) }}</span>
-          </div>
-          <div class="article-card-total">
-            <span class="article-card-label">Total</span>
-            <span class="total-cell">{{ (item.lineAmount || item.totalPrice || (item.quantity * item.unitPrice)) | number }} FCFA</span>
-          </div>
+        <div class="article-card-total">
+          <span class="article-card-label">Total</span>
+          <span class="total-cell">{{ (item.lineAmount || item.totalPrice || (item.quantity * item.unitPrice)) | number }} FCFA</span>
         </div>
       </div>
-      <div class="article-card-empty" *ngIf="!credit.articles?.length">
-        Aucun article
-      </div>
     </div>
-
-    <div class="table-footer-row">
-      <span class="footer-label">Montant total :</span>
-      <span class="footer-value">{{ credit.totalAmount | number }} FCFA</span>
+  }
+  @if (!credit.articles?.length) {
+    <div class="article-card-empty">
+      Aucun article
     </div>
-  </div>
-
-  <!-- RECOUVREMENT -->
-  <div class="cd-full-card a7" *ngIf="lateMetrics">
+  }
+</div>
+<div class="table-footer-row">
+  <span class="footer-label">Montant total :</span>
+  <span class="footer-value">{{ credit.totalAmount | number }} FCFA</span>
+</div>
+</div>
+<!-- RECOUVREMENT -->
+@if (lateMetrics) {
+  <div class="cd-full-card a7">
     <div class="section-title">
       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -401,7 +435,6 @@
       </svg>
       Suivi du recouvrement
     </div>
-
     <!-- BANDEAU RETARD -->
     <div class="late-banner"
       [ngClass]="{'on-time': lateMetrics.late === 0, 'warning': lateMetrics.late > 0 && lateMetrics.late <= 5, 'danger': lateMetrics.late > 5}">
@@ -414,10 +447,16 @@
         </div>
         <div>
           <div class="late-label">
-            <ng-container *ngIf="lateMetrics.late === 0">✓ À jour — aucun retard</ng-container>
-            <ng-container *ngIf="lateMetrics.late > 0 && lateMetrics.late <= 5">⚠ Léger retard de
-              paiement</ng-container>
-            <ng-container *ngIf="lateMetrics.late > 5">✖ Retard significatif</ng-container>
+            @if (lateMetrics.late === 0) {
+              ✓ À jour — aucun retard
+            }
+            @if (lateMetrics.late > 0 && lateMetrics.late <= 5) {
+              ⚠ Léger retard de
+              paiement
+            }
+            @if (lateMetrics.late > 5) {
+              ✖ Retard significatif
+            }
           </div>
           <div class="late-sub">
             {{ lateMetrics.elapsed }} j écoulés (/ {{ lateMetrics.totalDays }} j total) − {{ lateMetrics.paid }} j payés
@@ -427,100 +466,128 @@
       <div class="late-right">
         <div class="late-value">{{ lateMetrics.late }}</div>
         <div class="late-unit">{{ lateMetrics.late <= 1 ? 'jour' : 'jours' }} de retard</div>
-        </div>
       </div>
-
-      <!-- 4 MÉTRIQUES RETARD -->
-      <div class="recov-stats">
-        <div class="recov-stat">
-          <div class="recov-stat-val">{{ lateMetrics.elapsed }} j</div>
-          <div class="recov-stat-lbl">Jours écoulés<span class="recov-stat-hint">depuis début, ≤ durée totale</span>
-          </div>
-        </div>
-        <div class="recov-stat">
-          <div class="recov-stat-val green">{{ lateMetrics.paid }} j</div>
-          <div class="recov-stat-lbl">Jours payés<span class="recov-stat-hint">total payé ÷ mise journalière</span>
-          </div>
-        </div>
-        <div class="recov-stat">
-          <div class="recov-stat-val red">{{ lateMetrics.late }} j</div>
-          <div class="recov-stat-lbl">Jours de retard<span class="recov-stat-hint">écoulés − payés (min. 0)</span></div>
-        </div>
-        <div class="recov-stat">
-          <div class="recov-stat-val">{{ credit.remainingDaysCount }} j</div>
-          <div class="recov-stat-lbl">Jours restants<span class="recov-stat-hint">restants sur contrat</span></div>
-        </div>
+    </div>
+    <!-- 4 MÉTRIQUES RETARD -->
+    <div class="recov-stats">
+      <div class="recov-stat">
+        <div class="recov-stat-val">{{ lateMetrics.elapsed }} j</div>
+        <div class="recov-stat-lbl">Jours écoulés<span class="recov-stat-hint">depuis début, ≤ durée totale</span>
       </div>
-
-      <!-- TIMELINE PAIEMENTS -->
-      <div
-        style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-light);margin-bottom:14px;">
-        Historique des recouvrements
-      </div>
-
-      <div class="recov-timeline" *ngIf="timelines && timelines.length > 0">
-        <div class="rt-item" *ngFor="let tl of timelines">
-          <div class="rt-dot paid"></div>
-          <div class="rt-content">
-            <div class="rt-header">
-              <div>
-                <div class="rt-date">{{ tl.creationDate | date:'dd MMM yyyy HH:mm' }} - {{tl.reference}}</div>
-                <div class="rt-agent">{{ tl.commercial?.username || tl.commercialUsername || credit.collector }}</div>
-              </div>
-              <div class="rt-right">
-                <span class="rt-badge"
-                  [ngClass]="{'normal': tl.amount === credit.dailyStake, 'special': tl.amount !== credit.dailyStake}">
-                  {{ tl.amount === credit.dailyStake ? 'Mise normale' : 'Mise spéciale' }}
-                </span>
-                <span class="rt-amount">{{ tl.amount | number }} FCFA</span>
-                <ng-container *ngxPermissionsOnly="['ROLE_CANCEL_RECOVERY', 'ROLE_ADMIN']">
-                  <button type="button" class="btn-cancel-recovery" (click)="onCancelRecovery(tl)"
-                    title="Annuler ce recouvrement">
-                    Annuler
-                  </button>
-                </ng-container>
-              </div>
+    </div>
+    <div class="recov-stat">
+      <div class="recov-stat-val green">{{ lateMetrics.paid }} j</div>
+      <div class="recov-stat-lbl">Jours payés<span class="recov-stat-hint">total payé ÷ mise journalière</span>
+    </div>
+  </div>
+  <div class="recov-stat">
+    <div class="recov-stat-val red">{{ lateMetrics.late }} j</div>
+    <div class="recov-stat-lbl">Jours de retard<span class="recov-stat-hint">écoulés − payés (min. 0)</span></div>
+  </div>
+  <div class="recov-stat">
+    <div class="recov-stat-val">{{ credit.remainingDaysCount }} j</div>
+    <div class="recov-stat-lbl">Jours restants<span class="recov-stat-hint">restants sur contrat</span></div>
+  </div>
+</div>
+<!-- TIMELINE PAIEMENTS -->
+<div
+  style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-light);margin-bottom:14px;">
+  Historique des recouvrements
+</div>
+@if (timelines && timelines.length > 0) {
+  <div class="recov-timeline">
+    @for (tl of timelines; track tl) {
+      <div class="rt-item">
+        <div class="rt-dot paid"></div>
+        <div class="rt-content">
+          <div class="rt-header">
+            <div>
+              <div class="rt-date">{{ tl.creationDate | date:'dd MMM yyyy HH:mm' }} - {{tl.reference}}</div>
+              <div class="rt-agent">{{ tl.commercial?.username || tl.commercialUsername || credit.collector }}</div>
             </div>
+            <div class="rt-right">
+              <span class="rt-badge"
+                [ngClass]="{'normal': tl.amount === credit.dailyStake, 'special': tl.amount !== credit.dailyStake}">
+                {{ tl.amount === credit.dailyStake ? 'Mise normale' : 'Mise spéciale' }}
+              </span>
+              <span class="rt-amount">{{ tl.amount | number }} FCFA</span>
+              <ng-container *ngxPermissionsOnly="['ROLE_CANCEL_RECOVERY', 'ROLE_ADMIN']">
+                <button type="button" class="btn-cancel-recovery" (click)="onCancelRecovery(tl)"
+                  title="Annuler ce recouvrement">
+                  Annuler
+                </button>
+              </ng-container>
+            </div>
+          </div>
+          <div class="rt-meta">
+            @if (tl.totalAmountRemaining !== undefined) {
+              <span>Restant : <strong>{{ tl.totalAmountRemaining | number
+              }} FCFA</strong></span>
+            }
+            @if (tl.totalAmountPaid !== undefined) {
+              <span> · Cumul payé : <strong>{{ tl.totalAmountPaid | number }}
+              FCFA</strong></span>
+            }
+          </div>
+          @if ((tl.reliquatGeneratedAmount || 0) > 0 || (tl.reliquatUsedAmount || 0) > 0) {
             <div class="rt-meta">
-              <span *ngIf="tl.totalAmountRemaining !== undefined">Restant : <strong>{{ tl.totalAmountRemaining | number
-                  }} FCFA</strong></span>
-              <span *ngIf="tl.totalAmountPaid !== undefined"> · Cumul payé : <strong>{{ tl.totalAmountPaid | number }}
-                  FCFA</strong></span>
+              @if ((tl.reliquatGeneratedAmount || 0) > 0) {
+                <span>
+                  Reliquat généré : <strong>{{ tl.reliquatGeneratedAmount | number }} FCFA</strong>
+                </span>
+              }
+              @if ((tl.reliquatUsedAmount || 0) > 0) {
+                <span>
+                  @if ((tl.reliquatGeneratedAmount || 0) > 0) {
+                    <span> · </span>
+                  }
+                  Reliquat utilisé : <strong>{{ tl.reliquatUsedAmount | number }} FCFA</strong>
+                </span>
+              }
             </div>
-            <div class="rt-meta" *ngIf="(tl.reliquatGeneratedAmount || 0) > 0 || (tl.reliquatUsedAmount || 0) > 0">
-              <span *ngIf="(tl.reliquatGeneratedAmount || 0) > 0">
-                Reliquat généré : <strong>{{ tl.reliquatGeneratedAmount | number }} FCFA</strong>
-              </span>
-              <span *ngIf="(tl.reliquatUsedAmount || 0) > 0">
-                <span *ngIf="(tl.reliquatGeneratedAmount || 0) > 0"> · </span>
-                Reliquat utilisé : <strong>{{ tl.reliquatUsedAmount | number }} FCFA</strong>
-              </span>
-            </div>
-            <div class="rt-meta" *ngIf="tl.operationConsentCode || tl.syncConsentCode || tl.confirmedAmount !== null" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border-color);">
-              <span *ngIf="tl.operationConsentCode">Op. : <strong style="color: var(--navy);">{{ tl.operationConsentCode }}</strong></span>
-              <span *ngIf="tl.syncConsentCode"> <span *ngIf="tl.operationConsentCode">· </span>Sync. : <strong style="color: var(--navy);">{{ tl.syncConsentCode }}</strong></span>
-              <span *ngIf="tl.confirmedAmount !== null"> <span *ngIf="tl.operationConsentCode || tl.syncConsentCode">· </span>Confirmé : <strong style="color: var(--navy);">{{ tl.confirmedAmount | number }} FCFA</strong></span>
+          }
+          @if (tl.operationConsentCode || tl.syncConsentCode || tl.confirmedAmount !== null) {
+            <div class="rt-meta" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border-color);">
+              @if (tl.operationConsentCode) {
+                <span>Op. : <strong style="color: var(--navy);">{{ tl.operationConsentCode }}</strong></span>
+              }
+              @if (tl.syncConsentCode) {
+                <span> @if (tl.operationConsentCode) {
+                  <span>· </span>
+                  }Sync. : <strong style="color: var(--navy);">{{ tl.syncConsentCode }}</strong></span>
+                }
+                @if (tl.confirmedAmount !== null) {
+                  <span> @if (tl.operationConsentCode || tl.syncConsentCode) {
+                    <span>· </span>
+                    }Confirmé : <strong style="color: var(--navy);">{{ tl.confirmedAmount | number }} FCFA</strong></span>
+                  }
+                </div>
+              }
             </div>
           </div>
-        </div>
+        }
       </div>
-      <div *ngIf="!timelines || timelines.length === 0"
+    }
+    @if (!timelines || timelines.length === 0) {
+      <div
         style="text-align: center; color: var(--text-muted); padding: 20px;">
         Aucun recouvrement enregistré pour le moment.
       </div>
-
-    </div>
-
-    <!-- HISTORIQUE DES MISES -->
-    <div class="cd-full-card a6">
-      <div class="section-title">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
-        </svg>
-        Historique des changements de mise
-      </div>
-      <div class="stake-history-timeline" *ngIf="dailyStakeHistory && dailyStakeHistory.length > 0">
-        <div class="sh-item" *ngFor="let hist of dailyStakeHistory; let first = first">
+    }
+  </div>
+}
+<!-- HISTORIQUE DES MISES -->
+<div class="cd-full-card a6">
+  <div class="section-title">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" />
+    </svg>
+    Historique des changements de mise
+  </div>
+  @if (dailyStakeHistory && dailyStakeHistory.length > 0) {
+    <div class="stake-history-timeline">
+      @for (hist of dailyStakeHistory; track hist; let first = $first) {
+        <div class="sh-item">
           <div class="sh-dot" [class.active]="first"></div>
           <div class="sh-date">{{ hist.changeDate | date:'dd MMM yyyy HH:mm' }}</div>
           <div class="sh-change-container">
@@ -532,21 +599,30 @@
               <span class="sh-new-stake">{{ hist.newDailyStake | number }} FCFA</span>
             </div>
             <div class="sh-meta">
-              <span *ngIf="hist.amountRemaining !== undefined">Restant : <strong>{{ hist.amountRemaining | number }} FCFA</strong></span>
-              <span *ngIf="hist.author"> · Modifié par : <strong>{{ hist.author }}</strong></span>
+              @if (hist.amountRemaining !== undefined) {
+                <span>Restant : <strong>{{ hist.amountRemaining | number }} FCFA</strong></span>
+              }
+              @if (hist.author) {
+                <span> · Modifié par : <strong>{{ hist.author }}</strong></span>
+              }
             </div>
           </div>
         </div>
-      </div>
-      <div *ngIf="!dailyStakeHistory || dailyStakeHistory.length === 0" style="text-align: center; color: var(--text-muted); padding: 20px;">
-        Aucun changement de mise enregistré.
-      </div>
+      }
     </div>
+  }
+  @if (!dailyStakeHistory || dailyStakeHistory.length === 0) {
+    <div style="text-align: center; color: var(--text-muted); padding: 20px;">
+      Aucun changement de mise enregistré.
+    </div>
+  }
+</div>
+</div>
+}<!-- /page-wrapper -->
 
-  </div><!-- /page-wrapper -->
-
-  <!-- MODAL CHANGEMENT COMMERCIAL -->
-  <div class="cd-modal-overlay" [class.open]="showChangeCollectorModal" *ngIf="showChangeCollectorModal">
+<!-- MODAL CHANGEMENT COMMERCIAL -->
+@if (showChangeCollectorModal) {
+  <div class="cd-modal-overlay" [class.open]="showChangeCollectorModal">
     <div class="cd-modal-container">
       <div class="cd-modal-header">
         <h2>Modifier l'agent collecteur</h2>
@@ -559,26 +635,29 @@
       <div class="cd-modal-body">
         <div class="credit-info">
           <div class="credit-info-row"><span class="ci-key">Agent actuel</span><span class="ci-val">{{ credit?.collector
-              }}</span></div>
-          <div class="credit-info-row"><span class="ci-key">Référence</span><span class="ci-val">{{ credit?.reference
-              }}</span></div>
-          <div class="credit-info-row"><span class="ci-key">Client</span><span class="ci-val">{{
-              credit?.client?.firstname }} {{ credit?.client?.lastname }}</span></div>
-          <div class="credit-info-row"><span class="ci-key">Montant total</span><span class="ci-val">{{
-              credit?.totalAmount | number }} FCFA</span></div>
-          <div class="credit-info-row"><span class="ci-key">Montant restant</span><span class="ci-val red">{{
-              credit?.totalAmountRemaining | number }} FCFA</span></div>
-        </div>
-        <label>Sélectionnez le nouveau commercial</label>
-        <select [(ngModel)]="selectedCommercial">
-          <option value="" disabled selected>-- Sélectionnez --</option>
-          <option *ngFor="let agent of agents" [value]="agent.username">{{ agent.username }}</option>
-        </select>
-        <div class="modal-actions">
-          <button class="cd-btn-secondary" (click)="closeChangeCollectorModal()">Annuler</button>
-          <button class="cd-btn-primary" [disabled]="!selectedCommercial || selectedCommercial === credit?.collector"
-            (click)="submitChangeCollector()">Valider</button>
-        </div>
-      </div>
-    </div>
-  </div>
+        }}</span></div>
+        <div class="credit-info-row"><span class="ci-key">Référence</span><span class="ci-val">{{ credit?.reference
+      }}</span></div>
+      <div class="credit-info-row"><span class="ci-key">Client</span><span class="ci-val">{{
+    credit?.client?.firstname }} {{ credit?.client?.lastname }}</span></div>
+    <div class="credit-info-row"><span class="ci-key">Montant total</span><span class="ci-val">{{
+  credit?.totalAmount | number }} FCFA</span></div>
+  <div class="credit-info-row"><span class="ci-key">Montant restant</span><span class="ci-val red">{{
+credit?.totalAmountRemaining | number }} FCFA</span></div>
+</div>
+<label>Sélectionnez le nouveau commercial</label>
+<select [(ngModel)]="selectedCommercial">
+  <option value="" disabled selected>-- Sélectionnez --</option>
+  @for (agent of agents; track agent) {
+    <option [value]="agent.username">{{ agent.username }}</option>
+  }
+</select>
+<div class="modal-actions">
+  <button class="cd-btn-secondary" (click)="closeChangeCollectorModal()">Annuler</button>
+  <button class="cd-btn-primary" [disabled]="!selectedCommercial || selectedCommercial === credit?.collector"
+  (click)="submitChangeCollector()">Valider</button>
+</div>
+</div>
+</div>
+</div>
+}

@@ -63,8 +63,12 @@
       (click)="generatePreviousMonth()"
       [disabled]="generating"
       [class.loading]="generating">
-      <svg *ngIf="!generating" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      <span *ngIf="generating" class="spinner-small"></span>
+      @if (!generating) {
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      }
+      @if (generating) {
+        <span class="spinner-small"></span>
+      }
       Générer mois précédent
     </button>
     <span class="result-count">
@@ -74,77 +78,91 @@
 
   <div class="table-card a5">
     <div class="table-wrapper">
-      <div *ngIf="loading" class="table-loading">
-        <div class="empty-state">
-          <div class="empty-icon">⏳</div>
-          <div class="empty-title">Chargement des rapports…</div>
-        </div>
-      </div>
-
-      <div *ngIf="!loading && tree.length === 0" class="table-empty-static">
-        <div class="empty-state">
-          <div class="empty-icon">📁</div>
-          <div class="empty-title">Aucun rapport mensuel disponible</div>
-          <div class="empty-sub">Générez le rapport du mois précédent ou attendez la génération automatique de fin de mois.</div>
-        </div>
-      </div>
-
-      <div *ngIf="!loading && tree.length > 0" class="archive-tree">
-        <div class="year-block" *ngFor="let yearNode of tree">
-          <button type="button" class="year-header" (click)="toggleYear(yearNode.year)">
-            <span class="year-chevron" [class.expanded]="isYearExpanded(yearNode.year)">›</span>
-            <span class="year-title">Année {{ yearNode.year }}</span>
-            <span class="year-count">{{ monthEntries(yearNode.months).length }} mois</span>
-          </button>
-
-          <div class="year-body" *ngIf="isYearExpanded(yearNode.year)">
-            <div class="month-block" *ngFor="let month of monthEntries(yearNode.months)">
-              <button
-                type="button"
-                class="month-header"
-                (click)="toggleMonth(yearNode.year, month.key)">
-                <span class="month-chevron" [class.expanded]="isMonthExpanded(yearNode.year, month.key)">›</span>
-                <span class="month-title">{{ monthLabel(month.key) }} {{ yearNode.year }}</span>
-                <span class="month-count">{{ month.value.length }} fichier(s)</span>
-              </button>
-
-              <div class="month-body" *ngIf="isMonthExpanded(yearNode.year, month.key)">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Type</th>
-                      <th>Fichier</th>
-                      <th>Généré le</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let file of month.value" class="table-row">
-                      <td>
-                        <span class="report-badge" [ngClass]="reportTypeBadgeClass(file)">
-                          {{ reportTypeLabel(file) }}
-                        </span>
-                      </td>
-                      <td>
-                        <span class="col-client">{{ file.fileName }}</span>
-                      </td>
-                      <td>
-                        <span class="col-ref">{{ formatFileDate(file.createdDate) }}</span>
-                      </td>
-                      <td class="col-actions">
-                        <button type="button" class="btn-detail" (click)="download(file)" title="Télécharger">
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10l5 5 5-5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15V3"/></svg>
-                          Télécharger
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
+      @if (loading) {
+        <div class="table-loading">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Chargement des rapports…</div>
           </div>
         </div>
-      </div>
+      }
+
+      @if (!loading && tree.length === 0) {
+        <div class="table-empty-static">
+          <div class="empty-state">
+            <div class="empty-icon">📁</div>
+            <div class="empty-title">Aucun rapport mensuel disponible</div>
+            <div class="empty-sub">Générez le rapport du mois précédent ou attendez la génération automatique de fin de mois.</div>
+          </div>
+        </div>
+      }
+
+      @if (!loading && tree.length > 0) {
+        <div class="archive-tree">
+          @for (yearNode of tree; track yearNode) {
+            <div class="year-block">
+              <button type="button" class="year-header" (click)="toggleYear(yearNode.year)">
+                <span class="year-chevron" [class.expanded]="isYearExpanded(yearNode.year)">›</span>
+                <span class="year-title">Année {{ yearNode.year }}</span>
+                <span class="year-count">{{ monthEntries(yearNode.months).length }} mois</span>
+              </button>
+              @if (isYearExpanded(yearNode.year)) {
+                <div class="year-body">
+                  @for (month of monthEntries(yearNode.months); track month) {
+                    <div class="month-block">
+                      <button
+                        type="button"
+                        class="month-header"
+                        (click)="toggleMonth(yearNode.year, month.key)">
+                        <span class="month-chevron" [class.expanded]="isMonthExpanded(yearNode.year, month.key)">›</span>
+                        <span class="month-title">{{ monthLabel(month.key) }} {{ yearNode.year }}</span>
+                        <span class="month-count">{{ month.value.length }} fichier(s)</span>
+                      </button>
+                      @if (isMonthExpanded(yearNode.year, month.key)) {
+                        <div class="month-body">
+                          <table class="data-table">
+                            <thead>
+                              <tr>
+                                <th>Type</th>
+                                <th>Fichier</th>
+                                <th>Généré le</th>
+                                <th>Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              @for (file of month.value; track file) {
+                                <tr class="table-row">
+                                  <td>
+                                    <span class="report-badge" [ngClass]="reportTypeBadgeClass(file)">
+                                      {{ reportTypeLabel(file) }}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    <span class="col-client">{{ file.fileName }}</span>
+                                  </td>
+                                  <td>
+                                    <span class="col-ref">{{ formatFileDate(file.createdDate) }}</span>
+                                  </td>
+                                  <td class="col-actions">
+                                    <button type="button" class="btn-detail" (click)="download(file)" title="Télécharger">
+                                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 10l5 5 5-5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15V3"/></svg>
+                                      Télécharger
+                                    </button>
+                                  </td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
     </div>
   </div>
 </div>

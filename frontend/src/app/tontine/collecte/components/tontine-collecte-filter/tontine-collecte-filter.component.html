@@ -13,23 +13,27 @@
     </div>
 
     <!-- Dates Personnalisées -->
-    <div class="filter-group" *ngIf="activePeriod === 'custom'">
-      <label class="filter-label">Dates Personnalisées</label>
-      <div class="date-inputs">
-        <input type="date" lang="fr-FR" [(ngModel)]="customDateRange.start" [max]="today" class="filter-input">
-        <span class="date-sep">à</span>
-        <input type="date" lang="fr-FR" [(ngModel)]="customDateRange.end" [max]="today" class="filter-input">
-        <button class="btn-apply-dates" (click)="applyCustomDateRange()">Appliquer</button>
+    @if (activePeriod === 'custom') {
+      <div class="filter-group">
+        <label class="filter-label">Dates Personnalisées</label>
+        <div class="date-inputs">
+          <input type="date" lang="fr-FR" [(ngModel)]="customDateRange.start" [max]="today" class="filter-input">
+          <span class="date-sep">à</span>
+          <input type="date" lang="fr-FR" [(ngModel)]="customDateRange.end" [max]="today" class="filter-input">
+          <button class="btn-apply-dates" (click)="applyCustomDateRange()">Appliquer</button>
+        </div>
       </div>
-    </div>
+    }
 
     <!-- Commercial -->
-    <div class="filter-group" style="flex: 1; max-width: 300px;" *ngIf="!isCommercialLogue">
-      <label class="filter-label">Commercial</label>
-      <app-commercial-selector
-        [initialValue]="currentCollector === 'all' ? null : currentCollector"
-        (commercialSelected)="onCommercialSelected($event)">
-      </app-commercial-selector>
-    </div>
+    @if (!isCommercialLogue) {
+      <div class="filter-group" style="flex: 1; max-width: 300px;">
+        <label class="filter-label">Commercial</label>
+        <app-commercial-selector
+          [initialValue]="currentCollector === 'all' ? null : currentCollector"
+          (commercialSelected)="onCommercialSelected($event)">
+        </app-commercial-selector>
+      </div>
+    }
   </div>
 </div>

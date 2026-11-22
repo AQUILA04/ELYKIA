@@ -17,10 +17,12 @@
         </div>
         <button type="button" class="btn-refresh" (click)="load()" [disabled]="isLoading">Actualiser</button>
       </div>
-      <p class="page-subtitle" *ngIf="trajectory">
-        {{ trajectory.articleMarque }} {{ trajectory.articleModel }} · Depuis inventaire #{{ trajectory.from.inventoryId }}
-        ({{ trajectory.from.inventoryDate | date:'dd/MM/yyyy' }}) jusqu’au {{ trajectory.toDate | date:'dd/MM/yyyy' }}
-      </p>
+      @if (trajectory) {
+        <p class="page-subtitle">
+          {{ trajectory.articleMarque }} {{ trajectory.articleModel }} · Depuis inventaire #{{ trajectory.from.inventoryId }}
+          ({{ trajectory.from.inventoryDate | date:'dd/MM/yyyy' }}) jusqu’au {{ trajectory.toDate | date:'dd/MM/yyyy' }}
+        </p>
+      }
     </div>
   </div>
 
@@ -33,10 +35,14 @@
       <button type="button" class="btn-primary" (click)="load()" [disabled]="isLoading">Recalculer</button>
     </div>
 
-    <div *ngIf="errorMessage" class="error-banner">{{ errorMessage }}</div>
-    <div *ngIf="isLoading" class="loading-state">Chargement de la trajectoire…</div>
+    @if (errorMessage) {
+      <div class="error-banner">{{ errorMessage }}</div>
+    }
+    @if (isLoading) {
+      <div class="loading-state">Chargement de la trajectoire…</div>
+    }
 
-    <ng-container *ngIf="!isLoading && trajectory as t">
+    @if (!isLoading && trajectory; as t) {
       <div class="kpi-strip a3">
         <div class="kpi-card kpi-total">
           <div class="kpi-label">Baseline système</div>
@@ -63,33 +69,50 @@
           <div class="kpi-value">{{ t.summary.intermediateInventoryCount }}</div>
         </div>
       </div>
-
       <div class="table-card a5">
         <div class="timeline-header">Timeline chronologique</div>
-        <div *ngIf="t.nodes.length === 0" class="empty-state">Aucun mouvement entre l’inventaire et la date T.</div>
-        <ul class="timeline" *ngIf="t.nodes.length > 0">
-          <li *ngFor="let node of t.nodes" [class.checkpoint]="node.kind === 'INVENTORY_CHECKPOINT'"
-              [class.gap]="node.gapDetected">
-            <div class="tl-kind">{{ kindLabel(node.kind) }}</div>
-            <div class="tl-when">{{ node.occurredAt | date:'dd/MM/yyyy HH:mm' }}</div>
-            <div class="tl-body" *ngIf="node.kind === 'MOVEMENT'">
-              <strong>{{ operationLabel(node.operationType) }}</strong>
-              <span class="delta" [class.neg]="(node.delta || 0) < 0" [class.pos]="(node.delta || 0) > 0">
-                {{ (node.delta || 0) > 0 ? '+' : '' }}{{ node.delta }}
-              </span>
-              <span class="qty">{{ node.quantityBefore }} → {{ node.quantityAfter }}</span>
-              <span class="muted" *ngIf="node.operationUser"> · {{ node.operationUser }}</span>
-              <div class="muted" *ngIf="node.reason">{{ node.reason }}</div>
-            </div>
-            <div class="tl-body" *ngIf="node.kind === 'INVENTORY_CHECKPOINT'">
-              <strong>Inventaire #{{ node.inventoryId }}</strong>
-              <span> Sys {{ node.systemQuantity }} · Phy {{ node.physicalQuantity != null ? node.physicalQuantity : '—' }} · Écart {{ node.difference != null ? node.difference : '—' }}</span>
-              <span class="gap-flag" *ngIf="node.gapDetected">Écart journal détecté</span>
-              <div class="muted" *ngIf="node.reconciliationAction">Action : {{ node.reconciliationAction }}</div>
-            </div>
-          </li>
-        </ul>
+        @if (t.nodes.length === 0) {
+          <div class="empty-state">Aucun mouvement entre l’inventaire et la date T.</div>
+        }
+        @if (t.nodes.length > 0) {
+          <ul class="timeline">
+            @for (node of t.nodes; track node) {
+              <li [class.checkpoint]="node.kind === 'INVENTORY_CHECKPOINT'"
+                [class.gap]="node.gapDetected">
+                <div class="tl-kind">{{ kindLabel(node.kind) }}</div>
+                <div class="tl-when">{{ node.occurredAt | date:'dd/MM/yyyy HH:mm' }}</div>
+                @if (node.kind === 'MOVEMENT') {
+                  <div class="tl-body">
+                    <strong>{{ operationLabel(node.operationType) }}</strong>
+                    <span class="delta" [class.neg]="(node.delta || 0) < 0" [class.pos]="(node.delta || 0) > 0">
+                      {{ (node.delta || 0) > 0 ? '+' : '' }}{{ node.delta }}
+                    </span>
+                    <span class="qty">{{ node.quantityBefore }} → {{ node.quantityAfter }}</span>
+                    @if (node.operationUser) {
+                      <span class="muted"> · {{ node.operationUser }}</span>
+                    }
+                    @if (node.reason) {
+                      <div class="muted">{{ node.reason }}</div>
+                    }
+                  </div>
+                }
+                @if (node.kind === 'INVENTORY_CHECKPOINT') {
+                  <div class="tl-body">
+                    <strong>Inventaire #{{ node.inventoryId }}</strong>
+                    <span> Sys {{ node.systemQuantity }} · Phy {{ node.physicalQuantity != null ? node.physicalQuantity : '—' }} · Écart {{ node.difference != null ? node.difference : '—' }}</span>
+                    @if (node.gapDetected) {
+                      <span class="gap-flag">Écart journal détecté</span>
+                    }
+                    @if (node.reconciliationAction) {
+                      <div class="muted">Action : {{ node.reconciliationAction }}</div>
+                    }
+                  </div>
+                }
+              </li>
+            }
+          </ul>
+        }
       </div>
-    </ng-container>
+    }
   </div>
 </div>

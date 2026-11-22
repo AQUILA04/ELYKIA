@@ -1,97 +1,113 @@
 <div class="main-container report-v2 report-journal-page a1" data-testid="e2e-report-journal">
-    <div class="breadcrumb-bar">
-        <a class="breadcrumb-link" [routerLink]="['/report/daily']" [queryParams]="carryParams" data-testid="e2e-report-journal-back">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
-            </svg>
-            Cockpit équipe
-        </a>
-    </div>
+  <div class="breadcrumb-bar">
+    <a class="breadcrumb-link" [routerLink]="['/report/daily']" [queryParams]="carryParams" data-testid="e2e-report-journal-back">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Cockpit équipe
+    </a>
+  </div>
 
-    <div class="page-header-card a2">
-        <div class="header-card-main">
-            <div class="title-group">
-                <svg class="page-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M8 6h13" /><path d="M8 12h13" /><path d="M8 18h13" /><path d="M3 6h.01" /><path d="M3 12h.01" /><path d="M3 18h.01" />
-                </svg>
-                <h1 class="page-title">Journal des opérations</h1>
-            </div>
-            <div class="header-actions">
-                <button type="button" class="btn-ghost" (click)="startTour()">Visite guidée</button>
-                <button type="button" class="btn-ghost" (click)="exportPdf()" [disabled]="exporting" data-tour="journal-export"
-                    data-testid="e2e-report-journal-export">{{ exporting ? 'Génération…' : 'Exporter en PDF' }}</button>
-                <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="loading">Actualiser</button>
-            </div>
-        </div>
-        <p class="page-subtitle">Toutes les opérations horodatées de la période · {{ operationsCount }} opération(s)</p>
+  <div class="page-header-card a2">
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg class="page-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 6h13" /><path d="M8 12h13" /><path d="M8 18h13" /><path d="M3 6h.01" /><path d="M3 12h.01" /><path d="M3 18h.01" />
+        </svg>
+        <h1 class="page-title">Journal des opérations</h1>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn-ghost" (click)="startTour()">Visite guidée</button>
+        <button type="button" class="btn-ghost" (click)="exportPdf()" [disabled]="exporting" data-tour="journal-export"
+        data-testid="e2e-report-journal-export">{{ exporting ? 'Génération…' : 'Exporter en PDF' }}</button>
+        <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="loading">Actualiser</button>
+      </div>
     </div>
+    <p class="page-subtitle">Toutes les opérations horodatées de la période · {{ operationsCount }} opération(s)</p>
+  </div>
 
-    <div class="a3 journal-filters">
-        <app-report-filter-bar *ngIf="filters" [filters]="filters" [agents]="agents" [showCommercial]="!isPromoter"
-            (filtersChange)="onFiltersChange($event)"></app-report-filter-bar>
-    </div>
+  <div class="a3 journal-filters">
+    @if (filters) {
+      <app-report-filter-bar [filters]="filters" [agents]="agents" [showCommercial]="!isPromoter"
+      (filtersChange)="onFiltersChange($event)"></app-report-filter-bar>
+    }
+  </div>
 
-    <div class="type-cards a3" data-tour="journal-types" data-testid="e2e-report-journal-types" *ngIf="totals.length > 0">
-        <button type="button" *ngFor="let total of totals; trackBy: trackByType" class="type-card"
-            [ngClass]="'tone-' + tone(total.type)" [class.type-card--on]="type === total.type"
-            [attr.aria-pressed]="type === total.type" (click)="toggleType(total.type)"
-            [attr.data-testid]="'e2e-report-journal-type-' + total.type">
-            <span class="type-name"><i class="type-dot" aria-hidden="true"></i>{{ label(total.type) }}</span>
-            <span class="num type-amount">{{ total.amount | fcfa }}</span>
-            <span class="type-count">{{ total.count }} opération(s)</span>
+  @if (totals.length > 0) {
+    <div class="type-cards a3" data-tour="journal-types" data-testid="e2e-report-journal-types">
+      @for (total of totals; track trackByType($index, total)) {
+        <button type="button" class="type-card"
+          [ngClass]="'tone-' + tone(total.type)" [class.type-card--on]="type === total.type"
+          [attr.aria-pressed]="type === total.type" (click)="toggleType(total.type)"
+          [attr.data-testid]="'e2e-report-journal-type-' + total.type">
+          <span class="type-name"><i class="type-dot" aria-hidden="true"></i>{{ label(total.type) }}</span>
+          <span class="num type-amount">{{ total.amount | fcfa }}</span>
+          <span class="type-count">{{ total.count }} opération(s)</span>
         </button>
+      }
     </div>
+  }
 
-    <div class="panel-card empty-state" *ngIf="error && !loading" role="alert">
-        <div class="empty-icon">⚠️</div>
-        <div class="empty-title">Le journal n'a pas pu être chargé.</div>
+  @if (error && !loading) {
+    <div class="panel-card empty-state" role="alert">
+      <div class="empty-icon">⚠️</div>
+      <div class="empty-title">Le journal n'a pas pu être chargé.</div>
     </div>
+  }
 
-    <section class="table-card a4" aria-labelledby="journal-title">
-        <div class="panel-head table-head">
-            <h2 id="journal-title">{{ type ? label(type) : 'Toutes les opérations' }}</h2>
-            <button type="button" class="chip chip--on" *ngIf="type" (click)="toggleType(type)">Retirer le filtre « {{ label(type) }} » ✕</button>
+  <section class="table-card a4" aria-labelledby="journal-title">
+    <div class="panel-head table-head">
+      <h2 id="journal-title">{{ type ? label(type) : 'Toutes les opérations' }}</h2>
+      @if (type) {
+        <button type="button" class="chip chip--on" (click)="toggleType(type)">Retirer le filtre « {{ label(type) }} » ✕</button>
+      }
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table" data-testid="e2e-report-journal-table">
+        <thead>
+          <tr>
+            <th scope="col">Heure</th>
+            <th scope="col">Commercial</th>
+            <th scope="col">Type</th>
+            <th scope="col">Sujet</th>
+            <th scope="col">Description</th>
+            <th scope="col" class="r">Montant</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (op of operations; track trackByOperation($index, op)) {
+            <tr>
+              <td class="num">{{ op.timestamp | date:'dd/MM HH:mm' }}</td>
+              <td><a class="row-link" [routerLink]="['/report/daily/commercials', op.commercialUsername]" [queryParams]="sheetParams">{{ op.commercialUsername }}</a></td>
+              <td><span class="type-badge" [ngClass]="'tone-' + tone(op.type)">{{ label(op.type) }}</span></td>
+              <td>{{ op.reference }}</td>
+              <td class="desc">{{ op.description }}</td>
+              <td class="r num" [class.gap-neg]="op.amount < 0"><strong>{{ op.amount | fcfa }}</strong></td>
+            </tr>
+          }
+          @if (!loading && operations.length === 0) {
+            <tr>
+              <td colspan="6">
+                <div class="empty-state">
+                  <div class="empty-icon">📒</div>
+                  <div class="empty-title">Aucune opération{{ type ? ' de ce type' : '' }} sur la période</div>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (totalElements > pageSize) {
+      <div class="pager">
+        <span class="panel-hint">Page {{ page + 1 }} / {{ pageCount }} · {{ totalElements }} opération(s)</span>
+        <div class="pager-btns">
+          <button type="button" class="btn-ghost" [disabled]="page === 0" (click)="goToPage(page - 1)" aria-label="Page précédente">‹</button>
+          <button type="button" class="btn-ghost" [disabled]="page + 1 >= pageCount" (click)="goToPage(page + 1)" aria-label="Page suivante">›</button>
         </div>
-        <div class="table-wrapper">
-            <table class="data-table" data-testid="e2e-report-journal-table">
-                <thead>
-                    <tr>
-                        <th scope="col">Heure</th>
-                        <th scope="col">Commercial</th>
-                        <th scope="col">Type</th>
-                        <th scope="col">Sujet</th>
-                        <th scope="col">Description</th>
-                        <th scope="col" class="r">Montant</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr *ngFor="let op of operations; trackBy: trackByOperation">
-                        <td class="num">{{ op.timestamp | date:'dd/MM HH:mm' }}</td>
-                        <td><a class="row-link" [routerLink]="['/report/daily/commercials', op.commercialUsername]" [queryParams]="sheetParams">{{ op.commercialUsername }}</a></td>
-                        <td><span class="type-badge" [ngClass]="'tone-' + tone(op.type)">{{ label(op.type) }}</span></td>
-                        <td>{{ op.reference }}</td>
-                        <td class="desc">{{ op.description }}</td>
-                        <td class="r num" [class.gap-neg]="op.amount < 0"><strong>{{ op.amount | fcfa }}</strong></td>
-                    </tr>
-                    <tr *ngIf="!loading && operations.length === 0">
-                        <td colspan="6">
-                            <div class="empty-state">
-                                <div class="empty-icon">📒</div>
-                                <div class="empty-title">Aucune opération{{ type ? ' de ce type' : '' }} sur la période</div>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="pager" *ngIf="totalElements > pageSize">
-            <span class="panel-hint">Page {{ page + 1 }} / {{ pageCount }} · {{ totalElements }} opération(s)</span>
-            <div class="pager-btns">
-                <button type="button" class="btn-ghost" [disabled]="page === 0" (click)="goToPage(page - 1)" aria-label="Page précédente">‹</button>
-                <button type="button" class="btn-ghost" [disabled]="page + 1 >= pageCount" (click)="goToPage(page + 1)" aria-label="Page suivante">›</button>
-            </div>
-        </div>
-    </section>
+      </div>
+    }
+  </section>
 
-    <app-guided-tour></app-guided-tour>
+  <app-guided-tour></app-guided-tour>
 </div>

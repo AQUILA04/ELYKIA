@@ -10,14 +10,20 @@
   <div class="page-scroll-body">
     <form class="panel a3" (ngSubmit)="save()">
       <div class="photo-row">
-        <img *ngIf="shownPhoto" class="avatar avatar-lg" [src]="shownPhoto" alt="Photo de profil">
-        <span *ngIf="!shownPhoto" class="avatar-fallback avatar-lg">{{ initials }}</span>
+        @if (shownPhoto) {
+          <img class="avatar avatar-lg" [src]="shownPhoto" alt="Photo de profil">
+        }
+        @if (!shownPhoto) {
+          <span class="avatar-fallback avatar-lg">{{ initials }}</span>
+        }
         <div>
           <label class="toolbar-label" for="commercial-staff-photo">Photo de profil</label>
           <input id="commercial-staff-photo" class="photo-input" type="file" accept="image/jpeg,image/png,image/webp" (change)="onPhotoSelected($event)">
-          <div class="form-actions" *ngIf="shownPhoto">
-            <button type="button" class="btn-ghost" (click)="clearPhoto()">Retirer la photo</button>
-          </div>
+          @if (shownPhoto) {
+            <div class="form-actions">
+              <button type="button" class="btn-ghost" (click)="clearPhoto()">Retirer la photo</button>
+            </div>
+          }
         </div>
       </div>
       <div class="form-grid">
@@ -40,35 +46,45 @@
       </div>
       <div class="form-actions">
         <button type="submit" class="btn-primary" [disabled]="saving || loading">Enregistrer</button>
-        <button type="button" class="btn-detail btn-danger" *ngIf="id" (click)="remove()">Retirer</button>
+        @if (id) {
+          <button type="button" class="btn-detail btn-danger" (click)="remove()">Retirer</button>
+        }
       </div>
     </form>
 
-    <div class="table-card a4" *ngIf="id">
-      <div class="empty-state" *ngIf="!loading && assignments.length === 0">
-        <div class="empty-title">Aucun compte</div>
-        <div class="empty-sub">Cette personne n'a pas encore été affectée.</div>
+    @if (id) {
+      <div class="table-card a4">
+        @if (!loading && assignments.length === 0) {
+          <div class="empty-state">
+            <div class="empty-title">Aucun compte</div>
+            <div class="empty-sub">Cette personne n'a pas encore été affectée.</div>
+          </div>
+        }
+        @if (assignments.length > 0) {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Compte</th>
+                <th>Début</th>
+                <th>Fin</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of assignments; track item) {
+                <tr>
+                  <td><span class="username">{{ item.username }}</span></td>
+                  <td>{{ item.startDate | date:'dd/MM/yyyy' }}</td>
+                  <td>{{ item.endDate ? (item.endDate | date:'dd/MM/yyyy') : 'En cours' }}</td>
+                  <td class="row-actions">
+                    <a class="btn-detail" [routerLink]="['/commercial/accounts', item.userId]">Voir le compte</a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </div>
-      <table class="data-table" *ngIf="assignments.length > 0">
-        <thead>
-          <tr>
-            <th>Compte</th>
-            <th>Début</th>
-            <th>Fin</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of assignments">
-            <td><span class="username">{{ item.username }}</span></td>
-            <td>{{ item.startDate | date:'dd/MM/yyyy' }}</td>
-            <td>{{ item.endDate ? (item.endDate | date:'dd/MM/yyyy') : 'En cours' }}</td>
-            <td class="row-actions">
-              <a class="btn-detail" [routerLink]="['/commercial/accounts', item.userId]">Voir le compte</a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    }
   </div>
 </div>

@@ -1,4 +1,4 @@
-  <div class="main-container a1" data-testid="e2e-stock-reception-list">
+<div class="main-container a1" data-testid="e2e-stock-reception-list">
 
   <!-- BREADCRUMB -->
   <div class="breadcrumb-bar">
@@ -20,15 +20,15 @@
     <div class="header-card-main">
       <div class="title-group">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-             class="entry-icon" style="display:block;flex-shrink:0">
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="entry-icon" style="display:block;flex-shrink:0">
           <path d="M5 12h14M12 5l7 7-7 7"/>
         </svg>
         <h1 class="page-title" style="margin:0;padding:0;line-height:1">Historique des entrées</h1>
       </div>
       <button class="btn-refresh" (click)="refresh()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
           <path d="M3 3v5h5"/>
         </svg>
@@ -39,13 +39,15 @@
   </div>
 
   <!-- KPI -->
-  <div class="kpi-strip a3" *ngIf="isManager">
-    <div class="kpi-card kpi-pending">
-      <div class="kpi-label">En attente</div>
-      <div class="kpi-value">{{ pendingCount }}</div>
-      <div class="kpi-sub">réception(s) à valider</div>
+  @if (isManager) {
+    <div class="kpi-strip a3">
+      <div class="kpi-card kpi-pending">
+        <div class="kpi-label">En attente</div>
+        <div class="kpi-value">{{ pendingCount }}</div>
+        <div class="kpi-sub">réception(s) à valider</div>
+      </div>
     </div>
-  </div>
+  }
 
   <!-- TOOLBAR -->
   <div class="toolbar a4">
@@ -53,7 +55,7 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
     </svg>
     <input class="search-input" type="text" placeholder="Rechercher par référence…"
-           [(ngModel)]="searchReference" (input)="onSearchChange()">
+      [(ngModel)]="searchReference" (input)="onSearchChange()">
 
     <div class="divider"></div>
 
@@ -65,7 +67,9 @@
     <div class="divider"></div>
 
     <select class="status-select" [(ngModel)]="statusFilter" (change)="onStatusChange()">
-      <option *ngFor="let option of statusOptions" [ngValue]="option.value">{{ option.label }}</option>
+      @for (option of statusOptions; track option) {
+        <option [ngValue]="option.value">{{ option.label }}</option>
+      }
     </select>
 
     <span class="result-count">
@@ -73,10 +77,10 @@
     </span>
 
     <button class="btn-download"
-            type="button"
-            (click)="downloadDailyPdf()"
-            [disabled]="!searchDate || isDailyPdfLoading"
-            title="Sélectionnez une date pour télécharger le PDF du jour">
+      type="button"
+      (click)="downloadDailyPdf()"
+      [disabled]="!searchDate || isDailyPdfLoading"
+      title="Sélectionnez une date pour télécharger le PDF du jour">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
         <polyline points="7 10 12 15 17 10"/>
@@ -101,63 +105,77 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngIf="isLoading">
-          <td colspan="7">
-            <div class="empty-state">
-              <div class="empty-icon">⏳</div>
-              <div class="empty-title">Chargement…</div>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="!isLoading && receptions.length === 0">
-          <td colspan="7">
-            <div class="empty-state">
-              <div class="empty-icon">📦</div>
-              <div class="empty-title">Aucune entrée trouvée</div>
-              <div class="empty-sub">Modifiez les filtres ou vérifiez les données.</div>
-            </div>
-          </td>
-        </tr>
-        <tr *ngFor="let r of receptions; let i = index" [class.cancelled-row]="r.status === 'CANCELLED' || r.status === 'REFUSED'"
+        @if (isLoading) {
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <div class="empty-icon">⏳</div>
+                <div class="empty-title">Chargement…</div>
+              </div>
+            </td>
+          </tr>
+        }
+        @if (!isLoading && receptions.length === 0) {
+          <tr>
+            <td colspan="7">
+              <div class="empty-state">
+                <div class="empty-icon">📦</div>
+                <div class="empty-title">Aucune entrée trouvée</div>
+                <div class="empty-sub">Modifiez les filtres ou vérifiez les données.</div>
+              </div>
+            </td>
+          </tr>
+        }
+        @for (r of receptions; track r; let i = $index) {
+          <tr [class.cancelled-row]="r.status === 'CANCELLED' || r.status === 'REFUSED'"
             [attr.data-testid]="'e2e-stock-reception-row'"
             [attr.data-reference]="r.reference"
             [attr.data-status]="r.status">
-          <td>
-            <span class="row-num">{{ currentPage * pageSize + i + 1 }}</span>
-          </td>
-          <td>
-            <div class="col-ref" [class.text-cancelled]="r.status === 'CANCELLED' || r.status === 'REFUSED'">{{ r.reference }}</div>
-          </td>
-          <td>
-            <div class="col-date">{{ r.receptionDate | date:'dd/MM/yyyy' }}</div>
-          </td>
-          <td class="col-hide">
-            <div class="col-collector">
-              <div class="collector-dot">{{ getInitials(r.receivedBy) }}</div>
-              {{ r.receivedBy }}
-            </div>
-          </td>
-          <td>
-            <div class="col-amount" [class.text-cancelled]="r.status === 'CANCELLED' || r.status === 'REFUSED'">{{ r.totalAmount | number }} FCFA</div>
-          </td>
-          <td>
-            <span class="badge" [ngClass]="getStatusClass(r.status)">
-              {{ getStatusLabel(r.status) }}
-            </span>
-          </td>
-          <td>
-            <div class="action-buttons">
-              <button class="btn-detail" (click)="viewDetails(r.id)">Voir</button>
-              <button class="btn-validate" *ngIf="canValidateOrRefuse(r)" (click)="validateReception(r)"
-                data-testid="e2e-stock-reception-validate">Valider</button>
-              <button class="btn-refuse" *ngIf="canValidateOrRefuse(r)" (click)="refuseReception(r)"
-                data-testid="e2e-stock-reception-refuse">Refuser</button>
-              <button class="btn-cancel" *ngIf="canAbandonPending(r)" (click)="abandonReception(r)"
-                data-testid="e2e-stock-reception-abandon">Abandonner</button>
-              <button class="btn-cancel" *ngIf="canCancelValidated(r)" (click)="cancelValidatedReception(r)">Annuler</button>
-            </div>
-          </td>
-        </tr>
+            <td>
+              <span class="row-num">{{ currentPage * pageSize + i + 1 }}</span>
+            </td>
+            <td>
+              <div class="col-ref" [class.text-cancelled]="r.status === 'CANCELLED' || r.status === 'REFUSED'">{{ r.reference }}</div>
+            </td>
+            <td>
+              <div class="col-date">{{ r.receptionDate | date:'dd/MM/yyyy' }}</div>
+            </td>
+            <td class="col-hide">
+              <div class="col-collector">
+                <div class="collector-dot">{{ getInitials(r.receivedBy) }}</div>
+                {{ r.receivedBy }}
+              </div>
+            </td>
+            <td>
+              <div class="col-amount" [class.text-cancelled]="r.status === 'CANCELLED' || r.status === 'REFUSED'">{{ r.totalAmount | number }} FCFA</div>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="getStatusClass(r.status)">
+                {{ getStatusLabel(r.status) }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-detail" (click)="viewDetails(r.id)">Voir</button>
+                @if (canValidateOrRefuse(r)) {
+                  <button class="btn-validate" (click)="validateReception(r)"
+                  data-testid="e2e-stock-reception-validate">Valider</button>
+                }
+                @if (canValidateOrRefuse(r)) {
+                  <button class="btn-refuse" (click)="refuseReception(r)"
+                  data-testid="e2e-stock-reception-refuse">Refuser</button>
+                }
+                @if (canAbandonPending(r)) {
+                  <button class="btn-cancel" (click)="abandonReception(r)"
+                  data-testid="e2e-stock-reception-abandon">Abandonner</button>
+                }
+                @if (canCancelValidated(r)) {
+                  <button class="btn-cancel" (click)="cancelValidatedReception(r)">Annuler</button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
       </tbody>
     </table>
 
@@ -168,7 +186,9 @@
         <button class="page-btn" (click)="changePage(-1)" [disabled]="currentPage === 0">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </button>
-        <button *ngFor="let p of pageNumbers" class="page-btn" [class.active]="currentPage === p - 1" (click)="goPage(p - 1)">{{ p }}</button>
+        @for (p of pageNumbers; track p) {
+          <button class="page-btn" [class.active]="currentPage === p - 1" (click)="goPage(p - 1)">{{ p }}</button>
+        }
         <button class="page-btn" (click)="changePage(1)" [disabled]="currentPage >= totalPages - 1">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
         </button>

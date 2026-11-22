@@ -13,27 +13,41 @@
     placeholder="ELY-XXXX-XXXX"
     autocomplete="off">
 
-  <p class="error" *ngIf="error">{{ error }}</p>
+  @if (error) {
+    <p class="error">{{ error }}</p>
+  }
 
-  <div class="result unknown" *ngIf="result && !result.found">
-    {{ result.message || 'Ce reçu ne provient pas d\'Elykia.' }}
-  </div>
+  @if (result && !result.found) {
+    <div class="result unknown">
+      {{ result.message || 'Ce reçu ne provient pas d\'Elykia.' }}
+    </div>
+  }
 
-  <div class="result official" *ngIf="result && result.found">
-    <p class="result-title">Reçu reconnu</p>
-    <p class="result-note" *ngIf="result.message">{{ result.message }}</p>
-    <p><span>Code</span> {{ result.authenticityCode }}</p>
-    <p><span>Référence</span> {{ result.reference }}</p>
-    <p><span>Membre</span> {{ result.clientName }}</p>
-    <p *ngIf="result.clientPhone && result.clientPhone !== '—'"><span>Téléphone</span> {{ result.clientPhone }}</p>
-    <p><span>Date</span> {{ result.requestDate }}</p>
-    <p><span>Statut</span> {{ result.statusLabel }}</p>
-    <p><span>Commercial</span> {{ result.commercialUsername }}</p>
-    <p><span>Montant</span> {{ result.totalAmount }}</p>
-    <ul *ngIf="result.lines?.length">
-      <li *ngFor="let line of result.lines">{{ line.designation }} · qté {{ line.quantity }}</li>
-    </ul>
-  </div>
+  @if (result && result.found) {
+    <div class="result official">
+      <p class="result-title">Reçu reconnu</p>
+      @if (result.message) {
+        <p class="result-note">{{ result.message }}</p>
+      }
+      <p><span>Code</span> {{ result.authenticityCode }}</p>
+      <p><span>Référence</span> {{ result.reference }}</p>
+      <p><span>Membre</span> {{ result.clientName }}</p>
+      @if (result.clientPhone && result.clientPhone !== '—') {
+        <p><span>Téléphone</span> {{ result.clientPhone }}</p>
+      }
+      <p><span>Date</span> {{ result.requestDate }}</p>
+      <p><span>Statut</span> {{ result.statusLabel }}</p>
+      <p><span>Commercial</span> {{ result.commercialUsername }}</p>
+      <p><span>Montant</span> {{ result.totalAmount }}</p>
+      @if (result.lines?.length) {
+        <ul>
+          @for (line of result.lines; track line) {
+            <li>{{ line.designation }} · qté {{ line.quantity }}</li>
+          }
+        </ul>
+      }
+    </div>
+  }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">

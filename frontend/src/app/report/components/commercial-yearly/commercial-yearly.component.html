@@ -1,58 +1,70 @@
 <div class="commercial-yearly" data-testid="e2e-commercial-yearly">
-    <section class="panel-card" aria-labelledby="yearly-credit-title">
-        <div class="panel-head">
-            <h2 id="yearly-credit-title">Bilan crédit {{ year }}</h2>
-            <span class="panel-hint">Du 01/01 à aujourd'hui</span>
+  <section class="panel-card" aria-labelledby="yearly-credit-title">
+    <div class="panel-head">
+      <h2 id="yearly-credit-title">Bilan crédit {{ year }}</h2>
+      <span class="panel-hint">Du 01/01 à aujourd'hui</span>
+    </div>
+    @if (loading) {
+      <div class="skeleton yearly-skeleton"></div>
+    }
+    @if (!loading && credit; as c) {
+      <div class="yearly-bar" role="img" [attr.aria-label]="'Versé ' + (paidShare | number:'1.0-0') + ' % du portefeuille'">
+        <span class="paid" [style.width.%]="paidShare"></span>
+        <span class="rest" [style.width.%]="100 - paidShare"></span>
+      </div>
+      <dl class="lines">
+        <div>
+          <dt>Stock ouverture + ventes + reçues − cédées</dt>
+          <dd class="num">{{ c.openingStockAmount | fcfa:'bare' }} + {{ c.totalCreditSalesAmount | fcfa:'bare' }} + {{ c.creditsReceivedAmount | fcfa:'bare' }} − {{ c.creditsCededAmount | fcfa:'bare' }}</dd>
         </div>
-        <div class="skeleton yearly-skeleton" *ngIf="loading"></div>
-        <ng-container *ngIf="!loading && credit as c">
-            <div class="yearly-bar" role="img" [attr.aria-label]="'Versé ' + (paidShare | number:'1.0-0') + ' % du portefeuille'">
-                <span class="paid" [style.width.%]="paidShare"></span>
-                <span class="rest" [style.width.%]="100 - paidShare"></span>
-            </div>
-            <dl class="lines">
-                <div>
-                    <dt>Stock ouverture + ventes + reçues − cédées</dt>
-                    <dd class="num">{{ c.openingStockAmount | fcfa:'bare' }} + {{ c.totalCreditSalesAmount | fcfa:'bare' }} + {{ c.creditsReceivedAmount | fcfa:'bare' }} − {{ c.creditsCededAmount | fcfa:'bare' }}</dd>
-                </div>
-                <div><dt><strong>Portefeuille confié</strong></dt><dd class="num">{{ c.entrustedPortfolioAmount | fcfa }}</dd></div>
-                <div><dt>Versements crédit</dt><dd class="num">{{ c.totalCreditDepositedAmount | fcfa }}</dd></div>
-                <div><dt>Reste chez le commercial</dt><dd class="num gap-neg">{{ c.remainingAtCommercialAmount | fcfa }}</dd></div>
-                <div>
-                    <dt>
-                        <button type="button" class="btn-link" (click)="openRemainingAtClients()"
-                            data-testid="e2e-commercial-yearly-remaining-clients">Reste chez les clients · détail</button>
-                    </dt>
-                    <dd class="num gap-neg">{{ c.remainingAtClientAmount | fcfa }}</dd>
-                </div>
-                <div><dt>Dette marchandise / réglée</dt><dd class="num">{{ c.merchandiseDebtGlobalAmount | fcfa:'bare' }} / {{ c.merchandiseDebtSettledAmount | fcfa }}</dd></div>
-                <div><dt>Total carnets contrôlés</dt><dd class="num">{{ (c.controlledNotebookAmount || 0) | fcfa }}</dd></div>
-            </dl>
-        </ng-container>
-        <p class="panel-hint" *ngIf="!loading && !credit">Bilan crédit indisponible.</p>
-    </section>
+        <div><dt><strong>Portefeuille confié</strong></dt><dd class="num">{{ c.entrustedPortfolioAmount | fcfa }}</dd></div>
+        <div><dt>Versements crédit</dt><dd class="num">{{ c.totalCreditDepositedAmount | fcfa }}</dd></div>
+        <div><dt>Reste chez le commercial</dt><dd class="num gap-neg">{{ c.remainingAtCommercialAmount | fcfa }}</dd></div>
+        <div>
+          <dt>
+            <button type="button" class="btn-link" (click)="openRemainingAtClients()"
+            data-testid="e2e-commercial-yearly-remaining-clients">Reste chez les clients · détail</button>
+          </dt>
+          <dd class="num gap-neg">{{ c.remainingAtClientAmount | fcfa }}</dd>
+        </div>
+        <div><dt>Dette marchandise / réglée</dt><dd class="num">{{ c.merchandiseDebtGlobalAmount | fcfa:'bare' }} / {{ c.merchandiseDebtSettledAmount | fcfa }}</dd></div>
+        <div><dt>Total carnets contrôlés</dt><dd class="num">{{ (c.controlledNotebookAmount || 0) | fcfa }}</dd></div>
+      </dl>
+    }
+    @if (!loading && !credit) {
+      <p class="panel-hint">Bilan crédit indisponible.</p>
+    }
+  </section>
 
-    <section class="panel-card" aria-labelledby="yearly-tontine-title">
-        <div class="panel-head">
-            <h2 id="yearly-tontine-title">Bilan tontine {{ year }}</h2>
-            <span class="panel-hint" *ngIf="tontine">{{ tontine.totalTontineCollectionsCount }} opération(s)</span>
+  <section class="panel-card" aria-labelledby="yearly-tontine-title">
+    <div class="panel-head">
+      <h2 id="yearly-tontine-title">Bilan tontine {{ year }}</h2>
+      @if (tontine) {
+        <span class="panel-hint">{{ tontine.totalTontineCollectionsCount }} opération(s)</span>
+      }
+    </div>
+    @if (loading) {
+      <div class="skeleton yearly-skeleton"></div>
+    }
+    @if (!loading && tontine; as t) {
+      @if (tontineGap < -0.01) {
+        <span class="yearly-note" data-testid="e2e-commercial-yearly-tontine-warning">
+          <strong>À vérifier :</strong> les versements dépassent les collectes de {{ tontineGapAbs | fcfa }}
+          (saisie hors application ou reprise du solde de l'année précédente).
+        </span>
+      }
+      <dl class="lines">
+        <div><dt>Collectes enregistrées</dt><dd class="num">{{ t.totalTontineCollectionsAmount | fcfa }}</dd></div>
+        <div><dt>Versements tontine</dt><dd class="num">{{ t.totalTontineDepositedAmount | fcfa }}</dd></div>
+        <div>
+          <dt><strong>{{ tontineGap < -0.01 ? 'Versé en trop' : 'Reste chez le commercial' }}</strong></dt>
+          <dd class="num" [class.gap-neg]="tontineGap > 0.01">{{ tontineGapAbs | fcfa }}</dd>
         </div>
-        <div class="skeleton yearly-skeleton" *ngIf="loading"></div>
-        <ng-container *ngIf="!loading && tontine as t">
-            <span class="yearly-note" *ngIf="tontineGap < -0.01" data-testid="e2e-commercial-yearly-tontine-warning">
-                <strong>À vérifier :</strong> les versements dépassent les collectes de {{ tontineGapAbs | fcfa }}
-                (saisie hors application ou reprise du solde de l'année précédente).
-            </span>
-            <dl class="lines">
-                <div><dt>Collectes enregistrées</dt><dd class="num">{{ t.totalTontineCollectionsAmount | fcfa }}</dd></div>
-                <div><dt>Versements tontine</dt><dd class="num">{{ t.totalTontineDepositedAmount | fcfa }}</dd></div>
-                <div>
-                    <dt><strong>{{ tontineGap < -0.01 ? 'Versé en trop' : 'Reste chez le commercial' }}</strong></dt>
-                    <dd class="num" [class.gap-neg]="tontineGap > 0.01">{{ tontineGapAbs | fcfa }}</dd>
-                </div>
-                <div><dt>Total carnets contrôlés</dt><dd class="num">{{ (t.controlledNotebookAmount || 0) | fcfa }}</dd></div>
-            </dl>
-        </ng-container>
-        <p class="panel-hint" *ngIf="!loading && !tontine">Bilan tontine indisponible.</p>
-    </section>
+        <div><dt>Total carnets contrôlés</dt><dd class="num">{{ (t.controlledNotebookAmount || 0) | fcfa }}</dd></div>
+      </dl>
+    }
+    @if (!loading && !tontine) {
+      <p class="panel-hint">Bilan tontine indisponible.</p>
+    }
+  </section>
 </div>

@@ -29,38 +29,48 @@
     <p class="page-subtitle">Catalogue, stocks et statuts · Recherche et pagination conservées à la navigation</p>
   </div>
 
-  <div class="kpi-strip article-kpi-strip a3" *ngIf="stockKpis" [class.kpi-strip--two]="!showCreditKpis">
-    <div class="kpi-card kpi-total">
-      <div class="kpi-label">Articles en stock</div>
-      <div class="kpi-value">{{ stockKpis.inStockCount }}</div>
-      <div class="kpi-sub">Coût : {{ formatCurrency(stockKpis.purchaseTotal) }}</div>
+  @if (stockKpis) {
+    <div class="kpi-strip article-kpi-strip a3" [class.kpi-strip--two]="!showCreditKpis">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Articles en stock</div>
+        <div class="kpi-value">{{ stockKpis.inStockCount }}</div>
+        <div class="kpi-sub">Coût : {{ formatCurrency(stockKpis.purchaseTotal) }}</div>
+      </div>
+      @if (showCreditKpis) {
+        <div class="kpi-card kpi-amount">
+          <div class="kpi-label">Vente à crédit (estimé)</div>
+          <div class="kpi-value">{{ formatCurrency(stockKpis.creditSaleTotal) }}</div>
+          <div class="kpi-sub">Valeur stock au prix crédit</div>
+        </div>
+      }
+      @if (showCreditKpis) {
+        <div class="kpi-card kpi-green">
+          <div class="kpi-label">Marge estimée (crédit)</div>
+          <div class="kpi-value">{{ formatCurrency(stockKpis.estimatedMargin) }}</div>
+          <div class="kpi-sub">Crédit − coût d'achat</div>
+        </div>
+      }
+      @if (showCreditKpis) {
+        <div class="kpi-card kpi-amount">
+          <div class="kpi-label">Vente comptant (estimé)</div>
+          <div class="kpi-value">{{ formatCurrency(stockKpis.sellingSaleTotal) }}</div>
+          <div class="kpi-sub">Valeur stock au prix de vente</div>
+        </div>
+      }
+      @if (showCreditKpis) {
+        <div class="kpi-card kpi-green">
+          <div class="kpi-label">Marge estimée (comptant)</div>
+          <div class="kpi-value">{{ formatCurrency(stockKpis.estimatedSellingMargin) }}</div>
+          <div class="kpi-sub">Vente − coût d'achat</div>
+        </div>
+      }
+      <div class="kpi-card kpi-delai">
+        <div class="kpi-label">Rupture de stock</div>
+        <div class="kpi-value">{{ stockKpis.outOfStockCount }}</div>
+        <div class="kpi-sub">Quantité = 0</div>
+      </div>
     </div>
-    <div class="kpi-card kpi-amount" *ngIf="showCreditKpis">
-      <div class="kpi-label">Vente à crédit (estimé)</div>
-      <div class="kpi-value">{{ formatCurrency(stockKpis.creditSaleTotal) }}</div>
-      <div class="kpi-sub">Valeur stock au prix crédit</div>
-    </div>
-    <div class="kpi-card kpi-green" *ngIf="showCreditKpis">
-      <div class="kpi-label">Marge estimée (crédit)</div>
-      <div class="kpi-value">{{ formatCurrency(stockKpis.estimatedMargin) }}</div>
-      <div class="kpi-sub">Crédit − coût d'achat</div>
-    </div>
-    <div class="kpi-card kpi-amount" *ngIf="showCreditKpis">
-      <div class="kpi-label">Vente comptant (estimé)</div>
-      <div class="kpi-value">{{ formatCurrency(stockKpis.sellingSaleTotal) }}</div>
-      <div class="kpi-sub">Valeur stock au prix de vente</div>
-    </div>
-    <div class="kpi-card kpi-green" *ngIf="showCreditKpis">
-      <div class="kpi-label">Marge estimée (comptant)</div>
-      <div class="kpi-value">{{ formatCurrency(stockKpis.estimatedSellingMargin) }}</div>
-      <div class="kpi-sub">Vente − coût d'achat</div>
-    </div>
-    <div class="kpi-card kpi-delai">
-      <div class="kpi-label">Rupture de stock</div>
-      <div class="kpi-value">{{ stockKpis.outOfStockCount }}</div>
-      <div class="kpi-sub">Quantité = 0</div>
-    </div>
-  </div>
+  }
 
   <div class="toolbar a4">
     <div class="filter-group filter-group-search">
@@ -81,12 +91,18 @@
     </button>
     <span class="result-count">
       <strong>{{ totalElement }}</strong> article(s)
-      <span *ngIf="selectedArticles.size > 0"> · {{ selectedArticles.size }} sélectionné(s)</span>
+      @if (selectedArticles.size > 0) {
+        <span> · {{ selectedArticles.size }} sélectionné(s)</span>
+      }
     </span>
 
     <div class="toolbar-actions" *ngxPermissionsOnly="['ROLE_EDIT_ARTICLE', 'ROLE_STOREKEEPER']">
-      <button class="btn-outline btn-sm" *ngIf="selectedArticles.size > 0" (click)="disableSelected()">Désactiver</button>
-      <button class="btn-outline btn-sm" *ngIf="selectedArticles.size > 0" (click)="enableSelected()">Activer</button>
+      @if (selectedArticles.size > 0) {
+        <button class="btn-outline btn-sm" (click)="disableSelected()">Désactiver</button>
+      }
+      @if (selectedArticles.size > 0) {
+        <button class="btn-outline btn-sm" (click)="enableSelected()">Activer</button>
+      }
       <button class="btn-primary" (click)="addArticle()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         Ajouter
@@ -96,79 +112,97 @@
 
   <div class="table-card a5">
     <div class="table-wrapper">
-      <div *ngIf="isLoading" class="table-loading">
-        <div class="empty-state">
-          <div class="empty-icon">⏳</div>
-          <div class="empty-title">Chargement…</div>
+      @if (isLoading) {
+        <div class="table-loading">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Chargement…</div>
+          </div>
         </div>
-      </div>
+      }
 
-      <div *ngIf="!isLoading && articles.length === 0" class="table-empty-static">
-        <div class="empty-state">
-          <div class="empty-icon">📦</div>
-          <div class="empty-title">Aucun article trouvé</div>
-          <div class="empty-sub">Modifiez votre recherche ou ajoutez un nouvel article.</div>
+      @if (!isLoading && articles.length === 0) {
+        <div class="table-empty-static">
+          <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <div class="empty-title">Aucun article trouvé</div>
+            <div class="empty-sub">Modifiez votre recherche ou ajoutez un nouvel article.</div>
+          </div>
         </div>
-      </div>
+      }
 
-      <table class="data-table" *ngIf="!isLoading && articles.length > 0">
-        <thead>
-          <tr>
-            <th class="col-check">
-              <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected"
-                [indeterminate]="selectedArticles.size > 0 && !isAllSelected">
-              </mat-checkbox>
-            </th>
-            <th>#</th>
-            <th>Nom</th>
-            <th>Marque</th>
-            <th>Modèle</th>
-            <th>Type</th>
-            <th>Statut</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let article of articles; let i = index" class="table-row">
-            <td class="col-check">
-              <mat-checkbox (click)="$event.stopPropagation()" (change)="toggleSelection(article)"
-                [checked]="selectedArticles.has(article.id)">
-              </mat-checkbox>
-            </td>
-            <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
-            <td>
-              <span class="col-client name-with-photo">
-                <img *ngIf="article.displayPhotoUrl" class="article-thumb" [src]="article.displayPhotoUrl" [alt]="article.name" />
-                {{ article.name }}
-              </span>
-            </td>
-            <td>{{ article.marque }}</td>
-            <td>{{ article.model || '—' }}</td>
-            <td>{{ article.type }}</td>
-            <td>
-              <span class="status-badge" [ngClass]="getStatusBadgeClass(article.status || article.state)">
-                {{ getStatusLabel(article.status || article.state) }}
-              </span>
-            </td>
-            <td class="col-actions">
-              <button class="btn-detail" (click)="viewDetails(article.id)" title="Détails">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                Voir
-              </button>
-              <button *ngIf="isGestionnaire" class="btn-detail" (click)="editArticle(article.id)" title="Modifier">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-              </button>
-              <button *ngIf="isGestionnaire" class="btn-detail" (click)="toggleState(article)" [title]="(article.status || article.state) === 'ENABLED' ? 'Désactiver' : 'Activer'">
-                <svg *ngIf="(article.status || article.state) === 'ENABLED'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-                <svg *ngIf="(article.status || article.state) !== 'ENABLED'" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-              </button>
-              <button *ngxPermissionsOnly="['ROLE_DEL_ARTICLE']" class="btn-detail btn-danger" (click)="deleteArticle(article.id)" title="Supprimer">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      @if (!isLoading && articles.length > 0) {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="col-check">
+                <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected"
+                  [indeterminate]="selectedArticles.size > 0 && !isAllSelected">
+                </mat-checkbox>
+              </th>
+              <th>#</th>
+              <th>Nom</th>
+              <th>Marque</th>
+              <th>Modèle</th>
+              <th>Type</th>
+              <th>Statut</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (article of articles; track article; let i = $index) {
+              <tr class="table-row">
+                <td class="col-check">
+                  <mat-checkbox (click)="$event.stopPropagation()" (change)="toggleSelection(article)"
+                    [checked]="selectedArticles.has(article.id)">
+                  </mat-checkbox>
+                </td>
+                <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
+                <td>
+                  <span class="col-client name-with-photo">
+                    @if (article.displayPhotoUrl) {
+                      <img class="article-thumb" [src]="article.displayPhotoUrl" [alt]="article.name" />
+                    }
+                    {{ article.name }}
+                  </span>
+                </td>
+                <td>{{ article.marque }}</td>
+                <td>{{ article.model || '—' }}</td>
+                <td>{{ article.type }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="getStatusBadgeClass(article.status || article.state)">
+                    {{ getStatusLabel(article.status || article.state) }}
+                  </span>
+                </td>
+                <td class="col-actions">
+                  <button class="btn-detail" (click)="viewDetails(article.id)" title="Détails">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    Voir
+                  </button>
+                  @if (isGestionnaire) {
+                    <button class="btn-detail" (click)="editArticle(article.id)" title="Modifier">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    </button>
+                  }
+                  @if (isGestionnaire) {
+                    <button class="btn-detail" (click)="toggleState(article)" [title]="(article.status || article.state) === 'ENABLED' ? 'Désactiver' : 'Activer'">
+                      @if ((article.status || article.state) === 'ENABLED') {
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                      }
+                      @if ((article.status || article.state) !== 'ENABLED') {
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                      }
+                    </button>
+                  }
+                  <button *ngxPermissionsOnly="['ROLE_DEL_ARTICLE']" class="btn-detail btn-danger" (click)="deleteArticle(article.id)" title="Supprimer">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
     </div>
 
     <div class="pagination article-pagination">

@@ -12,36 +12,44 @@
   </div>
 
   <div class="modal-body">
-    <div class="member-summary" *ngIf="isEditMode && data.member">
-      <div class="summary-row">
-        <span class="summary-label">Membre</span>
-        <span class="summary-value">{{ getClientDisplay(data.member.client) }}</span>
+    @if (isEditMode && data.member) {
+      <div class="member-summary">
+        <div class="summary-row">
+          <span class="summary-label">Membre</span>
+          <span class="summary-value">{{ getClientDisplay(data.member.client) }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Mise actuelle</span>
+          <span class="summary-value mono">{{ data.member.amount ? (data.member.amount | number:'1.0-0') + ' FCFA' : 'N/A' }}</span>
+        </div>
       </div>
-      <div class="summary-row">
-        <span class="summary-label">Mise actuelle</span>
-        <span class="summary-value mono">{{ data.member.amount ? (data.member.amount | number:'1.0-0') + ' FCFA' : 'N/A' }}</span>
-      </div>
-    </div>
+    }
 
     <form [formGroup]="form" class="member-form" (ngSubmit)="onSubmit()">
-      <div class="form-field" *ngIf="!isEditMode">
-        <label class="field-label">Sélectionner un client *</label>
-        <app-client-select
-          formControlName="clientId"
-          [username]="currentUser?.username"
-          [tontine]="true"
-          testId="e2e-tontine-member-client"
-          placeholder="Rechercher un client tontine">
-        </app-client-select>
-        <span class="field-error" *ngIf="form.get('clientId')?.hasError('required') && form.get('clientId')?.touched">
-          Veuillez sélectionner un client
-        </span>
-      </div>
+      @if (!isEditMode) {
+        <div class="form-field">
+          <label class="field-label">Sélectionner un client *</label>
+          <app-client-select
+            formControlName="clientId"
+            [username]="currentUser?.username"
+            [tontine]="true"
+            testId="e2e-tontine-member-client"
+            placeholder="Rechercher un client tontine">
+          </app-client-select>
+          @if (form.get('clientId')?.hasError('required') && form.get('clientId')?.touched) {
+            <span class="field-error">
+              Veuillez sélectionner un client
+            </span>
+          }
+        </div>
+      }
 
-      <div class="form-field" *ngIf="isEditMode && data.member">
-        <label class="field-label">Client</label>
-        <div class="readonly-value">{{ getClientDisplay(data.member.client) }}</div>
-      </div>
+      @if (isEditMode && data.member) {
+        <div class="form-field">
+          <label class="field-label">Client</label>
+          <div class="readonly-value">{{ getClientDisplay(data.member.client) }}</div>
+        </div>
+      }
 
       <div class="form-field">
         <label class="field-label">Fréquence de cotisation</label>
@@ -62,14 +70,16 @@
         </div>
       </div>
 
-      <div class="scope-section" *ngIf="showUpdateScope">
-        <div class="scope-title">Portée de la modification</div>
-        <mat-radio-group formControlName="updateScope" class="scope-radio-group">
-          <mat-radio-button value="CURRENT_AND_FUTURE">Mois en cours et futurs</mat-radio-button>
-          <mat-radio-button value="FUTURE_ONLY">Mois futurs uniquement</mat-radio-button>
-          <mat-radio-button value="GLOBAL">Rétroactif (tout recalculer)</mat-radio-button>
-        </mat-radio-group>
-      </div>
+      @if (showUpdateScope) {
+        <div class="scope-section">
+          <div class="scope-title">Portée de la modification</div>
+          <mat-radio-group formControlName="updateScope" class="scope-radio-group">
+            <mat-radio-button value="CURRENT_AND_FUTURE">Mois en cours et futurs</mat-radio-button>
+            <mat-radio-button value="FUTURE_ONLY">Mois futurs uniquement</mat-radio-button>
+            <mat-radio-button value="GLOBAL">Rétroactif (tout recalculer)</mat-radio-button>
+          </mat-radio-group>
+        </div>
+      }
 
       <div class="form-field">
         <label class="field-label">Notes</label>
@@ -78,7 +88,9 @@
         </mat-form-field>
       </div>
 
-      <div class="error-banner" *ngIf="error">{{ error }}</div>
+      @if (error) {
+        <div class="error-banner">{{ error }}</div>
+      }
     </form>
   </div>
 
@@ -90,7 +102,9 @@
       (click)="onSubmit()"
       [disabled]="loading || form.invalid"
       data-testid="e2e-tontine-member-submit">
-      <span *ngIf="loading" class="btn-spinner"></span>
+      @if (loading) {
+        <span class="btn-spinner"></span>
+      }
       <span>{{ loading ? 'Enregistrement…' : (isEditMode ? 'Mettre à jour' : 'Ajouter le membre') }}</span>
     </button>
   </div>

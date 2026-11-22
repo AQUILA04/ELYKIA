@@ -9,29 +9,29 @@
         Validation des endpoints et formats de réponse
       </mat-card-subtitle>
     </mat-card-header>
-    
+
     <mat-card-content>
       <!-- Actions -->
       <div class="test-actions">
-        <button 
-          mat-raised-button 
+        <button
+          mat-raised-button
           color="primary"
           (click)="runTests()"
           [disabled]="isRunning">
           <mat-icon>play_arrow</mat-icon>
           <span>Exécuter les Tests</span>
         </button>
-        
-        <button 
-          mat-stroked-button 
+
+        <button
+          mat-stroked-button
           color="accent"
           (click)="runPerformanceTest()"
           [disabled]="isRunning">
           <mat-icon>speed</mat-icon>
           <span>Test de Performance</span>
         </button>
-        
-        <button 
+
+        <button
           mat-stroked-button
           (click)="downloadReport()"
           [disabled]="!testReport">
@@ -41,57 +41,67 @@
       </div>
 
       <!-- Indicateur de chargement -->
-      <div class="loading-section" *ngIf="isRunning">
-        <mat-spinner diameter="32"></mat-spinner>
-        <p>Exécution des tests en cours...</p>
-      </div>
+      @if (isRunning) {
+        <div class="loading-section">
+          <mat-spinner diameter="32"></mat-spinner>
+          <p>Exécution des tests en cours...</p>
+        </div>
+      }
 
       <!-- Résultats -->
-      <div class="test-results" *ngIf="testSuite && !isRunning">
-        <div class="results-summary">
-          <div class="summary-card" [class.success]="testSuite.overallSuccess" [class.error]="!testSuite.overallSuccess">
-            <mat-icon>{{ testSuite.overallSuccess ? 'check_circle' : 'error' }}</mat-icon>
-            <div class="summary-text">
-              <h3>{{ testSuite.overallSuccess ? 'Tous les tests ont réussi' : 'Certains tests ont échoué' }}</h3>
-              <p>{{ testSuite.passedTests }}/{{ testSuite.totalTests }} tests réussis</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Détails des tests -->
-        <div class="test-details">
-          <h4>Détails des Tests</h4>
-          <div class="test-list">
-            <div 
-              *ngFor="let result of testSuite.results"
-              class="test-item"
-              [class.success]="result.success"
-              [class.error]="!result.success">
-              
-              <div class="test-status">
-                <mat-icon>{{ result.success ? 'check' : 'close' }}</mat-icon>
-              </div>
-              
-              <div class="test-info">
-                <div class="test-endpoint">{{ result.endpoint }}</div>
-                <div class="test-meta">
-                  <span *ngIf="result.responseTime">{{ result.responseTime }}ms</span>
-                  <span *ngIf="result.statusCode">HTTP {{ result.statusCode }}</span>
-                </div>
-                <div class="test-error" *ngIf="result.error">
-                  {{ result.error }}
-                </div>
+      @if (testSuite && !isRunning) {
+        <div class="test-results">
+          <div class="results-summary">
+            <div class="summary-card" [class.success]="testSuite.overallSuccess" [class.error]="!testSuite.overallSuccess">
+              <mat-icon>{{ testSuite.overallSuccess ? 'check_circle' : 'error' }}</mat-icon>
+              <div class="summary-text">
+                <h3>{{ testSuite.overallSuccess ? 'Tous les tests ont réussi' : 'Certains tests ont échoué' }}</h3>
+                <p>{{ testSuite.passedTests }}/{{ testSuite.totalTests }} tests réussis</p>
               </div>
             </div>
           </div>
+          <!-- Détails des tests -->
+          <div class="test-details">
+            <h4>Détails des Tests</h4>
+            <div class="test-list">
+              @for (result of testSuite.results; track result) {
+                <div
+                  class="test-item"
+                  [class.success]="result.success"
+                  [class.error]="!result.success">
+                  <div class="test-status">
+                    <mat-icon>{{ result.success ? 'check' : 'close' }}</mat-icon>
+                  </div>
+                  <div class="test-info">
+                    <div class="test-endpoint">{{ result.endpoint }}</div>
+                    <div class="test-meta">
+                      @if (result.responseTime) {
+                        <span>{{ result.responseTime }}ms</span>
+                      }
+                      @if (result.statusCode) {
+                        <span>HTTP {{ result.statusCode }}</span>
+                      }
+                    </div>
+                    @if (result.error) {
+                      <div class="test-error">
+                        {{ result.error }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
         </div>
-      </div>
+      }
 
       <!-- Rapport textuel -->
-      <div class="test-report" *ngIf="testReport">
-        <h4>Rapport Complet</h4>
-        <pre class="report-content">{{ testReport }}</pre>
-      </div>
+      @if (testReport) {
+        <div class="test-report">
+          <h4>Rapport Complet</h4>
+          <pre class="report-content">{{ testReport }}</pre>
+        </div>
+      }
     </mat-card-content>
   </mat-card>
 </div>

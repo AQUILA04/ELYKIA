@@ -10,15 +10,18 @@
   </div>
 
   <div class="validate-dialog-body">
-    <div *ngIf="loading" class="state-message">Chargement des articles…</div>
-    <div *ngIf="!loading && loadError" class="error-banner" role="alert">{{ loadError }}</div>
+    @if (loading) {
+      <div class="state-message">Chargement des articles…</div>
+    }
+    @if (!loading && loadError) {
+      <div class="error-banner" role="alert">{{ loadError }}</div>
+    }
 
-    <ng-container *ngIf="!loading && !loadError">
+    @if (!loading && !loadError) {
       <div class="total-banner">
         <span>Montant total</span>
         <strong>{{ displayedTotalAmount | number }} FCFA</strong>
       </div>
-
       <div class="table-wrap">
         <table>
           <thead>
@@ -26,83 +29,104 @@
               <th>#</th>
               <th>Article</th>
               <th>Qté</th>
-              <th *ngIf="data.canShowPurchasePrice">Prix colis</th>
-              <th *ngIf="data.canShowPurchasePrice">Prix unitaire</th>
-              <th *ngIf="data.canShowPurchasePrice">Total ligne</th>
+              @if (data.canShowPurchasePrice) {
+                <th>Prix colis</th>
+              }
+              @if (data.canShowPurchasePrice) {
+                <th>Prix unitaire</th>
+              }
+              @if (data.canShowPurchasePrice) {
+                <th>Total ligne</th>
+              }
               <th>Prix de vente du lot</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let item of items; let i = index">
-              <td>{{ i + 1 }}</td>
-              <td>
-                <div class="article-name">{{ item.articleName || '—' }}</div>
-                <small *ngIf="formatPackagingSummary(item) as summary">{{ summary }}</small>
-              </td>
-              <td>{{ item.quantity }}</td>
-              <td *ngIf="data.canShowPurchasePrice">
-                <ng-container *ngIf="isPackagingMode(item); else noPackage">
-                  <input
-                    class="price-input"
-                    type="number"
-                    inputmode="decimal"
-                    min="0.01"
-                    step="0.01"
-                    [ngModel]="editablePrices[item.id]?.packagePrice"
-                    (ngModelChange)="onPackagePriceChange(item, $event)"
+            @for (item of items; track item; let i = $index) {
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td>
+                  <div class="article-name">{{ item.articleName || '—' }}</div>
+                  @if (formatPackagingSummary(item); as summary) {
+                    <small>{{ summary }}</small>
+                  }
+                </td>
+                <td>{{ item.quantity }}</td>
+                @if (data.canShowPurchasePrice) {
+                  <td>
+                    @if (isPackagingMode(item)) {
+                      <input
+                        class="price-input"
+                        type="number"
+                        inputmode="decimal"
+                        min="0.01"
+                        step="0.01"
+                        [ngModel]="editablePrices[item.id]?.packagePrice"
+                        (ngModelChange)="onPackagePriceChange(item, $event)"
+                        [disabled]="submitting"
+                        [attr.aria-label]="'Prix du colis ' + (item.articleName || '')"
+                        />
+                    } @else {
+                      <span class="muted">—</span>
+                    }
+                  </td>
+                }
+                @if (data.canShowPurchasePrice) {
+                  <td>
+                    @if (!isPackagingMode(item)) {
+                      <input
+                        class="price-input"
+                        type="number"
+                        inputmode="decimal"
+                        min="0.01"
+                        step="0.01"
+                        [ngModel]="editablePrices[item.id]?.unitPrice"
+                        (ngModelChange)="onUnitPriceChange(item, $event)"
+                        [disabled]="submitting"
+                        [attr.aria-label]="'Prix unitaire ' + (item.articleName || '')"
+                        />
+                    } @else {
+                      <span class="derived-price">{{ displayUnitPrice(item) | number }} FCFA</span>
+                    }
+                  </td>
+                }
+                @if (data.canShowPurchasePrice) {
+                  <td>
+                    <span class="line-total">{{ displayLineTotal(item) | number }} FCFA</span>
+                  </td>
+                }
+                <td>
+                  <input class="price-input" type="number" min="0" step="1"
+                    [ngModel]="editablePrices[item.id]?.unitSalePrice"
+                    (ngModelChange)="editablePrices[item.id].unitSalePrice = $event"
                     [disabled]="submitting"
-                    [attr.aria-label]="'Prix du colis ' + (item.articleName || '')"
-                  />
-                </ng-container>
-                <ng-template #noPackage><span class="muted">—</span></ng-template>
-              </td>
-              <td *ngIf="data.canShowPurchasePrice">
-                <ng-container *ngIf="!isPackagingMode(item); else derivedPu">
-                  <input
-                    class="price-input"
-                    type="number"
-                    inputmode="decimal"
-                    min="0.01"
-                    step="0.01"
-                    [ngModel]="editablePrices[item.id]?.unitPrice"
-                    (ngModelChange)="onUnitPriceChange(item, $event)"
-                    [disabled]="submitting"
-                    [attr.aria-label]="'Prix unitaire ' + (item.articleName || '')"
-                  />
-                </ng-container>
-                <ng-template #derivedPu>
-                  <span class="derived-price">{{ displayUnitPrice(item) | number }} FCFA</span>
-                </ng-template>
-              </td>
-              <td *ngIf="data.canShowPurchasePrice">
-                <span class="line-total">{{ displayLineTotal(item) | number }} FCFA</span>
-              </td>
-              <td>
-                <input class="price-input" type="number" min="0" step="1"
-                  [ngModel]="editablePrices[item.id]?.unitSalePrice"
-                  (ngModelChange)="editablePrices[item.id].unitSalePrice = $event"
-                  [disabled]="submitting"
-                  [attr.aria-label]="'Prix de vente unitaire ' + (item.articleName || '')" />
-                <input *ngIf="item.wholesaleSalePrice != null || item.catalogWholesaleSalePrice != null"
-                  class="price-input" type="number" min="0" step="1"
-                  [ngModel]="editablePrices[item.id]?.wholesaleSalePrice"
-                  (ngModelChange)="editablePrices[item.id].wholesaleSalePrice = $event"
-                  [disabled]="submitting"
-                  aria-label="Prix de vente gros" />
-                <input *ngIf="item.halfWholesaleSalePrice != null || item.catalogHalfWholesaleSalePrice != null"
-                  class="price-input" type="number" min="0" step="1"
-                  [ngModel]="editablePrices[item.id]?.halfWholesaleSalePrice"
-                  (ngModelChange)="editablePrices[item.id].halfWholesaleSalePrice = $event"
-                  [disabled]="submitting"
-                  aria-label="Prix de vente demi-gros" />
-              </td>
-            </tr>
+                    [attr.aria-label]="'Prix de vente unitaire ' + (item.articleName || '')" />
+                  @if (item.wholesaleSalePrice != null || item.catalogWholesaleSalePrice != null) {
+                    <input
+                      class="price-input" type="number" min="0" step="1"
+                      [ngModel]="editablePrices[item.id]?.wholesaleSalePrice"
+                      (ngModelChange)="editablePrices[item.id].wholesaleSalePrice = $event"
+                      [disabled]="submitting"
+                      aria-label="Prix de vente gros" />
+                  }
+                  @if (item.halfWholesaleSalePrice != null || item.catalogHalfWholesaleSalePrice != null) {
+                    <input
+                      class="price-input" type="number" min="0" step="1"
+                      [ngModel]="editablePrices[item.id]?.halfWholesaleSalePrice"
+                      (ngModelChange)="editablePrices[item.id].halfWholesaleSalePrice = $event"
+                      [disabled]="submitting"
+                      aria-label="Prix de vente demi-gros" />
+                  }
+                </td>
+              </tr>
+            }
           </tbody>
         </table>
       </div>
-
-      <div *ngIf="errorMessage" class="error-banner" role="alert">{{ errorMessage }}</div>
-    </ng-container>
+      @if (errorMessage) {
+        <div class="error-banner" role="alert">{{ errorMessage }}</div>
+      }
+    }
   </div>
 
   <div class="validate-dialog-footer">
@@ -112,7 +136,7 @@
       class="btn-primary"
       (click)="confirm()"
       [disabled]="loading || !!loadError || submitting || items.length === 0"
-    >
+      >
       {{ submitting ? 'Validation…' : 'Confirmer la validation' }}
     </button>
   </div>

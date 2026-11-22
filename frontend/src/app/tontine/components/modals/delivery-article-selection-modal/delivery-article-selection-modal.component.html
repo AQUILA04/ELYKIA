@@ -25,152 +25,180 @@
   <!-- Filtre rapide : catalogue général ou stock tontine du commercial -->
   <div class="source-toggle" role="group" aria-label="Source des articles">
     <button type="button" class="source-pill" [class.active]="articleSource === 'CATALOGUE'"
-            (click)="setArticleSource('CATALOGUE')" data-testid="e2e-tontine-source-catalogue">
+      (click)="setArticleSource('CATALOGUE')" data-testid="e2e-tontine-source-catalogue">
       Catalogue général
     </button>
     <button type="button" class="source-pill" [class.active]="articleSource === 'STOCK'"
-            (click)="setArticleSource('STOCK')" data-testid="e2e-tontine-source-stock">
+      (click)="setArticleSource('STOCK')" data-testid="e2e-tontine-source-stock">
       Stock tontine {{ stockCommercial ? 'de ' + stockCommercial : '' }}
     </button>
   </div>
 
-  <div class="stock-section" *ngIf="articleSource === 'STOCK'" data-testid="e2e-tontine-stock-articles">
-    <p class="stock-hint">Une commande prise dans le stock ne le débite pas : seule la remise le fait. « Réservé » additionne les commandes en cours de ce commercial, à titre indicatif.</p>
-    <p class="stock-hint" *ngIf="stockLoading">Chargement du stock…</p>
-    <p class="error-message" *ngIf="stockError"><mat-icon>error</mat-icon><span>{{ stockError }}</span></p>
-    <p class="stock-hint" *ngIf="!stockLoading && !stockError && stockRows.length === 0">Aucun article disponible dans ce stock tontine.</p>
-    <table class="articles-table" *ngIf="!stockLoading && stockRows.length > 0">
-      <thead>
-        <tr>
-          <th>Article</th>
-          <th class="num">Disponible</th>
-          <th class="num">Réservé</th>
-          <th class="num">Libre</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let row of stockRows">
-          <td>{{ row.articleName }}</td>
-          <td class="num">{{ row.available }}</td>
-          <td class="num">{{ row.reserved }}</td>
-          <td class="num" [class.stock-free-none]="row.free === 0">{{ row.free }}</td>
-          <td><button type="button" class="source-pill" (click)="addFromStock(row)">Ajouter</button></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  @if (articleSource === 'STOCK') {
+    <div class="stock-section" data-testid="e2e-tontine-stock-articles">
+      <p class="stock-hint">Une commande prise dans le stock ne le débite pas : seule la remise le fait. « Réservé » additionne les commandes en cours de ce commercial, à titre indicatif.</p>
+      @if (stockLoading) {
+        <p class="stock-hint">Chargement du stock…</p>
+      }
+      @if (stockError) {
+        <p class="error-message"><mat-icon>error</mat-icon><span>{{ stockError }}</span></p>
+      }
+      @if (!stockLoading && !stockError && stockRows.length === 0) {
+        <p class="stock-hint">Aucun article disponible dans ce stock tontine.</p>
+      }
+      @if (!stockLoading && stockRows.length > 0) {
+        <table class="articles-table">
+          <thead>
+            <tr>
+              <th>Article</th>
+              <th class="num">Disponible</th>
+              <th class="num">Réservé</th>
+              <th class="num">Libre</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of stockRows; track row) {
+              <tr>
+                <td>{{ row.articleName }}</td>
+                <td class="num">{{ row.available }}</td>
+                <td class="num">{{ row.reserved }}</td>
+                <td class="num" [class.stock-free-none]="row.free === 0">{{ row.free }}</td>
+                <td><button type="button" class="source-pill" (click)="addFromStock(row)">Ajouter</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
 
   <!-- Recherche d'articles -->
-  <div class="search-section" *ngIf="articleSource === 'CATALOGUE'">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Rechercher un article</mat-label>
-      <input 
-        matInput 
-        [formControl]="searchControl" 
-        [matAutocomplete]="articleAuto"
-        placeholder="Code, nom commercial ou nom de l'article"
-        data-testid="e2e-tontine-delivery-article-search">
-      <mat-icon matPrefix>search</mat-icon>
-      
-      <mat-autocomplete 
-        #articleAuto="matAutocomplete"
-        [displayWith]="displayArticle"
-        (opened)="onAutocompleteOpened()"
-        (closed)="onAutocompleteClosed()"
-        (optionSelected)="onArticleSelected($event.option.value)">
-        <mat-option 
-          *ngFor="let article of filteredArticles" 
-          [value]="article"
-          [attr.data-article-id]="article.id">
-          <div class="article-option">
-            <div class="article-info">
-              <span class="article-code">#{{ getArticleCode(article) }}</span>
-              <span class="article-name">{{ formatArticleLabel(article) }}</span>
-            </div>
-            <span class="article-price">{{ formatCurrency(article.sellingPrice) }}</span>
-          </div>
-        </mat-option>
-      </mat-autocomplete>
-    </mat-form-field>
-  </div>
+  @if (articleSource === 'CATALOGUE') {
+    <div class="search-section">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Rechercher un article</mat-label>
+        <input
+          matInput
+          [formControl]="searchControl"
+          [matAutocomplete]="articleAuto"
+          placeholder="Code, nom commercial ou nom de l'article"
+          data-testid="e2e-tontine-delivery-article-search">
+        <mat-icon matPrefix>search</mat-icon>
+        <mat-autocomplete
+          #articleAuto="matAutocomplete"
+          [displayWith]="displayArticle"
+          (opened)="onAutocompleteOpened()"
+          (closed)="onAutocompleteClosed()"
+          (optionSelected)="onArticleSelected($event.option.value)">
+          @for (article of filteredArticles; track article) {
+            <mat-option
+              [value]="article"
+              [attr.data-article-id]="article.id">
+              <div class="article-option">
+                <div class="article-info">
+                  <span class="article-code">#{{ getArticleCode(article) }}</span>
+                  <span class="article-name">{{ formatArticleLabel(article) }}</span>
+                </div>
+                <span class="article-price">{{ formatCurrency(article.sellingPrice) }}</span>
+              </div>
+            </mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+    </div>
+  }
 
   <!-- Articles sélectionnés -->
   <div class="selected-section">
     <h3>Articles sélectionnés</h3>
 
-    <div *ngIf="selectedArticles.length === 0" class="empty-state">
-      <mat-icon>shopping_cart</mat-icon>
-      <p>Aucun article sélectionné</p>
+    @if (selectedArticles.length === 0) {
+      <div class="empty-state">
+        <mat-icon>shopping_cart</mat-icon>
+        <p>Aucun article sélectionné</p>
+      </div>
+    }
+
+    @if (selectedArticles.length > 0) {
+      <table class="articles-table">
+        <thead>
+          <tr>
+            <th>Article</th>
+            <th *appIfUnitPrice="'CASH'">Prix unitaire</th>
+            <th>Quantité</th>
+            <th *appIfUnitPrice="'CASH'">Total</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (selected of selectedArticles; track selected) {
+            <tr>
+              <td>
+                <div class="article-cell">
+                  <span class="code">#{{ getArticleCode(selected.article) }}</span>
+                  <span class="name">{{ formatArticleLabel(selected.article) }}</span>
+                </div>
+              </td>
+              <td *appIfUnitPrice="'CASH'">{{ formatCurrency(offerOf(selected)?.salePrice || selected.article.sellingPrice) }}</td>
+              <td>
+                <select [value]="selected.offerKey" (change)="onOfferChange(selected, $any($event.target).value)" aria-label="Offre">
+                  @for (offer of selected.offers; track offer) {
+                    <option [value]="offerKey(offer)">
+                      {{ offer.label }} — {{ formatCurrency(offer.salePrice) }}
+                    </option>
+                  }
+                </select>
+                <div class="quantity-controls">
+                  <button mat-icon-button (click)="updateQuantity(selected, -1)" [disabled]="selected.quantity <= 1">
+                    <mat-icon>remove</mat-icon>
+                  </button>
+                  <span class="quantity">{{ selected.quantity }}</span>
+                  <button mat-icon-button (click)="updateQuantity(selected, 1)">
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </div>
+              </td>
+              <td class="total-cell" *appIfUnitPrice="'CASH'">{{ formatCurrency(selected.totalPrice) }}</td>
+              <td>
+                <button mat-icon-button color="warn" (click)="removeArticle(selected)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5" class="total-label">TOTAL</td>
+            <td colspan="2" class="total-value">{{ formatCurrency(totalAmount) }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    }
+  </div>
+
+  @if (data.replaceDeliveryId == null) {
+    <div class="planned-date">
+      <label for="planned-delivery-date">Date de livraison prévue (facultatif)</label>
+      <input id="planned-delivery-date" type="date" lang="fr-FR" [(ngModel)]="plannedDeliveryDate" [min]="today"
+        data-testid="e2e-tontine-planned-date">
     </div>
-
-    <table *ngIf="selectedArticles.length > 0" class="articles-table">
-      <thead>
-        <tr>
-          <th>Article</th>
-          <th *appIfUnitPrice="'CASH'">Prix unitaire</th>
-          <th>Quantité</th>
-          <th *appIfUnitPrice="'CASH'">Total</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let selected of selectedArticles">
-          <td>
-            <div class="article-cell">
-              <span class="code">#{{ getArticleCode(selected.article) }}</span>
-              <span class="name">{{ formatArticleLabel(selected.article) }}</span>
-            </div>
-          </td>
-          <td *appIfUnitPrice="'CASH'">{{ formatCurrency(offerOf(selected)?.salePrice || selected.article.sellingPrice) }}</td>
-          <td>
-            <select [value]="selected.offerKey" (change)="onOfferChange(selected, $any($event.target).value)" aria-label="Offre">
-              <option *ngFor="let offer of selected.offers" [value]="offerKey(offer)">
-                {{ offer.label }} — {{ formatCurrency(offer.salePrice) }}
-              </option>
-            </select>
-            <div class="quantity-controls">
-              <button mat-icon-button (click)="updateQuantity(selected, -1)" [disabled]="selected.quantity <= 1">
-                <mat-icon>remove</mat-icon>
-              </button>
-              <span class="quantity">{{ selected.quantity }}</span>
-              <button mat-icon-button (click)="updateQuantity(selected, 1)">
-                <mat-icon>add</mat-icon>
-              </button>
-            </div>
-          </td>
-          <td class="total-cell" *appIfUnitPrice="'CASH'">{{ formatCurrency(selected.totalPrice) }}</td>
-          <td>
-            <button mat-icon-button color="warn" (click)="removeArticle(selected)">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </td>
-        </tr>
-      </tbody>
-      <tfoot>
-        <tr>
-          <td colspan="5" class="total-label">TOTAL</td>
-          <td colspan="2" class="total-value">{{ formatCurrency(totalAmount) }}</td>
-        </tr>
-      </tfoot>
-    </table>
-  </div>
-
-  <div class="planned-date" *ngIf="data.replaceDeliveryId == null">
-    <label for="planned-delivery-date">Date de livraison prévue (facultatif)</label>
-    <input id="planned-delivery-date" type="date" lang="fr-FR" [(ngModel)]="plannedDeliveryDate" [min]="today"
-           data-testid="e2e-tontine-planned-date">
-  </div>
+  }
 
   <!-- Message d'erreur -->
-  <div *ngIf="remainingBalance < 0" class="error-message">
-    <mat-icon>error</mat-icon>
-    <span>Le montant dépasse le solde prévisionnel. Retirez ou diminuez des articles.</span>
-  </div>
-  <div *ngIf="data.replaceDeliveryId && remainingBalance >= 0 && totalAmount > availableBalance" class="error-message">
-    <mat-icon>error</mat-icon>
-    <span>Le solde réel ne couvre pas la commande. Réduisez les articles jusqu'au solde disponible.</span>
-  </div>
+  @if (remainingBalance < 0) {
+    <div class="error-message">
+      <mat-icon>error</mat-icon>
+      <span>Le montant dépasse le solde prévisionnel. Retirez ou diminuez des articles.</span>
+    </div>
+  }
+  @if (data.replaceDeliveryId && remainingBalance >= 0 && totalAmount > availableBalance) {
+    <div class="error-message">
+      <mat-icon>error</mat-icon>
+      <span>Le solde réel ne couvre pas la commande. Réduisez les articles jusqu'au solde disponible.</span>
+    </div>
+  }
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">

@@ -18,8 +18,8 @@
     <div class="header-card-main">
       <div class="title-group">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-             class="expense-icon" style="display:block;flex-shrink:0">
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="expense-icon" style="display:block;flex-shrink:0">
           <path d="M4 6h16M4 12h16M4 18h7"/>
         </svg>
         <h1 class="page-title" style="margin:0;padding:0;line-height:1">Types de dépense</h1>
@@ -77,42 +77,48 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngIf="isLoading">
-          <td colspan="3">
-            <div class="empty-state">
-              <div class="empty-icon">⏳</div>
-              <div class="empty-title">Chargement…</div>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="!isLoading && types.length === 0">
-          <td colspan="3">
-            <div class="empty-state">
-              <div class="empty-icon">🏷️</div>
-              <div class="empty-title">Aucun type de dépense</div>
-              <div class="empty-sub">Créez un premier type pour catégoriser vos dépenses.</div>
-            </div>
-          </td>
-        </tr>
-        <tr *ngFor="let type of types; let i = index">
-          <td><span class="col-ref">{{ (pageIndex * pageSize) + (i + 1) }}</span></td>
-          <td><span class="type-badge">{{ type.name }}</span></td>
-          <td>
-            <div class="action-cell">
-              <button type="button" class="btn-detail" (click)="editType(type)" title="Modifier">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                </svg>
-                Éditer
-              </button>
-              <button type="button" class="btn-delete" (click)="deleteType(type)" title="Supprimer">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-              </button>
-            </div>
-          </td>
-        </tr>
+        @if (isLoading) {
+          <tr>
+            <td colspan="3">
+              <div class="empty-state">
+                <div class="empty-icon">⏳</div>
+                <div class="empty-title">Chargement…</div>
+              </div>
+            </td>
+          </tr>
+        }
+        @if (!isLoading && types.length === 0) {
+          <tr>
+            <td colspan="3">
+              <div class="empty-state">
+                <div class="empty-icon">🏷️</div>
+                <div class="empty-title">Aucun type de dépense</div>
+                <div class="empty-sub">Créez un premier type pour catégoriser vos dépenses.</div>
+              </div>
+            </td>
+          </tr>
+        }
+        @for (type of types; track type; let i = $index) {
+          <tr>
+            <td><span class="col-ref">{{ (pageIndex * pageSize) + (i + 1) }}</span></td>
+            <td><span class="type-badge">{{ type.name }}</span></td>
+            <td>
+              <div class="action-cell">
+                <button type="button" class="btn-detail" (click)="editType(type)" title="Modifier">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                  </svg>
+                  Éditer
+                </button>
+                <button type="button" class="btn-delete" (click)="deleteType(type)" title="Supprimer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
       </tbody>
     </table>
 

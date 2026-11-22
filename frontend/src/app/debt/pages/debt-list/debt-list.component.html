@@ -97,10 +97,10 @@
         <button type="button" class="btn-primary" (click)="applyFilters()">Filtrer</button>
         <span class="result-count"><strong>{{ totalElements }}</strong> dette(s)</span>
         <button type="button"
-                class="btn-primary"
-                *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN']"
-                [disabled]="selectedIds.size === 0"
-                (click)="openSettleModal()">
+          class="btn-primary"
+          *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN']"
+          [disabled]="selectedIds.size === 0"
+          (click)="openSettleModal()">
           Marquer comme payé(s)
         </button>
       </div>
@@ -108,57 +108,69 @@
 
     <div class="table-card a5">
       <div class="table-wrapper">
-        <div *ngIf="loading" class="empty-state">
-          <div class="empty-title">Chargement…</div>
-          <div class="empty-sub">Les dettes de la période s’affichent ici.</div>
-        </div>
+        @if (loading) {
+          <div class="empty-state">
+            <div class="empty-title">Chargement…</div>
+            <div class="empty-sub">Les dettes de la période s’affichent ici.</div>
+          </div>
+        }
 
-        <div *ngIf="!loading && debts.length === 0" class="empty-state">
-          <div class="empty-title">Aucune dette trouvée</div>
-          <div class="empty-sub">Modifiez les filtres ou constituez une dette depuis le stock, la caisse ou l’inventaire.</div>
-        </div>
+        @if (!loading && debts.length === 0) {
+          <div class="empty-state">
+            <div class="empty-title">Aucune dette trouvée</div>
+            <div class="empty-sub">Modifiez les filtres ou constituez une dette depuis le stock, la caisse ou l’inventaire.</div>
+          </div>
+        }
 
-        <table class="data-table" *ngIf="!loading && debts.length > 0">
-          <thead>
-            <tr>
-              <th class="col-select"></th>
-              <th>Référence</th>
-              <th>Titulaire</th>
-              <th>Type</th>
-              <th>Période</th>
-              <th>Statut</th>
-              <th class="text-right">Montant</th>
-              <th class="text-right">Restant</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let debt of debts" [attr.data-testid]="'e2e-debt-row-' + debt.id">
-              <td class="col-select" (click)="$event.stopPropagation()">
-                <label class="visually-hidden" [attr.for]="'debt-select-' + debt.id">Sélectionner {{ debt.reference }}</label>
-                <input type="checkbox"
-                       [id]="'debt-select-' + debt.id"
-                       [attr.aria-label]="'Sélectionner ' + debt.reference"
-                       [checked]="selectedIds.has(debt.id)"
-                       (change)="toggleSelect(debt)"
-                       [disabled]="!canSelect(debt)" />
-              </td>
-              <td><span class="col-ref">{{ debt.reference }}</span></td>
-              <td><span class="col-holder">{{ debt.holderUsername }}</span></td>
-              <td>{{ typeLabel(debt.debtType) }}</td>
-              <td>
-                <ng-container *ngIf="debt.periodGrain === 'DAY'">{{ debt.periodDay }}</ng-container>
-                <ng-container *ngIf="debt.periodGrain === 'MONTH'">{{ debt.periodMonth }}/{{ debt.periodYear }}</ng-container>
-              </td>
-              <td><span class="status-pill" [ngClass]="statusClass(debt.status)">{{ statusLabel(debt.status) }}</span></td>
-              <td class="text-right col-amount">{{ debt.grossAmount | number:'1.0-0' }}</td>
-              <td class="text-right col-amount col-amount-strong">{{ debt.remainingAmount | number:'1.0-0' }}</td>
-              <td>
-                <button type="button" class="btn-detail" (click)="openDetail(debt)">Voir</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        @if (!loading && debts.length > 0) {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th class="col-select"></th>
+                <th>Référence</th>
+                <th>Titulaire</th>
+                <th>Type</th>
+                <th>Période</th>
+                <th>Statut</th>
+                <th class="text-right">Montant</th>
+                <th class="text-right">Restant</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (debt of debts; track debt) {
+                <tr [attr.data-testid]="'e2e-debt-row-' + debt.id">
+                  <td class="col-select" (click)="$event.stopPropagation()">
+                    <label class="visually-hidden" [attr.for]="'debt-select-' + debt.id">Sélectionner {{ debt.reference }}</label>
+                    <input type="checkbox"
+                      [id]="'debt-select-' + debt.id"
+                      [attr.aria-label]="'Sélectionner ' + debt.reference"
+                      [checked]="selectedIds.has(debt.id)"
+                      (change)="toggleSelect(debt)"
+                      [disabled]="!canSelect(debt)" />
+                  </td>
+                  <td><span class="col-ref">{{ debt.reference }}</span></td>
+                  <td><span class="col-holder">{{ debt.holderUsername }}</span></td>
+                  <td>{{ typeLabel(debt.debtType) }}</td>
+                  <td>
+                    @if (debt.periodGrain === 'DAY') {
+                      {{ debt.periodDay }}
+                    }
+                    @if (debt.periodGrain === 'MONTH') {
+                      {{ debt.periodMonth }}/{{ debt.periodYear }}
+                    }
+                  </td>
+                  <td><span class="status-pill" [ngClass]="statusClass(debt.status)">{{ statusLabel(debt.status) }}</span></td>
+                  <td class="text-right col-amount">{{ debt.grossAmount | number:'1.0-0' }}</td>
+                  <td class="text-right col-amount col-amount-strong">{{ debt.remainingAmount | number:'1.0-0' }}</td>
+                  <td>
+                    <button type="button" class="btn-detail" (click)="openDetail(debt)">Voir</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </div>
 
       <div class="pagination debt-pagination">
@@ -169,33 +181,35 @@
     </div>
   </div>
 
-  <div class="debt-modal-backdrop" *ngIf="showSettleModal" (click)="showSettleModal = false">
-    <div class="debt-modal" role="dialog" aria-labelledby="debt-settle-title" (click)="$event.stopPropagation()" data-testid="e2e-debt-settle-modal">
-      <div class="debt-modal-header">
-        <h2 id="debt-settle-title">Marquer comme payé</h2>
-        <button type="button" class="btn-clear" (click)="showSettleModal = false" aria-label="Fermer">Fermer</button>
-      </div>
-      <p class="debt-modal-lead">Total restant sélectionné : <strong>{{ selectedRemainingTotal() | number:'1.0-0' }} FCFA</strong></p>
-      <label class="filter-field" for="debt-settle-mode">
-        <span class="toolbar-label">Mode</span>
-        <select id="debt-settle-mode" class="filter-control" [(ngModel)]="settleMode">
-          <option value="CASH">Espèces</option>
-          <option value="SURPLUS_OFFSET">Imputer un surplus</option>
-          <option value="WRITE_OFF">Abandon (motif obligatoire)</option>
-        </select>
-      </label>
-      <label class="filter-field" for="debt-settle-amount">
-        <span class="toolbar-label">Montant</span>
-        <input id="debt-settle-amount" class="filter-control" type="number" [(ngModel)]="settleAmount" min="1" />
-      </label>
-      <label class="filter-field" for="debt-settle-note">
-        <span class="toolbar-label">Note / motif</span>
-        <textarea id="debt-settle-note" class="filter-control" [(ngModel)]="settleNote" rows="3"></textarea>
-      </label>
-      <div class="modal-actions">
-        <button type="button" class="btn-clear" (click)="showSettleModal = false">Annuler</button>
-        <button type="button" class="btn-primary" (click)="confirmSettle()">Confirmer</button>
+  @if (showSettleModal) {
+    <div class="debt-modal-backdrop" (click)="showSettleModal = false">
+      <div class="debt-modal" role="dialog" aria-labelledby="debt-settle-title" (click)="$event.stopPropagation()" data-testid="e2e-debt-settle-modal">
+        <div class="debt-modal-header">
+          <h2 id="debt-settle-title">Marquer comme payé</h2>
+          <button type="button" class="btn-clear" (click)="showSettleModal = false" aria-label="Fermer">Fermer</button>
+        </div>
+        <p class="debt-modal-lead">Total restant sélectionné : <strong>{{ selectedRemainingTotal() | number:'1.0-0' }} FCFA</strong></p>
+        <label class="filter-field" for="debt-settle-mode">
+          <span class="toolbar-label">Mode</span>
+          <select id="debt-settle-mode" class="filter-control" [(ngModel)]="settleMode">
+            <option value="CASH">Espèces</option>
+            <option value="SURPLUS_OFFSET">Imputer un surplus</option>
+            <option value="WRITE_OFF">Abandon (motif obligatoire)</option>
+          </select>
+        </label>
+        <label class="filter-field" for="debt-settle-amount">
+          <span class="toolbar-label">Montant</span>
+          <input id="debt-settle-amount" class="filter-control" type="number" [(ngModel)]="settleAmount" min="1" />
+        </label>
+        <label class="filter-field" for="debt-settle-note">
+          <span class="toolbar-label">Note / motif</span>
+          <textarea id="debt-settle-note" class="filter-control" [(ngModel)]="settleNote" rows="3"></textarea>
+        </label>
+        <div class="modal-actions">
+          <button type="button" class="btn-clear" (click)="showSettleModal = false">Annuler</button>
+          <button type="button" class="btn-primary" (click)="confirmSettle()">Confirmer</button>
+        </div>
       </div>
     </div>
-  </div>
+  }
 </div>

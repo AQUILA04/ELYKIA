@@ -34,28 +34,30 @@
 
   <div class="page-scroll-body">
     <app-stock-channel-segment [channel]="channel" (channelChange)="onReturnChannel($event)"></app-stock-channel-segment>
-    <div class="kpi-strip a3" *ngIf="kpis">
-      <div class="kpi-card kpi-total">
-        <div class="kpi-label">Total retours</div>
-        <div class="kpi-value">{{ kpis.total }}</div>
-        <div class="kpi-sub">{{ periodLabel }}</div>
+    @if (kpis) {
+      <div class="kpi-strip a3">
+        <div class="kpi-card kpi-total">
+          <div class="kpi-label">Total retours</div>
+          <div class="kpi-value">{{ kpis.total }}</div>
+          <div class="kpi-sub">{{ periodLabel }}</div>
+        </div>
+        <div class="kpi-card kpi-amount">
+          <div class="kpi-label">En attente</div>
+          <div class="kpi-value">{{ kpis.pending }}</div>
+          <div class="kpi-sub">À réceptionner</div>
+        </div>
+        <div class="kpi-card kpi-green">
+          <div class="kpi-label">Réceptionnés</div>
+          <div class="kpi-value">{{ kpis.received }}</div>
+          <div class="kpi-sub">Stock mis à jour</div>
+        </div>
+        <div class="kpi-card kpi-delai">
+          <div class="kpi-label">Annulés / Refusés</div>
+          <div class="kpi-value">{{ kpis.cancelledRefused }}</div>
+          <div class="kpi-sub">Non traités</div>
+        </div>
       </div>
-      <div class="kpi-card kpi-amount">
-        <div class="kpi-label">En attente</div>
-        <div class="kpi-value">{{ kpis.pending }}</div>
-        <div class="kpi-sub">À réceptionner</div>
-      </div>
-      <div class="kpi-card kpi-green">
-        <div class="kpi-label">Réceptionnés</div>
-        <div class="kpi-value">{{ kpis.received }}</div>
-        <div class="kpi-sub">Stock mis à jour</div>
-      </div>
-      <div class="kpi-card kpi-delai">
-        <div class="kpi-label">Annulés / Refusés</div>
-        <div class="kpi-value">{{ kpis.cancelledRefused }}</div>
-        <div class="kpi-sub">Non traités</div>
-      </div>
-    </div>
+    }
 
     <div class="toolbar a4">
       <div class="filter-group">
@@ -66,18 +68,22 @@
           <option value="WEEK">Cette semaine</option>
           <option value="MONTH">Ce mois</option>
           <optgroup label="Mois précédents">
-            <option *ngFor="let month of previousMonths" [value]="month.value">{{ month.label }}</option>
+            @for (month of previousMonths; track month) {
+              <option [value]="month.value">{{ month.label }}</option>
+            }
           </optgroup>
         </select>
       </div>
 
-      <div class="filter-group filter-group-commercial" *ngIf="canSelectCommercial">
-        <span class="toolbar-label">Commercial</span>
-        <app-commercial-selector
-          [initialValue]="selectedCommercial"
-          (commercialSelected)="onCommercialSelected($event)">
-        </app-commercial-selector>
-      </div>
+      @if (canSelectCommercial) {
+        <div class="filter-group filter-group-commercial">
+          <span class="toolbar-label">Commercial</span>
+          <app-commercial-selector
+            [initialValue]="selectedCommercial"
+            (commercialSelected)="onCommercialSelected($event)">
+          </app-commercial-selector>
+        </div>
+      }
 
       <button type="button" class="btn-clear" (click)="resetFilters()">Réinitialiser</button>
 
@@ -94,94 +100,110 @@
         <strong>{{ totalElements }}</strong> retour(s)
       </span>
 
-      <div class="toolbar-actions" *ngIf="isStoreKeeper || isPromoter">
-        <button class="btn-primary" [routerLink]="['/stock/return/create']" [queryParams]="returnChannelQuery" data-testid="e2e-stock-return-new-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-          Nouveau retour
-        </button>
-      </div>
+      @if (isStoreKeeper || isPromoter) {
+        <div class="toolbar-actions">
+          <button class="btn-primary" [routerLink]="['/stock/return/create']" [queryParams]="returnChannelQuery" data-testid="e2e-stock-return-new-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            Nouveau retour
+          </button>
+        </div>
+      }
     </div>
 
     <div class="table-card a5">
       <div class="table-wrapper">
-        <div *ngIf="isLoading" class="table-loading">
-          <div class="empty-state">
-            <div class="empty-icon">⏳</div>
-            <div class="empty-title">Chargement…</div>
+        @if (isLoading) {
+          <div class="table-loading">
+            <div class="empty-state">
+              <div class="empty-icon">⏳</div>
+              <div class="empty-title">Chargement…</div>
+            </div>
           </div>
-        </div>
+        }
 
-        <div *ngIf="!isLoading && returns.length === 0" class="table-empty-static">
-          <div class="empty-state">
-            <div class="empty-icon">↩️</div>
-            <div class="empty-title">Aucun retour trouvé</div>
-            <div class="empty-sub">Modifiez la période ou le commercial sélectionné.</div>
+        @if (!isLoading && returns.length === 0) {
+          <div class="table-empty-static">
+            <div class="empty-state">
+              <div class="empty-icon">↩️</div>
+              <div class="empty-title">Aucun retour trouvé</div>
+              <div class="empty-sub">Modifiez la période ou le commercial sélectionné.</div>
+            </div>
           </div>
-        </div>
+        }
 
-        <table class="data-table" *ngIf="!isLoading && returns.length > 0">
-          <thead>
-            <tr>
-              <th>
-                <input
-                  type="checkbox"
-                  [checked]="areAllCurrentPageSelected"
-                  (change)="toggleSelectAllCurrentPage($any($event.target).checked)"
-                  title="Tout sélectionner">
-              </th>
-              <th>#</th>
-              <th>Date demande</th>
-              <th>Date réception</th>
-              <th>Commercial</th>
-              <th>Statut</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let ret of returns; let i = index"
-                data-testid="e2e-stock-return-row"
-                [attr.data-return-id]="ret.id"
-                [attr.data-collector]="ret.collector"
-                [attr.data-status]="ret.status">
-              <td>
-                <input
-                  type="checkbox"
-                  [checked]="isReturnSelected(ret)"
-                  (change)="toggleReturnSelection(ret, $any($event.target).checked)"
-                  title="Sélectionner le retour">
-              </td>
-              <td><span class="col-ref">{{ (page * size) + (i + 1) }}</span></td>
-              <td><span class="col-date">{{ ret.returnDate | date:'dd/MM/yyyy' }}</span></td>
-              <td><span class="col-date">{{ ret.receivedDate ? (ret.receivedDate | date:'dd/MM/yyyy') : '—' }}</span></td>
-              <td>{{ ret.collector }}</td>
-              <td>
-                <span class="status-badge" [ngClass]="getStatusClass(ret.status)">{{ getStatusLabel(ret.status) }}</span>
-              </td>
-              <td class="col-actions">
-                <button class="btn-detail" (click)="showDetails(ret)" title="Détails">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                  Voir
-                </button>
-                <button class="btn-detail" (click)="onExportSingleReturnPdf(ret)" title="Télécharger le retour" [disabled]="exportSelectionLoading">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                </button>
-                <button *ngIf="isStoreKeeper && ret.status === 'CREATED'" class="btn-detail btn-success"
+        @if (!isLoading && returns.length > 0) {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    [checked]="areAllCurrentPageSelected"
+                    (change)="toggleSelectAllCurrentPage($any($event.target).checked)"
+                    title="Tout sélectionner">
+                </th>
+                <th>#</th>
+                <th>Date demande</th>
+                <th>Date réception</th>
+                <th>Commercial</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (ret of returns; track ret; let i = $index) {
+                <tr
+                  data-testid="e2e-stock-return-row"
+                  [attr.data-return-id]="ret.id"
+                  [attr.data-collector]="ret.collector"
+                  [attr.data-status]="ret.status">
+                  <td>
+                    <input
+                      type="checkbox"
+                      [checked]="isReturnSelected(ret)"
+                      (change)="toggleReturnSelection(ret, $any($event.target).checked)"
+                      title="Sélectionner le retour">
+                  </td>
+                  <td><span class="col-ref">{{ (page * size) + (i + 1) }}</span></td>
+                  <td><span class="col-date">{{ ret.returnDate | date:'dd/MM/yyyy' }}</span></td>
+                  <td><span class="col-date">{{ ret.receivedDate ? (ret.receivedDate | date:'dd/MM/yyyy') : '—' }}</span></td>
+                  <td>{{ ret.collector }}</td>
+                  <td>
+                    <span class="status-badge" [ngClass]="getStatusClass(ret.status)">{{ getStatusLabel(ret.status) }}</span>
+                  </td>
+                  <td class="col-actions">
+                    <button class="btn-detail" (click)="showDetails(ret)" title="Détails">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                      Voir
+                    </button>
+                    <button class="btn-detail" (click)="onExportSingleReturnPdf(ret)" title="Télécharger le retour" [disabled]="exportSelectionLoading">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    </button>
+                    @if (isStoreKeeper && ret.status === 'CREATED') {
+                      <button class="btn-detail btn-success"
                         (click)="validate(ret)" title="Réceptionner" data-testid="e2e-stock-return-validate"
                         [disabled]="processingId === ret.id">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                </button>
-                <button *ngIf="channel === 'credit' && (isStoreKeeper || (currentUser?.username === ret.collector)) && ret.status === 'CREATED'"
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                      </button>
+                    }
+                    @if (channel === 'credit' && (isStoreKeeper || (currentUser?.username === ret.collector)) && ret.status === 'CREATED') {
+                      <button
                         class="btn-detail btn-danger" (click)="cancel(ret)" title="Annuler">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-                <button *ngIf="channel === 'credit' && isStoreKeeper && ret.status === 'CREATED'"
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                      </button>
+                    }
+                    @if (channel === 'credit' && isStoreKeeper && ret.status === 'CREATED') {
+                      <button
                         class="btn-detail btn-danger" (click)="refuse(ret)" title="Refuser">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </div>
 
       <div class="pagination stock-pagination">
@@ -199,50 +221,53 @@
 </div>
 
 <!-- Modal Détails -->
-<div class="stock-modal-overlay" *ngIf="selectedReturn || detailsLoading" (click)="closeDetails()">
-  <div class="stock-modal" role="dialog" (click)="$event.stopPropagation()">
-    <div class="stock-modal-header">
-      <h3>Détails du retour</h3>
-      <button type="button" class="modal-close" (click)="closeDetails()" aria-label="Fermer">&times;</button>
-    </div>
-    <div class="stock-modal-body">
-      <div *ngIf="detailsLoading" class="table-loading">
-        <div class="empty-state">
-          <div class="empty-icon">⏳</div>
-          <div class="empty-title">Chargement du détail…</div>
-        </div>
+@if (selectedReturn || detailsLoading) {
+  <div class="stock-modal-overlay" (click)="closeDetails()">
+    <div class="stock-modal" role="dialog" (click)="$event.stopPropagation()">
+      <div class="stock-modal-header">
+        <h3>Détails du retour</h3>
+        <button type="button" class="modal-close" (click)="closeDetails()" aria-label="Fermer">&times;</button>
       </div>
-
-      <ng-container *ngIf="!detailsLoading && selectedReturn">
-      <div class="detail-grid">
-        <div>
-          <p><strong>Commercial :</strong> {{ selectedReturn.collector }}</p>
-          <p><strong>Date demande :</strong> {{ selectedReturn.returnDate | date:'dd/MM/yyyy' }}</p>
-          <p><strong>Date réception :</strong> {{ selectedReturn.receivedDate ? (selectedReturn.receivedDate | date:'dd/MM/yyyy') : '—' }}</p>
+      <div class="stock-modal-body">
+        @if (detailsLoading) {
+          <div class="table-loading">
+            <div class="empty-state">
+              <div class="empty-icon">⏳</div>
+              <div class="empty-title">Chargement du détail…</div>
+            </div>
+          </div>
+        }
+        @if (!detailsLoading && selectedReturn) {
+          <div class="detail-grid">
+            <div>
+              <p><strong>Commercial :</strong> {{ selectedReturn.collector }}</p>
+              <p><strong>Date demande :</strong> {{ selectedReturn.returnDate | date:'dd/MM/yyyy' }}</p>
+              <p><strong>Date réception :</strong> {{ selectedReturn.receivedDate ? (selectedReturn.receivedDate | date:'dd/MM/yyyy') : '—' }}</p>
+            </div>
+            <div class="detail-status">
+              <p><strong>Statut :</strong>
+              <span class="status-badge" [ngClass]="getStatusClass(selectedReturn.status)">{{ getStatusLabel(selectedReturn.status) }}</span>
+            </p>
+          </div>
         </div>
-        <div class="detail-status">
-          <p><strong>Statut :</strong>
-            <span class="status-badge" [ngClass]="getStatusClass(selectedReturn.status)">{{ getStatusLabel(selectedReturn.status) }}</span>
-          </p>
-        </div>
-      </div>
-
-      <h4>Articles retournés</h4>
-      <table class="modal-table">
-        <thead>
-          <tr>
-            <th>Article</th>
-            <th>Quantité</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of selectedReturn.items">
-            <td>{{ formatArticleLabel(item.article) }}</td>
-            <td>{{ item.quantity }}</td>
-          </tr>
-        </tbody>
-      </table>
-      </ng-container>
+        <h4>Articles retournés</h4>
+        <table class="modal-table">
+          <thead>
+            <tr>
+              <th>Article</th>
+              <th>Quantité</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of selectedReturn.items; track item) {
+              <tr>
+                <td>{{ formatArticleLabel(item.article) }}</td>
+                <td>{{ item.quantity }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
     </div>
     <div class="stock-modal-footer">
       <button type="button" class="btn-download" (click)="onExportSingleReturnPdf(selectedReturn!)" [disabled]="exportSelectionLoading || !selectedReturn">
@@ -252,3 +277,4 @@
     </div>
   </div>
 </div>
+}

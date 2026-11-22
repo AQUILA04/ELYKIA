@@ -36,36 +36,48 @@
     <div class="header-meta-row">
       <app-session-selector (sessionChange)="onSessionChange($event)"></app-session-selector>
       <div class="header-actions">
-        <button *ngIf="!isRecoveryManager && !isPromoter" class="btn-outline" (click)="navigateToComparison()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
-          Comparer
-        </button>
-        <button *ngIf="!isRecoveryManager" class="btn-primary" (click)="openAddMemberModal()" [disabled]="isHistoricalView || tontineService.isAllocationMigrationRunning()" data-testid="e2e-tontine-add-member-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
-          Ajouter un Membre
-        </button>
-        <button *ngIf="!isRecoveryManager" class="btn-accent" (click)="openAddMultipleMembersModal()" [disabled]="isHistoricalView || tontineService.isAllocationMigrationRunning()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11v6"/><path d="M19 14h6"/></svg>
-          Ajout Multiple
-        </button>
-        <button *ngIf="!isRecoveryManager && !isPromoter" class="btn-outline" (click)="openSessionSettings()" [disabled]="isHistoricalView">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-          Paramètres
-        </button>
+        @if (!isRecoveryManager && !isPromoter) {
+          <button class="btn-outline" (click)="navigateToComparison()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+            Comparer
+          </button>
+        }
+        @if (!isRecoveryManager) {
+          <button class="btn-primary" (click)="openAddMemberModal()" [disabled]="isHistoricalView || tontineService.isAllocationMigrationRunning()" data-testid="e2e-tontine-add-member-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+            Ajouter un Membre
+          </button>
+        }
+        @if (!isRecoveryManager) {
+          <button class="btn-accent" (click)="openAddMultipleMembersModal()" [disabled]="isHistoricalView || tontineService.isAllocationMigrationRunning()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 11v6"/><path d="M19 14h6"/></svg>
+            Ajout Multiple
+          </button>
+        }
+        @if (!isRecoveryManager && !isPromoter) {
+          <button class="btn-outline" (click)="openSessionSettings()" [disabled]="isHistoricalView">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            Paramètres
+          </button>
+        }
       </div>
     </div>
   </div>
 
-  <div *ngIf="showHistoricalAlertMessage" class="historical-banner a2">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-    <span>Vous consultez une session historique (lecture seule)</span>
-    <button class="btn-outline btn-sm" (click)="returnToCurrentSession()">Retourner à la session en cours</button>
-  </div>
+  @if (showHistoricalAlertMessage) {
+    <div class="historical-banner a2">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+      <span>Vous consultez une session historique (lecture seule)</span>
+      <button class="btn-outline btn-sm" (click)="returnToCurrentSession()">Retourner à la session en cours</button>
+    </div>
+  }
 
   <div class="kpi-strip tontine-kpi-strip a3" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_TONTINE']">
-    <ng-container *ngIf="kpiCards$ | async as kpiCards">
-      <app-tontine-kpi-card *ngFor="let kpi of kpiCards" [config]="kpi"></app-tontine-kpi-card>
-    </ng-container>
+    @if (kpiCards$ | async; as kpiCards) {
+      @for (kpi of kpiCards; track kpi) {
+        <app-tontine-kpi-card [config]="kpi"></app-tontine-kpi-card>
+      }
+    }
   </div>
 
   <app-tontine-filter-bar
@@ -79,30 +91,38 @@
     (downloadCarnetPdf)="onExportCarnetPdf($event)">
   </app-tontine-filter-bar>
 
-  <div class="history-row a4" *ngIf="showCollectionHistory">
-    <a class="btn-outline btn-sm" routerLink="/credit/ancien-portefeuille" [queryParams]="historyQueryParams">
-      Voir l'historique
-    </a>
-    <span>La liste ci-dessous reprend les membres encore associés. L'historique montre les collectes des membres transférés.</span>
-  </div>
+  @if (showCollectionHistory) {
+    <div class="history-row a4">
+      <a class="btn-outline btn-sm" routerLink="/credit/ancien-portefeuille" [queryParams]="historyQueryParams">
+        Voir l'historique
+      </a>
+      <span>La liste ci-dessous reprend les membres encore associés. L'historique montre les collectes des membres transférés.</span>
+    </div>
+  }
 
-  <div class="bulk-carnet-bar a4" *ngIf="(canVerify || canAssignCollector) && selectedMemberIds.size > 0">
-    <span>{{ selectedMemberIds.size }} membre(s) sélectionné(s)</span>
-    <button *ngIf="canVerify" class="btn-primary" type="button"
-            (click)="onBulkVerify()"
-            [disabled]="verifyingBulk || isHistoricalView"
-            data-testid="e2e-tontine-carnet-bulk-verify">
-      {{ verifyingBulk ? 'Enregistrement…' : 'Vérifier la sélection (' + selectedMemberIds.size + ')' }}
-    </button>
-    <button *ngIf="canAssignCollector" class="btn-change-collector" type="button"
-            (click)="openBulkAssignCollectorModal()"
-            [disabled]="isHistoricalView"
-            data-testid="e2e-tontine-bulk-assign-collector">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg>
-      Changer de commercial ({{ selectedMemberIds.size }})
-    </button>
-    <button class="btn-clear" type="button" (click)="clearSelection()">Effacer la sélection</button>
-  </div>
+  @if ((canVerify || canAssignCollector) && selectedMemberIds.size > 0) {
+    <div class="bulk-carnet-bar a4">
+      <span>{{ selectedMemberIds.size }} membre(s) sélectionné(s)</span>
+      @if (canVerify) {
+        <button class="btn-primary" type="button"
+          (click)="onBulkVerify()"
+          [disabled]="verifyingBulk || isHistoricalView"
+          data-testid="e2e-tontine-carnet-bulk-verify">
+          {{ verifyingBulk ? 'Enregistrement…' : 'Vérifier la sélection (' + selectedMemberIds.size + ')' }}
+        </button>
+      }
+      @if (canAssignCollector) {
+        <button class="btn-change-collector" type="button"
+          (click)="openBulkAssignCollectorModal()"
+          [disabled]="isHistoricalView"
+          data-testid="e2e-tontine-bulk-assign-collector">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg>
+          Changer de commercial ({{ selectedMemberIds.size }})
+        </button>
+      }
+      <button class="btn-clear" type="button" (click)="clearSelection()">Effacer la sélection</button>
+    </div>
+  }
 
   <app-tontine-member-table
     class="a5"
@@ -121,35 +141,39 @@
   </app-tontine-member-table>
 </div>
 
-<div class="tontine-bulk-modal modal-overlay" *ngIf="showBulkAssignCollectorModal" (click)="closeBulkAssignCollectorModal()"
-     data-testid="e2e-tontine-bulk-assign-modal">
-  <div class="bulk-modal-dialog" role="dialog" (click)="$event.stopPropagation()">
-    <div class="bulk-modal-content">
-      <div class="bulk-modal-header">
-        <h5 class="bulk-modal-title">Changer le commercial tontine</h5>
-        <button type="button" class="bulk-modal-close" aria-label="Fermer" (click)="closeBulkAssignCollectorModal()">&times;</button>
-      </div>
-      <div class="bulk-modal-body">
-        <p>Sélectionnez le nouveau commercial tontine pour les {{ selectedMemberIds.size }} membre(s) sélectionné(s).</p>
-        <div class="bulk-form-group">
-          <label for="tontineCollectorSelect">Commercial tontine</label>
-          <select class="bulk-form-control" id="tontineCollectorSelect" [(ngModel)]="selectedTontineCollector"
-                  data-testid="e2e-tontine-bulk-collector-select">
-            <option value="" disabled selected>Choisir un commercial</option>
-            <option *ngFor="let collector of collectors" [value]="collector.username">
-              {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
-            </option>
-          </select>
+@if (showBulkAssignCollectorModal) {
+  <div class="tontine-bulk-modal modal-overlay" (click)="closeBulkAssignCollectorModal()"
+    data-testid="e2e-tontine-bulk-assign-modal">
+    <div class="bulk-modal-dialog" role="dialog" (click)="$event.stopPropagation()">
+      <div class="bulk-modal-content">
+        <div class="bulk-modal-header">
+          <h5 class="bulk-modal-title">Changer le commercial tontine</h5>
+          <button type="button" class="bulk-modal-close" aria-label="Fermer" (click)="closeBulkAssignCollectorModal()">&times;</button>
         </div>
-      </div>
-      <div class="bulk-modal-footer">
-        <button type="button" class="btn-cancel" (click)="closeBulkAssignCollectorModal()">Annuler</button>
-        <button type="button" class="btn-validate" (click)="confirmBulkAssignCollector()"
-                [disabled]="!selectedTontineCollector || assigningCollector"
-                data-testid="e2e-tontine-bulk-validate">
-          {{ assigningCollector ? 'Enregistrement…' : 'Valider' }}
-        </button>
+        <div class="bulk-modal-body">
+          <p>Sélectionnez le nouveau commercial tontine pour les {{ selectedMemberIds.size }} membre(s) sélectionné(s).</p>
+          <div class="bulk-form-group">
+            <label for="tontineCollectorSelect">Commercial tontine</label>
+            <select class="bulk-form-control" id="tontineCollectorSelect" [(ngModel)]="selectedTontineCollector"
+              data-testid="e2e-tontine-bulk-collector-select">
+              <option value="" disabled selected>Choisir un commercial</option>
+              @for (collector of collectors; track collector) {
+                <option [value]="collector.username">
+                  {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
+                </option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="bulk-modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeBulkAssignCollectorModal()">Annuler</button>
+          <button type="button" class="btn-validate" (click)="confirmBulkAssignCollector()"
+            [disabled]="!selectedTontineCollector || assigningCollector"
+            data-testid="e2e-tontine-bulk-validate">
+            {{ assigningCollector ? 'Enregistrement…' : 'Valider' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+}

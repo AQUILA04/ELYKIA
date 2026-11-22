@@ -17,7 +17,7 @@
     <div class="header-card-main">
       <div class="title-group">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
           <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
           <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
         </svg>
@@ -69,57 +69,71 @@
 
   <div class="table-card a5">
     <div class="table-wrapper">
-      <div *ngIf="isLoading" class="empty-state">
-        <div class="empty-icon">⏳</div>
-        <div class="empty-title">Chargement…</div>
-      </div>
+      @if (isLoading) {
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <div class="empty-title">Chargement…</div>
+        </div>
+      }
 
-      <div *ngIf="!isLoading && offers.length === 0" class="empty-state">
-        <div class="empty-icon">💼</div>
-        <div class="empty-title">Aucune offre d'emploi</div>
-        <div class="empty-sub">Créez une première offre pour la publier sur le site vitrine.</div>
-      </div>
+      @if (!isLoading && offers.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">💼</div>
+          <div class="empty-title">Aucune offre d'emploi</div>
+          <div class="empty-sub">Créez une première offre pour la publier sur le site vitrine.</div>
+        </div>
+      }
 
-      <table class="data-table" *ngIf="!isLoading && offers.length > 0">
-        <thead>
-          <tr>
-            <th>Titre</th>
-            <th>Statut</th>
-            <th>Publication</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of offers">
-            <td><span class="col-title">{{ row.title }}</span></td>
-            <td>
-              <span class="status-badge"
+      @if (!isLoading && offers.length > 0) {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Titre</th>
+              <th>Statut</th>
+              <th>Publication</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of offers; track row) {
+              <tr>
+                <td><span class="col-title">{{ row.title }}</span></td>
+                <td>
+                  <span class="status-badge"
                     [class.published]="row.status === 'PUBLISHED'"
                     [class.withdrawn]="row.status === 'WITHDRAWN'">
-                {{ statusLabel(row.status) }}
-              </span>
-            </td>
-            <td><span class="col-date">{{ row.publishedAt ? (row.publishedAt | date:'dd/MM/yyyy HH:mm') : '—' }}</span></td>
-            <td class="col-actions">
-              <button type="button" class="btn-detail" (click)="editOffer(row)">Éditer</button>
-              <button type="button" class="btn-detail btn-success" *ngIf="row.status !== 'PUBLISHED'" (click)="publishOffer(row)">Publier</button>
-              <button type="button" class="btn-detail btn-warn" *ngIf="row.status === 'PUBLISHED'" (click)="withdrawOffer(row)">Retirer</button>
-              <button type="button" class="btn-detail btn-danger" (click)="deleteOffer(row)">Supprimer</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                    {{ statusLabel(row.status) }}
+                  </span>
+                </td>
+                <td><span class="col-date">{{ row.publishedAt ? (row.publishedAt | date:'dd/MM/yyyy HH:mm') : '—' }}</span></td>
+                <td class="col-actions">
+                  <button type="button" class="btn-detail" (click)="editOffer(row)">Éditer</button>
+                  @if (row.status !== 'PUBLISHED') {
+                    <button type="button" class="btn-detail btn-success" (click)="publishOffer(row)">Publier</button>
+                  }
+                  @if (row.status === 'PUBLISHED') {
+                    <button type="button" class="btn-detail btn-warn" (click)="withdrawOffer(row)">Retirer</button>
+                  }
+                  <button type="button" class="btn-detail btn-danger" (click)="deleteOffer(row)">Supprimer</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
     </div>
 
-    <div class="recruitment-pagination" *ngIf="!isLoading && totalElements > 0">
-      <mat-paginator
-        [length]="totalElements"
-        [pageSize]="pageSize"
-        [pageIndex]="pageIndex"
-        [pageSizeOptions]="[5, 10, 25]"
-        (page)="onPageChange($event)"
-        showFirstLastButtons>
-      </mat-paginator>
-    </div>
+    @if (!isLoading && totalElements > 0) {
+      <div class="recruitment-pagination">
+        <mat-paginator
+          [length]="totalElements"
+          [pageSize]="pageSize"
+          [pageIndex]="pageIndex"
+          [pageSizeOptions]="[5, 10, 25]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    }
   </div>
 </div>

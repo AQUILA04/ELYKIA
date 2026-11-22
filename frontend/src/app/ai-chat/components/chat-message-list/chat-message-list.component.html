@@ -1,79 +1,96 @@
 <div class="message-list" #messageList>
-  <div class="welcome" *ngIf="messages.length === 0 && !sending">
-    <div class="welcome-icon">
-      <mat-icon>auto_awesome</mat-icon>
+  @if (messages.length === 0 && !sending) {
+    <div class="welcome">
+      <div class="welcome-icon">
+        <mat-icon>auto_awesome</mat-icon>
+      </div>
+      <h3>Bienvenue sur Elykia IA</h3>
+      <p>Posez une question sur vos données ou demandez comment utiliser l'application.</p>
+      <ul>
+        <li>« Quel est le CA crédit de la semaine ? »</li>
+        <li>« Comment enregistrer une mise sur un crédit ? »</li>
+      </ul>
     </div>
-    <h3>Bienvenue sur Elykia IA</h3>
-    <p>Posez une question sur vos données ou demandez comment utiliser l'application.</p>
-    <ul>
-      <li>« Quel est le CA crédit de la semaine ? »</li>
-      <li>« Comment enregistrer une mise sur un crédit ? »</li>
-    </ul>
-  </div>
+  }
 
-  <article
-    class="message"
-    *ngFor="let message of messages"
-    [class.user]="isUser(message.role)"
-    [class.assistant]="!isUser(message.role)"
-  >
-    <div class="bubble">
-      <p class="message-text">{{ message.content }}</p>
-
-      <div class="data-preview" *ngIf="!isUser(message.role) && isDataIntent(message) && message.metadata?.preview?.length">
-        <div class="preview-header">
-          <mat-icon>table_chart</mat-icon>
-          <span>{{ message.metadata?.rowCount ?? message.metadata?.preview?.length }} ligne(s)</span>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th *ngFor="let col of getPreviewColumns(message)">{{ col }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of message.metadata?.preview">
-                <td *ngFor="let col of getPreviewColumns(message)">{{ row[col] }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+  @for (message of messages; track message) {
+    <article
+      class="message"
+      [class.user]="isUser(message.role)"
+      [class.assistant]="!isUser(message.role)"
+      >
+      <div class="bubble">
+        <p class="message-text">{{ message.content }}</p>
+        @if (!isUser(message.role) && isDataIntent(message) && message.metadata?.preview?.length) {
+          <div class="data-preview">
+            <div class="preview-header">
+              <mat-icon>table_chart</mat-icon>
+              <span>{{ message.metadata?.rowCount ?? message.metadata?.preview?.length }} ligne(s)</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    @for (col of getPreviewColumns(message); track col) {
+                      <th>{{ col }}</th>
+                    }
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of message.metadata?.preview; track row) {
+                    <tr>
+                      @for (col of getPreviewColumns(message); track col) {
+                        <td>{{ row[col] }}</td>
+                      }
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+        @if (!isUser(message.role) && isHowToIntent(message) && message.metadata?.sources?.length) {
+          <div class="guide-sources">
+            <p class="sources-label">Sources du guide</p>
+            @for (source of message.metadata?.sources; track source) {
+              <a
+                [href]="source.url"
+                target="_blank"
+                rel="noopener"
+                >
+                <mat-icon>menu_book</mat-icon>
+                {{ source.title }}
+              </a>
+            }
+          </div>
+        }
+        @if (showSql && message.metadata?.sql) {
+          <details class="sql-block">
+            <summary>Voir la requête SQL</summary>
+            <pre>{{ message.metadata?.sql }}</pre>
+          </details>
+        }
+        @if (!isUser(message.role) && message.metadata?.suggestions?.length) {
+          <div class="suggestions">
+            @for (suggestion of message.metadata?.suggestions; track suggestion) {
+              <button
+                type="button"
+                class="chip"
+                (click)="onSuggestion(suggestion)"
+                >
+                {{ suggestion }}
+              </button>
+            }
+          </div>
+        }
       </div>
+    </article>
+  }
 
-      <div class="guide-sources" *ngIf="!isUser(message.role) && isHowToIntent(message) && message.metadata?.sources?.length">
-        <p class="sources-label">Sources du guide</p>
-        <a
-          *ngFor="let source of message.metadata?.sources"
-          [href]="source.url"
-          target="_blank"
-          rel="noopener"
-        >
-          <mat-icon>menu_book</mat-icon>
-          {{ source.title }}
-        </a>
-      </div>
-
-      <details class="sql-block" *ngIf="showSql && message.metadata?.sql">
-        <summary>Voir la requête SQL</summary>
-        <pre>{{ message.metadata?.sql }}</pre>
-      </details>
-
-      <div class="suggestions" *ngIf="!isUser(message.role) && message.metadata?.suggestions?.length">
-        <button
-          type="button"
-          class="chip"
-          *ngFor="let suggestion of message.metadata?.suggestions"
-          (click)="onSuggestion(suggestion)"
-        >
-          {{ suggestion }}
-        </button>
-      </div>
+  @if (sending) {
+    <div class="typing">
+      <mat-spinner diameter="24"></mat-spinner>
+      <span>Elykia IA réfléchit…</span>
     </div>
-  </article>
-
-  <div class="typing" *ngIf="sending">
-    <mat-spinner diameter="24"></mat-spinner>
-    <span>Elykia IA réfléchit…</span>
-  </div>
+  }
 </div>

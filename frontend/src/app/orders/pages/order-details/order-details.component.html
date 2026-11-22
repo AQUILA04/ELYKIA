@@ -9,15 +9,17 @@
     <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
   </div>
 
-  <div *ngIf="isLoading" class="detail-card a2 form-loading">
-    <div class="empty-state">
-      <div class="empty-icon">⏳</div>
-      <div class="empty-title">Chargement…</div>
-      <div class="empty-sub">Récupération des détails de la commande</div>
+  @if (isLoading) {
+    <div class="detail-card a2 form-loading">
+      <div class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-title">Chargement…</div>
+        <div class="empty-sub">Récupération des détails de la commande</div>
+      </div>
     </div>
-  </div>
+  }
 
-  <ng-container *ngIf="!isLoading && order">
+  @if (!isLoading && order) {
     <div class="page-header-card a2">
       <div class="header-card-top">
         <span class="header-surtitle">{{ onlineMode ? 'SERVICES EN LIGNE' : 'GESTION DES COMMANDES' }}</span>
@@ -28,23 +30,26 @@
       <div class="header-card-main">
         <div class="title-group">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
             <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
             <path d="M3 6h18"/>
             <path d="M16 10a4 4 0 0 1-8 0"/>
           </svg>
           <h1 class="page-title">Commande #{{ order.id }}</h1>
-          <span class="online-badge" *ngIf="order.source === 'CUSTOMER_SPACE'">En ligne</span>
+          @if (order.source === 'CUSTOMER_SPACE') {
+            <span class="online-badge">En ligne</span>
+          }
         </div>
       </div>
       <p class="page-subtitle">
         Commande du {{ formatDateTime(order.orderDate) }}
-        <span *ngIf="order.activeStockRequest">
-          — Demande de stock : {{ order.activeStockRequest.reference }} ({{ order.activeStockRequest.status }})
-        </span>
+        @if (order.activeStockRequest) {
+          <span>
+            — Demande de stock : {{ order.activeStockRequest.reference }} ({{ order.activeStockRequest.status }})
+          </span>
+        }
       </p>
     </div>
-
     <div class="actions-toolbar a3">
       <span class="toolbar-label">Actions</span>
       <div class="actions-group">
@@ -55,18 +60,18 @@
           (click)="downloadSheet()">
           Télécharger la fiche
         </button>
-        <button
-          *ngFor="let action of availableActions"
-          type="button"
-          class="btn-detail"
-          [ngClass]="getActionButtonClass(action)"
-          [disabled]="isProcessing"
-          (click)="executeAction(action)">
-          {{ getActionLabel(action) }}
-        </button>
+        @for (action of availableActions; track action) {
+          <button
+            type="button"
+            class="btn-detail"
+            [ngClass]="getActionButtonClass(action)"
+            [disabled]="isProcessing"
+            (click)="executeAction(action)">
+            {{ getActionLabel(action) }}
+          </button>
+        }
       </div>
     </div>
-
     <div class="details-grid a4">
       <section class="detail-card">
         <div class="section-head">
@@ -77,33 +82,42 @@
             <span class="info-label">Nom</span>
             <span class="info-value">{{ getClientName(order) }}</span>
           </div>
-          <div class="info-row" *ngIf="order.client.phone">
-            <span class="info-label">Téléphone</span>
-            <span class="info-value mono">{{ order.client.phone }}</span>
-          </div>
-          <div class="info-row" *ngIf="order.client.quarter">
-            <span class="info-label">Quartier</span>
-            <span class="info-value">{{ order.client.quarter }}</span>
-          </div>
-          <div class="info-row" *ngIf="order.client.code">
-            <span class="info-label">Code</span>
-            <span class="info-value"><span class="code-pill">{{ order.client.code }}</span></span>
-          </div>
+          @if (order.client.phone) {
+            <div class="info-row">
+              <span class="info-label">Téléphone</span>
+              <span class="info-value mono">{{ order.client.phone }}</span>
+            </div>
+          }
+          @if (order.client.quarter) {
+            <div class="info-row">
+              <span class="info-label">Quartier</span>
+              <span class="info-value">{{ order.client.quarter }}</span>
+            </div>
+          }
+          @if (order.client.code) {
+            <div class="info-row">
+              <span class="info-label">Code</span>
+              <span class="info-value"><span class="code-pill">{{ order.client.code }}</span></span>
+            </div>
+          }
           <div class="info-row">
             <span class="info-label">Commercial crédit</span>
             <span class="info-value mono">{{ getCommercial(order) }}</span>
           </div>
-          <div class="info-row" *ngIf="order.client.tontineCollector">
-            <span class="info-label">Commercial tontine</span>
-            <span class="info-value mono">{{ order.client.tontineCollector }}</span>
-          </div>
-          <div class="info-row" *ngIf="order.client.agencyCollector">
-            <span class="info-label">Commercial agence</span>
-            <span class="info-value mono">{{ order.client.agencyCollector }}</span>
-          </div>
+          @if (order.client.tontineCollector) {
+            <div class="info-row">
+              <span class="info-label">Commercial tontine</span>
+              <span class="info-value mono">{{ order.client.tontineCollector }}</span>
+            </div>
+          }
+          @if (order.client.agencyCollector) {
+            <div class="info-row">
+              <span class="info-label">Commercial agence</span>
+              <span class="info-value mono">{{ order.client.agencyCollector }}</span>
+            </div>
+          }
         </div>
       </section>
-
       <section class="detail-card">
         <div class="section-head">
           <h2 class="section-title">Détails de la commande</h2>
@@ -125,114 +139,124 @@
             <span class="info-label">Montant total</span>
             <span class="info-value amount">{{ formatCurrency(order.totalAmount) }}</span>
           </div>
-          <div class="info-row" *ngIf="order.totalPurchasePrice != null">
-            <span class="info-label">Coût d'achat</span>
-            <span class="info-value mono">{{ formatCurrency(order.totalPurchasePrice) }}</span>
-          </div>
+          @if (order.totalPurchasePrice != null) {
+            <div class="info-row">
+              <span class="info-label">Coût d'achat</span>
+              <span class="info-value mono">{{ formatCurrency(order.totalPurchasePrice) }}</span>
+            </div>
+          }
         </div>
       </section>
     </div>
-
     <section class="detail-card table-card a5">
       <div class="section-head">
         <h2 class="section-title">Articles commandés</h2>
         <p class="section-sub">{{ (order.items || []).length }} article(s) dans cette commande</p>
       </div>
-
       <div class="table-wrapper">
-        <table class="data-table" *ngIf="(order.items || []).length > 0">
-          <thead>
-            <tr>
-              <th>Article</th>
-              <th class="col-num">Quantité</th>
-              <th class="col-num" *appIfUnitPrice>Prix unitaire</th>
-              <th class="col-num" *appIfUnitPrice>Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let item of order.items; trackBy: trackByItemId">
-              <td>
-                <span class="col-name">{{ getItemArticleName(item) }}</span>
-                <span class="col-sub" *ngIf="getItemArticleSubtitle(item) as subtitle">{{ subtitle }}</span>
-              </td>
-              <td class="col-num"><span class="col-qty">{{ item.quantity }}</span></td>
-              <td class="col-num" *appIfUnitPrice><span class="col-amount">{{ formatCurrency(item.unitPrice) }}</span></td>
-              <td class="col-num" *appIfUnitPrice><span class="col-amount">{{ formatCurrency(getItemTotal(item)) }}</span></td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div class="empty-state" *ngIf="(order.items || []).length === 0">
-          <div class="empty-icon">📦</div>
-          <div class="empty-title">Aucun article</div>
-          <div class="empty-sub">Cette commande ne contient pas d'articles.</div>
-        </div>
+        @if ((order.items || []).length > 0) {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Article</th>
+                <th class="col-num">Quantité</th>
+                <th class="col-num" *appIfUnitPrice>Prix unitaire</th>
+                <th class="col-num" *appIfUnitPrice>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of order.items; track trackByItemId($index, item)) {
+                <tr>
+                  <td>
+                    <span class="col-name">{{ getItemArticleName(item) }}</span>
+                    @if (getItemArticleSubtitle(item); as subtitle) {
+                      <span class="col-sub">{{ subtitle }}</span>
+                    }
+                  </td>
+                  <td class="col-num"><span class="col-qty">{{ item.quantity }}</span></td>
+                  <td class="col-num" *appIfUnitPrice><span class="col-amount">{{ formatCurrency(item.unitPrice) }}</span></td>
+                  <td class="col-num" *appIfUnitPrice><span class="col-amount">{{ formatCurrency(getItemTotal(item)) }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+        @if ((order.items || []).length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon">📦</div>
+            <div class="empty-title">Aucun article</div>
+            <div class="empty-sub">Cette commande ne contient pas d'articles.</div>
+          </div>
+        }
       </div>
-
       <div class="items-summary">
         <span class="summary-label">Total de la commande</span>
         <span class="summary-value">{{ formatCurrency(order.totalAmount) }}</span>
       </div>
     </section>
-
-    <section class="detail-card history-card a5" *ngIf="order.updatedAt && order.updatedAt !== order.createdAt">
-      <div class="section-head">
-        <h2 class="section-title">Historique</h2>
-      </div>
-
-      <div class="history-timeline">
-        <div class="timeline-item">
-          <div class="timeline-dot created"></div>
-          <div class="timeline-content">
-            <div class="timeline-title">Commande créée</div>
-            <div class="timeline-date">{{ formatDateTime(order.createdAt || '') }}</div>
-            <div class="timeline-user" *ngIf="order.createdBy">par {{ order.createdBy }}</div>
+    @if (order.updatedAt && order.updatedAt !== order.createdAt) {
+      <section class="detail-card history-card a5">
+        <div class="section-head">
+          <h2 class="section-title">Historique</h2>
+        </div>
+        <div class="history-timeline">
+          <div class="timeline-item">
+            <div class="timeline-dot created"></div>
+            <div class="timeline-content">
+              <div class="timeline-title">Commande créée</div>
+              <div class="timeline-date">{{ formatDateTime(order.createdAt || '') }}</div>
+              @if (order.createdBy) {
+                <div class="timeline-user">par {{ order.createdBy }}</div>
+              }
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot updated"></div>
+            <div class="timeline-content">
+              <div class="timeline-title">Dernière modification</div>
+              <div class="timeline-date">{{ formatDateTime(order.updatedAt || '') }}</div>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" [ngClass]="'status-' + statusColor"></div>
+            <div class="timeline-content">
+              <div class="timeline-title">Statut actuel : {{ statusLabel }}</div>
+              <div class="timeline-date">{{ formatDateTime(order.updatedAt || order.createdAt || '') }}</div>
+            </div>
           </div>
         </div>
-
-        <div class="timeline-item">
-          <div class="timeline-dot updated"></div>
-          <div class="timeline-content">
-            <div class="timeline-title">Dernière modification</div>
-            <div class="timeline-date">{{ formatDateTime(order.updatedAt || '') }}</div>
-          </div>
-        </div>
-
-        <div class="timeline-item">
-          <div class="timeline-dot" [ngClass]="'status-' + statusColor"></div>
-          <div class="timeline-content">
-            <div class="timeline-title">Statut actuel : {{ statusLabel }}</div>
-            <div class="timeline-date">{{ formatDateTime(order.updatedAt || order.createdAt || '') }}</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="floating-actions" *ngIf="availableActions.length > 0">
-      <button
-        type="button"
-        class="fab-trigger"
-        [matMenuTriggerFor]="actionsMenu"
-        [disabled]="isProcessing"
-        aria-label="Actions commande">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-      </button>
-      <mat-menu #actionsMenu="matMenu">
+      </section>
+    }
+    @if (availableActions.length > 0) {
+      <div class="floating-actions">
         <button
-          mat-menu-item
-          *ngFor="let action of availableActions"
+          type="button"
+          class="fab-trigger"
+          [matMenuTriggerFor]="actionsMenu"
           [disabled]="isProcessing"
-          (click)="executeAction(action)">
-          <span>{{ getActionLabel(action) }}</span>
+          aria-label="Actions commande">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
         </button>
-      </mat-menu>
-    </div>
-  </ng-container>
+        <mat-menu #actionsMenu="matMenu">
+          @for (action of availableActions; track action) {
+            <button
+              mat-menu-item
+              [disabled]="isProcessing"
+              (click)="executeAction(action)">
+              <span>{{ getActionLabel(action) }}</span>
+            </button>
+          }
+        </mat-menu>
+      </div>
+    }
+  }
 
-  <div class="processing-overlay" *ngIf="isProcessing">
-    <div class="processing-panel">
-      <div class="processing-spinner">⏳</div>
-      <span>Traitement en cours…</span>
+  @if (isProcessing) {
+    <div class="processing-overlay">
+      <div class="processing-panel">
+        <div class="processing-spinner">⏳</div>
+        <span>Traitement en cours…</span>
+      </div>
     </div>
-  </div>
+  }
 </div>

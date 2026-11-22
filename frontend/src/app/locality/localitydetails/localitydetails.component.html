@@ -1,18 +1,20 @@
-<div class="details-container" *ngIf="!isLoading">
+@if (!isLoading) {
+  <div class="details-container">
     <div class="form-header">
       <h1>Détail de la localité</h1>
     </div>
-    <div class="details-content" *ngIf="locality">
-      <div class="details-row">
-        <div class="details-label">Nom</div>
-        <div class="details-value">{{ locality.name }}</div>
+    @if (locality) {
+      <div class="details-content">
+        <div class="details-row">
+          <div class="details-label">Nom</div>
+          <div class="details-value">{{ locality.name }}</div>
+        </div>
       </div>
-    </div>
+    }
     <div class="form-actions">
       <a (click)="onCancel()" class="link-back">
         <i class="ti ti-arrow-left"></i> Retour à la liste
       </a>
-      
       <div class="form-actions">
         <a (click)="navigateToEdit(locality!.id)" class="link-edit">
           <i class="ti ti-pencil"></i> Modifier
@@ -20,5 +22,7 @@
       </div>
     </div>
   </div>
-  <div *ngIf="isLoading">Chargement...</div>
-  
+}
+@if (isLoading) {
+  <div>Chargement...</div>
+}

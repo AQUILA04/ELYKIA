@@ -3,10 +3,12 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/cor
 @Component({
   selector: 'app-alerte-fin-mois',
   template: `
-    <div *ngIf="showAlert && alerteMessage" class="alert mb-3" [ngClass]="alerteType === 'danger' ? 'alert-danger' : 'alert-warning'">
-      {{ alerteMessage }}
-    </div>
-  `,
+    @if (showAlert && alerteMessage) {
+      <div class="alert mb-3" [ngClass]="alerteType === 'danger' ? 'alert-danger' : 'alert-warning'">
+        {{ alerteMessage }}
+      </div>
+    }
+    `,
   standalone: false
 })
 export class AlerteFinMoisComponent implements OnInit, OnChanges {

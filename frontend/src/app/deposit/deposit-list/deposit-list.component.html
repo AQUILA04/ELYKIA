@@ -33,24 +33,26 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let deposit of deposits; let i = index">
-          <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
-          <td>{{ deposit.agencyName }}</td>
-          <td>{{ deposit.collection }}</td>
-          <td>{{ deposit.spending }}</td>
-          <td>{{ deposit.balance }}</td>
-          <td>
-            <button mat-icon-button matTooltip="Détails" (click)="viewDetails(deposit.id)">
-              <mat-icon>visibility</mat-icon>
-            </button>
-            <button mat-icon-button matTooltip="Modifier" (click)="editDeposit(deposit.id)">
-              <mat-icon style="color: #003366;">edit</mat-icon>
-            </button>
-            <button mat-icon-button matTooltip="Supprimer" (click)="deleteDeposit(deposit.id)">
-              <mat-icon style="color: #c90a17;">delete</mat-icon>
-            </button>
-          </td>
-        </tr>
+        @for (deposit of deposits; track deposit; let i = $index) {
+          <tr>
+            <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
+            <td>{{ deposit.agencyName }}</td>
+            <td>{{ deposit.collection }}</td>
+            <td>{{ deposit.spending }}</td>
+            <td>{{ deposit.balance }}</td>
+            <td>
+              <button mat-icon-button matTooltip="Détails" (click)="viewDetails(deposit.id)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Modifier" (click)="editDeposit(deposit.id)">
+                <mat-icon style="color: #003366;">edit</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Supprimer" (click)="deleteDeposit(deposit.id)">
+                <mat-icon style="color: #c90a17;">delete</mat-icon>
+              </button>
+            </td>
+          </tr>
+        }
       </tbody>
     </table>
   </div>

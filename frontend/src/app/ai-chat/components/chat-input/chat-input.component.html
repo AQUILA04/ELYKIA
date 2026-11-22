@@ -1,15 +1,18 @@
 <div class="chat-input">
-  <div class="domain-chips" *ngIf="domains.length">
-    <button
-      type="button"
-      class="domain-chip"
-      *ngFor="let domain of domains"
-      (click)="useDomain(domain)"
-      [disabled]="disabled"
-    >
-      {{ domain }}
-    </button>
-  </div>
+  @if (domains.length) {
+    <div class="domain-chips">
+      @for (domain of domains; track domain) {
+        <button
+          type="button"
+          class="domain-chip"
+          (click)="useDomain(domain)"
+          [disabled]="disabled"
+          >
+          {{ domain }}
+        </button>
+      }
+    </div>
+  }
 
   <div class="input-row">
     <textarea

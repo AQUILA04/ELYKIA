@@ -1,30 +1,34 @@
 <div class="profile-card">
   <div class="profile-header">
     <div class="profile-image-wrapper" [class.is-previewable]="canPreviewPhoto">
-      <button
-        *ngIf="canPreviewPhoto"
-        type="button"
-        class="profile-photo-trigger"
-        (click)="openPhotoPreview()"
-        [attr.aria-label]="'Agrandir ' + photoPreviewTitle">
-        <img
-          [src]="safeProfilPhotoUrl"
-          alt=""
-          class="profile-photo"
-          (error)="onPhotoError()">
-      </button>
-      <div *ngIf="showPhotoPlaceholder" class="profile-photo-placeholder" aria-label="Aucune photo de profil">
-        <mat-icon>person</mat-icon>
-      </div>
+      @if (canPreviewPhoto) {
+        <button
+          type="button"
+          class="profile-photo-trigger"
+          (click)="openPhotoPreview()"
+          [attr.aria-label]="'Agrandir ' + photoPreviewTitle">
+          <img
+            [src]="safeProfilPhotoUrl"
+            alt=""
+            class="profile-photo"
+            (error)="onPhotoError()">
+        </button>
+      }
+      @if (showPhotoPlaceholder) {
+        <div class="profile-photo-placeholder" aria-label="Aucune photo de profil">
+          <mat-icon>person</mat-icon>
+        </div>
+      }
     </div>
-    <button
-      *ngIf="canPreviewPhoto"
-      type="button"
-      class="btn-view-photo"
-      (click)="openPhotoPreview()">
-      <mat-icon>zoom_in</mat-icon>
-      Voir
-    </button>
+    @if (canPreviewPhoto) {
+      <button
+        type="button"
+        class="btn-view-photo"
+        (click)="openPhotoPreview()">
+        <mat-icon>zoom_in</mat-icon>
+        Voir
+      </button>
+    }
     <h2 class="profile-name">{{ client.lastname }} {{ client.firstname }}</h2>
     <p class="profile-role">{{ client.occupation || 'Occupation non spécifiée' }}</p>
   </div>
@@ -46,19 +50,21 @@
       </div>
     </div>
 
-    <div class="info-item" *ngIf="hasCoordinates">
-      <mat-icon class="info-icon">place</mat-icon>
-      <div class="info-content">
-        <span class="info-label">Position GPS</span>
-        <span class="info-value mono-coords">
-          {{ client.latitude | number:'1.5-5' }}, {{ client.longitude | number:'1.5-5' }}
-        </span>
-        <button type="button" class="btn-maps" (click)="openOnMaps()">
-          <mat-icon>map</mat-icon>
-          Voir sur Maps
-        </button>
+    @if (hasCoordinates) {
+      <div class="info-item">
+        <mat-icon class="info-icon">place</mat-icon>
+        <div class="info-content">
+          <span class="info-label">Position GPS</span>
+          <span class="info-value mono-coords">
+            {{ client.latitude | number:'1.5-5' }}, {{ client.longitude | number:'1.5-5' }}
+          </span>
+          <button type="button" class="btn-maps" (click)="openOnMaps()">
+            <mat-icon>map</mat-icon>
+            Voir sur Maps
+          </button>
+        </div>
       </div>
-    </div>
+    }
 
     <div class="info-item">
       <mat-icon class="info-icon">map</mat-icon>
@@ -76,61 +82,73 @@
       </div>
     </div>
 
-    <div class="info-item" *ngIf="client.tontineCollector">
-      <mat-icon class="info-icon">savings</mat-icon>
-      <div class="info-content">
-        <span class="info-label">Agent tontine</span>
-        <span class="info-value">{{ client.tontineCollector }}</span>
+    @if (client.tontineCollector) {
+      <div class="info-item">
+        <mat-icon class="info-icon">savings</mat-icon>
+        <div class="info-content">
+          <span class="info-label">Agent tontine</span>
+          <span class="info-value">{{ client.tontineCollector }}</span>
+        </div>
       </div>
-    </div>
+    }
 
     <div class="info-item">
       <mat-icon class="info-icon">fingerprint</mat-icon>
       <div class="info-content">
         <span class="info-label">Identité</span>
         <span class="info-value">
-          <ng-container *ngIf="client.cardType || client.cardID; else noId">
-            <span *ngIf="client.cardType">{{ client.cardType }}</span>
-            <span *ngIf="client.cardType && client.cardID"> — </span>
-            <span *ngIf="client.cardID">{{ client.cardID }}</span>
-          </ng-container>
-          <ng-template #noId>Non renseignée</ng-template>
+          @if (client.cardType || client.cardID) {
+            @if (client.cardType) {
+              <span>{{ client.cardType }}</span>
+            }
+            @if (client.cardType && client.cardID) {
+              <span> — </span>
+            }
+            @if (client.cardID) {
+              <span>{{ client.cardID }}</span>
+            }
+          } @else {
+            Non renseignée
+          }
         </span>
       </div>
     </div>
 
-    <div class="info-item" *ngIf="client.iddoc">
-      <mat-icon class="info-icon">description</mat-icon>
-      <div class="info-content">
-        <span class="info-label">Document</span>
-        <span class="info-value"><a [href]="client.iddoc" target="_blank" rel="noopener">Voir le document</a></span>
+    @if (client.iddoc) {
+      <div class="info-item">
+        <mat-icon class="info-icon">description</mat-icon>
+        <div class="info-content">
+          <span class="info-label">Document</span>
+          <span class="info-value"><a [href]="client.iddoc" target="_blank" rel="noopener">Voir le document</a></span>
+        </div>
       </div>
-    </div>
+    }
   </div>
 </div>
 
-<div
-  class="photo-preview-overlay"
-  *ngIf="showPhotoPreview"
-  (click)="closePhotoPreview()"
-  role="presentation">
+@if (showPhotoPreview) {
   <div
-    class="photo-preview-modal"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="photo-preview-title"
-    (click)="$event.stopPropagation()">
-    <div class="photo-preview-header">
-      <h3 id="photo-preview-title">{{ photoPreviewTitle }}</h3>
-      <button type="button" class="photo-preview-close" (click)="closePhotoPreview()" aria-label="Fermer">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
-    <div class="photo-preview-body">
-      <img
-        [src]="safeProfilPhotoUrl"
-        [alt]="photoPreviewTitle"
-        class="photo-preview-image">
+    class="photo-preview-overlay"
+    (click)="closePhotoPreview()"
+    role="presentation">
+    <div
+      class="photo-preview-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="photo-preview-title"
+      (click)="$event.stopPropagation()">
+      <div class="photo-preview-header">
+        <h3 id="photo-preview-title">{{ photoPreviewTitle }}</h3>
+        <button type="button" class="photo-preview-close" (click)="closePhotoPreview()" aria-label="Fermer">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      <div class="photo-preview-body">
+        <img
+          [src]="safeProfilPhotoUrl"
+          [alt]="photoPreviewTitle"
+          class="photo-preview-image">
+      </div>
     </div>
   </div>
-</div>
+}

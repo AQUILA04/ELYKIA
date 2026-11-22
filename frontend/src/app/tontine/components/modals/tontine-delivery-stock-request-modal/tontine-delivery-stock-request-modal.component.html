@@ -11,25 +11,29 @@
       regroupée(s) par commercial. Le magasinier livrera chaque commercial en une seule opération.
     </p>
 
-    <div class="group" *ngFor="let group of data.groups">
-      <h3>
-        <mat-icon>person</mat-icon>
-        {{ group.collector }}
-        <span class="cmd-refs">({{ group.orderIds.length }} commande(s))</span>
-      </h3>
-      <ul>
-        <li *ngFor="let article of group.articles">
-          <span>{{ article.name }}</span>
-          <strong>× {{ article.quantity }}</strong>
-        </li>
-      </ul>
-    </div>
+    @for (group of data.groups; track group) {
+      <div class="group">
+        <h3>
+          <mat-icon>person</mat-icon>
+          {{ group.collector }}
+          <span class="cmd-refs">({{ group.orderIds.length }} commande(s))</span>
+        </h3>
+        <ul>
+          @for (article of group.articles; track article) {
+            <li>
+              <span>{{ article.name }}</span>
+              <strong>× {{ article.quantity }}</strong>
+            </li>
+          }
+        </ul>
+      </div>
+    }
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">
     <button mat-stroked-button type="button" (click)="onCancel()">Annuler</button>
     <button mat-raised-button color="primary" type="button" (click)="onConfirm()"
-            [disabled]="!data.groups?.length">
+      [disabled]="!data.groups?.length">
       Créer la demande
     </button>
   </mat-dialog-actions>

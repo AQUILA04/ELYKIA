@@ -1,34 +1,37 @@
-<ng-container *ngIf="tour.step() as step">
-    <div class="tour-layer" data-testid="e2e-guided-tour">
-        <div class="tour-backdrop" [class.tour-backdrop--dim]="!spot" (click)="tour.finish()"></div>
-        <div class="tour-spot" *ngIf="spot"
-            [style.top.px]="spot.top" [style.left.px]="spot.left"
-            [style.width.px]="spot.width" [style.height.px]="spot.height"></div>
-
-        <div #popover class="tour-popover" role="dialog" aria-modal="true"
-            aria-labelledby="tour-title" aria-describedby="tour-body"
-            [class.tour-popover--centered]="centered"
-            [style.top.px]="centered ? null : popoverTop"
-            [style.left.px]="centered ? null : popoverLeft">
-            <div class="tour-progress">
-                <span>Étape {{ tour.index() + 1 }} / {{ tour.count() }}</span>
-                <button type="button" class="tour-skip" (click)="tour.finish()" data-testid="e2e-guided-tour-skip">
-                    Passer
-                </button>
-            </div>
-            <h2 id="tour-title" class="tour-title">{{ step.title }}</h2>
-            <p id="tour-body" class="tour-body">{{ step.body }}</p>
-            <div class="tour-dots" aria-hidden="true">
-                <span *ngFor="let i of dots()" class="tour-dot" [class.tour-dot--on]="i === tour.index()"></span>
-            </div>
-            <div class="tour-actions">
-                <button type="button" class="tour-btn tour-btn--ghost" (click)="tour.previous()"
-                    [disabled]="tour.isFirst()">Précédent</button>
-                <button #primaryButton type="button" class="tour-btn tour-btn--primary" (click)="tour.next()"
-                    data-testid="e2e-guided-tour-next">
-                    {{ tour.isLast() ? 'Terminer' : 'Suivant' }}
-                </button>
-            </div>
-        </div>
+@if (tour.step(); as step) {
+  <div class="tour-layer" data-testid="e2e-guided-tour">
+    <div class="tour-backdrop" [class.tour-backdrop--dim]="!spot" (click)="tour.finish()"></div>
+    @if (spot) {
+      <div class="tour-spot"
+        [style.top.px]="spot.top" [style.left.px]="spot.left"
+      [style.width.px]="spot.width" [style.height.px]="spot.height"></div>
+    }
+    <div #popover class="tour-popover" role="dialog" aria-modal="true"
+      aria-labelledby="tour-title" aria-describedby="tour-body"
+      [class.tour-popover--centered]="centered"
+      [style.top.px]="centered ? null : popoverTop"
+      [style.left.px]="centered ? null : popoverLeft">
+      <div class="tour-progress">
+        <span>Étape {{ tour.index() + 1 }} / {{ tour.count() }}</span>
+        <button type="button" class="tour-skip" (click)="tour.finish()" data-testid="e2e-guided-tour-skip">
+          Passer
+        </button>
+      </div>
+      <h2 id="tour-title" class="tour-title">{{ step.title }}</h2>
+      <p id="tour-body" class="tour-body">{{ step.body }}</p>
+      <div class="tour-dots" aria-hidden="true">
+        @for (i of dots(); track i) {
+          <span class="tour-dot" [class.tour-dot--on]="i === tour.index()"></span>
+        }
+      </div>
+      <div class="tour-actions">
+        <button type="button" class="tour-btn tour-btn--ghost" (click)="tour.previous()"
+        [disabled]="tour.isFirst()">Précédent</button>
+        <button #primaryButton type="button" class="tour-btn tour-btn--primary" (click)="tour.next()"
+          data-testid="e2e-guided-tour-next">
+          {{ tour.isLast() ? 'Terminer' : 'Suivant' }}
+        </button>
+      </div>
     </div>
-</ng-container>
+  </div>
+}

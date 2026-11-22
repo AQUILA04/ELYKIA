@@ -11,24 +11,32 @@
       regroupée(s) par commercial avec les quantités additionnées.
     </p>
 
-    <div class="group" *ngFor="let group of groups">
-      <h3>
-        <mat-icon>person</mat-icon>
-        {{ group.collector }}
-        <span class="cmd-refs" *ngIf="group.orderIds.length <= 8">
-          ({{ group.orderIds.length }} cmd · CMD-{{ group.orderIds.join(', CMD-') }})
-        </span>
-        <span class="cmd-refs" *ngIf="group.orderIds.length > 8">
-          ({{ group.orderIds.length }} commandes)
-        </span>
-      </h3>
-      <ul>
-        <li *ngFor="let article of group.articles">
-          <span>{{ article.name }}</span>
-          <strong>× {{ article.quantity }}</strong>
-        </li>
-      </ul>
-    </div>
+    @for (group of groups; track group) {
+      <div class="group">
+        <h3>
+          <mat-icon>person</mat-icon>
+          {{ group.collector }}
+          @if (group.orderIds.length <= 8) {
+            <span class="cmd-refs">
+              ({{ group.orderIds.length }} cmd · CMD-{{ group.orderIds.join(', CMD-') }})
+            </span>
+          }
+          @if (group.orderIds.length > 8) {
+            <span class="cmd-refs">
+              ({{ group.orderIds.length }} commandes)
+            </span>
+          }
+        </h3>
+        <ul>
+          @for (article of group.articles; track article) {
+            <li>
+              <span>{{ article.name }}</span>
+              <strong>× {{ article.quantity }}</strong>
+            </li>
+          }
+        </ul>
+      </div>
+    }
 
     <mat-slide-toggle [(ngModel)]="forNextMonth" color="primary">
       Pour le mois prochain
@@ -38,7 +46,7 @@
   <mat-dialog-actions align="end">
     <button mat-stroked-button type="button" (click)="onCancel()">Annuler</button>
     <button mat-raised-button color="primary" type="button" (click)="onConfirm()"
-            [disabled]="groups.length === 0">
+      [disabled]="groups.length === 0">
       Créer la demande
     </button>
   </mat-dialog-actions>

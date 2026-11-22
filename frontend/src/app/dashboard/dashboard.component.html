@@ -1,6 +1,6 @@
-<app-dashboard-v2 *ngIf="dashboardV2Enabled; else legacyDashboard"></app-dashboard-v2>
-
-<ng-template #legacyDashboard>
+@if (dashboardV2Enabled) {
+  <app-dashboard-v2></app-dashboard-v2>
+} @else {
   <div class="row dashboard-summary">
     <div class="col-sm-3">
       <div class="card summary-card">
@@ -65,7 +65,6 @@
           <h1>Liste des articles en rupture de stock</h1>
         </div>
       </div>
-
       <div class="table-container">
         <table class="article-table">
           <thead>
@@ -76,11 +75,13 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let article of outOfStockArticles; let i = index">
-              <td>{{ (currentPageOutOfStock * pageSizeOutOfStock) + (i + 1) }}</td>
-              <td>{{ article.name }}</td>
-              <td>{{ article.type }}</td>
-            </tr>
+            @for (article of outOfStockArticles; track article; let i = $index) {
+              <tr>
+                <td>{{ (currentPageOutOfStock * pageSizeOutOfStock) + (i + 1) }}</td>
+                <td>{{ article.name }}</td>
+                <td>{{ article.type }}</td>
+              </tr>
+            }
           </tbody>
         </table>
         <mat-paginator [length]="totalOutOfStockElement"
@@ -90,14 +91,12 @@
         </mat-paginator>
       </div>
     </div>
-
     <div class="container" *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
       <div class="header-fixed">
         <div class="d-flex justify-content-center">
           <h1>Article en rupture imminente</h1>
         </div>
       </div>
-
       <div class="table-container">
         <table class="article-table">
           <thead>
@@ -109,16 +108,18 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let article of imminentOutOfStockArticles; let i = index">
-              <td>{{ (currentPageImminent * pageSizeImminent) + (i + 1) }}</td>
-              <td>{{ article.name }}</td>
-              <td>{{ article.type }}</td>
-              <td>
-                <span class="badge" [ngClass]="getBadgeClass(article.stockQuantity)">
-                  {{ article.stockQuantity !== null ? article.stockQuantity : 0 }}
-                </span>
-              </td>
-            </tr>
+            @for (article of imminentOutOfStockArticles; track article; let i = $index) {
+              <tr>
+                <td>{{ (currentPageImminent * pageSizeImminent) + (i + 1) }}</td>
+                <td>{{ article.name }}</td>
+                <td>{{ article.type }}</td>
+                <td>
+                  <span class="badge" [ngClass]="getBadgeClass(article.stockQuantity)">
+                    {{ article.stockQuantity !== null ? article.stockQuantity : 0 }}
+                  </span>
+                </td>
+              </tr>
+            }
           </tbody>
         </table>
         <mat-paginator [length]="totalImminentElement"
@@ -129,4 +130,5 @@
       </div>
     </div>
   </div>
-</ng-template>
+}
+

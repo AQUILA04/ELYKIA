@@ -64,16 +64,18 @@
 </div>
 
 <!-- Bulk action bar for recovery manager -->
-<div class="bulk-action-bar" *ngIf="isRecoveryManager && selectedCredits.length > 0">
-  <span class="selection-info">
-    {{ selectedCredits.length }} crédit(s) sélectionné(s) ·
-    {{ totalSelectedAmount | number }} FCFA
-  </span>
-  <button class="btn-close-bulk" (click)="openCloseModal(selectedCredits)">
-    <mat-icon>lock</mat-icon>
-    Clôturer la sélection
-  </button>
-  <button class="btn-clear-bulk" (click)="clearSelection()">
-    <mat-icon>close</mat-icon>
-  </button>
-</div>
+@if (isRecoveryManager && selectedCredits.length > 0) {
+  <div class="bulk-action-bar">
+    <span class="selection-info">
+      {{ selectedCredits.length }} crédit(s) sélectionné(s) ·
+      {{ totalSelectedAmount | number }} FCFA
+    </span>
+    <button class="btn-close-bulk" (click)="openCloseModal(selectedCredits)">
+      <mat-icon>lock</mat-icon>
+      Clôturer la sélection
+    </button>
+    <button class="btn-clear-bulk" (click)="clearSelection()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+}

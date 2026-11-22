@@ -46,23 +46,27 @@
         <div class="form-section">
           <h3 class="form-section-title">Informations</h3>
           <div class="form-grid">
-            <div class="form-field form-field-full" *ngIf="saleType === 'CREDIT'">
-              <label for="commercial">Commercial <span class="required">*</span></label>
-              <ng-select id="commercial" formControlName="commercial" [items]="commercials" bindLabel="username"
-                data-testid="e2e-credit-commercial"
-                bindValue="username" [searchFn]="searchCommercial" (change)="onCommercialChange()"
-                placeholder="Sélectionner un commercial" [clearable]="false">
-                <ng-template ng-option-tmp let-item="item">
-                  <div class="commercial-option">
-                    <strong>{{ item.username }}</strong>
-                    <span class="commercial-name">{{ item.firstname }} {{ item.lastname }}</span>
-                  </div>
-                </ng-template>
-              </ng-select>
-              <span class="field-error" *ngIf="creditForm.get('commercial')?.invalid && creditForm.get('commercial')?.touched">
-                Le commercial est requis pour une vente à crédit.
-              </span>
-            </div>
+            @if (saleType === 'CREDIT') {
+              <div class="form-field form-field-full">
+                <label for="commercial">Commercial <span class="required">*</span></label>
+                <ng-select id="commercial" formControlName="commercial" [items]="commercials" bindLabel="username"
+                  data-testid="e2e-credit-commercial"
+                  bindValue="username" [searchFn]="searchCommercial" (change)="onCommercialChange()"
+                  placeholder="Sélectionner un commercial" [clearable]="false">
+                  <ng-template ng-option-tmp let-item="item">
+                    <div class="commercial-option">
+                      <strong>{{ item.username }}</strong>
+                      <span class="commercial-name">{{ item.firstname }} {{ item.lastname }}</span>
+                    </div>
+                  </ng-template>
+                </ng-select>
+                @if (creditForm.get('commercial')?.invalid && creditForm.get('commercial')?.touched) {
+                  <span class="field-error">
+                    Le commercial est requis pour une vente à crédit.
+                  </span>
+                }
+              </div>
+            }
 
             <div class="form-field form-field-full">
               <label for="clientId">Client <span class="required">*</span></label>
@@ -75,20 +79,26 @@
                 clientTypeFilter="CLIENT"
                 [disabled]="isClientSelectDisabled">
               </app-client-select>
-              <span class="field-error" *ngIf="creditForm.get('clientId')?.invalid && creditForm.get('clientId')?.touched">
-                Le client est requis.
-              </span>
+              @if (creditForm.get('clientId')?.invalid && creditForm.get('clientId')?.touched) {
+                <span class="field-error">
+                  Le client est requis.
+                </span>
+              }
             </div>
 
-            <div class="form-field form-field-full" *ngIf="showCreditPurposeSelector">
-              <label>Finalité du crédit</label>
-              <div class="segment-toggle segment-toggle-secondary" role="group" aria-label="Finalité du crédit">
-                <label class="segment-btn" *ngFor="let purpose of availablePurposes"
-                       [class.active]="creditForm.get('creditPurpose')?.value === purpose">
-                  <input type="radio" formControlName="creditPurpose" [value]="purpose"> {{ purposeLabel(purpose) }}
-                </label>
+            @if (showCreditPurposeSelector) {
+              <div class="form-field form-field-full">
+                <label>Finalité du crédit</label>
+                <div class="segment-toggle segment-toggle-secondary" role="group" aria-label="Finalité du crédit">
+                  @for (purpose of availablePurposes; track purpose) {
+                    <label class="segment-btn"
+                      [class.active]="creditForm.get('creditPurpose')?.value === purpose">
+                      <input type="radio" formControlName="creditPurpose" [value]="purpose"> {{ purposeLabel(purpose) }}
+                    </label>
+                  }
+                </div>
               </div>
-            </div>
+            }
           </div>
         </div>
 
@@ -101,23 +111,29 @@
             [unitPriceSaleType]="saleType"
             (totalAmountChange)="onTotalAmountChange($event)" [validateStock]="true">
           </app-article-selector>
-          <span class="field-error" *ngIf="creditForm.get('articles')?.invalid && creditForm.get('articles')?.touched">
-            Au moins un article doit être sélectionné.
-          </span>
+          @if (creditForm.get('articles')?.invalid && creditForm.get('articles')?.touched) {
+            <span class="field-error">
+              Au moins un article doit être sélectionné.
+            </span>
+          }
         </div>
 
-        <div class="form-section" *ngIf="saleType === 'CREDIT'">
-          <h3 class="form-section-title">Paiement initial</h3>
-          <div class="form-grid">
-            <div class="form-field">
-              <label for="advance">Avance (optionnel)</label>
-              <input id="advance" type="number" formControlName="advance" class="field-input field-mono" min="0" />
-              <span class="field-error" *ngIf="creditForm.get('advance')?.invalid && creditForm.get('advance')?.touched">
-                L'avance doit être un nombre positif.
-              </span>
+        @if (saleType === 'CREDIT') {
+          <div class="form-section">
+            <h3 class="form-section-title">Paiement initial</h3>
+            <div class="form-grid">
+              <div class="form-field">
+                <label for="advance">Avance (optionnel)</label>
+                <input id="advance" type="number" formControlName="advance" class="field-input field-mono" min="0" />
+                @if (creditForm.get('advance')?.invalid && creditForm.get('advance')?.touched) {
+                  <span class="field-error">
+                    L'avance doit être un nombre positif.
+                  </span>
+                }
+              </div>
             </div>
           </div>
-        </div>
+        }
 
         <div class="form-actions">
           <button type="button" class="btn-outline" (click)="onCancel()" [disabled]="isLoading">
@@ -131,108 +147,109 @@
     </div>
   </div>
 
-  <div class="receipt-modal-overlay" *ngIf="showReceiptModal">
-    <div class="receipt-modal-container">
-      <div class="receipt-modal-header">
-        <h2>Aperçu du reçu</h2>
-        <button type="button" class="receipt-modal-close" (click)="closeReceiptModal()" aria-label="Fermer">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
-
-      <div class="receipt-modal-body">
-        <div id="print-receipt-content" class="receipt-paper">
-          <div class="receipt-header">
-            <h1 class="company-name">AMENOUVEVE-YAVEH</h1>
-            <p class="company-details">REÇU DE DISTRIBUTION</p>
-          </div>
-
-          <hr class="receipt-divider">
-
-          <div class="receipt-meta">
-            <p><strong>Référence :</strong> {{ receiptData.reference }}</p>
-            <p><strong>Date :</strong> {{ receiptData.date | date:'dd/MM/yyyy' }}</p>
-            <p><strong>Heure :</strong> {{ receiptData.date | date:'HH:mm' }}</p>
-          </div>
-
-          <hr class="receipt-divider">
-
-          <div class="receipt-meta">
-            <p *ngIf="receiptData.clientCode"><strong>Code Client :</strong> {{ receiptData.clientCode }}</p>
-            <p><strong>Client :</strong> {{ receiptData.clientName }}</p>
-            <p *ngIf="receiptData.clientAddress"><strong>Adresse :</strong> {{ receiptData.clientAddress }}</p>
-            <p *ngIf="receiptData.clientPhone"><strong>Téléphone :</strong> {{ receiptData.clientPhone }}</p>
-            <p><strong>Commercial :</strong> {{ receiptData.commercialName }}</p>
-          </div>
-
-          <hr class="receipt-divider">
-
-          <table class="receipt-table">
-            <thead>
-              <tr>
-                <th class="text-left">Article</th>
-                <th class="text-center">Qté</th>
-                <th class="text-right" *appIfUnitPrice="receiptData.saleType">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of receiptData.articles">
-                <td class="text-left">
-                  <strong>{{ item.name }}</strong><br>
-                  <small *appIfUnitPrice="receiptData.saleType">{{ item.quantity }} x {{ item.unitPrice | number:'1.0-0' }}</small>
-                </td>
-                <td class="text-center">{{ item.quantity }}</td>
-                <td class="text-right" *appIfUnitPrice="receiptData.saleType">{{ item.totalPrice | number:'1.0-0' }} FCFA</td>
-              </tr>
-            </tbody>
-          </table>
-
-          <hr class="receipt-divider">
-
-          <div class="receipt-totals">
-            <div class="totals-row highlight">
-              <span>TOTAL :</span>
-              <span class="total-val">{{ receiptData.totalAmount | number:'1.0-0' }} FCFA</span>
+  @if (showReceiptModal) {
+    <div class="receipt-modal-overlay">
+      <div class="receipt-modal-container">
+        <div class="receipt-modal-header">
+          <h2>Aperçu du reçu</h2>
+          <button type="button" class="receipt-modal-close" (click)="closeReceiptModal()" aria-label="Fermer">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+        <div class="receipt-modal-body">
+          <div id="print-receipt-content" class="receipt-paper">
+            <div class="receipt-header">
+              <h1 class="company-name">AMENOUVEVE-YAVEH</h1>
+              <p class="company-details">REÇU DE DISTRIBUTION</p>
             </div>
-
-            <ng-container *ngIf="receiptData.saleType === 'CREDIT'">
-              <div class="totals-row stake-row">
-                <span>MISE JOURNALIÈRE :</span>
-                <span>{{ receiptData.dailyStake | number:'1.0-0' }} FCFA</span>
-              </div>
-              <div class="totals-row">
-                <span>AVANCE :</span>
-                <span>{{ receiptData.advance | number:'1.0-0' }} FCFA</span>
-              </div>
+            <hr class="receipt-divider">
+            <div class="receipt-meta">
+              <p><strong>Référence :</strong> {{ receiptData.reference }}</p>
+              <p><strong>Date :</strong> {{ receiptData.date | date:'dd/MM/yyyy' }}</p>
+              <p><strong>Heure :</strong> {{ receiptData.date | date:'HH:mm' }}</p>
+            </div>
+            <hr class="receipt-divider">
+            <div class="receipt-meta">
+              @if (receiptData.clientCode) {
+                <p><strong>Code Client :</strong> {{ receiptData.clientCode }}</p>
+              }
+              <p><strong>Client :</strong> {{ receiptData.clientName }}</p>
+              @if (receiptData.clientAddress) {
+                <p><strong>Adresse :</strong> {{ receiptData.clientAddress }}</p>
+              }
+              @if (receiptData.clientPhone) {
+                <p><strong>Téléphone :</strong> {{ receiptData.clientPhone }}</p>
+              }
+              <p><strong>Commercial :</strong> {{ receiptData.commercialName }}</p>
+            </div>
+            <hr class="receipt-divider">
+            <table class="receipt-table">
+              <thead>
+                <tr>
+                  <th class="text-left">Article</th>
+                  <th class="text-center">Qté</th>
+                  <th class="text-right" *appIfUnitPrice="receiptData.saleType">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of receiptData.articles; track item) {
+                  <tr>
+                    <td class="text-left">
+                      <strong>{{ item.name }}</strong><br>
+                      <small *appIfUnitPrice="receiptData.saleType">{{ item.quantity }} x {{ item.unitPrice | number:'1.0-0' }}</small>
+                    </td>
+                    <td class="text-center">{{ item.quantity }}</td>
+                    <td class="text-right" *appIfUnitPrice="receiptData.saleType">{{ item.totalPrice | number:'1.0-0' }} FCFA</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+            <hr class="receipt-divider">
+            <div class="receipt-totals">
               <div class="totals-row highlight">
-                <span>NOUVEAU SOLDE :</span>
-                <span>{{ receiptData.remainingAmount | number:'1.0-0' }} FCFA</span>
+                <span>TOTAL :</span>
+                <span class="total-val">{{ receiptData.totalAmount | number:'1.0-0' }} FCFA</span>
               </div>
-            </ng-container>
-          </div>
-
-          <hr class="receipt-divider">
-
-          <div class="receipt-footer">
-            <p *ngIf="receiptData.saleType === 'CASH'">Marchandise à retirer au magasin</p>
-            <p>Merci pour votre confiance!</p>
-            <p *ngIf="receiptData.saleType === 'CREDIT'">Payez régulièrement vos mises</p>
-            <strong>!!!AMENOUVEVE-YAHVE!!!</strong>
+              @if (receiptData.saleType === 'CREDIT') {
+                <div class="totals-row stake-row">
+                  <span>MISE JOURNALIÈRE :</span>
+                  <span>{{ receiptData.dailyStake | number:'1.0-0' }} FCFA</span>
+                </div>
+                <div class="totals-row">
+                  <span>AVANCE :</span>
+                  <span>{{ receiptData.advance | number:'1.0-0' }} FCFA</span>
+                </div>
+                <div class="totals-row highlight">
+                  <span>NOUVEAU SOLDE :</span>
+                  <span>{{ receiptData.remainingAmount | number:'1.0-0' }} FCFA</span>
+                </div>
+              }
+            </div>
+            <hr class="receipt-divider">
+            <div class="receipt-footer">
+              @if (receiptData.saleType === 'CASH') {
+                <p>Marchandise à retirer au magasin</p>
+              }
+              <p>Merci pour votre confiance!</p>
+              @if (receiptData.saleType === 'CREDIT') {
+                <p>Payez régulièrement vos mises</p>
+              }
+              <strong>!!!AMENOUVEVE-YAHVE!!!</strong>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div class="receipt-modal-actions">
-        <button type="button" class="btn-primary" (click)="printReceipt()">
-          <mat-icon>print</mat-icon> Imprimer
-        </button>
-        <button type="button" class="btn-save" (click)="saveReceipt()">
-          <mat-icon>save</mat-icon> Enregistrer
-        </button>
-        <button type="button" class="btn-outline" (click)="closeReceiptModal()">
-          Fermer
-        </button>
+        <div class="receipt-modal-actions">
+          <button type="button" class="btn-primary" (click)="printReceipt()">
+            <mat-icon>print</mat-icon> Imprimer
+          </button>
+          <button type="button" class="btn-save" (click)="saveReceipt()">
+            <mat-icon>save</mat-icon> Enregistrer
+          </button>
+          <button type="button" class="btn-outline" (click)="closeReceiptModal()">
+            Fermer
+          </button>
+        </div>
       </div>
     </div>
-  </div>
+  }
 </div>

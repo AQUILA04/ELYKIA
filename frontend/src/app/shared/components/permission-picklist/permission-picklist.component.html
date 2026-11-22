@@ -5,17 +5,21 @@
       <span class="panel-count" aria-label="Nombre de permissions disponibles">{{ sourceList.length }}</span>
     </div>
     <div class="panel-body">
-      <p class="panel-empty" *ngIf="sourceList.length === 0">
-        Toutes les permissions sont déjà affectées
-      </p>
+      @if (sourceList.length === 0) {
+        <p class="panel-empty">
+          Toutes les permissions sont déjà affectées
+        </p>
+      }
       <mat-selection-list
         #sourceListComp
         [(ngModel)]="selectedSource"
         class="permission-list"
         [class.permission-list--hidden]="sourceList.length === 0">
-        <mat-list-option *ngFor="let perm of sourceList" [value]="perm" class="permission-option">
-          <span class="permission-name">{{ perm.name || perm }}</span>
-        </mat-list-option>
+        @for (perm of sourceList; track perm) {
+          <mat-list-option [value]="perm" class="permission-option">
+            <span class="permission-name">{{ perm.name || perm }}</span>
+          </mat-list-option>
+        }
       </mat-selection-list>
     </div>
   </div>
@@ -65,17 +69,21 @@
       <span class="panel-count panel-count--assigned" aria-label="Nombre de permissions affectées">{{ targetList.length }}</span>
     </div>
     <div class="panel-body">
-      <p class="panel-empty" *ngIf="targetList.length === 0">
-        Aucune permission spécifique — seul le profil s'applique
-      </p>
+      @if (targetList.length === 0) {
+        <p class="panel-empty">
+          Aucune permission spécifique — seul le profil s'applique
+        </p>
+      }
       <mat-selection-list
         #targetListComp
         [(ngModel)]="selectedTarget"
         class="permission-list"
         [class.permission-list--hidden]="targetList.length === 0">
-        <mat-list-option *ngFor="let perm of targetList" [value]="perm" class="permission-option">
-          <span class="permission-name">{{ perm.name || perm }}</span>
-        </mat-list-option>
+        @for (perm of targetList; track perm) {
+          <mat-list-option [value]="perm" class="permission-option">
+            <span class="permission-name">{{ perm.name || perm }}</span>
+          </mat-list-option>
+        }
       </mat-selection-list>
     </div>
   </div>

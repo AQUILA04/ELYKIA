@@ -1,162 +1,191 @@
 <div class="main-container report-v2 commercial-sheet-page a1" data-testid="e2e-commercial-sheet">
-    <div class="breadcrumb-bar">
-        <a *ngIf="!isPromoter" class="breadcrumb-link" [routerLink]="['/report/daily']" [queryParams]="carryParams"
-            data-testid="e2e-commercial-sheet-back">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
-            </svg>
-            Cockpit équipe
-        </a>
-        <a *ngIf="isPromoter" routerLink="/dashboard" class="breadcrumb-link">Tableau de bord</a>
-        <a class="btn-link" [routerLink]="['/report/daily/classic']" [queryParams]="classicQueryParams"
-            data-testid="e2e-commercial-sheet-classic-link">Ancienne présentation</a>
-    </div>
+  <div class="breadcrumb-bar">
+    @if (!isPromoter) {
+      <a class="breadcrumb-link" [routerLink]="['/report/daily']" [queryParams]="carryParams"
+        data-testid="e2e-commercial-sheet-back">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Cockpit équipe
+      </a>
+    }
+    @if (isPromoter) {
+      <a routerLink="/dashboard" class="breadcrumb-link">Tableau de bord</a>
+    }
+    <a class="btn-link" [routerLink]="['/report/daily/classic']" [queryParams]="classicQueryParams"
+    data-testid="e2e-commercial-sheet-classic-link">Ancienne présentation</a>
+  </div>
 
-    <div class="page-header-card a2">
-        <div class="header-card-main">
-            <div class="title-group">
-                <span class="avatar" aria-hidden="true">{{ initials }}</span>
-                <div>
-                    <h1 class="page-title">{{ username }}</h1>
-                    <p class="page-subtitle" *ngIf="filters">
-                        Période du {{ filters.start | date:'dd/MM/yyyy' }}<ng-container *ngIf="filters.end !== filters.start"> au {{ filters.end | date:'dd/MM/yyyy' }}</ng-container>
-                    </p>
-                </div>
-                <span class="pill" *ngIf="summary" [ngClass]="pillClass(summary.line.status)"
-                    data-testid="e2e-commercial-sheet-status">{{ statusLabels[summary.line.status] }}</span>
-            </div>
-            <div class="header-actions" data-tour="sheet-nav">
-                <a *ngIf="previousAgent" class="btn-ghost icon-btn" aria-label="Commercial précédent"
-                    [routerLink]="['/report/daily/commercials', previousAgent]" [queryParams]="carryParams">‹</a>
-                <a *ngIf="nextAgent" class="btn-ghost icon-btn" aria-label="Commercial suivant"
-                    [routerLink]="['/report/daily/commercials', nextAgent]" [queryParams]="carryParams">›</a>
-                <button type="button" class="btn-ghost" (click)="startTour()" data-testid="e2e-commercial-sheet-tour">Visite guidée</button>
-                <button type="button" class="btn-ghost" (click)="downloadPdf()" [disabled]="downloading">
-                    {{ downloading ? 'Génération…' : 'Télécharger le PDF' }}
-                </button>
-                <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="loading">Actualiser</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="a3 sheet-filters">
-        <app-report-filter-bar *ngIf="filters" [filters]="sheetFilters" [agents]="agents" [showCommercial]="!isPromoter"
-            (filtersChange)="onFiltersChange($event)"></app-report-filter-bar>
-    </div>
-
-    <div class="panel-card empty-state" *ngIf="error && !loading" role="alert">
-        <div class="empty-icon">⚠️</div>
-        <div class="empty-title">La fiche n'a pas pu être chargée.</div>
-        <div class="empty-sub">Cliquez sur « Actualiser » ou ouvrez l'ancienne présentation.</div>
-    </div>
-
-    <ng-container *ngIf="summary as s">
-        <!-- Rapprochement -->
-        <section class="panel-card equation-card a3" data-tour="equation" aria-labelledby="equation-title"
-            data-testid="e2e-commercial-sheet-equation">
-            <div class="panel-head">
-                <h2 id="equation-title">Rapprochement de la période</h2>
-                <span class="panel-hint">Ce qui a été encaissé doit être versé</span>
-            </div>
-            <div class="equation">
-                <div class="eq-term"><span class="kpi-label">Crédit</span><span class="num eq-value">{{ s.line.creditToDeposit | fcfa:'bare' }}</span><span class="eq-sub">recouvrements, avances</span></div>
-                <span class="eq-op" aria-hidden="true">+</span>
-                <div class="eq-term"><span class="kpi-label">Tontine</span><span class="num eq-value">{{ s.line.tontineToDeposit | fcfa:'bare' }}</span><span class="eq-sub">cotisations de la période</span></div>
-                <span class="eq-op" aria-hidden="true">+</span>
-                <div class="eq-term"><span class="kpi-label">Solde Nx</span><span class="num eq-value">{{ s.line.newBalanceToDeposit | fcfa:'bare' }}</span><span class="eq-sub">nouveaux comptes</span></div>
-                <span class="eq-op" aria-hidden="true">+</span>
-                <div class="eq-term"><span class="kpi-label">Rattrapages</span><span class="num eq-value">{{ s.line.catchupEntered | fcfa:'bare' }}</span><span class="eq-sub">jours passés saisis</span></div>
-                <span class="eq-op" aria-hidden="true">=</span>
-                <div class="eq-term eq-term--due"><span class="kpi-label">Dû à la caisse</span><span class="num eq-value" data-testid="e2e-commercial-sheet-cash-due">{{ s.line.cashDue | fcfa:'bare' }}</span><span class="eq-sub">F CFA</span></div>
-                <span class="eq-op" aria-hidden="true">−</span>
-                <div class="eq-term"><span class="kpi-label">Versé</span><span class="num eq-value">{{ s.line.deposited | fcfa:'bare' }}</span><span class="eq-sub" *ngIf="s.line.surplus > 0.01">dont {{ s.line.surplus | fcfa }} de surplus</span></div>
-                <span class="eq-op" aria-hidden="true">=</span>
-                <div class="eq-term" [class.eq-term--late]="s.line.remaining > 0.01" [class.eq-term--ok]="s.line.remaining <= 0.01">
-                    <span class="kpi-label">Reste</span>
-                    <span class="num eq-value" data-testid="e2e-commercial-sheet-remaining">{{ s.line.remaining | fcfa:'bare' }}</span>
-                    <span class="eq-sub">{{ s.line.remaining > 0.01 ? 'à verser' : 'aucun écart' }}</span>
-                </div>
-            </div>
-            <p class="panel-hint history" *ngIf="s.line.historicalRemaining > 0.01">
-                Manquants antérieurs à la période : <strong>{{ s.line.historicalRemaining | fcfa }}</strong>
-            </p>
-            <div class="sheet-actions" *ngIf="showDepositButton || showRebalanceButton">
-                <button type="button" class="btn-primary" *ngIf="showDepositButton" (click)="openDeposit()"
-                    data-testid="e2e-commercial-sheet-deposit-btn">Nouveau versement</button>
-                <button type="button" class="btn-ghost" *ngIf="showRebalanceButton" (click)="openRebalance()"
-                    data-testid="e2e-commercial-sheet-rebalance-btn">Équilibrer le surplus</button>
-            </div>
-        </section>
-
-        <!-- Activité par domaine -->
-        <div class="activity-grid a4" data-tour="activity">
-            <section class="panel-card" aria-labelledby="credit-title">
-                <div class="panel-head"><h3 id="credit-title">Crédit</h3><span class="num panel-hint">{{ s.line.creditToDeposit | fcfa }}</span></div>
-                <dl class="lines">
-                    <div><dt>Sortie stock</dt><dd class="num">{{ (s.activity?.totalStockRequestAmount || 0) | fcfa }}</dd></div>
-                    <div><dt>Ventes à crédit</dt><dd class="num">{{ s.activity?.creditSalesCount || 0 }} · {{ (s.activity?.creditSalesAmount || 0) | fcfa }}</dd></div>
-                    <div><dt>Recouvrements</dt><dd class="num">{{ s.activity?.collectionsCount || 0 }} · {{ (s.activity?.collectionsAmount || 0) | fcfa }}</dd></div>
-                    <div><dt>Commandes</dt><dd class="num">{{ s.activity?.ordersCount || 0 }} · {{ (s.activity?.ordersAmount || 0) | fcfa }}</dd></div>
-                    <div><dt>Avances</dt><dd class="num">{{ (s.activity?.totalAdvancesAmount || 0) | fcfa }}</dd></div>
-                    <div><dt>Reliquat généré / utilisé</dt><dd class="num">{{ (s.activity?.totalReliquatGeneratedAmount || 0) | fcfa:'bare' }} / {{ (s.activity?.totalReliquatUsedAmount || 0) | fcfa }}</dd></div>
-                </dl>
-            </section>
-            <section class="panel-card" aria-labelledby="tontine-title">
-                <div class="panel-head"><h3 id="tontine-title">Tontine</h3><span class="num panel-hint">{{ s.line.tontineToDeposit | fcfa }}</span></div>
-                <dl class="lines">
-                    <div><dt>Collectes</dt><dd class="num">{{ s.activity?.tontineCollectionsCount || 0 }} · {{ (s.activity?.tontineCollectionsAmount || 0) | fcfa }}</dd></div>
-                    <div><dt>Rattrapages saisis (jours passés)</dt><dd class="num">{{ s.line.catchupEntered | fcfa }}</dd></div>
-                    <div><dt>Rattrapages déjà versés</dt><dd class="num">{{ s.line.catchupReceived | fcfa }}</dd></div>
-                    <div><dt>Adhésions</dt><dd class="num">{{ s.activity?.tontineMembersCount || 0 }}</dd></div>
-                    <div><dt>Livraisons</dt><dd class="num">{{ s.activity?.tontineDeliveriesCount || 0 }} · {{ (s.activity?.tontineDeliveriesAmount || 0) | fcfa }}</dd></div>
-                </dl>
-            </section>
-            <section class="panel-card" aria-labelledby="clients-title">
-                <div class="panel-head"><h3 id="clients-title">Clients</h3><span class="num panel-hint">{{ s.activity?.newClientsCount || 0 }} nouveau(x)</span></div>
-                <dl class="lines">
-                    <div><dt>Nouveaux clients</dt><dd class="num">{{ s.activity?.newClientsCount || 0 }}</dd></div>
-                    <div><dt>Solde nouveaux comptes</dt><dd class="num">{{ (s.activity?.newAccountsBalance || 0) | fcfa }}</dd></div>
-                    <div><dt>Opérations terrain</dt><dd class="num">{{ s.line.operationsCount }}</dd></div>
-                </dl>
-            </section>
-        </div>
-
-        <!-- 7 derniers jours -->
-        <section class="panel-card a5 trend-card" data-tour="trend" aria-labelledby="trend-title">
-            <div class="panel-head">
-                <h2 id="trend-title">7 derniers jours · à verser et versé</h2>
-                <div class="legend">
-                    <span><i class="dot dot-due"></i>À verser</span>
-                    <span><i class="dot dot-paid"></i>Versé</span>
-                </div>
-            </div>
-            <div class="trend" role="img" aria-label="Montants à verser et versés sur les 7 derniers jours">
-                <div class="trend-day" *ngFor="let bar of trend" [title]="bar.label + ' : à verser ' + (bar.due | fcfa) + ', versé ' + (bar.paid | fcfa)">
-                    <div class="trend-bars">
-                        <span class="bar bar-due" [style.height.%]="bar.dueHeight"></span>
-                        <span class="bar bar-paid" [class.bar-late]="bar.late" [style.height.%]="bar.paidHeight"></span>
-                    </div>
-                    <span class="trend-label">{{ bar.label }}</span>
-                </div>
-            </div>
-        </section>
-
-        <!-- Bilans annuels, chargés à la demande -->
-        <div class="yearly-slot" data-tour="yearly">
-            @defer (on viewport) {
-                <app-commercial-yearly [commercial]="username" [year]="year"></app-commercial-yearly>
-            } @placeholder {
-                <section class="panel-card">
-                    <div class="panel-head"><h2>Bilans {{ year }}</h2></div>
-                    <div class="skeleton yearly-skeleton"></div>
-                </section>
+  <div class="page-header-card a2">
+    <div class="header-card-main">
+      <div class="title-group">
+        <span class="avatar" aria-hidden="true">{{ initials }}</span>
+        <div>
+          <h1 class="page-title">{{ username }}</h1>
+          @if (filters) {
+            <p class="page-subtitle">
+              Période du {{ filters.start | date:'dd/MM/yyyy' }}@if (filters.end !== filters.start) {
+              au {{ filters.end | date:'dd/MM/yyyy' }}
             }
-        </div>
-    </ng-container>
-
-    <div class="panel-card" *ngIf="loading && !summary">
-        <div class="skeleton equation-skeleton"></div>
+          </p>
+        }
+      </div>
+      @if (summary) {
+        <span class="pill" [ngClass]="pillClass(summary.line.status)"
+        data-testid="e2e-commercial-sheet-status">{{ statusLabels[summary.line.status] }}</span>
+      }
     </div>
+    <div class="header-actions" data-tour="sheet-nav">
+      @if (previousAgent) {
+        <a class="btn-ghost icon-btn" aria-label="Commercial précédent"
+        [routerLink]="['/report/daily/commercials', previousAgent]" [queryParams]="carryParams">‹</a>
+      }
+      @if (nextAgent) {
+        <a class="btn-ghost icon-btn" aria-label="Commercial suivant"
+        [routerLink]="['/report/daily/commercials', nextAgent]" [queryParams]="carryParams">›</a>
+      }
+      <button type="button" class="btn-ghost" (click)="startTour()" data-testid="e2e-commercial-sheet-tour">Visite guidée</button>
+      <button type="button" class="btn-ghost" (click)="downloadPdf()" [disabled]="downloading">
+        {{ downloading ? 'Génération…' : 'Télécharger le PDF' }}
+      </button>
+      <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="loading">Actualiser</button>
+    </div>
+  </div>
+</div>
 
-    <app-guided-tour></app-guided-tour>
+<div class="a3 sheet-filters">
+  @if (filters) {
+    <app-report-filter-bar [filters]="sheetFilters" [agents]="agents" [showCommercial]="!isPromoter"
+    (filtersChange)="onFiltersChange($event)"></app-report-filter-bar>
+  }
+</div>
+
+@if (error && !loading) {
+  <div class="panel-card empty-state" role="alert">
+    <div class="empty-icon">⚠️</div>
+    <div class="empty-title">La fiche n'a pas pu être chargée.</div>
+    <div class="empty-sub">Cliquez sur « Actualiser » ou ouvrez l'ancienne présentation.</div>
+  </div>
+}
+
+@if (summary; as s) {
+  <!-- Rapprochement -->
+  <section class="panel-card equation-card a3" data-tour="equation" aria-labelledby="equation-title"
+    data-testid="e2e-commercial-sheet-equation">
+    <div class="panel-head">
+      <h2 id="equation-title">Rapprochement de la période</h2>
+      <span class="panel-hint">Ce qui a été encaissé doit être versé</span>
+    </div>
+    <div class="equation">
+      <div class="eq-term"><span class="kpi-label">Crédit</span><span class="num eq-value">{{ s.line.creditToDeposit | fcfa:'bare' }}</span><span class="eq-sub">recouvrements, avances</span></div>
+      <span class="eq-op" aria-hidden="true">+</span>
+      <div class="eq-term"><span class="kpi-label">Tontine</span><span class="num eq-value">{{ s.line.tontineToDeposit | fcfa:'bare' }}</span><span class="eq-sub">cotisations de la période</span></div>
+      <span class="eq-op" aria-hidden="true">+</span>
+      <div class="eq-term"><span class="kpi-label">Solde Nx</span><span class="num eq-value">{{ s.line.newBalanceToDeposit | fcfa:'bare' }}</span><span class="eq-sub">nouveaux comptes</span></div>
+      <span class="eq-op" aria-hidden="true">+</span>
+      <div class="eq-term"><span class="kpi-label">Rattrapages</span><span class="num eq-value">{{ s.line.catchupEntered | fcfa:'bare' }}</span><span class="eq-sub">jours passés saisis</span></div>
+      <span class="eq-op" aria-hidden="true">=</span>
+      <div class="eq-term eq-term--due"><span class="kpi-label">Dû à la caisse</span><span class="num eq-value" data-testid="e2e-commercial-sheet-cash-due">{{ s.line.cashDue | fcfa:'bare' }}</span><span class="eq-sub">F CFA</span></div>
+      <span class="eq-op" aria-hidden="true">−</span>
+      <div class="eq-term"><span class="kpi-label">Versé</span><span class="num eq-value">{{ s.line.deposited | fcfa:'bare' }}</span>@if (s.line.surplus > 0.01) {
+      <span class="eq-sub">dont {{ s.line.surplus | fcfa }} de surplus</span>
+    }</div>
+    <span class="eq-op" aria-hidden="true">=</span>
+    <div class="eq-term" [class.eq-term--late]="s.line.remaining > 0.01" [class.eq-term--ok]="s.line.remaining <= 0.01">
+      <span class="kpi-label">Reste</span>
+      <span class="num eq-value" data-testid="e2e-commercial-sheet-remaining">{{ s.line.remaining | fcfa:'bare' }}</span>
+      <span class="eq-sub">{{ s.line.remaining > 0.01 ? 'à verser' : 'aucun écart' }}</span>
+    </div>
+  </div>
+  @if (s.line.historicalRemaining > 0.01) {
+    <p class="panel-hint history">
+      Manquants antérieurs à la période : <strong>{{ s.line.historicalRemaining | fcfa }}</strong>
+    </p>
+  }
+  @if (showDepositButton || showRebalanceButton) {
+    <div class="sheet-actions">
+      @if (showDepositButton) {
+        <button type="button" class="btn-primary" (click)="openDeposit()"
+        data-testid="e2e-commercial-sheet-deposit-btn">Nouveau versement</button>
+      }
+      @if (showRebalanceButton) {
+        <button type="button" class="btn-ghost" (click)="openRebalance()"
+        data-testid="e2e-commercial-sheet-rebalance-btn">Équilibrer le surplus</button>
+      }
+    </div>
+  }
+</section>
+<!-- Activité par domaine -->
+<div class="activity-grid a4" data-tour="activity">
+  <section class="panel-card" aria-labelledby="credit-title">
+    <div class="panel-head"><h3 id="credit-title">Crédit</h3><span class="num panel-hint">{{ s.line.creditToDeposit | fcfa }}</span></div>
+    <dl class="lines">
+      <div><dt>Sortie stock</dt><dd class="num">{{ (s.activity?.totalStockRequestAmount || 0) | fcfa }}</dd></div>
+      <div><dt>Ventes à crédit</dt><dd class="num">{{ s.activity?.creditSalesCount || 0 }} · {{ (s.activity?.creditSalesAmount || 0) | fcfa }}</dd></div>
+      <div><dt>Recouvrements</dt><dd class="num">{{ s.activity?.collectionsCount || 0 }} · {{ (s.activity?.collectionsAmount || 0) | fcfa }}</dd></div>
+      <div><dt>Commandes</dt><dd class="num">{{ s.activity?.ordersCount || 0 }} · {{ (s.activity?.ordersAmount || 0) | fcfa }}</dd></div>
+      <div><dt>Avances</dt><dd class="num">{{ (s.activity?.totalAdvancesAmount || 0) | fcfa }}</dd></div>
+      <div><dt>Reliquat généré / utilisé</dt><dd class="num">{{ (s.activity?.totalReliquatGeneratedAmount || 0) | fcfa:'bare' }} / {{ (s.activity?.totalReliquatUsedAmount || 0) | fcfa }}</dd></div>
+    </dl>
+  </section>
+  <section class="panel-card" aria-labelledby="tontine-title">
+    <div class="panel-head"><h3 id="tontine-title">Tontine</h3><span class="num panel-hint">{{ s.line.tontineToDeposit | fcfa }}</span></div>
+    <dl class="lines">
+      <div><dt>Collectes</dt><dd class="num">{{ s.activity?.tontineCollectionsCount || 0 }} · {{ (s.activity?.tontineCollectionsAmount || 0) | fcfa }}</dd></div>
+      <div><dt>Rattrapages saisis (jours passés)</dt><dd class="num">{{ s.line.catchupEntered | fcfa }}</dd></div>
+      <div><dt>Rattrapages déjà versés</dt><dd class="num">{{ s.line.catchupReceived | fcfa }}</dd></div>
+      <div><dt>Adhésions</dt><dd class="num">{{ s.activity?.tontineMembersCount || 0 }}</dd></div>
+      <div><dt>Livraisons</dt><dd class="num">{{ s.activity?.tontineDeliveriesCount || 0 }} · {{ (s.activity?.tontineDeliveriesAmount || 0) | fcfa }}</dd></div>
+    </dl>
+  </section>
+  <section class="panel-card" aria-labelledby="clients-title">
+    <div class="panel-head"><h3 id="clients-title">Clients</h3><span class="num panel-hint">{{ s.activity?.newClientsCount || 0 }} nouveau(x)</span></div>
+    <dl class="lines">
+      <div><dt>Nouveaux clients</dt><dd class="num">{{ s.activity?.newClientsCount || 0 }}</dd></div>
+      <div><dt>Solde nouveaux comptes</dt><dd class="num">{{ (s.activity?.newAccountsBalance || 0) | fcfa }}</dd></div>
+      <div><dt>Opérations terrain</dt><dd class="num">{{ s.line.operationsCount }}</dd></div>
+    </dl>
+  </section>
+</div>
+<!-- 7 derniers jours -->
+<section class="panel-card a5 trend-card" data-tour="trend" aria-labelledby="trend-title">
+  <div class="panel-head">
+    <h2 id="trend-title">7 derniers jours · à verser et versé</h2>
+    <div class="legend">
+      <span><i class="dot dot-due"></i>À verser</span>
+      <span><i class="dot dot-paid"></i>Versé</span>
+    </div>
+  </div>
+  <div class="trend" role="img" aria-label="Montants à verser et versés sur les 7 derniers jours">
+    @for (bar of trend; track bar) {
+      <div class="trend-day" [title]="bar.label + ' : à verser ' + (bar.due | fcfa) + ', versé ' + (bar.paid | fcfa)">
+        <div class="trend-bars">
+          <span class="bar bar-due" [style.height.%]="bar.dueHeight"></span>
+          <span class="bar bar-paid" [class.bar-late]="bar.late" [style.height.%]="bar.paidHeight"></span>
+        </div>
+        <span class="trend-label">{{ bar.label }}</span>
+      </div>
+    }
+  </div>
+</section>
+<!-- Bilans annuels, chargés à la demande -->
+<div class="yearly-slot" data-tour="yearly">
+  @defer (on viewport) {
+  <app-commercial-yearly [commercial]="username" [year]="year"></app-commercial-yearly>
+  } @placeholder {
+  <section class="panel-card">
+    <div class="panel-head"><h2>Bilans {{ year }}</h2></div>
+    <div class="skeleton yearly-skeleton"></div>
+  </section>
+}
+</div>
+}
+
+@if (loading && !summary) {
+  <div class="panel-card">
+    <div class="skeleton equation-skeleton"></div>
+  </div>
+}
+
+<app-guided-tour></app-guided-tour>
 </div>

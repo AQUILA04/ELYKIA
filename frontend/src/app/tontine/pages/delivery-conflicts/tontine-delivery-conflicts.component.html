@@ -92,75 +92,91 @@
 
     <div class="table-card a5">
       <div class="table-wrapper">
-        <div *ngIf="isLoading" class="table-loading">
-          <div class="empty-state">
-            <div class="empty-icon">⏳</div>
-            <div class="empty-title">Chargement…</div>
+        @if (isLoading) {
+          <div class="table-loading">
+            <div class="empty-state">
+              <div class="empty-icon">⏳</div>
+              <div class="empty-title">Chargement…</div>
+            </div>
           </div>
-        </div>
+        }
 
-        <div *ngIf="!isLoading && conflicts.length === 0" class="table-empty-static">
-          <div class="empty-state">
-            <div class="empty-icon">✅</div>
-            <div class="empty-title">Aucun doublon sur la période</div>
-            <div class="empty-sub">Aucune seconde commande ni livraison n'a été saisie pour un même membre.</div>
+        @if (!isLoading && conflicts.length === 0) {
+          <div class="table-empty-static">
+            <div class="empty-state">
+              <div class="empty-icon">✅</div>
+              <div class="empty-title">Aucun doublon sur la période</div>
+              <div class="empty-sub">Aucune seconde commande ni livraison n'a été saisie pour un même membre.</div>
+            </div>
           </div>
-        </div>
+        }
 
-        <table class="data-table mobile-responsive" *ngIf="!isLoading && conflicts.length > 0">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Client</th>
-              <th>Commercial</th>
-              <th>Seconde saisie</th>
-              <th>Articles</th>
-              <th>Déjà enregistré</th>
-              <th>Issue</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let conflict of conflicts" class="table-row">
-              <td data-label="Date">
-                <span class="col-date">{{ conflict.lastSeenAt | date:'dd/MM/yyyy HH:mm' }}</span>
-                <span class="col-phone" *ngIf="conflict.attempts > 1">{{ conflict.attempts }} tentatives</span>
-              </td>
-              <td data-label="Client"><span class="col-client">{{ conflict.clientName || '—' }}</span></td>
-              <td data-label="Commercial">
-                {{ conflict.commercialUsername || '—' }}
-                <span class="col-phone" *ngIf="conflict.deviceId">Appareil {{ conflict.deviceId }}</span>
-              </td>
-              <td data-label="Seconde saisie">
-                <span class="col-label">{{ operationLabels[conflict.operation] }}</span>
-                <span class="col-ref">{{ conflict.incomingReference || '—' }}</span>
-                <span class="col-amount">{{ (conflict.incomingAmount || 0) | number:'1.0-0' }} FCFA</span>
-              </td>
-              <td data-label="Articles">
-                <span class="conflict-item" *ngFor="let line of itemLines(conflict)">{{ line }}</span>
-              </td>
-              <td data-label="Déjà enregistré">
-                <span class="col-ref">{{ conflict.existingReference || '—' }}</span>
-                <span class="col-amount">{{ (conflict.existingAmount || 0) | number:'1.0-0' }} FCFA</span>
-                <span class="col-phone" *ngIf="conflict.availableBalance !== null && conflict.availableBalance !== undefined">
-                  Solde disponible : {{ conflict.availableBalance | number:'1.0-0' }} FCFA
-                </span>
-              </td>
-              <td data-label="Issue">
-                <span class="status-badge" [ngClass]="conflict.outcome === 'REJECTED' ? 'status-rejected' : 'status-merged'">
-                  {{ conflict.outcome === 'REJECTED' ? 'Refusée' : 'Ajoutée' }}
-                </span>
-                <span class="col-phone">{{ reasonLabels[conflict.reason] }}</span>
-              </td>
-              <td class="col-actions" data-label="Action">
-                <button class="btn-detail" (click)="viewMember(conflict)" title="Fiche du membre">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                  Voir
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        @if (!isLoading && conflicts.length > 0) {
+          <table class="data-table mobile-responsive">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Commercial</th>
+                <th>Seconde saisie</th>
+                <th>Articles</th>
+                <th>Déjà enregistré</th>
+                <th>Issue</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (conflict of conflicts; track conflict) {
+                <tr class="table-row">
+                  <td data-label="Date">
+                    <span class="col-date">{{ conflict.lastSeenAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                    @if (conflict.attempts > 1) {
+                      <span class="col-phone">{{ conflict.attempts }} tentatives</span>
+                    }
+                  </td>
+                  <td data-label="Client"><span class="col-client">{{ conflict.clientName || '—' }}</span></td>
+                  <td data-label="Commercial">
+                    {{ conflict.commercialUsername || '—' }}
+                    @if (conflict.deviceId) {
+                      <span class="col-phone">Appareil {{ conflict.deviceId }}</span>
+                    }
+                  </td>
+                  <td data-label="Seconde saisie">
+                    <span class="col-label">{{ operationLabels[conflict.operation] }}</span>
+                    <span class="col-ref">{{ conflict.incomingReference || '—' }}</span>
+                    <span class="col-amount">{{ (conflict.incomingAmount || 0) | number:'1.0-0' }} FCFA</span>
+                  </td>
+                  <td data-label="Articles">
+                    @for (line of itemLines(conflict); track line) {
+                      <span class="conflict-item">{{ line }}</span>
+                    }
+                  </td>
+                  <td data-label="Déjà enregistré">
+                    <span class="col-ref">{{ conflict.existingReference || '—' }}</span>
+                    <span class="col-amount">{{ (conflict.existingAmount || 0) | number:'1.0-0' }} FCFA</span>
+                    @if (conflict.availableBalance !== null && conflict.availableBalance !== undefined) {
+                      <span class="col-phone">
+                        Solde disponible : {{ conflict.availableBalance | number:'1.0-0' }} FCFA
+                      </span>
+                    }
+                  </td>
+                  <td data-label="Issue">
+                    <span class="status-badge" [ngClass]="conflict.outcome === 'REJECTED' ? 'status-rejected' : 'status-merged'">
+                      {{ conflict.outcome === 'REJECTED' ? 'Refusée' : 'Ajoutée' }}
+                    </span>
+                    <span class="col-phone">{{ reasonLabels[conflict.reason] }}</span>
+                  </td>
+                  <td class="col-actions" data-label="Action">
+                    <button class="btn-detail" (click)="viewMember(conflict)" title="Fiche du membre">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                      Voir
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </div>
 
       <div class="pagination client-pagination">

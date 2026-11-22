@@ -1,876 +1,981 @@
 <div class="container daily-report-page" data-testid="e2e-daily-report">
-    <div class="header-fixed">
-        <h1>Rapport Journalier</h1>
-        <p class="page-subtitle">Filtres période et commercial appliqués à tous les onglets · Vue d’ensemble, journal, recouvrement terrain</p>
-    </div>
+  <div class="header-fixed">
+    <h1>Rapport Journalier</h1>
+    <p class="page-subtitle">Filtres période et commercial appliqués à tous les onglets · Vue d’ensemble, journal, recouvrement terrain</p>
+  </div>
 
-    <div class="classic-switch-banner" role="note" data-testid="e2e-daily-report-new-ui-banner">
-        <span>Vous consultez l'ancienne présentation du rapport.</span>
-        <a [routerLink]="['/report/daily']" data-testid="e2e-daily-report-new-ui-link">Découvrir la nouvelle présentation →</a>
-    </div>
+  <div class="classic-switch-banner" role="note" data-testid="e2e-daily-report-new-ui-banner">
+    <span>Vous consultez l'ancienne présentation du rapport.</span>
+    <a [routerLink]="['/report/daily']" data-testid="e2e-daily-report-new-ui-link">Découvrir la nouvelle présentation →</a>
+  </div>
 
-    <!-- Filters Toolbar -->
-    <div class="toolbar daily-report-filters">
-        <div class="filter-fields">
-            <div class="filter-field filter-field-period">
-                <span class="toolbar-label">Période</span>
-                <div class="period-tabs">
-                    <button type="button" class="ptab"
-                        [class.active]="selectedFilter === 'today'"
-                        (click)="setFilter('today')"
-                        data-testid="e2e-daily-report-filter-today">Aujourd'hui</button>
-                    <button type="button" class="ptab"
-                        [class.active]="selectedFilter === 'week'"
-                        (click)="setFilter('week')">Cette semaine</button>
-                    <button type="button" class="ptab"
-                        [class.active]="selectedFilter === 'month'"
-                        (click)="setFilter('month')">Ce mois</button>
-                    <button type="button" class="ptab"
-                        [class.active-orange]="selectedFilter === 'custom'"
-                        (click)="selectedFilter = 'custom'">Personnalisé</button>
-                </div>
-            </div>
-
-            <div class="filter-field filter-field-dates" *ngIf="selectedFilter === 'custom'">
-                <span class="toolbar-label">Dates</span>
-                <mat-form-field appearance="outline" class="custom-date-field" subscriptSizing="dynamic">
-                    <mat-label>Du — Au</mat-label>
-                    <mat-date-range-input [formGroup]="range" [rangePicker]="picker" [max]="today">
-                        <input matStartDate formControlName="start" placeholder="Début">
-                        <input matEndDate formControlName="end" placeholder="Fin" (dateChange)="applyCustomFilter()">
-                    </mat-date-range-input>
-                    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
-                    <mat-date-range-picker #picker></mat-date-range-picker>
-                </mat-form-field>
-            </div>
-
-            <div class="filter-field filter-field-commercial" *ngIf="!isPromoter">
-                <span class="toolbar-label">Commercial</span>
-                <div class="agent-select">
-                    <ng-select [items]="agents" bindLabel="username" bindValue="username"
-                        placeholder="Sélectionner un commercial" [searchFn]="searchAgent" [(ngModel)]="selectedAgent"
-                        (change)="onAgentChange($event)" data-testid="e2e-daily-report-agent-select">
-                        <ng-template ng-option-tmp let-item="item">
-                            {{item.username}} <small class="text-muted">({{item.firstname}}
-                                {{item.lastname}})</small>
-                        </ng-template>
-                    </ng-select>
-                </div>
-            </div>
+  <!-- Filters Toolbar -->
+  <div class="toolbar daily-report-filters">
+    <div class="filter-fields">
+      <div class="filter-field filter-field-period">
+        <span class="toolbar-label">Période</span>
+        <div class="period-tabs">
+          <button type="button" class="ptab"
+            [class.active]="selectedFilter === 'today'"
+            (click)="setFilter('today')"
+          data-testid="e2e-daily-report-filter-today">Aujourd'hui</button>
+          <button type="button" class="ptab"
+            [class.active]="selectedFilter === 'week'"
+          (click)="setFilter('week')">Cette semaine</button>
+          <button type="button" class="ptab"
+            [class.active]="selectedFilter === 'month'"
+          (click)="setFilter('month')">Ce mois</button>
+          <button type="button" class="ptab"
+            [class.active-orange]="selectedFilter === 'custom'"
+          (click)="selectedFilter = 'custom'">Personnalisé</button>
         </div>
+      </div>
 
-        <div class="filter-actions">
-            <button type="button" class="btn-clear"
-                (click)="resetFilters()"
-                *ngIf="selectedFilter === 'custom' || selectedAgent">
-                Réinitialiser
-            </button>
-            <ng-container *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']">
-                <button type="button" class="btn-icon-toggle"
-                    (click)="toggleMargins()"
-                    title="Afficher/Masquer les marges"
-                    *ngIf="!isPromoter && !isRecoveryManager"
-                    [class.active]="showMargins">
-                    <mat-icon>{{ showMargins ? 'visibility_off' : 'visibility' }}</mat-icon>
-                    <span class="btn-icon-label">{{ showMargins ? 'Masquer marges' : 'Voir marges' }}</span>
-                </button>
-            </ng-container>
+      @if (selectedFilter === 'custom') {
+        <div class="filter-field filter-field-dates">
+          <span class="toolbar-label">Dates</span>
+          <mat-form-field appearance="outline" class="custom-date-field" subscriptSizing="dynamic">
+            <mat-label>Du — Au</mat-label>
+            <mat-date-range-input [formGroup]="range" [rangePicker]="picker" [max]="today">
+              <input matStartDate formControlName="start" placeholder="Début">
+              <input matEndDate formControlName="end" placeholder="Fin" (dateChange)="applyCustomFilter()">
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-date-range-picker #picker></mat-date-range-picker>
+          </mat-form-field>
         </div>
-    </div>
+      }
 
-    <!-- Segment navigation -->
-    <nav class="report-segment" role="tablist" aria-label="Sections du rapport">
-        <button type="button" role="tab" class="segment-btn"
-            *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']"
-            data-testid="e2e-daily-report-tab-overview"
-            [class.active]="activeTab === 'overview'"
-            [attr.aria-selected]="activeTab === 'overview'"
-            (click)="activeTab = 'overview'">Vue d'ensemble</button>
-        <button type="button" role="tab" class="segment-btn"
-            *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']"
-            data-testid="e2e-daily-report-tab-journal"
-            [class.active]="activeTab === 'journal'"
-            [attr.aria-selected]="activeTab === 'journal'"
-            (click)="activeTab = 'journal'">Journal</button>
-        <button type="button" role="tab" class="segment-btn"
-            *ngIf="isRecoveryManager || isManager"
-            data-testid="e2e-daily-report-tab-recovery"
-            [class.active]="activeTab === 'recovery'"
-            [attr.aria-selected]="activeTab === 'recovery'"
-            (click)="activeTab = 'recovery'">Recouvrement</button>
-        <button type="button" role="tab" class="segment-btn"
-            *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']"
-            data-testid="e2e-daily-report-tab-deposits"
-            [class.active]="activeTab === 'deposits'"
-            [attr.aria-selected]="activeTab === 'deposits'"
-            (click)="activeTab = 'deposits'">Versements</button>
-        <ng-container *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']">
-            <button type="button" role="tab" class="segment-btn"
-                *ngIf="isManager || isSecretary"
-                data-testid="e2e-daily-report-tab-remittance"
-                [class.active]="activeTab === 'remittance'"
-                [attr.aria-selected]="activeTab === 'remittance'"
-                (click)="activeTab = 'remittance'">Remise</button>
-        </ng-container>
-    </nav>
+      @if (!isPromoter) {
+        <div class="filter-field filter-field-commercial">
+          <span class="toolbar-label">Commercial</span>
+          <div class="agent-select">
+            <ng-select [items]="agents" bindLabel="username" bindValue="username"
+              placeholder="Sélectionner un commercial" [searchFn]="searchAgent" [(ngModel)]="selectedAgent"
+              (change)="onAgentChange($event)" data-testid="e2e-daily-report-agent-select">
+              <ng-template ng-option-tmp let-item="item">
+                {{item.username}} <small class="text-muted">({{item.firstname}}
+              {{item.lastname}})</small>
+            </ng-template>
+          </ng-select>
+        </div>
+      </div>
+    }
+  </div>
 
-    <!-- PANEL: Vue d'ensemble -->
-    <div class="report-panel" *ngIf="activeTab === 'overview' && canViewFinancialKpis" role="tabpanel">
-            <div class="p-4">
-                <!-- Loading Spinner -->
-                <div *ngIf="isLoading" class="loading-container">
-                    <mat-spinner diameter="50"></mat-spinner>
-                </div>
+  <div class="filter-actions">
+    @if (selectedFilter === 'custom' || selectedAgent) {
+      <button type="button" class="btn-clear"
+        (click)="resetFilters()"
+        >
+        Réinitialiser
+      </button>
+    }
+    <ng-container *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']">
+      @if (!isPromoter && !isRecoveryManager) {
+        <button type="button" class="btn-icon-toggle"
+          (click)="toggleMargins()"
+          title="Afficher/Masquer les marges"
+          [class.active]="showMargins">
+          <mat-icon>{{ showMargins ? 'visibility_off' : 'visibility' }}</mat-icon>
+          <span class="btn-icon-label">{{ showMargins ? 'Masquer marges' : 'Voir marges' }}</span>
+        </button>
+      }
+    </ng-container>
+  </div>
+</div>
 
-                <div *ngIf="!isLoading">
-                    <!-- Bilan annuel crédit (commercial sélectionné) -->
-                    <div class="yearly-summary mb-4" *ngIf="activeCommercialUsername" data-testid="e2e-yearly-credit-bilan">
-                        <mat-card class="example-card yearly-summary-card">
-                            <mat-card-header>
-                                <mat-card-title>BILAN CRÉDIT {{ summaryYear }}</mat-card-title>
-                                <mat-card-subtitle>
-                                    {{ activeCommercialUsername | uppercase }} — Portefeuille confié {{ summaryYear }} (stock 01/01 + mouvements)
-                                </mat-card-subtitle>
-                            </mat-card-header>
-                            <mat-card-content>
-                                <div *ngIf="yearlySummaryLoading" class="loading-container">
-                                    <mat-spinner diameter="36"></mat-spinner>
-                                </div>
-                                <div *ngIf="!yearlySummaryLoading">
-                                    <div class="yearly-kpi-strip yearly-kpi-strip-secondary" data-testid="e2e-yearly-credit-row-stock">
-                                        <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-kpi-opening-stock">
-                                            <span class="yearly-kpi-label">Stock ouverture</span>
-                                            <span class="yearly-kpi-value">
-                                                {{ yearlySummaryView.openingStockAmount | number:'1.0-0' }}
-                                                <small>FCFA</small>
-                                            </span>
-                                            <span class="yearly-kpi-hint">Restes au 01/01/{{ summaryYear }}</span>
-                                        </div>
-                                        <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-kpi-credit-sales">
-                                            <span class="yearly-kpi-label">Ventes crédit</span>
-                                            <span class="yearly-kpi-value">
-                                                {{ yearlySummaryView.totalCreditSalesAmount | number:'1.0-0' }}
-                                                <small>FCFA</small>
-                                            </span>
-                                            <span class="yearly-kpi-hint">{{ yearlySummaryView.totalCreditSalesCount }} ouverture(s)</span>
-                                        </div>
-                                        <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-kpi-credits-received">
-                                            <span class="yearly-kpi-label">Créances reçues</span>
-                                            <span class="yearly-kpi-value">
-                                                {{ yearlySummaryView.creditsReceivedAmount | number:'1.0-0' }}
-                                                <small>FCFA</small>
-                                            </span>
-                                            <span class="yearly-kpi-hint">Passations entrantes</span>
-                                        </div>
-                                        <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-kpi-credits-ceded">
-                                            <span class="yearly-kpi-label">Créances cédées</span>
-                                            <span class="yearly-kpi-value">
-                                                {{ yearlySummaryView.creditsCededAmount | number:'1.0-0' }}
-                                                <small>FCFA</small>
-                                            </span>
-                                            <span class="yearly-kpi-hint">Passations sortantes</span>
-                                        </div>
-                                    </div>
-                                    <div class="yearly-kpi-strip" data-testid="e2e-yearly-credit-row-portfolio">
-                                        <div class="yearly-kpi kpi-green" data-testid="e2e-yearly-kpi-portfolio">
-                                            <span class="yearly-kpi-label">Portefeuille confié</span>
-                                            <span class="yearly-kpi-value">
-                                                {{ yearlySummaryView.entrustedPortfolioAmount | number:'1.0-0' }}
-                                                <small>FCFA</small>
-                                            </span>
-                                            <span class="yearly-kpi-hint">Stock + ventes + reçues − cédées</span>
-                                        </div>
-                                        <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-kpi-deposits">
-                                            <span class="yearly-kpi-label">Versements crédit</span>
-                                            <span class="yearly-kpi-value">
-                                                {{ yearlySummaryView.totalCreditDepositedAmount | number:'1.0-0' }}
-                                                <small>FCFA</small>
-                                            </span>
-                                            <span class="yearly-kpi-hint">Remis au secrétaire</span>
-                                        </div>
-                                        <div class="yearly-kpi kpi-green" data-testid="e2e-yearly-kpi-remaining-commercial">
-                                            <span class="yearly-kpi-label">Reste chez le commercial</span>
-                                            <span class="yearly-kpi-value"
-                                                [class.is-warn]="yearlySummaryView.remainingAtCommercialAmount > 0">
-                                                {{ yearlySummaryView.remainingAtCommercialAmount | number:'1.0-0' }}
-                                                <small>FCFA</small>
-                                            </span>
-                                            <span class="yearly-kpi-hint">Portefeuille − versements</span>
-                                        </div>
-                                        <div class="yearly-kpi kpi-delai yearly-kpi-clickable"
-                                             role="button"
-                                             tabindex="0"
-                                             data-testid="e2e-yearly-kpi-remaining-client"
-                                             (click)="openRemainingAtClientsModal()"
-                                             (keydown.enter)="openRemainingAtClientsModal()"
-                                             (keydown.space)="$event.preventDefault(); openRemainingAtClientsModal()"
-                                             [attr.aria-label]="'Voir le détail du reste chez le client'">
-                                            <span class="yearly-kpi-label">Reste chez le client</span>
-                                            <span class="yearly-kpi-value">
-                                                {{ yearlySummaryView.remainingAtClientAmount | number:'1.0-0' }}
-                                                <small>FCFA</small>
-                                            </span>
-                                            <span class="yearly-kpi-hint">Soldes live · cliquer pour le détail</span>
-                                        </div>
-                                        <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-kpi-debt-global">
-                                            <span class="yearly-kpi-label">Dette globale</span>
-                                            <span class="yearly-kpi-value">
-                                                {{ (yearlySummaryView.merchandiseDebtGlobalAmount || 0) | number:'1.0-0' }}
-                                                <small>FCFA</small>
-                                            </span>
-                                            <span class="yearly-kpi-hint">Marchandise (année)</span>
-                                        </div>
-                                        <div class="yearly-kpi kpi-green" data-testid="e2e-yearly-kpi-debt-settled">
-                                            <span class="yearly-kpi-label">Dette réglée</span>
-                                            <span class="yearly-kpi-value">
-                                                {{ (yearlySummaryView.merchandiseDebtSettledAmount || 0) | number:'1.0-0' }}
-                                                <small>FCFA</small>
-                                            </span>
-                                            <span class="yearly-kpi-hint">Règlements sur dettes marchandise</span>
-                                        </div>
-                                        <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-kpi-controlled-notebook">
-                                            <span class="yearly-kpi-label">Total carnets</span>
-                                            <span class="yearly-kpi-value">
-                                                {{ (yearlySummaryView.controlledNotebookAmount || 0) | number:'1.0-0' }}
-                                                <small>FCFA</small>
-                                            </span>
-                                            <span class="yearly-kpi-hint" *ngIf="(yearlySummaryView.pendingNotebookAboveSystemAmount || 0) > 0">
-                                                Écarts encore ouverts : {{ yearlySummaryView.pendingNotebookAboveSystemAmount | number:'1.0-0' }} FCFA
-                                            </span>
-                                            <span class="yearly-kpi-hint" *ngIf="!(yearlySummaryView.pendingNotebookAboveSystemAmount || 0)">
-                                                Somme des carnets contrôlés
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </mat-card-content>
-                        </mat-card>
+<!-- Segment navigation -->
+<nav class="report-segment" role="tablist" aria-label="Sections du rapport">
+  <button type="button" role="tab" class="segment-btn"
+    *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']"
+    data-testid="e2e-daily-report-tab-overview"
+    [class.active]="activeTab === 'overview'"
+    [attr.aria-selected]="activeTab === 'overview'"
+  (click)="activeTab = 'overview'">Vue d'ensemble</button>
+  <button type="button" role="tab" class="segment-btn"
+    *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']"
+    data-testid="e2e-daily-report-tab-journal"
+    [class.active]="activeTab === 'journal'"
+    [attr.aria-selected]="activeTab === 'journal'"
+  (click)="activeTab = 'journal'">Journal</button>
+  @if (isRecoveryManager || isManager) {
+    <button type="button" role="tab" class="segment-btn"
+      data-testid="e2e-daily-report-tab-recovery"
+      [class.active]="activeTab === 'recovery'"
+      [attr.aria-selected]="activeTab === 'recovery'"
+    (click)="activeTab = 'recovery'">Recouvrement</button>
+  }
+  <button type="button" role="tab" class="segment-btn"
+    *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']"
+    data-testid="e2e-daily-report-tab-deposits"
+    [class.active]="activeTab === 'deposits'"
+    [attr.aria-selected]="activeTab === 'deposits'"
+  (click)="activeTab = 'deposits'">Versements</button>
+  <ng-container *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']">
+    @if (isManager || isSecretary) {
+      <button type="button" role="tab" class="segment-btn"
+        data-testid="e2e-daily-report-tab-remittance"
+        [class.active]="activeTab === 'remittance'"
+        [attr.aria-selected]="activeTab === 'remittance'"
+      (click)="activeTab = 'remittance'">Remise</button>
+    }
+  </ng-container>
+</nav>
+
+<!-- PANEL: Vue d'ensemble -->
+@if (activeTab === 'overview' && canViewFinancialKpis) {
+  <div class="report-panel" role="tabpanel">
+    <div class="p-4">
+      <!-- Loading Spinner -->
+      @if (isLoading) {
+        <div class="loading-container">
+          <mat-spinner diameter="50"></mat-spinner>
+        </div>
+      }
+      @if (!isLoading) {
+        <div>
+          <!-- Bilan annuel crédit (commercial sélectionné) -->
+          @if (activeCommercialUsername) {
+            <div class="yearly-summary mb-4" data-testid="e2e-yearly-credit-bilan">
+              <mat-card class="example-card yearly-summary-card">
+                <mat-card-header>
+                  <mat-card-title>BILAN CRÉDIT {{ summaryYear }}</mat-card-title>
+                  <mat-card-subtitle>
+                    {{ activeCommercialUsername | uppercase }} — Portefeuille confié {{ summaryYear }} (stock 01/01 + mouvements)
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  @if (yearlySummaryLoading) {
+                    <div class="loading-container">
+                      <mat-spinner diameter="36"></mat-spinner>
                     </div>
-
-                    <!-- Bilan annuel tontine (activité réellement enregistrée par le commercial) -->
-                    <div class="yearly-summary mb-4" *ngIf="activeCommercialUsername" data-testid="e2e-yearly-tontine-bilan">
-                        <mat-card class="example-card yearly-summary-card yearly-tontine-card">
-                            <mat-card-header>
-                                <mat-card-title>BILAN TONTINE {{ summaryYear }}</mat-card-title>
-                                <mat-card-subtitle>
-                                    {{ activeCommercialUsername | uppercase }} — Collectes enregistrées et versements tontine
-                                </mat-card-subtitle>
-                            </mat-card-header>
-                            <mat-card-content>
-                                <div *ngIf="yearlyTontineSummaryLoading" class="loading-container">
-                                    <mat-spinner diameter="36"></mat-spinner>
-                                </div>
-                                <div class="yearly-kpi-strip"
-                                     *ngIf="!yearlyTontineSummaryLoading">
-                                    <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-tontine-kpi-collections">
-                                        <span class="yearly-kpi-label">Collectes tontine</span>
-                                        <span class="yearly-kpi-value">
-                                            {{ yearlyTontineSummaryView.totalTontineCollectionsAmount | number:'1.0-0' }}
-                                            <small>FCFA</small>
-                                        </span>
-                                        <span class="yearly-kpi-hint">
-                                            {{ yearlyTontineSummaryView.totalTontineCollectionsCount }} opération(s) enregistrée(s)
-                                        </span>
-                                    </div>
-                                    <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-tontine-kpi-deposits">
-                                        <span class="yearly-kpi-label">Versements tontine</span>
-                                        <span class="yearly-kpi-value">
-                                            {{ yearlyTontineSummaryView.totalTontineDepositedAmount | number:'1.0-0' }}
-                                            <small>FCFA</small>
-                                        </span>
-                                        <span class="yearly-kpi-hint">Remis au secrétaire</span>
-                                    </div>
-                                    <div class="yearly-kpi kpi-green" data-testid="e2e-yearly-tontine-kpi-remaining">
-                                        <span class="yearly-kpi-label">Reste chez le commercial</span>
-                                        <span class="yearly-kpi-value"
-                                              [class.is-warn]="yearlyTontineSummaryView.remainingAtCommercialAmount > 0">
-                                            {{ yearlyTontineSummaryView.remainingAtCommercialAmount | number:'1.0-0' }}
-                                            <small>FCFA</small>
-                                        </span>
-                                        <span class="yearly-kpi-hint">Collectes − versements</span>
-                                    </div>
-                                    <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-tontine-kpi-controlled-notebook">
-                                        <span class="yearly-kpi-label">Total carnets</span>
-                                        <span class="yearly-kpi-value">
-                                            {{ (yearlyTontineSummaryView.controlledNotebookAmount || 0) | number:'1.0-0' }}
-                                            <small>FCFA</small>
-                                        </span>
-                                        <span class="yearly-kpi-hint" *ngIf="(yearlyTontineSummaryView.pendingNotebookAboveSystemAmount || 0) > 0">
-                                            Écarts encore ouverts : {{ yearlyTontineSummaryView.pendingNotebookAboveSystemAmount | number:'1.0-0' }} FCFA
-                                        </span>
-                                        <span class="yearly-kpi-hint" *ngIf="!(yearlyTontineSummaryView.pendingNotebookAboveSystemAmount || 0)">
-                                            Somme des carnets contrôlés
-                                        </span>
-                                    </div>
-                                </div>
-                            </mat-card-content>
-                        </mat-card>
-                    </div>
-
-                    <!-- Synthèse caisse (toutes caisses, période filtrée) -->
-                    <div class="aggregated-report mb-4" *ngIf="!isPromoter" data-testid="e2e-daily-report-cash-synthesis">
-                        <mat-card class="example-card">
-                            <mat-card-header>
-                                <mat-card-title>SYNTHÈSE CAISSE</mat-card-title>
-                                <mat-card-subtitle>Toutes caisses · période sélectionnée</mat-card-subtitle>
-                            </mat-card-header>
-                            <mat-card-content>
-                                <div *ngIf="cashSynthesisLoading" class="loading-container">
-                                    <mat-spinner diameter="36"></mat-spinner>
-                                </div>
-                                <div class="kpi-grid" *ngIf="!cashSynthesisLoading">
-                                    <div class="kpi-card" data-testid="e2e-daily-report-expenses-with-supply">
-                                        <span class="kpi-label">Dépenses (avec approvisionnement)</span>
-                                        <span class="kpi-value">{{ totalExpensesWithApprovisionnement |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card" data-testid="e2e-daily-report-expenses-without-supply">
-                                        <span class="kpi-label">Dépenses (sans approvisionnement)</span>
-                                        <span class="kpi-value">{{ totalExpensesWithoutApprovisionnement |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card" data-testid="e2e-daily-report-period-deposited">
-                                        <span class="kpi-label">Total versé (période)</span>
-                                        <span class="kpi-value">{{ periodTotalDepositedAll |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-hint" data-testid="e2e-daily-report-period-deposited-detail">
-                                            Opérations : {{ cashSynthesisBreakdown.operations | currency:'XOF':'symbol':'1.0-0' }}
-                                            · Rattrapages : {{ cashSynthesisBreakdown.catchups | currency:'XOF':'symbol':'1.0-0' }}
-                                        </span>
-                                        <span class="kpi-hint" *ngIf="cashSynthesisBreakdown.deferred > 0">
-                                            Versé après la période : {{ cashSynthesisBreakdown.deferred | currency:'XOF':'symbol':'1.0-0' }}
-                                        </span>
-                                        <span class="kpi-hint" *ngIf="selectedAgent"
-                                            data-testid="e2e-daily-report-period-deposited-agent">
-                                            dont {{ selectedAgent | uppercase }} :
-                                            {{ selectedAgentCashBreakdown?.total | currency:'XOF':'symbol':'1.0-0' }}
-                                            (Opérations {{ selectedAgentCashBreakdown?.operations | currency:'XOF':'symbol':'1.0-0' }}
-                                            · Rattrapages {{ selectedAgentCashBreakdown?.catchups | currency:'XOF':'symbol':'1.0-0' }})
-                                        </span>
-                                    </div>
-                                    <div class="kpi-card" data-testid="e2e-daily-report-cash-balance">
-                                        <span class="kpi-label">Solde de caisse</span>
-                                        <span class="kpi-value"
-                                            [ngClass]="{'text-danger': cashBalance < 0, 'text-success': cashBalance >= 0}">
-                                            {{ cashBalance | currency:'XOF':'symbol':'1.0-0' }}
-                                        </span>
-                                        <span class="kpi-hint">Versé − dépenses sans approvisionnement</span>
-                                    </div>
-                                </div>
-                            </mat-card-content>
-                        </mat-card>
-                    </div>
-
-                    <!-- Aggregated Report Panel -->
-                    <div class="aggregated-report mb-4" *ngIf="aggregatedReportData && !isPromoter">
-                        <mat-card class="example-card">
-                            <mat-card-header>
-                                <mat-card-title>TOTAL GÉNÉRAL</mat-card-title>
-                                <mat-card-subtitle>
-                                    Total Ventes: {{ aggregatedReportData.creditSalesAmount |
-                                    currency:'XOF':'symbol':'1.0-0' }} |
-                                    Total Collectes: {{ aggregatedReportData.collectionsAmount |
-                                    currency:'XOF':'symbol':'1.0-0' }}
-                                </mat-card-subtitle>
-                            </mat-card-header>
-                            <mat-card-content>
-                                <div class="kpi-grid">
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Sortie Stock</span>
-                                        <span class="kpi-value">{{ aggregatedReportData.totalStockRequestAmount |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-margin" *ngIf="showMargins">Marge: {{
-                                            aggregatedReportData.stockRequestMargin | currency:'XOF':'symbol':'1.0-0'
-                                            }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Tontine Sortie Stock</span>
-                                        <span class="kpi-value">{{ aggregatedReportData.totalTontineStockRequestAmount |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Ventes à Crédit</span>
-                                        <span class="kpi-value">{{ aggregatedReportData.creditSalesCount }} ({{
-                                            aggregatedReportData.creditSalesAmount | currency:'XOF':'symbol':'1.0-0'
-                                            }})</span>
-                                        <span class="kpi-margin" *ngIf="showMargins">Marge: {{
-                                            aggregatedReportData.creditSalesMargin | currency:'XOF':'symbol':'1.0-0'
-                                            }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Total Avances</span>
-                                        <span class="kpi-value">{{ aggregatedReportData.totalAdvancesAmount |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Nouveaux Clients</span>
-                                        <span class="kpi-value">{{ aggregatedReportData.newClientsCount }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Solde Nx Comptes</span>
-                                        <span class="kpi-value">{{ aggregatedReportData.newAccountsBalance |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Recouvrements</span>
-                                        <span class="kpi-value">{{ aggregatedReportData.collectionsCount }} ({{
-                                            aggregatedReportData.collectionsAmount | currency:'XOF':'symbol':'1.0-0'
-                                            }})</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Commandes</span>
-                                        <span class="kpi-value">{{ aggregatedReportData.ordersCount }} ({{
-                                            aggregatedReportData.ordersAmount | currency:'XOF':'symbol':'1.0-0'
-                                            }})</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Tontine Adhésions</span>
-                                        <span class="kpi-value">{{ aggregatedReportData.tontineMembersCount }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Tontine Collectes</span>
-                                        <span class="kpi-value">{{ aggregatedReportData.tontineCollectionsCount }} ({{
-                                            aggregatedReportData.tontineCollectionsAmount |
-                                            currency:'XOF':'symbol':'1.0-0' }})</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Tontine Rattrapages</span>
-                                        <span class="kpi-value">{{ aggregatedReportData.tontineCatchupCount || 0 }} ({{
-                                            (aggregatedReportData.tontineCatchupAmount || 0) |
-                                            currency:'XOF':'symbol':'1.0-0' }})</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Tontine Livraisons</span>
-                                        <span class="kpi-value">{{ aggregatedReportData.tontineDeliveriesCount }} ({{
-                                            aggregatedReportData.tontineDeliveriesAmount |
-                                            currency:'XOF':'symbol':'1.0-0' }})</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Reliquat Généré</span>
-                                        <span class="kpi-value text-orange-600">{{ (aggregatedReportData.totalReliquatGeneratedAmount || 0) |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Reliquat Utilisé</span>
-                                        <span class="kpi-value text-blue-600">{{ (aggregatedReportData.totalReliquatUsedAmount || 0) |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">A Verser</span>
-                                        <span class="kpi-value">{{ (aggregatedReportData.totalAmountToDeposit || 0) |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Versé</span>
-                                        <span class="kpi-value">{{ (aggregatedReportData.totalAmountDeposited || 0) |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-hint text-amber-700"
-                                            *ngIf="(aggregatedReportData.totalSurplusAmountDeposited || 0) > 0">
-                                            dont surplus non catégorisé :
-                                            {{ (aggregatedReportData.totalSurplusAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }}
-                                        </span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Reste</span>
-                                        <span class="kpi-value"
-                                            [ngClass]="{'text-danger': ((aggregatedReportData.totalAmountToDeposit || 0) - (aggregatedReportData.totalAmountDeposited || 0)) > 0, 'text-success': ((aggregatedReportData.totalAmountToDeposit || 0) - (aggregatedReportData.totalAmountDeposited || 0)) <= 0}">
-                                            {{ ((aggregatedReportData.totalAmountToDeposit || 0) -
-                                            (aggregatedReportData.totalAmountDeposited || 0)) |
-                                            currency:'XOF':'symbol':'1.0-0' }}
-                                        </span>
-                                    </div>
-
-                                </div>
-                            </mat-card-content>
-                        </mat-card>
-                    </div>
-
-                    <!-- Content: List of Commercial Reports -->
-                    <div class="reports-list mb-4">
-                        <mat-accordion multi>
-                            <mat-expansion-panel *ngFor="let report of reports" expanded="true"
-                                [ngClass]="getDepositStatus(report)"
-                                [attr.data-testid]="'e2e-daily-report-panel-' + report.commercialUsername">
-                                <mat-expansion-panel-header>
-                                    <mat-panel-title>
-                                        <strong>{{ report.commercialUsername | uppercase }}</strong>
-                                        <button class="btn-download btn-download--sm ml-auto"
-                                            (click)="$event.stopPropagation(); onDownloadReportPdf(report)"
-                                            [disabled]="isDownloading" [class.loading]="isDownloading">
-                                            <svg *ngIf="!isDownloading" xmlns="http://www.w3.org/2000/svg"
-                                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                stroke-linecap="round" stroke-linejoin="round">
-                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                                <polyline points="7 10 12 15 17 10"></polyline>
-                                                <line x1="12" y1="15" x2="12" y2="3"></line>
-                                            </svg>
-                                            <div class="spinner-small" *ngIf="isDownloading"></div>
-                                            Télécharger
-                                        </button>
-                                    </mat-panel-title>
-                                    <mat-panel-description>
-                                        Total Ventes: {{ report.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }} |
-                                        Total Collectes: {{ report.collectionsAmount | currency:'XOF':'symbol':'1.0-0'
-                                        }}
-                                    </mat-panel-description>
-                                </mat-expansion-panel-header>
-
-                                <!-- KPIs Grid -->
-                                <div class="kpi-grid">
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Sortie Stock</span>
-                                        <span class="kpi-value">{{ report.totalStockRequestAmount |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-margin" *ngIf="showMargins">Marge: {{ report.stockRequestMargin
-                                            | currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Ventes à Crédit</span>
-                                        <span class="kpi-value">{{ report.creditSalesCount }} ({{
-                                            report.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
-                                        <span class="kpi-margin" *ngIf="showMargins">Marge: {{ report.creditSalesMargin
-                                            | currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Nouveaux Clients</span>
-                                        <span class="kpi-value">{{ report.newClientsCount }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Solde Nx Comptes</span>
-                                        <span class="kpi-value">{{ report.newAccountsBalance |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card" data-testid="e2e-daily-report-collections-kpi">
-                                        <span class="kpi-label">Recouvrements</span>
-                                        <span class="kpi-value">{{ report.collectionsCount }} ({{
-                                            report.collectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Commandes</span>
-                                        <span class="kpi-value">{{ report.ordersCount }} ({{ report.ordersAmount |
-                                            currency:'XOF':'symbol':'1.0-0' }})</span>
-                                    </div>
-                                    <div class="kpi-card" data-testid="e2e-daily-report-tontine-members-kpi">
-                                        <span class="kpi-label">Tontine Adhésions</span>
-                                        <span class="kpi-value">{{ report.tontineMembersCount }}</span>
-                                    </div>
-                                    <div class="kpi-card" data-testid="e2e-daily-report-tontine-collections-kpi">
-                                        <span class="kpi-label">Tontine Collectes</span>
-                                        <span class="kpi-value">{{ report.tontineCollectionsCount }} ({{
-                                            report.tontineCollectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
-                                    </div>
-                                    <div class="kpi-card" data-testid="e2e-daily-report-tontine-catchup-kpi">
-                                        <span class="kpi-label">Tontine Rattrapages</span>
-                                        <span class="kpi-value">{{ report.tontineCatchupCount || 0 }} ({{
-                                            (report.tontineCatchupAmount || 0) | currency:'XOF':'symbol':'1.0-0' }})</span>
-                                    </div>
-                                    <div class="kpi-card" data-testid="e2e-daily-report-tontine-deliveries-kpi">
-                                        <span class="kpi-label">Tontine Livraisons</span>
-                                        <span class="kpi-value">{{ report.tontineDeliveriesCount }} ({{
-                                            report.tontineDeliveriesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Reliquat Généré</span>
-                                        <span class="kpi-value text-orange-600">{{ (report.totalReliquatGeneratedAmount || 0) |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Reliquat Utilisé</span>
-                                        <span class="kpi-value text-blue-600">{{ (report.totalReliquatUsedAmount || 0) |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">A Verser (Crédit)</span>
-                                        <span class="kpi-value">{{ getCreditToDeposit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-hint">Versé: {{ (report.totalCreditAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }} · Reste: {{ getRemainingCredit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-hint text-amber-700" *ngIf="(report.surplusCoverageCredit || 0) > 0">
-                                            dont couvert par surplus :
-                                            {{ report.surplusCoverageCredit | currency:'XOF':'symbol':'1.0-0' }}
-                                        </span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">A Verser (Tontine)</span>
-                                        <span class="kpi-value">{{ getTontineToDeposit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-hint">Versé: {{ (report.totalTontineAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }} · Reste: {{ getRemainingTontine(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-hint text-amber-700" *ngIf="(report.surplusCoverageTontine || 0) > 0">
-                                            dont couvert par surplus :
-                                            {{ report.surplusCoverageTontine | currency:'XOF':'symbol':'1.0-0' }}
-                                        </span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">A Verser (Solde Nx)</span>
-                                        <span class="kpi-value">{{ getNewBalanceToDeposit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-hint">Versé: {{ (report.totalNewBalanceAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }} · Reste: {{ getRemainingNewBalance(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-hint text-amber-700" *ngIf="(report.surplusCoverageNewBalance || 0) > 0">
-                                            dont couvert par surplus :
-                                            {{ report.surplusCoverageNewBalance | currency:'XOF':'symbol':'1.0-0' }}
-                                        </span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">A Verser</span>
-                                        <span class="kpi-value">{{ (report.totalAmountToDeposit || 0) |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Versé</span>
-                                        <span class="kpi-value">{{ (report.totalAmountDeposited || 0) |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-hint text-amber-700"
-                                            *ngIf="getSurplusDeposited(report) > 0">
-                                            dont surplus non catégorisé :
-                                            {{ getSurplusDeposited(report) | currency:'XOF':'symbol':'1.0-0' }}
-                                        </span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Reste</span>
-                                        <span class="kpi-value"
-                                            [ngClass]="{'text-danger': getTotalRemaining(report) > 0, 'text-success': getTotalRemaining(report) <= 0}">
-                                            {{ getTotalRemaining(report) | currency:'XOF':'symbol':'1.0-0' }}
-                                        </span>
-                                    </div>
-                                    <div class="kpi-card"
-                                        [attr.data-testid]="'e2e-daily-report-cash-received-' + report.commercialUsername">
-                                        <span class="kpi-label">Dû à la caisse</span>
-                                        <span class="kpi-value"
-                                            [attr.data-testid]="'e2e-daily-report-cash-due-' + report.commercialUsername">{{ getCashDueBreakdown(report).total | currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-hint">
-                                            Dû de la période : {{ getCashDueBreakdown(report).operations | currency:'XOF':'symbol':'1.0-0' }}
-                                            · Rattrapages saisis : {{ getCashDueBreakdown(report).catchups | currency:'XOF':'symbol':'1.0-0' }}
-                                        </span>
-                                        <span class="kpi-label mt-2">Total encaissé</span>
-                                        <span class="kpi-value">{{ getCashBreakdown(report).total | currency:'XOF':'symbol':'1.0-0' }}</span>
-                                        <span class="kpi-hint">
-                                            Opérations : {{ getCashBreakdown(report).operations | currency:'XOF':'symbol':'1.0-0' }}
-                                            · Rattrapages : {{ getCashBreakdown(report).catchups | currency:'XOF':'symbol':'1.0-0' }}
-                                        </span>
-                                        <span class="kpi-hint" *ngIf="getCashBreakdown(report).deferred > 0">
-                                            Versé après la période : {{ getCashBreakdown(report).deferred | currency:'XOF':'symbol':'1.0-0' }}
-                                        </span>
-                                    </div>
-                                    <div class="kpi-card">
-                                        <span class="kpi-label">Total Avances</span>
-                                        <span class="kpi-value">{{ report.totalAdvancesAmount |
-                                            currency:'XOF':'symbol':'1.0-0' }}</span>
-                                    </div>
-                                </div>
-                                <div class="mt-3 surplus-reallocation-notes"
-                                    *ngIf="surplusReallocations.length > 0 && report.commercialUsername === activeCommercialUsername">
-                                    <div class="surplus-reallocation-note"
-                                        *ngFor="let item of surplusReallocations"
-                                        data-testid="e2e-daily-report-surplus-reallocation-note">
-                                        {{ formatReallocationSummary(item) }}
-                                    </div>
-                                </div>
-                                <div class="mt-3"
-                                    *ngIf="canReallocateSurplus(report)">
-                                    <button mat-stroked-button color="primary" class="w-100"
-                                        data-testid="e2e-daily-report-reallocate-surplus-btn"
-                                        (click)="confirmReallocateSurplus(report)">
-                                        <mat-icon class="mr-2">balance</mat-icon>
-                                        Équilibrer le surplus
-                                    </button>
-                                </div>
-                                <div class="mt-3"
-                                    *ngIf="(isManager || isSecretary) && isSingleDay && getTotalRemaining(report) > 0">
-                                    <button mat-raised-button color="primary" class="w-100 py-3 text-lg"
-                                        data-testid="e2e-daily-report-deposit-btn"
-                                        (click)="openDepositModal(report)">
-                                        <mat-icon class="mr-2">payment</mat-icon> FAIRE UN VERSEMENT
-                                    </button>
-                                </div>
-                                <ng-container *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN']">
-                                    <div class="mt-2" *ngIf="isSingleDay && canCreateCashDebtForReport(report)">
-                                        <button mat-stroked-button color="accent" class="w-100"
-                                            data-testid="e2e-daily-report-create-cash-debt-btn"
-                                            (click)="createCashDebtForReport(report)">
-                                            <mat-icon class="mr-2">account_balance_wallet</mat-icon>
-                                            Constituer l'écart de caisse
-                                        </button>
-                                    </div>
-                                </ng-container>
-
-                            </mat-expansion-panel>
-                        </mat-accordion>
-
-                        <div *ngIf="reports.length === 0" class="text-center p-4 text-muted">
-                            Aucune donnée trouvée pour cette période.
+                  }
+                  @if (!yearlySummaryLoading) {
+                    <div>
+                      <div class="yearly-kpi-strip yearly-kpi-strip-secondary" data-testid="e2e-yearly-credit-row-stock">
+                        <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-kpi-opening-stock">
+                          <span class="yearly-kpi-label">Stock ouverture</span>
+                          <span class="yearly-kpi-value">
+                            {{ yearlySummaryView.openingStockAmount | number:'1.0-0' }}
+                            <small>FCFA</small>
+                          </span>
+                          <span class="yearly-kpi-hint">Restes au 01/01/{{ summaryYear }}</span>
                         </div>
+                        <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-kpi-credit-sales">
+                          <span class="yearly-kpi-label">Ventes crédit</span>
+                          <span class="yearly-kpi-value">
+                            {{ yearlySummaryView.totalCreditSalesAmount | number:'1.0-0' }}
+                            <small>FCFA</small>
+                          </span>
+                          <span class="yearly-kpi-hint">{{ yearlySummaryView.totalCreditSalesCount }} ouverture(s)</span>
+                        </div>
+                        <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-kpi-credits-received">
+                          <span class="yearly-kpi-label">Créances reçues</span>
+                          <span class="yearly-kpi-value">
+                            {{ yearlySummaryView.creditsReceivedAmount | number:'1.0-0' }}
+                            <small>FCFA</small>
+                          </span>
+                          <span class="yearly-kpi-hint">Passations entrantes</span>
+                        </div>
+                        <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-kpi-credits-ceded">
+                          <span class="yearly-kpi-label">Créances cédées</span>
+                          <span class="yearly-kpi-value">
+                            {{ yearlySummaryView.creditsCededAmount | number:'1.0-0' }}
+                            <small>FCFA</small>
+                          </span>
+                          <span class="yearly-kpi-hint">Passations sortantes</span>
+                        </div>
+                      </div>
+                      <div class="yearly-kpi-strip" data-testid="e2e-yearly-credit-row-portfolio">
+                        <div class="yearly-kpi kpi-green" data-testid="e2e-yearly-kpi-portfolio">
+                          <span class="yearly-kpi-label">Portefeuille confié</span>
+                          <span class="yearly-kpi-value">
+                            {{ yearlySummaryView.entrustedPortfolioAmount | number:'1.0-0' }}
+                            <small>FCFA</small>
+                          </span>
+                          <span class="yearly-kpi-hint">Stock + ventes + reçues − cédées</span>
+                        </div>
+                        <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-kpi-deposits">
+                          <span class="yearly-kpi-label">Versements crédit</span>
+                          <span class="yearly-kpi-value">
+                            {{ yearlySummaryView.totalCreditDepositedAmount | number:'1.0-0' }}
+                            <small>FCFA</small>
+                          </span>
+                          <span class="yearly-kpi-hint">Remis au secrétaire</span>
+                        </div>
+                        <div class="yearly-kpi kpi-green" data-testid="e2e-yearly-kpi-remaining-commercial">
+                          <span class="yearly-kpi-label">Reste chez le commercial</span>
+                          <span class="yearly-kpi-value"
+                            [class.is-warn]="yearlySummaryView.remainingAtCommercialAmount > 0">
+                            {{ yearlySummaryView.remainingAtCommercialAmount | number:'1.0-0' }}
+                            <small>FCFA</small>
+                          </span>
+                          <span class="yearly-kpi-hint">Portefeuille − versements</span>
+                        </div>
+                        <div class="yearly-kpi kpi-delai yearly-kpi-clickable"
+                          role="button"
+                          tabindex="0"
+                          data-testid="e2e-yearly-kpi-remaining-client"
+                          (click)="openRemainingAtClientsModal()"
+                          (keydown.enter)="openRemainingAtClientsModal()"
+                          (keydown.space)="$event.preventDefault(); openRemainingAtClientsModal()"
+                          [attr.aria-label]="'Voir le détail du reste chez le client'">
+                          <span class="yearly-kpi-label">Reste chez le client</span>
+                          <span class="yearly-kpi-value">
+                            {{ yearlySummaryView.remainingAtClientAmount | number:'1.0-0' }}
+                            <small>FCFA</small>
+                          </span>
+                          <span class="yearly-kpi-hint">Soldes live · cliquer pour le détail</span>
+                        </div>
+                        <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-kpi-debt-global">
+                          <span class="yearly-kpi-label">Dette globale</span>
+                          <span class="yearly-kpi-value">
+                            {{ (yearlySummaryView.merchandiseDebtGlobalAmount || 0) | number:'1.0-0' }}
+                            <small>FCFA</small>
+                          </span>
+                          <span class="yearly-kpi-hint">Marchandise (année)</span>
+                        </div>
+                        <div class="yearly-kpi kpi-green" data-testid="e2e-yearly-kpi-debt-settled">
+                          <span class="yearly-kpi-label">Dette réglée</span>
+                          <span class="yearly-kpi-value">
+                            {{ (yearlySummaryView.merchandiseDebtSettledAmount || 0) | number:'1.0-0' }}
+                            <small>FCFA</small>
+                          </span>
+                          <span class="yearly-kpi-hint">Règlements sur dettes marchandise</span>
+                        </div>
+                        <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-kpi-controlled-notebook">
+                          <span class="yearly-kpi-label">Total carnets</span>
+                          <span class="yearly-kpi-value">
+                            {{ (yearlySummaryView.controlledNotebookAmount || 0) | number:'1.0-0' }}
+                            <small>FCFA</small>
+                          </span>
+                          @if ((yearlySummaryView.pendingNotebookAboveSystemAmount || 0) > 0) {
+                            <span class="yearly-kpi-hint">
+                              Écarts encore ouverts : {{ yearlySummaryView.pendingNotebookAboveSystemAmount | number:'1.0-0' }} FCFA
+                            </span>
+                          }
+                          @if (!(yearlySummaryView.pendingNotebookAboveSystemAmount || 0)) {
+                            <span class="yearly-kpi-hint">
+                              Somme des carnets contrôlés
+                            </span>
+                          }
+                        </div>
+                      </div>
                     </div>
-
-                    <!-- TOTAUX ET ACTIONS (Visibles seulement si un commercial est sélectionné ou pour le promoteur) -->
-
-                </div>
+                  }
+                </mat-card-content>
+              </mat-card>
             </div>
-    </div>
-
-    <!-- PANEL: Journal des opérations -->
-    <div class="report-panel" *ngIf="activeTab === 'journal' && canViewFinancialKpis" role="tabpanel">
-            <div class="p-4">
-                <div *ngIf="operations.length > 0 || selectedOperationType; else noOps">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-gray-200">
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Heure</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Commercial</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500 type-col-header">
-                                    <div class="type-filter">
-                                        <span>Type</span>
-                                        <select class="type-filter-select"
-                                            data-testid="e2e-daily-report-type-filter"
-                                            [(ngModel)]="selectedOperationType"
-                                            (ngModelChange)="onOperationTypeFilterChange()">
-                                            <option [ngValue]="null">Tous</option>
-                                            <option *ngFor="let t of operationTypes" [ngValue]="t.value">{{ t.label }}</option>
-                                        </select>
-                                    </div>
-                                </th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Sujet</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-600">Description</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Montant</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr *ngFor="let op of operations" class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-2 px-4 text-sm">{{ op.timestamp | date:'dd/MM/yyyy HH:mm' }}</td>
-                                <td class="py-2 px-4 text-sm text-gray-700 font-medium">{{ op.commercialUsername }}</td>
-                                <td class="py-2 px-4 text-sm font-semibold text-primary-600">{{ op.type }}</td>
-                                <td class="py-2 px-4 text-sm">{{ op.reference }}</td>
-                                <td class="py-2 px-4 text-sm text-gray-600">{{ op.description }}</td>
-                                <td class="py-2 px-4 text-sm font-mono text-right font-medium">
-                                    <span [class.text-green-600]="op.amount > 0"
-                                        [class.text-gray-400]="op.amount === 0">
-                                        {{ op.amount | currency:'XOF':'symbol':'1.0-0' }}
-                                    </span>
-                                </td>
-                            </tr>
-                            <tr *ngIf="operations.length === 0">
-                                <td colspan="6" class="py-8 text-center text-gray-400">
-                                    Aucune opération pour ce type sur la période filtrée.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-
-                    <div class="mt-4 flex justify-between items-center">
-                        <mat-paginator [length]="operationsTotal" [pageSize]="operationsPageSize"
-                            [pageSizeOptions]="[10, 20, 50]" (page)="onPageChange($event)">
-                        </mat-paginator>
-
-                        <button mat-raised-button color="primary" (click)="onExportJournal()">
-                            <mat-icon class="mr-2">picture_as_pdf</mat-icon> Exporter PDF
+          }
+          <!-- Bilan annuel tontine (activité réellement enregistrée par le commercial) -->
+          @if (activeCommercialUsername) {
+            <div class="yearly-summary mb-4" data-testid="e2e-yearly-tontine-bilan">
+              <mat-card class="example-card yearly-summary-card yearly-tontine-card">
+                <mat-card-header>
+                  <mat-card-title>BILAN TONTINE {{ summaryYear }}</mat-card-title>
+                  <mat-card-subtitle>
+                    {{ activeCommercialUsername | uppercase }} — Collectes enregistrées et versements tontine
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  @if (yearlyTontineSummaryLoading) {
+                    <div class="loading-container">
+                      <mat-spinner diameter="36"></mat-spinner>
+                    </div>
+                  }
+                  @if (!yearlyTontineSummaryLoading) {
+                    <div class="yearly-kpi-strip"
+                      >
+                      <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-tontine-kpi-collections">
+                        <span class="yearly-kpi-label">Collectes tontine</span>
+                        <span class="yearly-kpi-value">
+                          {{ yearlyTontineSummaryView.totalTontineCollectionsAmount | number:'1.0-0' }}
+                          <small>FCFA</small>
+                        </span>
+                        <span class="yearly-kpi-hint">
+                          {{ yearlyTontineSummaryView.totalTontineCollectionsCount }} opération(s) enregistrée(s)
+                        </span>
+                      </div>
+                      <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-tontine-kpi-deposits">
+                        <span class="yearly-kpi-label">Versements tontine</span>
+                        <span class="yearly-kpi-value">
+                          {{ yearlyTontineSummaryView.totalTontineDepositedAmount | number:'1.0-0' }}
+                          <small>FCFA</small>
+                        </span>
+                        <span class="yearly-kpi-hint">Remis au secrétaire</span>
+                      </div>
+                      <div class="yearly-kpi kpi-green" data-testid="e2e-yearly-tontine-kpi-remaining">
+                        <span class="yearly-kpi-label">Reste chez le commercial</span>
+                        <span class="yearly-kpi-value"
+                          [class.is-warn]="yearlyTontineSummaryView.remainingAtCommercialAmount > 0">
+                          {{ yearlyTontineSummaryView.remainingAtCommercialAmount | number:'1.0-0' }}
+                          <small>FCFA</small>
+                        </span>
+                        <span class="yearly-kpi-hint">Collectes − versements</span>
+                      </div>
+                      <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-tontine-kpi-controlled-notebook">
+                        <span class="yearly-kpi-label">Total carnets</span>
+                        <span class="yearly-kpi-value">
+                          {{ (yearlyTontineSummaryView.controlledNotebookAmount || 0) | number:'1.0-0' }}
+                          <small>FCFA</small>
+                        </span>
+                        @if ((yearlyTontineSummaryView.pendingNotebookAboveSystemAmount || 0) > 0) {
+                          <span class="yearly-kpi-hint">
+                            Écarts encore ouverts : {{ yearlyTontineSummaryView.pendingNotebookAboveSystemAmount | number:'1.0-0' }} FCFA
+                          </span>
+                        }
+                        @if (!(yearlyTontineSummaryView.pendingNotebookAboveSystemAmount || 0)) {
+                          <span class="yearly-kpi-hint">
+                            Somme des carnets contrôlés
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  }
+                </mat-card-content>
+              </mat-card>
+            </div>
+          }
+          <!-- Synthèse caisse (toutes caisses, période filtrée) -->
+          @if (!isPromoter) {
+            <div class="aggregated-report mb-4" data-testid="e2e-daily-report-cash-synthesis">
+              <mat-card class="example-card">
+                <mat-card-header>
+                  <mat-card-title>SYNTHÈSE CAISSE</mat-card-title>
+                  <mat-card-subtitle>Toutes caisses · période sélectionnée</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  @if (cashSynthesisLoading) {
+                    <div class="loading-container">
+                      <mat-spinner diameter="36"></mat-spinner>
+                    </div>
+                  }
+                  @if (!cashSynthesisLoading) {
+                    <div class="kpi-grid">
+                      <div class="kpi-card" data-testid="e2e-daily-report-expenses-with-supply">
+                        <span class="kpi-label">Dépenses (avec approvisionnement)</span>
+                        <span class="kpi-value">{{ totalExpensesWithApprovisionnement |
+                        currency:'XOF':'symbol':'1.0-0' }}</span>
+                      </div>
+                      <div class="kpi-card" data-testid="e2e-daily-report-expenses-without-supply">
+                        <span class="kpi-label">Dépenses (sans approvisionnement)</span>
+                        <span class="kpi-value">{{ totalExpensesWithoutApprovisionnement |
+                        currency:'XOF':'symbol':'1.0-0' }}</span>
+                      </div>
+                      <div class="kpi-card" data-testid="e2e-daily-report-period-deposited">
+                        <span class="kpi-label">Total versé (période)</span>
+                        <span class="kpi-value">{{ periodTotalDepositedAll |
+                        currency:'XOF':'symbol':'1.0-0' }}</span>
+                        <span class="kpi-hint" data-testid="e2e-daily-report-period-deposited-detail">
+                          Opérations : {{ cashSynthesisBreakdown.operations | currency:'XOF':'symbol':'1.0-0' }}
+                          · Rattrapages : {{ cashSynthesisBreakdown.catchups | currency:'XOF':'symbol':'1.0-0' }}
+                        </span>
+                        @if (cashSynthesisBreakdown.deferred > 0) {
+                          <span class="kpi-hint">
+                            Versé après la période : {{ cashSynthesisBreakdown.deferred | currency:'XOF':'symbol':'1.0-0' }}
+                          </span>
+                        }
+                        @if (selectedAgent) {
+                          <span class="kpi-hint"
+                            data-testid="e2e-daily-report-period-deposited-agent">
+                            dont {{ selectedAgent | uppercase }} :
+                            {{ selectedAgentCashBreakdown?.total | currency:'XOF':'symbol':'1.0-0' }}
+                            (Opérations {{ selectedAgentCashBreakdown?.operations | currency:'XOF':'symbol':'1.0-0' }}
+                            · Rattrapages {{ selectedAgentCashBreakdown?.catchups | currency:'XOF':'symbol':'1.0-0' }})
+                          </span>
+                        }
+                      </div>
+                      <div class="kpi-card" data-testid="e2e-daily-report-cash-balance">
+                        <span class="kpi-label">Solde de caisse</span>
+                        <span class="kpi-value"
+                          [ngClass]="{'text-danger': cashBalance < 0, 'text-success': cashBalance >= 0}">
+                          {{ cashBalance | currency:'XOF':'symbol':'1.0-0' }}
+                        </span>
+                        <span class="kpi-hint">Versé − dépenses sans approvisionnement</span>
+                      </div>
+                    </div>
+                  }
+                </mat-card-content>
+              </mat-card>
+            </div>
+          }
+          <!-- Aggregated Report Panel -->
+          @if (aggregatedReportData && !isPromoter) {
+            <div class="aggregated-report mb-4">
+              <mat-card class="example-card">
+                <mat-card-header>
+                  <mat-card-title>TOTAL GÉNÉRAL</mat-card-title>
+                  <mat-card-subtitle>
+                    Total Ventes: {{ aggregatedReportData.creditSalesAmount |
+                    currency:'XOF':'symbol':'1.0-0' }} |
+                    Total Collectes: {{ aggregatedReportData.collectionsAmount |
+                    currency:'XOF':'symbol':'1.0-0' }}
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="kpi-grid">
+                    <div class="kpi-card">
+                      <span class="kpi-label">Sortie Stock</span>
+                      <span class="kpi-value">{{ aggregatedReportData.totalStockRequestAmount |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                      @if (showMargins) {
+                        <span class="kpi-margin">Marge: {{
+                          aggregatedReportData.stockRequestMargin | currency:'XOF':'symbol':'1.0-0'
+                        }}</span>
+                      }
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Tontine Sortie Stock</span>
+                      <span class="kpi-value">{{ aggregatedReportData.totalTontineStockRequestAmount |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Ventes à Crédit</span>
+                      <span class="kpi-value">{{ aggregatedReportData.creditSalesCount }} ({{
+                        aggregatedReportData.creditSalesAmount | currency:'XOF':'symbol':'1.0-0'
+                      }})</span>
+                      @if (showMargins) {
+                        <span class="kpi-margin">Marge: {{
+                          aggregatedReportData.creditSalesMargin | currency:'XOF':'symbol':'1.0-0'
+                        }}</span>
+                      }
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Total Avances</span>
+                      <span class="kpi-value">{{ aggregatedReportData.totalAdvancesAmount |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Nouveaux Clients</span>
+                      <span class="kpi-value">{{ aggregatedReportData.newClientsCount }}</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Solde Nx Comptes</span>
+                      <span class="kpi-value">{{ aggregatedReportData.newAccountsBalance |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Recouvrements</span>
+                      <span class="kpi-value">{{ aggregatedReportData.collectionsCount }} ({{
+                        aggregatedReportData.collectionsAmount | currency:'XOF':'symbol':'1.0-0'
+                      }})</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Commandes</span>
+                      <span class="kpi-value">{{ aggregatedReportData.ordersCount }} ({{
+                        aggregatedReportData.ordersAmount | currency:'XOF':'symbol':'1.0-0'
+                      }})</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Tontine Adhésions</span>
+                      <span class="kpi-value">{{ aggregatedReportData.tontineMembersCount }}</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Tontine Collectes</span>
+                      <span class="kpi-value">{{ aggregatedReportData.tontineCollectionsCount }} ({{
+                        aggregatedReportData.tontineCollectionsAmount |
+                      currency:'XOF':'symbol':'1.0-0' }})</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Tontine Rattrapages</span>
+                      <span class="kpi-value">{{ aggregatedReportData.tontineCatchupCount || 0 }} ({{
+                        (aggregatedReportData.tontineCatchupAmount || 0) |
+                      currency:'XOF':'symbol':'1.0-0' }})</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Tontine Livraisons</span>
+                      <span class="kpi-value">{{ aggregatedReportData.tontineDeliveriesCount }} ({{
+                        aggregatedReportData.tontineDeliveriesAmount |
+                      currency:'XOF':'symbol':'1.0-0' }})</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Reliquat Généré</span>
+                      <span class="kpi-value text-orange-600">{{ (aggregatedReportData.totalReliquatGeneratedAmount || 0) |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Reliquat Utilisé</span>
+                      <span class="kpi-value text-blue-600">{{ (aggregatedReportData.totalReliquatUsedAmount || 0) |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">A Verser</span>
+                      <span class="kpi-value">{{ (aggregatedReportData.totalAmountToDeposit || 0) |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Versé</span>
+                      <span class="kpi-value">{{ (aggregatedReportData.totalAmountDeposited || 0) |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                      @if ((aggregatedReportData.totalSurplusAmountDeposited || 0) > 0) {
+                        <span class="kpi-hint text-amber-700"
+                          >
+                          dont surplus non catégorisé :
+                          {{ (aggregatedReportData.totalSurplusAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }}
+                        </span>
+                      }
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Reste</span>
+                      <span class="kpi-value"
+                        [ngClass]="{'text-danger': ((aggregatedReportData.totalAmountToDeposit || 0) - (aggregatedReportData.totalAmountDeposited || 0)) > 0, 'text-success': ((aggregatedReportData.totalAmountToDeposit || 0) - (aggregatedReportData.totalAmountDeposited || 0)) <= 0}">
+                        {{ ((aggregatedReportData.totalAmountToDeposit || 0) -
+                        (aggregatedReportData.totalAmountDeposited || 0)) |
+                        currency:'XOF':'symbol':'1.0-0' }}
+                      </span>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          }
+          <!-- Content: List of Commercial Reports -->
+          <div class="reports-list mb-4">
+            <mat-accordion multi>
+              @for (report of reports; track report) {
+                <mat-expansion-panel expanded="true"
+                  [ngClass]="getDepositStatus(report)"
+                  [attr.data-testid]="'e2e-daily-report-panel-' + report.commercialUsername">
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>
+                      <strong>{{ report.commercialUsername | uppercase }}</strong>
+                      <button class="btn-download btn-download--sm ml-auto"
+                        (click)="$event.stopPropagation(); onDownloadReportPdf(report)"
+                        [disabled]="isDownloading" [class.loading]="isDownloading">
+                        @if (!isDownloading) {
+                          <svg xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                          </svg>
+                        }
+                        @if (isDownloading) {
+                          <div class="spinner-small"></div>
+                        }
+                        Télécharger
+                      </button>
+                    </mat-panel-title>
+                    <mat-panel-description>
+                      Total Ventes: {{ report.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }} |
+                      Total Collectes: {{ report.collectionsAmount | currency:'XOF':'symbol':'1.0-0'
+                      }}
+                    </mat-panel-description>
+                  </mat-expansion-panel-header>
+                  <!-- KPIs Grid -->
+                  <div class="kpi-grid">
+                    <div class="kpi-card">
+                      <span class="kpi-label">Sortie Stock</span>
+                      <span class="kpi-value">{{ report.totalStockRequestAmount |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                      @if (showMargins) {
+                        <span class="kpi-margin">Marge: {{ report.stockRequestMargin
+                        | currency:'XOF':'symbol':'1.0-0' }}</span>
+                      }
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Ventes à Crédit</span>
+                      <span class="kpi-value">{{ report.creditSalesCount }} ({{
+                      report.creditSalesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                      @if (showMargins) {
+                        <span class="kpi-margin">Marge: {{ report.creditSalesMargin
+                        | currency:'XOF':'symbol':'1.0-0' }}</span>
+                      }
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Nouveaux Clients</span>
+                      <span class="kpi-value">{{ report.newClientsCount }}</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Solde Nx Comptes</span>
+                      <span class="kpi-value">{{ report.newAccountsBalance |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="kpi-card" data-testid="e2e-daily-report-collections-kpi">
+                      <span class="kpi-label">Recouvrements</span>
+                      <span class="kpi-value">{{ report.collectionsCount }} ({{
+                      report.collectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Commandes</span>
+                      <span class="kpi-value">{{ report.ordersCount }} ({{ report.ordersAmount |
+                      currency:'XOF':'symbol':'1.0-0' }})</span>
+                    </div>
+                    <div class="kpi-card" data-testid="e2e-daily-report-tontine-members-kpi">
+                      <span class="kpi-label">Tontine Adhésions</span>
+                      <span class="kpi-value">{{ report.tontineMembersCount }}</span>
+                    </div>
+                    <div class="kpi-card" data-testid="e2e-daily-report-tontine-collections-kpi">
+                      <span class="kpi-label">Tontine Collectes</span>
+                      <span class="kpi-value">{{ report.tontineCollectionsCount }} ({{
+                      report.tontineCollectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                    </div>
+                    <div class="kpi-card" data-testid="e2e-daily-report-tontine-catchup-kpi">
+                      <span class="kpi-label">Tontine Rattrapages</span>
+                      <span class="kpi-value">{{ report.tontineCatchupCount || 0 }} ({{
+                      (report.tontineCatchupAmount || 0) | currency:'XOF':'symbol':'1.0-0' }})</span>
+                    </div>
+                    <div class="kpi-card" data-testid="e2e-daily-report-tontine-deliveries-kpi">
+                      <span class="kpi-label">Tontine Livraisons</span>
+                      <span class="kpi-value">{{ report.tontineDeliveriesCount }} ({{
+                      report.tontineDeliveriesAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Reliquat Généré</span>
+                      <span class="kpi-value text-orange-600">{{ (report.totalReliquatGeneratedAmount || 0) |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Reliquat Utilisé</span>
+                      <span class="kpi-value text-blue-600">{{ (report.totalReliquatUsedAmount || 0) |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">A Verser (Crédit)</span>
+                      <span class="kpi-value">{{ getCreditToDeposit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                      <span class="kpi-hint">Versé: {{ (report.totalCreditAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }} · Reste: {{ getRemainingCredit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                      @if ((report.surplusCoverageCredit || 0) > 0) {
+                        <span class="kpi-hint text-amber-700">
+                          dont couvert par surplus :
+                          {{ report.surplusCoverageCredit | currency:'XOF':'symbol':'1.0-0' }}
+                        </span>
+                      }
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">A Verser (Tontine)</span>
+                      <span class="kpi-value">{{ getTontineToDeposit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                      <span class="kpi-hint">Versé: {{ (report.totalTontineAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }} · Reste: {{ getRemainingTontine(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                      @if ((report.surplusCoverageTontine || 0) > 0) {
+                        <span class="kpi-hint text-amber-700">
+                          dont couvert par surplus :
+                          {{ report.surplusCoverageTontine | currency:'XOF':'symbol':'1.0-0' }}
+                        </span>
+                      }
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">A Verser (Solde Nx)</span>
+                      <span class="kpi-value">{{ getNewBalanceToDeposit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                      <span class="kpi-hint">Versé: {{ (report.totalNewBalanceAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }} · Reste: {{ getRemainingNewBalance(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                      @if ((report.surplusCoverageNewBalance || 0) > 0) {
+                        <span class="kpi-hint text-amber-700">
+                          dont couvert par surplus :
+                          {{ report.surplusCoverageNewBalance | currency:'XOF':'symbol':'1.0-0' }}
+                        </span>
+                      }
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">A Verser</span>
+                      <span class="kpi-value">{{ (report.totalAmountToDeposit || 0) |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Versé</span>
+                      <span class="kpi-value">{{ (report.totalAmountDeposited || 0) |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                      @if (getSurplusDeposited(report) > 0) {
+                        <span class="kpi-hint text-amber-700"
+                          >
+                          dont surplus non catégorisé :
+                          {{ getSurplusDeposited(report) | currency:'XOF':'symbol':'1.0-0' }}
+                        </span>
+                      }
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Reste</span>
+                      <span class="kpi-value"
+                        [ngClass]="{'text-danger': getTotalRemaining(report) > 0, 'text-success': getTotalRemaining(report) <= 0}">
+                        {{ getTotalRemaining(report) | currency:'XOF':'symbol':'1.0-0' }}
+                      </span>
+                    </div>
+                    <div class="kpi-card"
+                      [attr.data-testid]="'e2e-daily-report-cash-received-' + report.commercialUsername">
+                      <span class="kpi-label">Dû à la caisse</span>
+                      <span class="kpi-value"
+                      [attr.data-testid]="'e2e-daily-report-cash-due-' + report.commercialUsername">{{ getCashDueBreakdown(report).total | currency:'XOF':'symbol':'1.0-0' }}</span>
+                      <span class="kpi-hint">
+                        Dû de la période : {{ getCashDueBreakdown(report).operations | currency:'XOF':'symbol':'1.0-0' }}
+                        · Rattrapages saisis : {{ getCashDueBreakdown(report).catchups | currency:'XOF':'symbol':'1.0-0' }}
+                      </span>
+                      <span class="kpi-label mt-2">Total encaissé</span>
+                      <span class="kpi-value">{{ getCashBreakdown(report).total | currency:'XOF':'symbol':'1.0-0' }}</span>
+                      <span class="kpi-hint">
+                        Opérations : {{ getCashBreakdown(report).operations | currency:'XOF':'symbol':'1.0-0' }}
+                        · Rattrapages : {{ getCashBreakdown(report).catchups | currency:'XOF':'symbol':'1.0-0' }}
+                      </span>
+                      @if (getCashBreakdown(report).deferred > 0) {
+                        <span class="kpi-hint">
+                          Versé après la période : {{ getCashBreakdown(report).deferred | currency:'XOF':'symbol':'1.0-0' }}
+                        </span>
+                      }
+                    </div>
+                    <div class="kpi-card">
+                      <span class="kpi-label">Total Avances</span>
+                      <span class="kpi-value">{{ report.totalAdvancesAmount |
+                      currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </div>
+                  </div>
+                  @if (surplusReallocations.length > 0 && report.commercialUsername === activeCommercialUsername) {
+                    <div class="mt-3 surplus-reallocation-notes"
+                      >
+                      @for (item of surplusReallocations; track item) {
+                        <div class="surplus-reallocation-note"
+                          data-testid="e2e-daily-report-surplus-reallocation-note">
+                          {{ formatReallocationSummary(item) }}
+                        </div>
+                      }
+                    </div>
+                  }
+                  @if (canReallocateSurplus(report)) {
+                    <div class="mt-3"
+                      >
+                      <button mat-stroked-button color="primary" class="w-100"
+                        data-testid="e2e-daily-report-reallocate-surplus-btn"
+                        (click)="confirmReallocateSurplus(report)">
+                        <mat-icon class="mr-2">balance</mat-icon>
+                        Équilibrer le surplus
+                      </button>
+                    </div>
+                  }
+                  @if ((isManager || isSecretary) && isSingleDay && getTotalRemaining(report) > 0) {
+                    <div class="mt-3"
+                      >
+                      <button mat-raised-button color="primary" class="w-100 py-3 text-lg"
+                        data-testid="e2e-daily-report-deposit-btn"
+                        (click)="openDepositModal(report)">
+                        <mat-icon class="mr-2">payment</mat-icon> FAIRE UN VERSEMENT
+                      </button>
+                    </div>
+                  }
+                  <ng-container *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN']">
+                    @if (isSingleDay && canCreateCashDebtForReport(report)) {
+                      <div class="mt-2">
+                        <button mat-stroked-button color="accent" class="w-100"
+                          data-testid="e2e-daily-report-create-cash-debt-btn"
+                          (click)="createCashDebtForReport(report)">
+                          <mat-icon class="mr-2">account_balance_wallet</mat-icon>
+                          Constituer l'écart de caisse
                         </button>
-                    </div>
-                </div>
-                <ng-template #noOps>
-                    <div class="flex flex-col items-center justify-center py-10 text-gray-400">
-                        <mat-icon class="text-4xl h-12 w-12 mb-2">history_edu</mat-icon>
-                        <p>Aucune opération enregistrée pour cette période.</p>
-                    </div>
-                </ng-template>
-            </div>
+                      </div>
+                    }
+                  </ng-container>
+                </mat-expansion-panel>
+              }
+            </mat-accordion>
+            @if (reports.length === 0) {
+              <div class="text-center p-4 text-muted">
+                Aucune donnée trouvée pour cette période.
+              </div>
+            }
+          </div>
+          <!-- TOTAUX ET ACTIONS (Visibles seulement si un commercial est sélectionné ou pour le promoteur) -->
+        </div>
+      }
     </div>
+  </div>
+}
 
-    <!-- PANEL: Recouvrement terrain -->
-    <div class="report-panel" *ngIf="activeTab === 'recovery' && (isRecoveryManager || isManager)" role="tabpanel">
-            <app-recovery-manager-report-tab
-                [startDate]="periodStart"
-                [endDate]="periodEnd"
-                [commercialUsername]="selectedAgent">
-            </app-recovery-manager-report-tab>
+<!-- PANEL: Journal des opérations -->
+@if (activeTab === 'journal' && canViewFinancialKpis) {
+  <div class="report-panel" role="tabpanel">
+    <div class="p-4">
+      @if (operations.length > 0 || selectedOperationType) {
+        <div>
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-gray-200">
+                <th class="py-2 px-4 text-sm font-medium text-gray-500">Heure</th>
+                <th class="py-2 px-4 text-sm font-medium text-gray-500">Commercial</th>
+                <th class="py-2 px-4 text-sm font-medium text-gray-500 type-col-header">
+                  <div class="type-filter">
+                    <span>Type</span>
+                    <select class="type-filter-select"
+                      data-testid="e2e-daily-report-type-filter"
+                      [(ngModel)]="selectedOperationType"
+                      (ngModelChange)="onOperationTypeFilterChange()">
+                      <option [ngValue]="null">Tous</option>
+                      @for (t of operationTypes; track t) {
+                        <option [ngValue]="t.value">{{ t.label }}</option>
+                      }
+                    </select>
+                  </div>
+                </th>
+                <th class="py-2 px-4 text-sm font-medium text-gray-500">Sujet</th>
+                <th class="py-2 px-4 text-sm font-medium text-gray-600">Description</th>
+                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (op of operations; track op) {
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="py-2 px-4 text-sm">{{ op.timestamp | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td class="py-2 px-4 text-sm text-gray-700 font-medium">{{ op.commercialUsername }}</td>
+                  <td class="py-2 px-4 text-sm font-semibold text-primary-600">{{ op.type }}</td>
+                  <td class="py-2 px-4 text-sm">{{ op.reference }}</td>
+                  <td class="py-2 px-4 text-sm text-gray-600">{{ op.description }}</td>
+                  <td class="py-2 px-4 text-sm font-mono text-right font-medium">
+                    <span [class.text-green-600]="op.amount > 0"
+                      [class.text-gray-400]="op.amount === 0">
+                      {{ op.amount | currency:'XOF':'symbol':'1.0-0' }}
+                    </span>
+                  </td>
+                </tr>
+              }
+              @if (operations.length === 0) {
+                <tr>
+                  <td colspan="6" class="py-8 text-center text-gray-400">
+                    Aucune opération pour ce type sur la période filtrée.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <div class="mt-4 flex justify-between items-center">
+            <mat-paginator [length]="operationsTotal" [pageSize]="operationsPageSize"
+              [pageSizeOptions]="[10, 20, 50]" (page)="onPageChange($event)">
+            </mat-paginator>
+            <button mat-raised-button color="primary" (click)="onExportJournal()">
+              <mat-icon class="mr-2">picture_as_pdf</mat-icon> Exporter PDF
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+          <mat-icon class="text-4xl h-12 w-12 mb-2">history_edu</mat-icon>
+          <p>Aucune opération enregistrée pour cette période.</p>
+        </div>
+      }
     </div>
+  </div>
+}
 
-    <!-- PANEL: Historique des versements -->
-    <div class="report-panel" *ngIf="activeTab === 'deposits' && canViewFinancialKpis" role="tabpanel">
-            <div class="p-4">
-                <div *ngIf="deposits.length > 0; else noDeps">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="border-b border-gray-200">
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Heure</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Référence</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Commercial</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500">Reçu par</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Crédit</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Tontine</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Solde Nx</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Surplus</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Total</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-center" *ngIf="isManager || isAdmin">
-                                    Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <ng-container *ngFor="let dep of visibleDeposits">
-                            <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                <td class="py-2 px-4 text-sm">{{ dep.date | date:'dd/MM' }} {{ dep.createdAt |
-                                    date:'HH:mm' }}</td>
-                                <td class="py-2 px-4 text-sm font-mono text-gray-500">
-                                    {{ dep.reference }}
-                                    <div class="text-xs text-gray-500" *ngIf="showCaptureHint(dep)">
-                                        Encaissé le {{ dep.captureDate | date:'dd/MM/yyyy' }}
-                                    </div>
-                                </td>
-                                <td class="py-2 px-4 text-sm text-gray-700 font-medium">{{ dep.commercialUsername }}
-                                </td>
-                                <td class="py-2 px-4 text-sm font-semibold text-gray-700">{{ dep.receivedBy }}</td>
-                                <td class="py-2 px-4 text-sm font-mono text-right text-green-700">
-                                    {{ (dep.creditAmount ?? dep.amount) | currency:'XOF':'symbol':'1.0-0' }}
-                                </td>
-                                <td class="py-2 px-4 text-sm font-mono text-right text-green-700">
-                                    {{ depositTontine(dep) | currency:'XOF':'symbol':'1.0-0' }}
-                                </td>
-                                <td class="py-2 px-4 text-sm font-mono text-right text-green-700">
-                                    {{ (dep.newBalanceAmount || 0) | currency:'XOF':'symbol':'1.0-0' }}
-                                </td>
-                                <td class="py-2 px-4 text-sm font-mono text-right text-amber-700">
-                                    {{ (dep.surplusAmount || 0) | currency:'XOF':'symbol':'1.0-0' }}
-                                </td>
-                                <td class="py-2 px-4 text-sm font-mono text-right font-medium text-green-600">
-                                    {{ depositTotal(dep) | currency:'XOF':'symbol':'1.0-0' }}
-                                </td>
-                                <td class="py-2 px-4 text-sm text-center" *ngIf="isManager || isAdmin">
-                                    <button mat-icon-button color="warn" matTooltip="Annuler le versement"
-                                        *ngIf="canCancelDeposit(dep)" (click)="confirmCancelDeposit(dep)">
-                                        <mat-icon>cancel</mat-icon>
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr *ngIf="dep.catchupAllocations?.length" class="border-b border-gray-100 bg-gray-50">
-                                <td [attr.colspan]="(isManager || isAdmin) ? 10 : 9" class="py-2 px-4 text-xs text-gray-600">
-                                    <span *ngFor="let slice of dep.catchupAllocations; let last = last">
-                                        Rattrapage {{ slice.date | date:'dd/MM/yyyy' }} :
-                                        {{ slice.amount | currency:'XOF':'symbol':'1.0-0' }}<span *ngIf="!last"> · </span>
-                                    </span>
-                                </td>
-                            </tr>
-                            </ng-container>
-                        </tbody>
-                    </table>
-                    <div class="mt-4">
-                        <mat-paginator [length]="depositsTotal" [pageSize]="depositsPageSize"
-                            [pageSizeOptions]="[10, 20, 50]" (page)="onDepositsPageChange($event)">
-                        </mat-paginator>
-                    </div>
-                </div>
-                <ng-template #noDeps>
-                    <div class="flex flex-col items-center justify-center py-10 text-gray-400">
-                        <mat-icon class="text-4xl h-12 w-12 mb-2">payments</mat-icon>
-                        <p>Aucun versement enregistré pour cette période.</p>
-                    </div>
-                </ng-template>
-            </div>
-    </div>
+<!-- PANEL: Recouvrement terrain -->
+@if (activeTab === 'recovery' && (isRecoveryManager || isManager)) {
+  <div class="report-panel" role="tabpanel">
+    <app-recovery-manager-report-tab
+      [startDate]="periodStart"
+      [endDate]="periodEnd"
+      [commercialUsername]="selectedAgent">
+    </app-recovery-manager-report-tab>
+  </div>
+}
 
-    <!-- PANEL: Remise au gestionnaire -->
-    <div class="report-panel" *ngIf="activeTab === 'remittance' && canViewFinancialKpis && (isManager || isSecretary)" role="tabpanel">
-            <app-cash-period-remittance-tab></app-cash-period-remittance-tab>
-    </div>
+<!-- PANEL: Historique des versements -->
+@if (activeTab === 'deposits' && canViewFinancialKpis) {
+  <div class="report-panel" role="tabpanel">
+    <div class="p-4">
+      @if (deposits.length > 0) {
+        <div>
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="border-b border-gray-200">
+                <th class="py-2 px-4 text-sm font-medium text-gray-500">Heure</th>
+                <th class="py-2 px-4 text-sm font-medium text-gray-500">Référence</th>
+                <th class="py-2 px-4 text-sm font-medium text-gray-500">Commercial</th>
+                <th class="py-2 px-4 text-sm font-medium text-gray-500">Reçu par</th>
+                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Crédit</th>
+                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Tontine</th>
+                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Solde Nx</th>
+                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Surplus</th>
+                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Total</th>
+                @if (isManager || isAdmin) {
+                  <th class="py-2 px-4 text-sm font-medium text-gray-500 text-center">
+                  Actions</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (dep of visibleDeposits; track dep) {
+                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                  <td class="py-2 px-4 text-sm">{{ dep.date | date:'dd/MM' }} {{ dep.createdAt |
+                  date:'HH:mm' }}</td>
+                  <td class="py-2 px-4 text-sm font-mono text-gray-500">
+                    {{ dep.reference }}
+                    @if (showCaptureHint(dep)) {
+                      <div class="text-xs text-gray-500">
+                        Encaissé le {{ dep.captureDate | date:'dd/MM/yyyy' }}
+                      </div>
+                    }
+                  </td>
+                  <td class="py-2 px-4 text-sm text-gray-700 font-medium">{{ dep.commercialUsername }}
+                  </td>
+                  <td class="py-2 px-4 text-sm font-semibold text-gray-700">{{ dep.receivedBy }}</td>
+                  <td class="py-2 px-4 text-sm font-mono text-right text-green-700">
+                    {{ (dep.creditAmount ?? dep.amount) | currency:'XOF':'symbol':'1.0-0' }}
+                  </td>
+                  <td class="py-2 px-4 text-sm font-mono text-right text-green-700">
+                    {{ depositTontine(dep) | currency:'XOF':'symbol':'1.0-0' }}
+                  </td>
+                  <td class="py-2 px-4 text-sm font-mono text-right text-green-700">
+                    {{ (dep.newBalanceAmount || 0) | currency:'XOF':'symbol':'1.0-0' }}
+                  </td>
+                  <td class="py-2 px-4 text-sm font-mono text-right text-amber-700">
+                    {{ (dep.surplusAmount || 0) | currency:'XOF':'symbol':'1.0-0' }}
+                  </td>
+                  <td class="py-2 px-4 text-sm font-mono text-right font-medium text-green-600">
+                    {{ depositTotal(dep) | currency:'XOF':'symbol':'1.0-0' }}
+                  </td>
+                  @if (isManager || isAdmin) {
+                    <td class="py-2 px-4 text-sm text-center">
+                      @if (canCancelDeposit(dep)) {
+                        <button mat-icon-button color="warn" matTooltip="Annuler le versement"
+                          (click)="confirmCancelDeposit(dep)">
+                          <mat-icon>cancel</mat-icon>
+                        </button>
+                      }
+                    </td>
+                  }
+                </tr>
+                @if (dep.catchupAllocations?.length) {
+                  <tr class="border-b border-gray-100 bg-gray-50">
+                    <td [attr.colspan]="(isManager || isAdmin) ? 10 : 9" class="py-2 px-4 text-xs text-gray-600">
+                      @for (slice of dep.catchupAllocations; track slice; let last = $last) {
+                        <span>
+                          Rattrapage {{ slice.date | date:'dd/MM/yyyy' }} :
+                          {{ slice.amount | currency:'XOF':'symbol':'1.0-0' }}@if (!last) {
+                          <span> · </span>
+                        }
+                      </span>
+                    }
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+        <div class="mt-4">
+          <mat-paginator [length]="depositsTotal" [pageSize]="depositsPageSize"
+            [pageSizeOptions]="[10, 20, 50]" (page)="onDepositsPageChange($event)">
+          </mat-paginator>
+        </div>
+      </div>
+    } @else {
+      <div class="flex flex-col items-center justify-center py-10 text-gray-400">
+        <mat-icon class="text-4xl h-12 w-12 mb-2">payments</mat-icon>
+        <p>Aucun versement enregistré pour cette période.</p>
+      </div>
+    }
+  </div>
+</div>
+}
 
-    <div *ngIf="canViewFinancialKpis && !isLoading && reports.length === 0" class="alert alert-info mt-3">
-        Aucun rapport trouvé pour la période sélectionnée.
-    </div>
+<!-- PANEL: Remise au gestionnaire -->
+@if (activeTab === 'remittance' && canViewFinancialKpis && (isManager || isSecretary)) {
+  <div class="report-panel" role="tabpanel">
+    <app-cash-period-remittance-tab></app-cash-period-remittance-tab>
+  </div>
+}
 
-    <div *ngIf="canViewFinancialKpis && !selectedAgent && !isLoading && !isPromoter" class="alert alert-warning mt-3">
-        Veuillez sélectionner un commercial pour voir les détails et effectuer des versements.
-    </div>
+@if (canViewFinancialKpis && !isLoading && reports.length === 0) {
+  <div class="alert alert-info mt-3">
+    Aucun rapport trouvé pour la période sélectionnée.
+  </div>
+}
+
+@if (canViewFinancialKpis && !selectedAgent && !isLoading && !isPromoter) {
+  <div class="alert alert-warning mt-3">
+    Veuillez sélectionner un commercial pour voir les détails et effectuer des versements.
+  </div>
+}
 </div>

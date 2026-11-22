@@ -26,10 +26,14 @@
           <th mat-header-cell *matHeaderCellDef mat-sort-header="client.lastname">Client</th>
           <td mat-cell *matCellDef="let member">
             <div class="col-client">{{ getClientName(member) }}</div>
-            <div class="col-client-sub" *ngIf="member.client?.code">{{ member.client.code }}</div>
-            <span *ngIf="member.selfRegistered || member.registrationSource === 'CUSTOMER_SPACE'"
-                  class="badge badge-self"
-                  title="Inscrit via l'Espace client">Espace client</span>
+            @if (member.client?.code) {
+              <div class="col-client-sub">{{ member.client.code }}</div>
+            }
+            @if (member.selfRegistered || member.registrationSource === 'CUSTOMER_SPACE') {
+              <span
+                class="badge badge-self"
+              title="Inscrit via l'Espace client">Espace client</span>
+            }
           </td>
         </ng-container>
 
@@ -70,11 +74,13 @@
           <th mat-header-cell *matHeaderCellDef>Carnet</th>
           <td mat-cell *matCellDef="let member">
             <span class="carnet-badge" [class.is-verified]="member.carnetVerified" [class.is-pending]="!member.carnetVerified"
-                  data-testid="e2e-tontine-carnet-row-badge">
+              data-testid="e2e-tontine-carnet-row-badge">
               {{ member.carnetVerified ? 'Vérifié' : '—' }}
             </span>
-            <span class="field-controlled-badge" *ngIf="member.fieldControlled"
-                  data-testid="e2e-tontine-field-controlled-badge">Déjà contrôlé</span>
+            @if (member.fieldControlled) {
+              <span class="field-controlled-badge"
+              data-testid="e2e-tontine-field-controlled-badge">Déjà contrôlé</span>
+            }
           </td>
         </ng-container>
 
@@ -93,71 +99,85 @@
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"
-            data-testid="e2e-tontine-member-row"
-            [attr.data-member-id]="row.id"
-            [attr.data-client-lastname]="row.client?.lastname"></tr>
+          data-testid="e2e-tontine-member-row"
+          [attr.data-member-id]="row.id"
+        [attr.data-client-lastname]="row.client?.lastname"></tr>
       </table>
     </div>
 
-    <div class="mobile-card-list" *ngIf="!loading && dataSource.data.length > 0">
-      <div
-        class="mobile-card"
-        *ngFor="let member of dataSource.data"
-        data-testid="e2e-tontine-member-row"
-        [attr.data-member-id]="member.id"
-        [attr.data-client-lastname]="member.client?.lastname">
-        <div class="mobile-card-top">
-          <mat-checkbox
-            *ngIf="canVerify"
-            (change)="toggleSelection(member.id)"
-            [checked]="isSelected(member.id)"
-            (click)="$event.stopPropagation()">
-          </mat-checkbox>
-          <span class="status-badge" [ngClass]="getStatusBadgeClass(member.deliveryStatus)">
-            {{ getStatusLabel(member.deliveryStatus) }}
-          </span>
-          <span class="mobile-card-ref" *ngIf="member.client?.code">{{ member.client.code }}</span>
-        </div>
-        <div class="mobile-card-client">{{ getClientName(member) }}</div>
-        <span *ngIf="member.selfRegistered || member.registrationSource === 'CUSTOMER_SPACE'"
-              class="badge badge-self"
+    @if (!loading && dataSource.data.length > 0) {
+      <div class="mobile-card-list">
+        @for (member of dataSource.data; track member) {
+          <div
+            class="mobile-card"
+            data-testid="e2e-tontine-member-row"
+            [attr.data-member-id]="member.id"
+            [attr.data-client-lastname]="member.client?.lastname">
+            <div class="mobile-card-top">
+              @if (canVerify) {
+                <mat-checkbox
+                  (change)="toggleSelection(member.id)"
+                  [checked]="isSelected(member.id)"
+                  (click)="$event.stopPropagation()">
+                </mat-checkbox>
+              }
+              <span class="status-badge" [ngClass]="getStatusBadgeClass(member.deliveryStatus)">
+                {{ getStatusLabel(member.deliveryStatus) }}
+              </span>
+              @if (member.client?.code) {
+                <span class="mobile-card-ref">{{ member.client.code }}</span>
+              }
+            </div>
+            <div class="mobile-card-client">{{ getClientName(member) }}</div>
+            @if (member.selfRegistered || member.registrationSource === 'CUSTOMER_SPACE') {
+              <span
+                class="badge badge-self"
               title="Inscrit via l'Espace client">Espace client</span>
-        <span class="carnet-badge" [class.is-verified]="member.carnetVerified" [class.is-pending]="!member.carnetVerified">
-          {{ member.carnetVerified ? 'Carnet vérifié' : 'Carnet non vérifié' }}
-        </span>
-        <span class="field-controlled-badge" *ngIf="member.fieldControlled"
+            }
+            <span class="carnet-badge" [class.is-verified]="member.carnetVerified" [class.is-pending]="!member.carnetVerified">
+              {{ member.carnetVerified ? 'Carnet vérifié' : 'Carnet non vérifié' }}
+            </span>
+            @if (member.fieldControlled) {
+              <span class="field-controlled-badge"
               data-testid="e2e-tontine-field-controlled-badge">Déjà contrôlé</span>
-        <div class="mobile-card-meta">
-          <span>{{ getCommercial(member) }}</span>
-          <span>{{ formatDate(member.registrationDate) }}</span>
-        </div>
-        <div class="mobile-card-amount">{{ formatCurrency(member.totalContribution) }}</div>
-        <div class="mobile-card-actions">
-          <button class="btn-detail" (click)="onViewDetails(member)">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-            </svg>
-            Voir
-          </button>
-        </div>
+            }
+            <div class="mobile-card-meta">
+              <span>{{ getCommercial(member) }}</span>
+              <span>{{ formatDate(member.registrationDate) }}</span>
+            </div>
+            <div class="mobile-card-amount">{{ formatCurrency(member.totalContribution) }}</div>
+            <div class="mobile-card-actions">
+              <button class="btn-detail" (click)="onViewDetails(member)">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                Voir
+              </button>
+            </div>
+          </div>
+        }
       </div>
-    </div>
+    }
 
-    <div *ngIf="loading" class="table-loading">
-      <div class="empty-state">
-        <div class="empty-icon">⏳</div>
-        <div class="empty-title">Chargement…</div>
+    @if (loading) {
+      <div class="table-loading">
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <div class="empty-title">Chargement…</div>
+        </div>
       </div>
-    </div>
+    }
 
-    <div *ngIf="!loading && dataSource.data.length === 0" class="table-empty">
-      <div class="empty-state">
-        <div class="empty-icon">👥</div>
-        <div class="empty-title">Aucun membre trouvé</div>
-        <div class="empty-sub">Aucun membre ne correspond aux filtres sélectionnés.</div>
+    @if (!loading && dataSource.data.length === 0) {
+      <div class="table-empty">
+        <div class="empty-state">
+          <div class="empty-icon">👥</div>
+          <div class="empty-title">Aucun membre trouvé</div>
+          <div class="empty-sub">Aucun membre ne correspond aux filtres sélectionnés.</div>
+        </div>
       </div>
-    </div>
+    }
   </div>
 
   <div class="pagination tontine-pagination">

@@ -39,40 +39,50 @@
       <button type="button" class="btn-primary" [disabled]="saving" (click)="save()">
         {{ editingId ? 'Enregistrer' : 'Ajouter' }}
       </button>
-      <button type="button" class="btn-refresh" *ngIf="editingId" (click)="cancelEdit()">Annuler</button>
+      @if (editingId) {
+        <button type="button" class="btn-refresh" (click)="cancelEdit()">Annuler</button>
+      }
     </div>
   </div>
 
-  <div class="table-card a4" *ngFor="let network of ['MIXX', 'FLOOZ']" style="margin-bottom:18px;">
-    <table>
-      <thead>
-        <tr>
-          <th colspan="4">{{ network === 'MIXX' ? 'Mixx by Yas' : 'Flooz' }}</th>
-        </tr>
-        <tr>
-          <th>De</th>
-          <th>À</th>
-          <th>Frais de retrait</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngIf="isLoading">
-          <td colspan="4" class="empty-cell">Chargement…</td>
-        </tr>
-        <tr *ngIf="!isLoading && rowsFor(network).length === 0">
-          <td colspan="4" class="empty-cell">Aucune tranche.</td>
-        </tr>
-        <tr *ngFor="let row of rowsFor(network)">
-          <td>{{ row.minAmount | number:'1.0-0' }} F</td>
-          <td>{{ row.maxAmount | number:'1.0-0' }} F</td>
-          <td>{{ row.feeAmount | number:'1.0-0' }} F</td>
-          <td>
-            <button type="button" class="btn-refresh" (click)="edit(row)">Modifier</button>
-            <button type="button" class="btn-refresh" (click)="remove(row)">Retirer</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  @for (network of ['MIXX', 'FLOOZ']; track network) {
+    <div class="table-card a4" style="margin-bottom:18px;">
+      <table>
+        <thead>
+          <tr>
+            <th colspan="4">{{ network === 'MIXX' ? 'Mixx by Yas' : 'Flooz' }}</th>
+          </tr>
+          <tr>
+            <th>De</th>
+            <th>À</th>
+            <th>Frais de retrait</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (isLoading) {
+            <tr>
+              <td colspan="4" class="empty-cell">Chargement…</td>
+            </tr>
+          }
+          @if (!isLoading && rowsFor(network).length === 0) {
+            <tr>
+              <td colspan="4" class="empty-cell">Aucune tranche.</td>
+            </tr>
+          }
+          @for (row of rowsFor(network); track row) {
+            <tr>
+              <td>{{ row.minAmount | number:'1.0-0' }} F</td>
+              <td>{{ row.maxAmount | number:'1.0-0' }} F</td>
+              <td>{{ row.feeAmount | number:'1.0-0' }} F</td>
+              <td>
+                <button type="button" class="btn-refresh" (click)="edit(row)">Modifier</button>
+                <button type="button" class="btn-refresh" (click)="remove(row)">Retirer</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
 </div>

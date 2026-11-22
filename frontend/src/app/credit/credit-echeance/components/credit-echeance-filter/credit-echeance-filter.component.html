@@ -9,16 +9,18 @@
       </div>
     </div>
 
-    <div class="filter-field" *ngIf="selectedPeriod === 'custom'">
-      <span class="toolbar-label">Date</span>
-      <div class="date-picker-wrap">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--text-muted)">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-        </svg>
-        <input #dateInput class="date-input" type="date" [value]="selectedDate" (change)="onDateChange(dateInput.value)">
+    @if (selectedPeriod === 'custom') {
+      <div class="filter-field">
+        <span class="toolbar-label">Date</span>
+        <div class="date-picker-wrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="var(--text-muted)">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          <input #dateInput class="date-input" type="date" [value]="selectedDate" (change)="onDateChange(dateInput.value)">
+        </div>
       </div>
-    </div>
+    }
 
     <div class="filter-field filter-field-commercial">
       <span class="toolbar-label">Commercial</span>

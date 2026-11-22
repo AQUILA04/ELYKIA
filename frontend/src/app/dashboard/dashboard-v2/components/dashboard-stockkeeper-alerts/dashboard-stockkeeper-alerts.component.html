@@ -30,36 +30,44 @@
         </button>
       </div>
 
-      <div class="panel-loading" *ngIf="loadingOutOfStock">Chargement…</div>
-      <div class="panel-empty" *ngIf="!loadingOutOfStock && outOfStockArticles.length === 0">
-        Aucun article en rupture pour le moment.
-      </div>
+      @if (loadingOutOfStock) {
+        <div class="panel-loading">Chargement…</div>
+      }
+      @if (!loadingOutOfStock && outOfStockArticles.length === 0) {
+        <div class="panel-empty">
+          Aucun article en rupture pour le moment.
+        </div>
+      }
 
-      <div class="table-wrapper" *ngIf="!loadingOutOfStock && outOfStockArticles.length > 0">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Nom</th>
-              <th>Type</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let article of outOfStockArticles; let i = index">
-              <td class="col-index">{{ (currentPageOutOfStock * pageSizeOutOfStock) + (i + 1) }}</td>
-              <td class="col-name">{{ formatArticleName(article) }}</td>
-              <td>{{ article.type }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <mat-paginator
-          class="panel-paginator"
-          [length]="totalOutOfStockElement"
-          [pageSize]="pageSizeOutOfStock"
-          [pageSizeOptions]="[5, 10, 25, 100]"
-          (page)="onOutOfStockPageChange($event)">
-        </mat-paginator>
-      </div>
+      @if (!loadingOutOfStock && outOfStockArticles.length > 0) {
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nom</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (article of outOfStockArticles; track article; let i = $index) {
+                <tr>
+                  <td class="col-index">{{ (currentPageOutOfStock * pageSizeOutOfStock) + (i + 1) }}</td>
+                  <td class="col-name">{{ formatArticleName(article) }}</td>
+                  <td>{{ article.type }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <mat-paginator
+            class="panel-paginator"
+            [length]="totalOutOfStockElement"
+            [pageSize]="pageSizeOutOfStock"
+            [pageSizeOptions]="[5, 10, 25, 100]"
+            (page)="onOutOfStockPageChange($event)">
+          </mat-paginator>
+        </div>
+      }
     </div>
 
     <div class="panel-card">
@@ -84,42 +92,50 @@
         </button>
       </div>
 
-      <div class="panel-loading" *ngIf="loadingImminent">Chargement…</div>
-      <div class="panel-empty" *ngIf="!loadingImminent && imminentOutOfStockArticles.length === 0">
-        Aucun article en rupture imminente.
-      </div>
+      @if (loadingImminent) {
+        <div class="panel-loading">Chargement…</div>
+      }
+      @if (!loadingImminent && imminentOutOfStockArticles.length === 0) {
+        <div class="panel-empty">
+          Aucun article en rupture imminente.
+        </div>
+      }
 
-      <div class="table-wrapper" *ngIf="!loadingImminent && imminentOutOfStockArticles.length > 0">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Nom</th>
-              <th>Type</th>
-              <th>Quantité</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let article of imminentOutOfStockArticles; let i = index">
-              <td class="col-index">{{ (currentPageImminent * pageSizeImminent) + (i + 1) }}</td>
-              <td class="col-name">{{ formatArticleName(article) }}</td>
-              <td>{{ article.type }}</td>
-              <td>
-                <span class="qty-badge" [ngClass]="getBadgeClass(article.stockQuantity)">
-                  {{ article.stockQuantity !== null ? article.stockQuantity : 0 }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <mat-paginator
-          class="panel-paginator"
-          [length]="totalImminentElement"
-          [pageSize]="pageSizeImminent"
-          [pageSizeOptions]="[2, 5, 10, 25, 100]"
-          (page)="onImminentPageChange($event)">
-        </mat-paginator>
-      </div>
+      @if (!loadingImminent && imminentOutOfStockArticles.length > 0) {
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nom</th>
+                <th>Type</th>
+                <th>Quantité</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (article of imminentOutOfStockArticles; track article; let i = $index) {
+                <tr>
+                  <td class="col-index">{{ (currentPageImminent * pageSizeImminent) + (i + 1) }}</td>
+                  <td class="col-name">{{ formatArticleName(article) }}</td>
+                  <td>{{ article.type }}</td>
+                  <td>
+                    <span class="qty-badge" [ngClass]="getBadgeClass(article.stockQuantity)">
+                      {{ article.stockQuantity !== null ? article.stockQuantity : 0 }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <mat-paginator
+            class="panel-paginator"
+            [length]="totalImminentElement"
+            [pageSize]="pageSizeImminent"
+            [pageSizeOptions]="[2, 5, 10, 25, 100]"
+            (page)="onImminentPageChange($event)">
+          </mat-paginator>
+        </div>
+      }
     </div>
   </div>
 </div>

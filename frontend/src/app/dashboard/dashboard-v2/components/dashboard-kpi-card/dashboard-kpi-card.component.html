@@ -5,6 +5,8 @@
   <div class="kpi-body">
     <div class="kpi-title">{{ data?.title }}</div>
     <div class="kpi-value">{{ loading ? '—' : data?.value }}</div>
-    <div class="kpi-subtitle" *ngIf="data?.subtitle">{{ data?.subtitle }}</div>
+    @if (data?.subtitle) {
+      <div class="kpi-subtitle">{{ data?.subtitle }}</div>
+    }
   </div>
 </div>

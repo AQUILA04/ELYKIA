@@ -1,370 +1,418 @@
 <div class="main-container client-page a1" data-testid="e2e-client-list">
   <div class="page-fixed-head">
-  <div class="breadcrumb-bar">
-    <a routerLink="/dashboard" class="breadcrumb-link">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
-      </svg>
-      Tableau de bord
-    </a>
-    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
-  </div>
-
-  <div class="page-header-card a2">
-    <div class="header-card-top">
-      <span class="header-surtitle">GESTION DES CLIENTS</span>
-      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
-    </div>
-    <div class="header-card-main">
-      <div class="title-group">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    <div class="breadcrumb-bar">
+      <a routerLink="/dashboard" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
         </svg>
-        <h1 class="page-title">Liste des clients</h1>
-      </div>
-      <button class="btn-refresh" (click)="refresh()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-        Actualiser
-      </button>
+        Tableau de bord
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
     </div>
-    <p class="page-subtitle">Répertoire clients · Recherche, commercial et pagination conservés à la navigation</p>
-  </div>
+
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">GESTION DES CLIENTS</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          <h1 class="page-title">Liste des clients</h1>
+        </div>
+        <button class="btn-refresh" (click)="refresh()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
+      <p class="page-subtitle">Répertoire clients · Recherche, commercial et pagination conservés à la navigation</p>
+    </div>
   </div>
 
   <div class="page-scroll-body">
-  <div class="kpi-strip client-kpi-strip a3" *ngIf="clientKpis">
-    <div class="kpi-card kpi-total">
-      <div class="kpi-label">Clients enregistrés</div>
-      <div class="kpi-value">{{ clientKpis.totalRegistered }}</div>
-      <div class="kpi-sub">Total actifs (hors supprimés)</div>
-    </div>
-    <div class="kpi-card kpi-amount">
-      <div class="kpi-label">Crédit en cours</div>
-      <div class="kpi-value">{{ clientKpis.withActiveCredit }}</div>
-      <div class="kpi-sub">Clients avec crédit actif</div>
-    </div>
-    <div class="kpi-card kpi-green">
-      <div class="kpi-label">Membres tontine</div>
-      <div class="kpi-value">{{ clientKpis.tontineMembers }}</div>
-      <div class="kpi-sub">Inscrits à la tontine</div>
-    </div>
-    <div class="kpi-card kpi-delai">
-      <div class="kpi-label">Sans crédit ni tontine</div>
-      <div class="kpi-value">{{ clientKpis.withoutCreditNorTontine }}</div>
-      <div class="kpi-sub">Ni crédit, ni adhésion tontine</div>
-    </div>
-  </div>
-
-  <div class="toolbar a4">
-    <div class="filter-fields">
-      <div class="filter-field filter-field-search">
-        <span class="toolbar-label">Recherche</span>
-        <div class="search-row">
-          <input
-            type="text"
-            class="search-input"
-            [(ngModel)]="searchTerm"
-            (keydown.enter)="onSearch()"
-            placeholder="Nom, prénom, téléphone, localité…"
-            data-testid="e2e-client-search">
-          <button type="button" class="btn-search-icon" (click)="onSearch()" title="Rechercher" aria-label="Rechercher">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-          </button>
+    @if (clientKpis) {
+      <div class="kpi-strip client-kpi-strip a3">
+        <div class="kpi-card kpi-total">
+          <div class="kpi-label">Clients enregistrés</div>
+          <div class="kpi-value">{{ clientKpis.totalRegistered }}</div>
+          <div class="kpi-sub">Total actifs (hors supprimés)</div>
+        </div>
+        <div class="kpi-card kpi-amount">
+          <div class="kpi-label">Crédit en cours</div>
+          <div class="kpi-value">{{ clientKpis.withActiveCredit }}</div>
+          <div class="kpi-sub">Clients avec crédit actif</div>
+        </div>
+        <div class="kpi-card kpi-green">
+          <div class="kpi-label">Membres tontine</div>
+          <div class="kpi-value">{{ clientKpis.tontineMembers }}</div>
+          <div class="kpi-sub">Inscrits à la tontine</div>
+        </div>
+        <div class="kpi-card kpi-delai">
+          <div class="kpi-label">Sans crédit ni tontine</div>
+          <div class="kpi-value">{{ clientKpis.withoutCreditNorTontine }}</div>
+          <div class="kpi-sub">Ni crédit, ni adhésion tontine</div>
         </div>
       </div>
+    }
 
-      <div class="filter-field filter-field-commercial">
-        <span class="toolbar-label">Commercial</span>
-        <app-commercial-selector
-          [initialValue]="selectedCommercial"
-          (commercialSelected)="onCommercialSelected($event)">
-        </app-commercial-selector>
-      </div>
-
-      <div class="filter-field filter-field-collector-type" *ngIf="selectedCommercial">
-        <span class="toolbar-label">Rôle commercial</span>
-        <div class="collector-type-pills" role="group" aria-label="Rôle commercial">
-          <button
-            type="button"
-            class="pill-btn"
-            [class.active]="selectedCollectorType === 'ALL'"
-            (click)="onCollectorTypeChange('ALL')">
-            Tous
-          </button>
-          <button
-            type="button"
-            class="pill-btn pill-btn-credit"
-            [class.active]="selectedCollectorType === 'CREDIT'"
-            (click)="onCollectorTypeChange('CREDIT')">
-            Crédit
-          </button>
-          <button
-            type="button"
-            class="pill-btn pill-btn-tontine"
-            [class.active]="selectedCollectorType === 'TONTINE'"
-            (click)="onCollectorTypeChange('TONTINE')">
-            Tontine
-          </button>
-        </div>
-      </div>
-
-      <div class="filter-field filter-field-registration-source">
-        <span class="toolbar-label">Origine</span>
-        <div class="collector-type-pills" role="group" aria-label="Origine d'inscription">
-          <button
-            type="button"
-            class="pill-btn"
-            [class.active]="selectedRegistrationSource === 'ALL'"
-            (click)="onRegistrationSourceChange('ALL')"
-            data-testid="e2e-client-origin-all">
-            Tous
-          </button>
-          <button
-            type="button"
-            class="pill-btn pill-btn-self"
-            [class.active]="selectedRegistrationSource === 'CUSTOMER_SPACE'"
-            (click)="onRegistrationSourceChange('CUSTOMER_SPACE')"
-            data-testid="e2e-client-origin-self">
-            Espace client
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <div class="filter-actions">
-      <button type="button" class="btn-clear" (click)="clearSearch()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-        Effacer
-      </button>
-      <button type="button" class="btn-clear" (click)="resetFilters()">
-        Réinitialiser
-      </button>
-
-      <button
-        *ngIf="selectedCommercial"
-        type="button"
-        class="btn-download"
-        (click)="downloadClientsPdf()"
-        [disabled]="exportLoading"
-        data-testid="e2e-client-export-pdf">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-          <polyline points="7 10 12 15 17 10"/>
-          <line x1="12" x2="12" y1="15" y2="3"/>
-        </svg>
-        {{ exportLoading ? 'Export…' : 'Fiche Client PDF' }}
-      </button>
-
-      <span class="result-count">
-        <strong>{{ totalElement }}</strong> client(s)
-      </span>
-
-      <div class="toolbar-actions" *ngxPermissionsOnly="['ROLE_EDIT_CLIENT', 'ROLE_PROMOTER']">
-        <button type="button" class="btn-primary" (click)="addClient()" data-testid="e2e-client-add-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-          Ajouter
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div class="table-card a5">
-    <div class="table-card-actions">
-      <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
-        <button
-          *ngIf="selectedClients.size > 0"
-          type="button"
-          class="btn-secondary"
-          (click)="openBulkAssignCollectorModal()"
-          data-testid="e2e-client-bulk-assign-collector-btn">
-          Changer de commercial ({{ selectedClients.size }})
-        </button>
-      </ng-container>
-    </div>
-    <div class="table-wrapper">
-      <div *ngIf="isLoading" class="table-loading">
-        <div class="empty-state">
-          <div class="empty-icon">⏳</div>
-          <div class="empty-title">Chargement…</div>
-        </div>
-      </div>
-
-      <div *ngIf="!isLoading && clients.length === 0" class="table-empty-static">
-        <div class="empty-state">
-          <div class="empty-icon">👥</div>
-          <div class="empty-title">Aucun client trouvé</div>
-          <div class="empty-sub">Modifiez votre recherche ou ajoutez un nouveau client.</div>
-        </div>
-      </div>
-
-      <div class="desktop-table-wrap" *ngIf="!isLoading && clients.length > 0">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']" class="col-select" data-testid="e2e-client-collector-select-col">
-              <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedClients.size > 0 && !isAllSelected"></mat-checkbox>
-            </th>
-            <th>#</th>
-            <th>Nom</th>
-            <th>Prénom</th>
-            <th>Localité</th>
-            <th>Téléphone</th>
-            <th>Commercial</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let client of clients; let i = index" class="table-row"
-              data-testid="e2e-client-row"
-              [attr.data-client-id]="client.id"
-              [attr.data-collector]="client.collector"
-              [attr.data-tontine-collector]="client.tontineCollector">
-            <td *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']" class="col-select">
-              <mat-checkbox (change)="toggleSelection(client.id)" [checked]="isSelected(client.id)"></mat-checkbox>
-            </td>
-            <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
-            <td>
-              <a class="col-client-link" [routerLink]="['/client/view', client.id]">{{ client.lastname }}</a>
-              <span *ngIf="dualCreditEnabled && client.businessCreditAuthorized" class="badge badge-success ml-1" title="Adhésion business">B</span>
-              <span *ngIf="isSelfRegistered(client)" class="badge badge-self ml-1" title="Inscrit via l'Espace client">Espace client</span>
-            </td>
-            <td><span class="col-client">{{ client.firstname }}</span></td>
-            <td>{{ client.address || client.quarter || '—' }}</td>
-            <td><span class="col-phone">{{ client.phone }}</span></td>
-            <td class="col-commercial">
-              <div class="commercial-badges">
-                <span *ngIf="client.collector" class="badge-collector badge-credit" title="Commercial Crédit">
-                  <span class="badge-tag">Crédit</span> {{ client.collector }}
-                </span>
-                <span *ngIf="client.tontineCollector" class="badge-collector badge-tontine" title="Commercial Tontine">
-                  <span class="badge-tag">Tontine</span> {{ client.tontineCollector }}
-                </span>
-                <span *ngIf="!client.collector && !client.tontineCollector" class="commercial-none">—</span>
-              </div>
-            </td>
-            <td class="col-actions">
-              <ng-container *ngTemplateOutlet="clientActions; context: { $implicit: client }"></ng-container>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      </div>
-
-      <div class="mobile-card-list" *ngIf="!isLoading && clients.length > 0">
-        <div class="mobile-select-bar" *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
-          <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedClients.size > 0 && !isAllSelected">
-            Tout sélectionner
-          </mat-checkbox>
-          <span class="mobile-select-count" *ngIf="selectedClients.size > 0">{{ selectedClients.size }} sélectionné(s)</span>
-        </div>
-        <div class="mobile-card" *ngFor="let client of clients; let i = index">
-          <div class="mobile-card-top">
-            <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
-              <mat-checkbox (change)="toggleSelection(client.id)" [checked]="isSelected(client.id)"></mat-checkbox>
-            </ng-container>
-            <span class="mobile-card-ref">#{{ (currentPage * pageSize) + (i + 1) }}</span>
-            <span *ngIf="dualCreditEnabled && client.businessCreditAuthorized" class="badge badge-success" title="Adhésion business">B</span>
-            <span *ngIf="isSelfRegistered(client)" class="badge badge-self" title="Inscrit via l'Espace client">Espace client</span>
+    <div class="toolbar a4">
+      <div class="filter-fields">
+        <div class="filter-field filter-field-search">
+          <span class="toolbar-label">Recherche</span>
+          <div class="search-row">
+            <input
+              type="text"
+              class="search-input"
+              [(ngModel)]="searchTerm"
+              (keydown.enter)="onSearch()"
+              placeholder="Nom, prénom, téléphone, localité…"
+              data-testid="e2e-client-search">
+            <button type="button" class="btn-search-icon" (click)="onSearch()" title="Rechercher" aria-label="Rechercher">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </button>
           </div>
-          <a class="mobile-card-client" [routerLink]="['/client/view', client.id]">
-            {{ client.lastname }} {{ client.firstname }}
-          </a>
-          <div class="mobile-card-meta">
-            <span>{{ client.phone || '—' }}</span>
-            <span>{{ client.address || client.quarter || '—' }}</span>
-            <div class="commercial-badges" *ngIf="client.collector || client.tontineCollector">
-              <span *ngIf="client.collector" class="badge-collector badge-credit" title="Commercial Crédit">
-                <span class="badge-tag">Crédit</span> {{ client.collector }}
-              </span>
-              <span *ngIf="client.tontineCollector" class="badge-collector badge-tontine" title="Commercial Tontine">
-                <span class="badge-tag">Tontine</span> {{ client.tontineCollector }}
-              </span>
+        </div>
+
+        <div class="filter-field filter-field-commercial">
+          <span class="toolbar-label">Commercial</span>
+          <app-commercial-selector
+            [initialValue]="selectedCommercial"
+            (commercialSelected)="onCommercialSelected($event)">
+          </app-commercial-selector>
+        </div>
+
+        @if (selectedCommercial) {
+          <div class="filter-field filter-field-collector-type">
+            <span class="toolbar-label">Rôle commercial</span>
+            <div class="collector-type-pills" role="group" aria-label="Rôle commercial">
+              <button
+                type="button"
+                class="pill-btn"
+                [class.active]="selectedCollectorType === 'ALL'"
+                (click)="onCollectorTypeChange('ALL')">
+                Tous
+              </button>
+              <button
+                type="button"
+                class="pill-btn pill-btn-credit"
+                [class.active]="selectedCollectorType === 'CREDIT'"
+                (click)="onCollectorTypeChange('CREDIT')">
+                Crédit
+              </button>
+              <button
+                type="button"
+                class="pill-btn pill-btn-tontine"
+                [class.active]="selectedCollectorType === 'TONTINE'"
+                (click)="onCollectorTypeChange('TONTINE')">
+                Tontine
+              </button>
             </div>
           </div>
-          <div class="mobile-card-actions">
-            <ng-container *ngTemplateOutlet="clientActions; context: { $implicit: client }"></ng-container>
+        }
+
+        <div class="filter-field filter-field-registration-source">
+          <span class="toolbar-label">Origine</span>
+          <div class="collector-type-pills" role="group" aria-label="Origine d'inscription">
+            <button
+              type="button"
+              class="pill-btn"
+              [class.active]="selectedRegistrationSource === 'ALL'"
+              (click)="onRegistrationSourceChange('ALL')"
+              data-testid="e2e-client-origin-all">
+              Tous
+            </button>
+            <button
+              type="button"
+              class="pill-btn pill-btn-self"
+              [class.active]="selectedRegistrationSource === 'CUSTOMER_SPACE'"
+              (click)="onRegistrationSourceChange('CUSTOMER_SPACE')"
+              data-testid="e2e-client-origin-self">
+              Espace client
+            </button>
           </div>
         </div>
       </div>
+
+      <div class="filter-actions">
+        <button type="button" class="btn-clear" (click)="clearSearch()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          Effacer
+        </button>
+        <button type="button" class="btn-clear" (click)="resetFilters()">
+          Réinitialiser
+        </button>
+
+        @if (selectedCommercial) {
+          <button
+            type="button"
+            class="btn-download"
+            (click)="downloadClientsPdf()"
+            [disabled]="exportLoading"
+            data-testid="e2e-client-export-pdf">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" x2="12" y1="15" y2="3"/>
+            </svg>
+            {{ exportLoading ? 'Export…' : 'Fiche Client PDF' }}
+          </button>
+        }
+
+        <span class="result-count">
+          <strong>{{ totalElement }}</strong> client(s)
+        </span>
+
+        <div class="toolbar-actions" *ngxPermissionsOnly="['ROLE_EDIT_CLIENT', 'ROLE_PROMOTER']">
+          <button type="button" class="btn-primary" (click)="addClient()" data-testid="e2e-client-add-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            Ajouter
+          </button>
+        </div>
+      </div>
     </div>
 
-    <ng-template #clientActions let-client>
-      <button class="btn-detail" (click)="viewDetails(client.id)" title="Détails">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-        Voir
-      </button>
-      <button *ngxPermissionsOnly="['ROLE_EDIT_CLIENT']" class="btn-detail" (click)="editClient(client.id)" title="Modifier">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-      </button>
-      <button *ngxPermissionsOnly="['ROLE_DEL_CLIENT']" class="btn-detail btn-danger" (click)="deleteClient(client.id)" title="Supprimer">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-      </button>
-    </ng-template>
+    <div class="table-card a5">
+      <div class="table-card-actions">
+        <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
+          @if (selectedClients.size > 0) {
+            <button
+              type="button"
+              class="btn-secondary"
+              (click)="openBulkAssignCollectorModal()"
+              data-testid="e2e-client-bulk-assign-collector-btn">
+              Changer de commercial ({{ selectedClients.size }})
+            </button>
+          }
+        </ng-container>
+      </div>
+      <div class="table-wrapper">
+        @if (isLoading) {
+          <div class="table-loading">
+            <div class="empty-state">
+              <div class="empty-icon">⏳</div>
+              <div class="empty-title">Chargement…</div>
+            </div>
+          </div>
+        }
 
-    <div class="pagination client-pagination">
-      <mat-paginator
-        [length]="totalElement"
-        [pageSize]="pageSize"
-        [pageIndex]="currentPage"
-        [pageSizeOptions]="[5, 10, 25, 100]"
-        (page)="onPageChange($event)"
-        showFirstLastButtons>
-      </mat-paginator>
+        @if (!isLoading && clients.length === 0) {
+          <div class="table-empty-static">
+            <div class="empty-state">
+              <div class="empty-icon">👥</div>
+              <div class="empty-title">Aucun client trouvé</div>
+              <div class="empty-sub">Modifiez votre recherche ou ajoutez un nouveau client.</div>
+            </div>
+          </div>
+        }
+
+        @if (!isLoading && clients.length > 0) {
+          <div class="desktop-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']" class="col-select" data-testid="e2e-client-collector-select-col">
+                    <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedClients.size > 0 && !isAllSelected"></mat-checkbox>
+                  </th>
+                  <th>#</th>
+                  <th>Nom</th>
+                  <th>Prénom</th>
+                  <th>Localité</th>
+                  <th>Téléphone</th>
+                  <th>Commercial</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (client of clients; track client; let i = $index) {
+                  <tr class="table-row"
+                    data-testid="e2e-client-row"
+                    [attr.data-client-id]="client.id"
+                    [attr.data-collector]="client.collector"
+                    [attr.data-tontine-collector]="client.tontineCollector">
+                    <td *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']" class="col-select">
+                      <mat-checkbox (change)="toggleSelection(client.id)" [checked]="isSelected(client.id)"></mat-checkbox>
+                    </td>
+                    <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
+                    <td>
+                      <a class="col-client-link" [routerLink]="['/client/view', client.id]">{{ client.lastname }}</a>
+                      @if (dualCreditEnabled && client.businessCreditAuthorized) {
+                        <span class="badge badge-success ml-1" title="Adhésion business">B</span>
+                      }
+                      @if (isSelfRegistered(client)) {
+                        <span class="badge badge-self ml-1" title="Inscrit via l'Espace client">Espace client</span>
+                      }
+                    </td>
+                    <td><span class="col-client">{{ client.firstname }}</span></td>
+                    <td>{{ client.address || client.quarter || '—' }}</td>
+                    <td><span class="col-phone">{{ client.phone }}</span></td>
+                    <td class="col-commercial">
+                      <div class="commercial-badges">
+                        @if (client.collector) {
+                          <span class="badge-collector badge-credit" title="Commercial Crédit">
+                            <span class="badge-tag">Crédit</span> {{ client.collector }}
+                          </span>
+                        }
+                        @if (client.tontineCollector) {
+                          <span class="badge-collector badge-tontine" title="Commercial Tontine">
+                            <span class="badge-tag">Tontine</span> {{ client.tontineCollector }}
+                          </span>
+                        }
+                        @if (!client.collector && !client.tontineCollector) {
+                          <span class="commercial-none">—</span>
+                        }
+                      </div>
+                    </td>
+                    <td class="col-actions">
+                      <ng-container *ngTemplateOutlet="clientActions; context: { $implicit: client }"></ng-container>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        @if (!isLoading && clients.length > 0) {
+          <div class="mobile-card-list">
+            <div class="mobile-select-bar" *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
+              <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedClients.size > 0 && !isAllSelected">
+                Tout sélectionner
+              </mat-checkbox>
+              @if (selectedClients.size > 0) {
+                <span class="mobile-select-count">{{ selectedClients.size }} sélectionné(s)</span>
+              }
+            </div>
+            @for (client of clients; track client; let i = $index) {
+              <div class="mobile-card">
+                <div class="mobile-card-top">
+                  <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
+                    <mat-checkbox (change)="toggleSelection(client.id)" [checked]="isSelected(client.id)"></mat-checkbox>
+                  </ng-container>
+                  <span class="mobile-card-ref">#{{ (currentPage * pageSize) + (i + 1) }}</span>
+                  @if (dualCreditEnabled && client.businessCreditAuthorized) {
+                    <span class="badge badge-success" title="Adhésion business">B</span>
+                  }
+                  @if (isSelfRegistered(client)) {
+                    <span class="badge badge-self" title="Inscrit via l'Espace client">Espace client</span>
+                  }
+                </div>
+                <a class="mobile-card-client" [routerLink]="['/client/view', client.id]">
+                  {{ client.lastname }} {{ client.firstname }}
+                </a>
+                <div class="mobile-card-meta">
+                  <span>{{ client.phone || '—' }}</span>
+                  <span>{{ client.address || client.quarter || '—' }}</span>
+                  @if (client.collector || client.tontineCollector) {
+                    <div class="commercial-badges">
+                      @if (client.collector) {
+                        <span class="badge-collector badge-credit" title="Commercial Crédit">
+                          <span class="badge-tag">Crédit</span> {{ client.collector }}
+                        </span>
+                      }
+                      @if (client.tontineCollector) {
+                        <span class="badge-collector badge-tontine" title="Commercial Tontine">
+                          <span class="badge-tag">Tontine</span> {{ client.tontineCollector }}
+                        </span>
+                      }
+                    </div>
+                  }
+                </div>
+                <div class="mobile-card-actions">
+                  <ng-container *ngTemplateOutlet="clientActions; context: { $implicit: client }"></ng-container>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <ng-template #clientActions let-client>
+        <button class="btn-detail" (click)="viewDetails(client.id)" title="Détails">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          Voir
+        </button>
+        <button *ngxPermissionsOnly="['ROLE_EDIT_CLIENT']" class="btn-detail" (click)="editClient(client.id)" title="Modifier">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+        </button>
+        <button *ngxPermissionsOnly="['ROLE_DEL_CLIENT']" class="btn-detail btn-danger" (click)="deleteClient(client.id)" title="Supprimer">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </button>
+      </ng-template>
+
+      <div class="pagination client-pagination">
+        <mat-paginator
+          [length]="totalElement"
+          [pageSize]="pageSize"
+          [pageIndex]="currentPage"
+          [pageSizeOptions]="[5, 10, 25, 100]"
+          (page)="onPageChange($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
     </div>
-  </div>
   </div>
 </div>
 
-<div class="client-list-bulk-modal modal-overlay" *ngIf="showBulkAssignCollectorModal" (click)="closeBulkAssignCollectorModal()"
-     data-testid="e2e-client-bulk-assign-modal">
-  <div class="bulk-modal-dialog" role="dialog" (click)="$event.stopPropagation()">
-    <div class="bulk-modal-content">
-      <div class="bulk-modal-header">
-        <h5 class="bulk-modal-title">Changer de commercial</h5>
-        <button type="button" class="bulk-modal-close" aria-label="Fermer" (click)="closeBulkAssignCollectorModal()">&times;</button>
-      </div>
-      <div class="bulk-modal-body">
-        <p>Sélectionnez le(s) nouveau(x) commercial(aux) pour les {{ selectedClients.size }} client(s) sélectionné(s).</p>
-        <div class="bulk-form-group">
-          <label for="creditCollectorSelect">Commercial crédit</label>
-          <select class="bulk-form-control" id="creditCollectorSelect" [(ngModel)]="selectedCreditCollector"
-                  data-testid="e2e-client-bulk-credit-collector">
-            <option value="">— Ne pas modifier —</option>
-            <option *ngFor="let collector of collectors" [value]="collector.username">
-              {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
-            </option>
-          </select>
+@if (showBulkAssignCollectorModal) {
+  <div class="client-list-bulk-modal modal-overlay" (click)="closeBulkAssignCollectorModal()"
+    data-testid="e2e-client-bulk-assign-modal">
+    <div class="bulk-modal-dialog" role="dialog" (click)="$event.stopPropagation()">
+      <div class="bulk-modal-content">
+        <div class="bulk-modal-header">
+          <h5 class="bulk-modal-title">Changer de commercial</h5>
+          <button type="button" class="bulk-modal-close" aria-label="Fermer" (click)="closeBulkAssignCollectorModal()">&times;</button>
         </div>
-        <div class="bulk-form-group">
-          <label for="tontineCollectorSelect">Commercial tontine</label>
-          <select class="bulk-form-control" id="tontineCollectorSelect" [(ngModel)]="selectedTontineCollector">
-            <option value="">— Ne pas modifier —</option>
-            <option *ngFor="let collector of collectors" [value]="collector.username">
-              {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
-            </option>
-          </select>
+        <div class="bulk-modal-body">
+          <p>Sélectionnez le(s) nouveau(x) commercial(aux) pour les {{ selectedClients.size }} client(s) sélectionné(s).</p>
+          <div class="bulk-form-group">
+            <label for="creditCollectorSelect">Commercial crédit</label>
+            <select class="bulk-form-control" id="creditCollectorSelect" [(ngModel)]="selectedCreditCollector"
+              data-testid="e2e-client-bulk-credit-collector">
+              <option value="">— Ne pas modifier —</option>
+              @for (collector of collectors; track collector) {
+                <option [value]="collector.username">
+                  {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
+                </option>
+              }
+            </select>
+          </div>
+          <div class="bulk-form-group">
+            <label for="tontineCollectorSelect">Commercial tontine</label>
+            <select class="bulk-form-control" id="tontineCollectorSelect" [(ngModel)]="selectedTontineCollector">
+              <option value="">— Ne pas modifier —</option>
+              @for (collector of collectors; track collector) {
+                <option [value]="collector.username">
+                  {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
+                </option>
+              }
+            </select>
+          </div>
+          <div class="bulk-form-group bulk-checkbox-group">
+            <label class="bulk-checkbox-label">
+              <input
+                type="checkbox"
+                class="bulk-checkbox-input"
+                [(ngModel)]="transferInProgressCredits"
+                [disabled]="!selectedCreditCollector"
+                data-testid="e2e-client-bulk-transfer-credits-checkbox">
+              <span>Transférer automatiquement les ventes du commercial vers le nouveau commercial en charge du client</span>
+            </label>
+            @if (!selectedCreditCollector) {
+              <p class="bulk-checkbox-hint">
+                Sélectionnez un commercial crédit pour activer le transfert des ventes en cours.
+              </p>
+            }
+          </div>
         </div>
-        <div class="bulk-form-group bulk-checkbox-group">
-          <label class="bulk-checkbox-label">
-            <input
-              type="checkbox"
-              class="bulk-checkbox-input"
-              [(ngModel)]="transferInProgressCredits"
-              [disabled]="!selectedCreditCollector"
-              data-testid="e2e-client-bulk-transfer-credits-checkbox">
-            <span>Transférer automatiquement les ventes du commercial vers le nouveau commercial en charge du client</span>
-          </label>
-          <p class="bulk-checkbox-hint" *ngIf="!selectedCreditCollector">
-            Sélectionnez un commercial crédit pour activer le transfert des ventes en cours.
-          </p>
+        <div class="bulk-modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeBulkAssignCollectorModal()">Annuler</button>
+          <button type="button" class="btn-validate" (click)="confirmBulkAssignCollector()"
+            [disabled]="!selectedCreditCollector && !selectedTontineCollector"
+          data-testid="e2e-client-bulk-validate">Valider</button>
         </div>
-      </div>
-      <div class="bulk-modal-footer">
-        <button type="button" class="btn-cancel" (click)="closeBulkAssignCollectorModal()">Annuler</button>
-        <button type="button" class="btn-validate" (click)="confirmBulkAssignCollector()"
-                [disabled]="!selectedCreditCollector && !selectedTontineCollector"
-                data-testid="e2e-client-bulk-validate">Valider</button>
       </div>
     </div>
   </div>
-</div>
+}

@@ -19,7 +19,9 @@
       </div>
       <p class="page-subtitle">
         {{ inventoryDate | date:'dd/MM/yyyy' }} · {{ getStatusLabel(status) }} · {{ createdByUser }}
-        <span *ngIf="completedAt"> · Clôturé {{ completedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        @if (completedAt) {
+          <span> · Clôturé {{ completedAt | date:'dd/MM/yyyy HH:mm' }}</span>
+        }
       </p>
     </div>
   </div>
@@ -44,43 +46,49 @@
       <div class="filter-group filter-group-search">
         <span class="toolbar-label">Recherche article</span>
         <input type="text" class="search-input" [(ngModel)]="searchTerm" (ngModelChange)="applyFilter()"
-               placeholder="Nom, marque, modèle…">
+          placeholder="Nom, marque, modèle…">
       </div>
       <span class="result-count"><strong>{{ filteredItems.length }}</strong> ligne(s)</span>
     </div>
 
     <div class="table-card a5">
       <div class="table-wrapper">
-        <div *ngIf="isLoading" class="loading-state">Chargement…</div>
-        <table *ngIf="!isLoading">
-          <thead>
-            <tr>
-              <th>Article</th>
-              <th>Système</th>
-              <th>Physique</th>
-              <th>Écart</th>
-              <th>Statut</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let item of filteredItems">
-              <td>
-                <strong>{{ item.articleName }}</strong>
-                <div class="muted">{{ item.articleMarque }} {{ item.articleModel }}</div>
-              </td>
-              <td>{{ item.systemQuantity }}</td>
-              <td>{{ item.physicalQuantity != null ? item.physicalQuantity : '—' }}</td>
-              <td [class.neg]="(item.difference || 0) < 0" [class.pos]="(item.difference || 0) > 0">
-                {{ item.difference != null ? item.difference : '—' }}
-              </td>
-              <td>{{ getStatusLabel(item.status) }}</td>
-              <td>
-                <button type="button" class="btn-detail" (click)="openTrajectory(item.id)">Trajectoire</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        @if (isLoading) {
+          <div class="loading-state">Chargement…</div>
+        }
+        @if (!isLoading) {
+          <table>
+            <thead>
+              <tr>
+                <th>Article</th>
+                <th>Système</th>
+                <th>Physique</th>
+                <th>Écart</th>
+                <th>Statut</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of filteredItems; track item) {
+                <tr>
+                  <td>
+                    <strong>{{ item.articleName }}</strong>
+                    <div class="muted">{{ item.articleMarque }} {{ item.articleModel }}</div>
+                  </td>
+                  <td>{{ item.systemQuantity }}</td>
+                  <td>{{ item.physicalQuantity != null ? item.physicalQuantity : '—' }}</td>
+                  <td [class.neg]="(item.difference || 0) < 0" [class.pos]="(item.difference || 0) > 0">
+                    {{ item.difference != null ? item.difference : '—' }}
+                  </td>
+                  <td>{{ getStatusLabel(item.status) }}</td>
+                  <td>
+                    <button type="button" class="btn-detail" (click)="openTrajectory(item.id)">Trajectoire</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </div>
     </div>
   </div>

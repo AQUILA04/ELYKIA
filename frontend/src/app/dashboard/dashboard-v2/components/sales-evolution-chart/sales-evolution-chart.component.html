@@ -10,9 +10,15 @@
       <button type="button" [class.active]="granularity === 'year'" (click)="setGranularity('year')">An</button>
     </div>
   </div>
-  <div class="chart-body" *ngIf="!loading && points.length > 0">
-    <canvas baseChart [data]="chartData" [options]="chartOptions" [type]="'line'"></canvas>
-  </div>
-  <div class="chart-empty" *ngIf="!loading && points.length === 0">Aucune donnée pour cette période.</div>
-  <div class="chart-empty" *ngIf="loading">Chargement du graphique…</div>
+  @if (!loading && points.length > 0) {
+    <div class="chart-body">
+      <canvas baseChart [data]="chartData" [options]="chartOptions" [type]="'line'"></canvas>
+    </div>
+  }
+  @if (!loading && points.length === 0) {
+    <div class="chart-empty">Aucune donnée pour cette période.</div>
+  }
+  @if (loading) {
+    <div class="chart-empty">Chargement du graphique…</div>
+  }
 </div>

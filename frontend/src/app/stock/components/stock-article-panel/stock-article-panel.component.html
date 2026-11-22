@@ -6,102 +6,132 @@
         <div>
           <span class="kpi-label">{{ collector }} · {{ monthTitle }}</span>
           <h2 id="article-panel-title" class="side-title">{{ title }}</h2>
-          <span class="panel-hint" *ngIf="item.article?.marque">{{ item.article.marque }} · stock crédit</span>
+          @if (item.article?.marque) {
+            <span class="panel-hint">{{ item.article.marque }} · stock crédit</span>
+          }
         </div>
         <button #closeButton type="button" class="btn-ghost icon-btn" aria-label="Fermer le panneau" (click)="close()"
-          data-testid="e2e-stock-article-panel-close">×</button>
+        data-testid="e2e-stock-article-panel-close">×</button>
       </div>
       <div class="side-kpis">
         <div class="flow-box"><span class="kpi-label">Pris</span><span class="flow-val num">{{ item.quantityTaken }}</span></div>
         <div class="flow-box"><span class="kpi-label">Vendu</span><span class="flow-val num">{{ item.quantitySold }}</span></div>
         <div class="flow-box" [class.flow-box--warn]="item.quantityRemaining > 0" [class.flow-box--ok]="!item.quantityRemaining">
           <span class="kpi-label">Restant</span><span class="flow-val num">{{ item.quantityRemaining }}</span></div>
-        <div class="flow-box" *appIfUnitPrice><span class="kpi-label">PMP</span><span class="flow-val num">{{ item.weightedAverageUnitPrice | fcfa:'bare' }}</span></div>
-      </div>
-      <div class="side-tabs" role="tablist" aria-label="Détail de l'article">
-        <button type="button" role="tab" class="side-tab" [class.side-tab--on]="tab === 'movements'" [attr.aria-selected]="tab === 'movements'"
+          <div class="flow-box" *appIfUnitPrice><span class="kpi-label">PMP</span><span class="flow-val num">{{ item.weightedAverageUnitPrice | fcfa:'bare' }}</span></div>
+        </div>
+        <div class="side-tabs" role="tablist" aria-label="Détail de l'article">
+          <button type="button" role="tab" class="side-tab" [class.side-tab--on]="tab === 'movements'" [attr.aria-selected]="tab === 'movements'"
           (click)="select('movements')" data-testid="e2e-stock-article-tab-movements">Mouvements ({{ movements.length }})</button>
-        <button type="button" role="tab" class="side-tab" [class.side-tab--on]="tab === 'sales'" [attr.aria-selected]="tab === 'sales'"
+          <button type="button" role="tab" class="side-tab" [class.side-tab--on]="tab === 'sales'" [attr.aria-selected]="tab === 'sales'"
           (click)="select('sales')" data-testid="e2e-stock-article-tab-sales">Ventes ({{ sales.length }})</button>
-        <button type="button" role="tab" class="side-tab" [class.side-tab--on]="tab === 'valuation'" [attr.aria-selected]="tab === 'valuation'"
+          <button type="button" role="tab" class="side-tab" [class.side-tab--on]="tab === 'valuation'" [attr.aria-selected]="tab === 'valuation'"
           (click)="select('valuation')" data-testid="e2e-stock-article-tab-valuation">Valorisation</button>
-      </div>
-    </header>
+        </div>
+      </header>
 
-    <div class="side-body" role="tabpanel">
-      <div class="skeleton" *ngIf="loading"></div>
-      <div class="empty-state" *ngIf="!loading && error">
-        <div class="empty-title">Le détail de l'article n'a pas pu être chargé.</div>
-      </div>
+      <div class="side-body" role="tabpanel">
+        @if (loading) {
+          <div class="skeleton"></div>
+        }
+        @if (!loading && error) {
+          <div class="empty-state">
+            <div class="empty-title">Le détail de l'article n'a pas pu être chargé.</div>
+          </div>
+        }
 
-      <ng-container *ngIf="!loading && !error">
-        <ng-container *ngIf="tab === 'movements'">
-          <ol class="timeline" *ngIf="movements.length">
-            <li *ngFor="let m of movements" class="timeline-item" [class.timeline-item--in]="isEntry(m.movementType)">
-              <div class="timeline-top">
-                <span class="pill" [ngClass]="isEntry(m.movementType) ? 'pill-ok' : 'pill-late'">{{ movementLabel(m.movementType) }}</span>
-                <span class="num panel-hint">{{ m.operationDate | date:'dd/MM/yyyy HH:mm' }}</span>
+        @if (!loading && !error) {
+          @if (tab === 'movements') {
+            @if (movements.length) {
+              <ol class="timeline">
+                @for (m of movements; track m) {
+                  <li class="timeline-item" [class.timeline-item--in]="isEntry(m.movementType)">
+                    <div class="timeline-top">
+                      <span class="pill" [ngClass]="isEntry(m.movementType) ? 'pill-ok' : 'pill-late'">{{ movementLabel(m.movementType) }}</span>
+                      <span class="num panel-hint">{{ m.operationDate | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    <div class="timeline-qty">
+                      <span class="num">{{ m.quantityBefore }}</span><span aria-hidden="true">→</span>
+                      <strong class="num">{{ isEntry(m.movementType) ? '+' : '−' }}{{ m.quantityMoved }}</strong><span aria-hidden="true">→</span>
+                      <span class="num">{{ m.quantityAfter }}</span>
+                      @if (movementRef(m); as ref) {
+                        <span class="timeline-ref">{{ ref }}</span>
+                      }
+                    </div>
+                  </li>
+                }
+              </ol>
+            }
+            @if (!movements.length) {
+              <div class="empty-state"><div class="empty-title">Aucun mouvement pour cet article.</div></div>
+            }
+          }
+          @if (tab === 'sales') {
+            @if (sales.length) {
+              <table class="data-table side-table">
+                <thead><tr><th scope="col">Date</th><th scope="col">Crédit</th><th scope="col">Client</th><th scope="col" class="r">Qté</th>
+                <th scope="col" class="r" *appIfUnitPrice>PMP</th><th scope="col" class="r">Montant</th></tr></thead>
+                <tbody>
+                  @for (s of sales; track s) {
+                    <tr>
+                      <td class="num">{{ s.date ? (s.date | date:'dd/MM HH:mm') : '—' }}</td>
+                      <td class="num">{{ s.reference || '—' }}</td>
+                      <td>{{ s.clientName || '—' }}</td>
+                      <td class="r num">{{ s.quantity }}</td>
+                      <td class="r num" *appIfUnitPrice>{{ s.unitPrice != null ? (s.unitPrice | fcfa:'bare') : '—' }}</td>
+                      <td class="r num strong">{{ s.amount != null ? (s.amount | fcfa:'bare') : '—' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+            @if (!sales.length) {
+              <div class="empty-state"><div class="empty-title">Aucune vente pour cet article.</div></div>
+            }
+          }
+          @if (tab === 'valuation') {
+            <div class="side-kpis side-kpis--2">
+              <div class="flow-box"><span class="kpi-label">Total vendu (stock)</span><span class="flow-val num">{{ (item.totalSoldValue || 0) | fcfa }}</span></div>
+              <div class="flow-box"><span class="kpi-label">Somme des valorisations</span><span class="flow-val num">{{ valuationTotal | fcfa }}</span></div>
+            </div>
+            @if (valuations.length) {
+              <div class="check-banner" [class.check-banner--warn]="!valuationConsistent"
+                data-testid="e2e-stock-article-valuation-check">
+                <strong>{{ valuationConsistent ? '✓ Concordant' : 'Écart à expliquer' }}</strong>
+                @if (valuationConsistent) {
+                  <span>Le total vendu du stock correspond à la somme des ventes valorisées.</span>
+                }
+                @if (!valuationConsistent) {
+                  <span>Écart de {{ valuationGap | fcfa:'signed' }} entre le total vendu et les valorisations.</span>
+                }
               </div>
-              <div class="timeline-qty">
-                <span class="num">{{ m.quantityBefore }}</span><span aria-hidden="true">→</span>
-                <strong class="num">{{ isEntry(m.movementType) ? '+' : '−' }}{{ m.quantityMoved }}</strong><span aria-hidden="true">→</span>
-                <span class="num">{{ m.quantityAfter }}</span>
-                <span class="timeline-ref" *ngIf="movementRef(m) as ref">{{ ref }}</span>
+            }
+            @if (valuations.length) {
+              <table class="data-table side-table">
+                <thead><tr><th scope="col">Date</th><th scope="col">Crédit</th><th scope="col" class="r">Qté</th>
+                <th scope="col" class="r" *appIfUnitPrice>PMP appliqué</th><th scope="col" class="r">Montant</th><th scope="col" class="r">Cumul</th></tr></thead>
+                <tbody>
+                  @for (v of valuations; track v) {
+                    <tr>
+                      <td class="num">{{ v.date | date:'dd/MM HH:mm' }}</td>
+                      <td class="num">{{ v.reference || '—' }}</td>
+                      <td class="r num">{{ v.quantity }}</td>
+                      <td class="r num" *appIfUnitPrice>{{ v.unitPrice | fcfa:'bare' }}</td>
+                      <td class="r num">{{ v.amount | fcfa:'signed' }}</td>
+                      <td class="r num strong">{{ v.cumulative | fcfa:'bare' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+            @if (!valuations.length) {
+              <div class="empty-state">
+                <div class="empty-title">Pas d'historique de valorisation.</div>
+                <div class="empty-sub">Les ventes enregistrées avant le suivi des valorisations n'apparaissent pas ici.</div>
               </div>
-            </li>
-          </ol>
-          <div class="empty-state" *ngIf="!movements.length"><div class="empty-title">Aucun mouvement pour cet article.</div></div>
-        </ng-container>
-
-        <ng-container *ngIf="tab === 'sales'">
-          <table class="data-table side-table" *ngIf="sales.length">
-            <thead><tr><th scope="col">Date</th><th scope="col">Crédit</th><th scope="col">Client</th><th scope="col" class="r">Qté</th>
-              <th scope="col" class="r" *appIfUnitPrice>PMP</th><th scope="col" class="r">Montant</th></tr></thead>
-            <tbody>
-              <tr *ngFor="let s of sales">
-                <td class="num">{{ s.date ? (s.date | date:'dd/MM HH:mm') : '—' }}</td>
-                <td class="num">{{ s.reference || '—' }}</td>
-                <td>{{ s.clientName || '—' }}</td>
-                <td class="r num">{{ s.quantity }}</td>
-                <td class="r num" *appIfUnitPrice>{{ s.unitPrice != null ? (s.unitPrice | fcfa:'bare') : '—' }}</td>
-                <td class="r num strong">{{ s.amount != null ? (s.amount | fcfa:'bare') : '—' }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="empty-state" *ngIf="!sales.length"><div class="empty-title">Aucune vente pour cet article.</div></div>
-        </ng-container>
-
-        <ng-container *ngIf="tab === 'valuation'">
-          <div class="side-kpis side-kpis--2">
-            <div class="flow-box"><span class="kpi-label">Total vendu (stock)</span><span class="flow-val num">{{ (item.totalSoldValue || 0) | fcfa }}</span></div>
-            <div class="flow-box"><span class="kpi-label">Somme des valorisations</span><span class="flow-val num">{{ valuationTotal | fcfa }}</span></div>
-          </div>
-          <div class="check-banner" *ngIf="valuations.length" [class.check-banner--warn]="!valuationConsistent"
-            data-testid="e2e-stock-article-valuation-check">
-            <strong>{{ valuationConsistent ? '✓ Concordant' : 'Écart à expliquer' }}</strong>
-            <span *ngIf="valuationConsistent">Le total vendu du stock correspond à la somme des ventes valorisées.</span>
-            <span *ngIf="!valuationConsistent">Écart de {{ valuationGap | fcfa:'signed' }} entre le total vendu et les valorisations.</span>
-          </div>
-          <table class="data-table side-table" *ngIf="valuations.length">
-            <thead><tr><th scope="col">Date</th><th scope="col">Crédit</th><th scope="col" class="r">Qté</th>
-              <th scope="col" class="r" *appIfUnitPrice>PMP appliqué</th><th scope="col" class="r">Montant</th><th scope="col" class="r">Cumul</th></tr></thead>
-            <tbody>
-              <tr *ngFor="let v of valuations">
-                <td class="num">{{ v.date | date:'dd/MM HH:mm' }}</td>
-                <td class="num">{{ v.reference || '—' }}</td>
-                <td class="r num">{{ v.quantity }}</td>
-                <td class="r num" *appIfUnitPrice>{{ v.unitPrice | fcfa:'bare' }}</td>
-                <td class="r num">{{ v.amount | fcfa:'signed' }}</td>
-                <td class="r num strong">{{ v.cumulative | fcfa:'bare' }}</td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="empty-state" *ngIf="!valuations.length">
-            <div class="empty-title">Pas d'historique de valorisation.</div>
-            <div class="empty-sub">Les ventes enregistrées avant le suivi des valorisations n'apparaissent pas ici.</div>
-          </div>
-        </ng-container>
-      </ng-container>
-    </div>
-  </aside>
-</div>
+            }
+          }
+        }
+      </div>
+    </aside>
+  </div>

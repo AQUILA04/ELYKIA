@@ -92,115 +92,137 @@
   <div class="table-card a5">
     <div class="section-heading">Vue globale par commercial</div>
     <div class="table-wrapper">
-      <div *ngIf="loading" class="empty-state">
-        <div class="empty-icon">⏳</div>
-        <div class="empty-title">Chargement des passations…</div>
-      </div>
+      @if (loading) {
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <div class="empty-title">Chargement des passations…</div>
+        </div>
+      }
 
-      <div *ngIf="!loading && summary.byPair.length === 0" class="empty-state">
-        <div class="empty-icon">↔</div>
-        <div class="empty-title">Aucun transfert trouvé</div>
-        <div class="empty-sub">Modifiez les filtres commercial ou la période.</div>
-      </div>
+      @if (!loading && summary.byPair.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">↔</div>
+          <div class="empty-title">Aucun transfert trouvé</div>
+          <div class="empty-sub">Modifiez les filtres commercial ou la période.</div>
+        </div>
+      }
 
-      <table *ngIf="!loading && summary.byPair.length > 0" class="data-table summary-table">
-        <thead>
-          <tr>
-            <th class="col-text">Sortant</th>
-            <th class="col-text">Entrant</th>
-            <th class="col-num">Crédits</th>
-            <th class="col-num">Total ventes</th>
-            <th class="col-num">Recouvré sortant</th>
-            <th class="col-num">Restant entrant</th>
-            <th class="col-period">Période</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            *ngFor="let pair of summary.byPair"
-            class="clickable-row"
-            [class.selected]="isPairSelected(pair)"
-            (click)="selectPair(pair)">
-            <td class="col-text"><span class="collector-chip">{{ pair.oldCollector }}</span></td>
-            <td class="col-text"><span class="collector-chip chip-in">{{ pair.newCollector }}</span></td>
-            <td class="col-num mono">{{ pair.creditCount | number }}</td>
-            <td class="col-num mono">{{ pair.totalSalesAmount | number }}</td>
-            <td class="col-num mono">{{ pair.totalPaidAtTransfer | number }}</td>
-            <td class="col-num mono remaining">{{ pair.totalRemainingAtTransfer | number }}</td>
-            <td class="col-period period-cell">
-              {{ pair.firstTransferDate | date:'dd/MM/yyyy' }}
-              <span *ngIf="pair.lastTransferDate && pair.lastTransferDate !== pair.firstTransferDate">
-                → {{ pair.lastTransferDate | date:'dd/MM/yyyy' }}
-              </span>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      @if (!loading && summary.byPair.length > 0) {
+        <table class="data-table summary-table">
+          <thead>
+            <tr>
+              <th class="col-text">Sortant</th>
+              <th class="col-text">Entrant</th>
+              <th class="col-num">Crédits</th>
+              <th class="col-num">Total ventes</th>
+              <th class="col-num">Recouvré sortant</th>
+              <th class="col-num">Restant entrant</th>
+              <th class="col-period">Période</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (pair of summary.byPair; track pair) {
+              <tr
+                class="clickable-row"
+                [class.selected]="isPairSelected(pair)"
+                (click)="selectPair(pair)">
+                <td class="col-text"><span class="collector-chip">{{ pair.oldCollector }}</span></td>
+                <td class="col-text"><span class="collector-chip chip-in">{{ pair.newCollector }}</span></td>
+                <td class="col-num mono">{{ pair.creditCount | number }}</td>
+                <td class="col-num mono">{{ pair.totalSalesAmount | number }}</td>
+                <td class="col-num mono">{{ pair.totalPaidAtTransfer | number }}</td>
+                <td class="col-num mono remaining">{{ pair.totalRemainingAtTransfer | number }}</td>
+                <td class="col-period period-cell">
+                  {{ pair.firstTransferDate | date:'dd/MM/yyyy' }}
+                  @if (pair.lastTransferDate && pair.lastTransferDate !== pair.firstTransferDate) {
+                    <span>
+                      → {{ pair.lastTransferDate | date:'dd/MM/yyyy' }}
+                    </span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
     </div>
   </div>
 
   <div class="table-card a5 detail-card">
     <div class="section-heading">
       Détail des ventes
-      <span *ngIf="selectedPairKey" class="section-hint">Filtré sur {{ selectedPairKey }}</span>
+      @if (selectedPairKey) {
+        <span class="section-hint">Filtré sur {{ selectedPairKey }}</span>
+      }
     </div>
     <div class="table-wrapper">
-      <div *ngIf="loadingDetails" class="empty-state">
-        <div class="empty-icon">⏳</div>
-        <div class="empty-title">Chargement du détail…</div>
-      </div>
+      @if (loadingDetails) {
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <div class="empty-title">Chargement du détail…</div>
+        </div>
+      }
 
-      <div *ngIf="!loadingDetails && details.length === 0" class="empty-state">
-        <div class="empty-icon">📋</div>
-        <div class="empty-title">Aucune vente dans ce périmètre</div>
-        <div class="empty-sub">Sélectionnez un couple dans le tableau ci-dessus ou élargissez les filtres.</div>
-      </div>
+      @if (!loadingDetails && details.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <div class="empty-title">Aucune vente dans ce périmètre</div>
+          <div class="empty-sub">Sélectionnez un couple dans le tableau ci-dessus ou élargissez les filtres.</div>
+        </div>
+      }
 
-      <table *ngIf="!loadingDetails && details.length > 0" class="data-table detail-table">
-        <thead>
-          <tr>
-            <th class="col-date">Date</th>
-            <th class="col-ref">Référence</th>
-            <th class="col-client">Client</th>
-            <th class="col-passation">Passation</th>
-            <th class="col-num">Vente</th>
-            <th class="col-num">Recouvré</th>
-            <th class="col-num">Restant</th>
-            <th class="col-num">Restant actuel</th>
-            <th class="col-actions"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of details">
-            <td class="col-date mono">{{ row.changeDate | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td class="col-ref mono">{{ row.creditReference || ('#' + row.creditId) }}</td>
-            <td class="col-client">
-              <div class="client-name">{{ row.clientName || '—' }}</div>
-              <div class="client-sub" *ngIf="row.clientPhone">{{ row.clientPhone }}</div>
-            </td>
-            <td class="col-passation">
-              <span class="collector-chip">{{ row.oldCollector }}</span>
-              <span class="arrow">→</span>
-              <span class="collector-chip chip-in">{{ row.newCollector }}</span>
-            </td>
-            <td class="col-num mono">{{ row.totalAmount | number }}</td>
-            <td class="col-num mono">{{ row.totalAmountPaid | number }}</td>
-            <td class="col-num mono remaining">{{ row.totalAmountRemaining | number }}</td>
-            <td class="col-num mono">{{ row.currentAmountRemaining | number }}</td>
-            <td class="col-actions">
-              <button type="button" class="btn-detail" (click)="openCredit(row.creditId)">Détail</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      @if (!loadingDetails && details.length > 0) {
+        <table class="data-table detail-table">
+          <thead>
+            <tr>
+              <th class="col-date">Date</th>
+              <th class="col-ref">Référence</th>
+              <th class="col-client">Client</th>
+              <th class="col-passation">Passation</th>
+              <th class="col-num">Vente</th>
+              <th class="col-num">Recouvré</th>
+              <th class="col-num">Restant</th>
+              <th class="col-num">Restant actuel</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of details; track row) {
+              <tr>
+                <td class="col-date mono">{{ row.changeDate | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td class="col-ref mono">{{ row.creditReference || ('#' + row.creditId) }}</td>
+                <td class="col-client">
+                  <div class="client-name">{{ row.clientName || '—' }}</div>
+                  @if (row.clientPhone) {
+                    <div class="client-sub">{{ row.clientPhone }}</div>
+                  }
+                </td>
+                <td class="col-passation">
+                  <span class="collector-chip">{{ row.oldCollector }}</span>
+                  <span class="arrow">→</span>
+                  <span class="collector-chip chip-in">{{ row.newCollector }}</span>
+                </td>
+                <td class="col-num mono">{{ row.totalAmount | number }}</td>
+                <td class="col-num mono">{{ row.totalAmountPaid | number }}</td>
+                <td class="col-num mono remaining">{{ row.totalAmountRemaining | number }}</td>
+                <td class="col-num mono">{{ row.currentAmountRemaining | number }}</td>
+                <td class="col-actions">
+                  <button type="button" class="btn-detail" (click)="openCredit(row.creditId)">Détail</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
     </div>
-    <mat-paginator
-      *ngIf="!loadingDetails && totalDetails > 0"
-      [length]="totalDetails"
-      [pageIndex]="currentPage"
-      [pageSize]="pageSize"
-      [pageSizeOptions]="pageSizeOptions"
-      (page)="onPageChange($event)">
-    </mat-paginator>
+    @if (!loadingDetails && totalDetails > 0) {
+      <mat-paginator
+        [length]="totalDetails"
+        [pageIndex]="currentPage"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="pageSizeOptions"
+        (page)="onPageChange($event)">
+      </mat-paginator>
+    }
   </div>
 </div>

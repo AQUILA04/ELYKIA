@@ -16,7 +16,7 @@
     <div class="header-card-main">
       <div class="title-group">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
           <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
           <path d="M3 6h18"/>
           <path d="M16 10a4 4 0 0 1-8 0"/>
@@ -24,176 +24,184 @@
         <h1 class="page-title">{{ isEditMode ? 'Modifier la commande' : 'Nouvelle commande' }}</h1>
       </div>
     </div>
-    <p class="page-subtitle" *ngIf="currentOrder; else createSubtitle">
-      Commande #{{ currentOrder.id }} — {{ getClientName(currentOrder) }}
-    </p>
-    <ng-template #createSubtitle>
+    @if (currentOrder) {
+      <p class="page-subtitle">
+        Commande #{{ currentOrder.id }} — {{ getClientName(currentOrder) }}
+      </p>
+    } @else {
       <p class="page-subtitle">Sélectionnez un client et ajoutez les articles commandés</p>
-    </ng-template>
+    }
   </div>
 
-  <div *ngIf="isLoading" class="form-card a3 form-loading">
-    <div class="empty-state">
-      <div class="empty-icon">⏳</div>
-      <div class="empty-title">Chargement…</div>
-      <div class="empty-sub">Récupération de la commande</div>
+  @if (isLoading) {
+    <div class="form-card a3 form-loading">
+      <div class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-title">Chargement…</div>
+        <div class="empty-sub">Récupération de la commande</div>
+      </div>
     </div>
-  </div>
+  }
 
-  <form *ngIf="!isLoading" [formGroup]="orderForm" (ngSubmit)="onSubmit()" class="order-form a3">
-    <section class="form-section-card">
-      <div class="section-head">
-        <h2 class="section-title">Informations client</h2>
-        <p class="section-sub">Recherchez et sélectionnez le client concerné</p>
-      </div>
-
-      <div class="field-group">
-        <label class="field-label" for="clientId">Client <span class="req">*</span></label>
-        <app-client-select
-          id="clientId"
-          formControlName="clientId"
-          [username]="currentUser?.username"
-          placeholder="Rechercher et sélectionner un client">
-        </app-client-select>
-        <span class="field-error" *ngIf="hasError('clientId', 'required')">
-          {{ getErrorMessage('clientId') }}
-        </span>
-      </div>
-    </section>
-
-    <section class="form-section-card">
-      <div class="section-head">
-        <h2 class="section-title">Articles commandés</h2>
-        <p class="section-sub">Ajoutez les articles et leurs quantités</p>
-      </div>
-
-      <div class="items-list" formArrayName="items">
-        <div
-          *ngFor="let itemControl of itemsFormArray.controls; let i = index; trackBy: trackByIndex"
-          [formGroupName]="i"
-          class="item-panel">
-          <div class="item-panel-head">
-            <span class="item-index">Ligne {{ i + 1 }}</span>
-            <button
-              type="button"
-              class="btn-remove-item"
-              (click)="removeItem(i)"
-              title="Supprimer cette ligne"
-              aria-label="Supprimer cette ligne">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            </button>
+  @if (!isLoading) {
+    <form [formGroup]="orderForm" (ngSubmit)="onSubmit()" class="order-form a3">
+      <section class="form-section-card">
+        <div class="section-head">
+          <h2 class="section-title">Informations client</h2>
+          <p class="section-sub">Recherchez et sélectionnez le client concerné</p>
+        </div>
+        <div class="field-group">
+          <label class="field-label" for="clientId">Client <span class="req">*</span></label>
+          <app-client-select
+            id="clientId"
+            formControlName="clientId"
+            [username]="currentUser?.username"
+            placeholder="Rechercher et sélectionner un client">
+          </app-client-select>
+          @if (hasError('clientId', 'required')) {
+            <span class="field-error">
+              {{ getErrorMessage('clientId') }}
+            </span>
+          }
+        </div>
+      </section>
+      <section class="form-section-card">
+        <div class="section-head">
+          <h2 class="section-title">Articles commandés</h2>
+          <p class="section-sub">Ajoutez les articles et leurs quantités</p>
+        </div>
+        <div class="items-list" formArrayName="items">
+          @for (itemControl of itemsFormArray.controls; track $index; let i = $index) {
+            <div
+              [formGroupName]="i"
+              class="item-panel">
+              <div class="item-panel-head">
+                <span class="item-index">Ligne {{ i + 1 }}</span>
+                <button
+                  type="button"
+                  class="btn-remove-item"
+                  (click)="removeItem(i)"
+                  title="Supprimer cette ligne"
+                  aria-label="Supprimer cette ligne">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+              <div class="item-grid">
+                <div class="field-group item-article">
+                  <label class="field-label">Article <span class="req">*</span></label>
+                  <input
+                    type="text"
+                    matInput
+                    class="field-input"
+                    [matAutocomplete]="articleAuto"
+                    placeholder="Rechercher un article…"
+                    (input)="onArticleSearch($event)"
+                    [value]="itemControl.get('article')?.value?.name || ''"
+                    autocomplete="off">
+                  <mat-autocomplete
+                    #articleAuto="matAutocomplete"
+                    [displayWith]="displayArticle"
+                    (optionSelected)="onArticleSelected($event.option.value, itemControl)">
+                    @for (article of filteredArticles$ | async; track article) {
+                      <mat-option [value]="article">
+                        <div class="option-row">
+                          <span class="option-main">{{ article.name }}</span>
+                          <span class="option-meta">{{ article.code }}</span>
+                          <span class="option-price">{{ getArticlePrice(article) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                        </div>
+                      </mat-option>
+                    }
+                  </mat-autocomplete>
+                  @if (itemControl.get('articleId')?.invalid && itemControl.get('articleId')?.touched) {
+                    <span class="field-error">
+                      Veuillez sélectionner un article
+                    </span>
+                  }
+                </div>
+                <div class="field-group item-qty">
+                  <label class="field-label">Quantité <span class="req">*</span></label>
+                  <input
+                    type="number"
+                    class="field-input"
+                    formControlName="quantity"
+                    min="1"
+                    placeholder="1">
+                  @if (itemControl.get('quantity')?.hasError('required') && itemControl.get('quantity')?.touched) {
+                    <span class="field-error">
+                      Quantité requise
+                    </span>
+                  }
+                  @if (itemControl.get('quantity')?.hasError('min') && itemControl.get('quantity')?.touched) {
+                    <span class="field-error">
+                      Quantité minimum : 1
+                    </span>
+                  }
+                </div>
+                <div class="field-group item-price" *appIfUnitPrice>
+                  <label class="field-label">Prix unitaire</label>
+                  <input
+                    type="number"
+                    class="field-input field-readonly"
+                    formControlName="unitPrice"
+                    readonly
+                    placeholder="—">
+                  <span class="field-hint">Défini automatiquement par l'article</span>
+                </div>
+                <div class="item-total" *appIfUnitPrice>
+                  <span class="item-total-label">Total ligne</span>
+                  <span class="item-total-value">{{ itemControl.get('totalPrice')?.value | currency:'XOF':'symbol':'1.0-0' }}</span>
+                </div>
+              </div>
+            </div>
+          }
+          @if (itemsFormArray.length === 0) {
+            <div class="no-items">
+              <div class="empty-icon">📦</div>
+              <div class="empty-title">Aucun article</div>
+              <div class="empty-sub">Cliquez sur « Ajouter un article » pour commencer</div>
+            </div>
+          }
+        </div>
+        <div class="add-item-row">
+          <button type="button" class="btn-add-item" (click)="addItem()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            Ajouter un article
+          </button>
+        </div>
+        @if (itemsFormArray.hasError('minItems') && itemsFormArray.touched) {
+          <span class="field-error">
+            {{ validationMessages.ITEMS_REQUIRED }}
+          </span>
+        }
+      </section>
+      <section class="form-section-card summary-card">
+        <div class="section-head">
+          <h2 class="section-title">Résumé</h2>
+        </div>
+        <div class="summary-rows">
+          <div class="summary-row">
+            <span class="summary-label">Nombre d'articles</span>
+            <span class="summary-value">{{ itemsFormArray.length }}</span>
           </div>
-
-          <div class="item-grid">
-            <div class="field-group item-article">
-              <label class="field-label">Article <span class="req">*</span></label>
-              <input
-                type="text"
-                matInput
-                class="field-input"
-                [matAutocomplete]="articleAuto"
-                placeholder="Rechercher un article…"
-                (input)="onArticleSearch($event)"
-                [value]="itemControl.get('article')?.value?.name || ''"
-                autocomplete="off">
-              <mat-autocomplete
-                #articleAuto="matAutocomplete"
-                [displayWith]="displayArticle"
-                (optionSelected)="onArticleSelected($event.option.value, itemControl)">
-                <mat-option *ngFor="let article of filteredArticles$ | async" [value]="article">
-                  <div class="option-row">
-                    <span class="option-main">{{ article.name }}</span>
-                    <span class="option-meta">{{ article.code }}</span>
-                    <span class="option-price">{{ getArticlePrice(article) | currency:'XOF':'symbol':'1.0-0' }}</span>
-                  </div>
-                </mat-option>
-              </mat-autocomplete>
-              <span class="field-error" *ngIf="itemControl.get('articleId')?.invalid && itemControl.get('articleId')?.touched">
-                Veuillez sélectionner un article
-              </span>
-            </div>
-
-            <div class="field-group item-qty">
-              <label class="field-label">Quantité <span class="req">*</span></label>
-              <input
-                type="number"
-                class="field-input"
-                formControlName="quantity"
-                min="1"
-                placeholder="1">
-              <span class="field-error" *ngIf="itemControl.get('quantity')?.hasError('required') && itemControl.get('quantity')?.touched">
-                Quantité requise
-              </span>
-              <span class="field-error" *ngIf="itemControl.get('quantity')?.hasError('min') && itemControl.get('quantity')?.touched">
-                Quantité minimum : 1
-              </span>
-            </div>
-
-            <div class="field-group item-price" *appIfUnitPrice>
-              <label class="field-label">Prix unitaire</label>
-              <input
-                type="number"
-                class="field-input field-readonly"
-                formControlName="unitPrice"
-                readonly
-                placeholder="—">
-              <span class="field-hint">Défini automatiquement par l'article</span>
-            </div>
-
-            <div class="item-total" *appIfUnitPrice>
-              <span class="item-total-label">Total ligne</span>
-              <span class="item-total-value">{{ itemControl.get('totalPrice')?.value | currency:'XOF':'symbol':'1.0-0' }}</span>
-            </div>
+          <div class="summary-row">
+            <span class="summary-label">Quantité totale</span>
+            <span class="summary-value">{{ totalQuantity }}</span>
+          </div>
+          <div class="summary-row summary-total">
+            <span class="summary-label">Montant total</span>
+            <span class="summary-value">{{ totalAmount | currency:'XOF':'symbol':'1.0-0' }}</span>
           </div>
         </div>
-
-        <div class="no-items" *ngIf="itemsFormArray.length === 0">
-          <div class="empty-icon">📦</div>
-          <div class="empty-title">Aucun article</div>
-          <div class="empty-sub">Cliquez sur « Ajouter un article » pour commencer</div>
-        </div>
-      </div>
-
-      <div class="add-item-row">
-        <button type="button" class="btn-add-item" (click)="addItem()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-          Ajouter un article
+      </section>
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isSaving">Annuler</button>
+        <button type="submit" class="btn-submit" [disabled]="!isFormValid || isSaving">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          {{ submitButtonText }}
         </button>
       </div>
-
-      <span class="field-error" *ngIf="itemsFormArray.hasError('minItems') && itemsFormArray.touched">
-        {{ validationMessages.ITEMS_REQUIRED }}
-      </span>
-    </section>
-
-    <section class="form-section-card summary-card">
-      <div class="section-head">
-        <h2 class="section-title">Résumé</h2>
-      </div>
-      <div class="summary-rows">
-        <div class="summary-row">
-          <span class="summary-label">Nombre d'articles</span>
-          <span class="summary-value">{{ itemsFormArray.length }}</span>
-        </div>
-        <div class="summary-row">
-          <span class="summary-label">Quantité totale</span>
-          <span class="summary-value">{{ totalQuantity }}</span>
-        </div>
-        <div class="summary-row summary-total">
-          <span class="summary-label">Montant total</span>
-          <span class="summary-value">{{ totalAmount | currency:'XOF':'symbol':'1.0-0' }}</span>
-        </div>
-      </div>
-    </section>
-
-    <div class="form-actions">
-      <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isSaving">Annuler</button>
-      <button type="submit" class="btn-submit" [disabled]="!isFormValid || isSaving">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-        </svg>
-        {{ submitButtonText }}
-      </button>
-    </div>
-  </form>
+    </form>
+  }
 </div>

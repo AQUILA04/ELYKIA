@@ -69,37 +69,47 @@
     <mat-tab-group (selectedTabChange)="onTabChange($event)">
       <mat-tab label="Ventes">
         <ng-template matTabContent>
-          <div *ngIf="selectedTabIndex === 0">
-            <ng-container *ngTemplateOutlet="ventesTemplate"></ng-container>
-          </div>
+          @if (selectedTabIndex === 0) {
+            <div>
+              <ng-container *ngTemplateOutlet="ventesTemplate"></ng-container>
+            </div>
+          }
         </ng-template>
       </mat-tab>
       <mat-tab label="Historiques">
         <ng-template matTabContent>
-          <div *ngIf="selectedTabIndex === 1">
-            <ng-container *ngTemplateOutlet="historiquesTemplate"></ng-container>
-          </div>
+          @if (selectedTabIndex === 1) {
+            <div>
+              <ng-container *ngTemplateOutlet="historiquesTemplate"></ng-container>
+            </div>
+          }
         </ng-template>
       </mat-tab>
       <mat-tab label="Clients">
         <ng-template matTabContent>
-          <div *ngIf="selectedTabIndex === 2">
-            <ng-container *ngTemplateOutlet="clientsTemplate"></ng-container>
-          </div>
+          @if (selectedTabIndex === 2) {
+            <div>
+              <ng-container *ngTemplateOutlet="clientsTemplate"></ng-container>
+            </div>
+          }
         </ng-template>
       </mat-tab>
       <mat-tab label="Sorties en attente">
         <ng-template matTabContent>
-          <div *ngIf="selectedTabIndex === 3">
-            <ng-container *ngTemplateOutlet="sortiesTemplate"></ng-container>
-          </div>
+          @if (selectedTabIndex === 3) {
+            <div>
+              <ng-container *ngTemplateOutlet="sortiesTemplate"></ng-container>
+            </div>
+          }
         </ng-template>
       </mat-tab>
       <mat-tab label="Historiques Sorties">
         <ng-template matTabContent>
-          <div *ngIf="selectedTabIndex === 4">
-            <ng-container *ngTemplateOutlet="sortiesHistoriqueTemplate"></ng-container>
-          </div>
+          @if (selectedTabIndex === 4) {
+            <div>
+              <ng-container *ngTemplateOutlet="sortiesHistoriqueTemplate"></ng-container>
+            </div>
+          }
         </ng-template>
       </mat-tab>
     </mat-tab-group>
@@ -139,31 +149,35 @@
     <div class="table-container">
       <table class="article-table">
         <thead>
-        <tr>
-          <th>#</th>
-          <th>Référence</th>
-          <th>Client</th>
-          <th>Montant</th>
-          <th>Date de création</th>
-          <th>Statut</th>
-        </tr>
+          <tr>
+            <th>#</th>
+            <th>Référence</th>
+            <th>Client</th>
+            <th>Montant</th>
+            <th>Date de création</th>
+            <th>Statut</th>
+          </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let credit of credits; let i = index">
-          <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
-          <td><a [routerLink]="['/credit/view', credit.id, credit.clientType]" class="table-link">{{ credit.reference }}</a></td>
-          <td><a [routerLink]="['/client/view', credit.client?.id]" class="table-link">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</a></td>
-          <td>{{ credit.totalAmount | number:'1.0-0' }} FCFA</td>
-          <td>{{ credit.beginDate | date:'dd/MM/yyyy' }}</td>
-          <td>
-              <span class="badge {{ (credit.status | statusBadge).badgeClass }}">
-                {{ (credit.status | statusBadge).label }}
-              </span>
-          </td>
-        </tr>
-        <tr *ngIf="!credits || credits.length === 0">
-          <td colspan="6" class="no-data-cell">Aucune donnée à afficher.</td>
-        </tr>
+          @for (credit of credits; track credit; let i = $index) {
+            <tr>
+              <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
+              <td><a [routerLink]="['/credit/view', credit.id, credit.clientType]" class="table-link">{{ credit.reference }}</a></td>
+              <td><a [routerLink]="['/client/view', credit.client?.id]" class="table-link">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</a></td>
+              <td>{{ credit.totalAmount | number:'1.0-0' }} FCFA</td>
+              <td>{{ credit.beginDate | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <span class="badge {{ (credit.status | statusBadge).badgeClass }}">
+                  {{ (credit.status | statusBadge).label }}
+                </span>
+              </td>
+            </tr>
+          }
+          @if (!credits || credits.length === 0) {
+            <tr>
+              <td colspan="6" class="no-data-cell">Aucune donnée à afficher.</td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
@@ -223,25 +237,29 @@
     <div class="table-container">
       <table class="article-table">
         <thead>
-        <tr>
-          <th>#</th>
-          <th>Nom</th>
-          <th>Prénom</th>
-          <th>Localité</th>
-          <th>Numéro de téléphone</th>
-        </tr>
+          <tr>
+            <th>#</th>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Localité</th>
+            <th>Numéro de téléphone</th>
+          </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let client of clients; let i = index">
-          <td>{{ (currentClientPage * clientPageSize) + (i + 1) }}</td>
-          <td>{{ client.lastname }}</td>
-          <td>{{ client.firstname }}</td>
-          <td>{{ client.address }}</td>
-          <td>{{ client.phone }}</td>
-        </tr>
-        <tr *ngIf="!clients || clients.length === 0">
-          <td colspan="5" class="no-data-cell">Aucun client à afficher.</td>
-        </tr>
+          @for (client of clients; track client; let i = $index) {
+            <tr>
+              <td>{{ (currentClientPage * clientPageSize) + (i + 1) }}</td>
+              <td>{{ client.lastname }}</td>
+              <td>{{ client.firstname }}</td>
+              <td>{{ client.address }}</td>
+              <td>{{ client.phone }}</td>
+            </tr>
+          }
+          @if (!clients || clients.length === 0) {
+            <tr>
+              <td colspan="5" class="no-data-cell">Aucun client à afficher.</td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>

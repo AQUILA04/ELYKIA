@@ -6,20 +6,28 @@
     </div>
   </div>
 
-  <div class="panel-loading" *ngIf="loading">Chargement…</div>
-  <div class="panel-empty" *ngIf="!loading && operations.length === 0">
-    Aucune activité sur la période.
-  </div>
+  @if (loading) {
+    <div class="panel-loading">Chargement…</div>
+  }
+  @if (!loading && operations.length === 0) {
+    <div class="panel-empty">
+      Aucune activité sur la période.
+    </div>
+  }
 
-  <ul class="activity-list" *ngIf="!loading && operations.length > 0">
-    <li *ngFor="let op of operations">
-      <span class="activity-icon"><mat-icon>{{ icon(op) }}</mat-icon></span>
-      <div class="activity-content">
-        <p>{{ message(op) }}</p>
-        <span class="activity-time">{{ op.timestamp | timeAgo }}</span>
-      </div>
-    </li>
-  </ul>
+  @if (!loading && operations.length > 0) {
+    <ul class="activity-list">
+      @for (op of operations; track op) {
+        <li>
+          <span class="activity-icon"><mat-icon>{{ icon(op) }}</mat-icon></span>
+          <div class="activity-content">
+            <p>{{ message(op) }}</p>
+            <span class="activity-time">{{ op.timestamp | timeAgo }}</span>
+          </div>
+        </li>
+      }
+    </ul>
+  }
 
   <a routerLink="/report/daily" class="panel-footer-link">Voir tout l'historique</a>
 </div>

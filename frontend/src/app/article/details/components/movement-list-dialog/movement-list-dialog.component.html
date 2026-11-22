@@ -7,8 +7,12 @@
   </div>
   <div>
     <h2 class="mld-title">Historique des mouvements</h2>
-    <p class="mld-subtitle" *ngIf="data.articleName">{{ data.articleName }}</p>
-    <p class="mld-subtitle" *ngIf="!data.articleName">{{ data.movements.length }} mouvement(s)</p>
+    @if (data.articleName) {
+      <p class="mld-subtitle">{{ data.articleName }}</p>
+    }
+    @if (!data.articleName) {
+      <p class="mld-subtitle">{{ data.movements.length }} mouvement(s)</p>
+    }
   </div>
   <button class="mld-close" type="button" (click)="onClose()" aria-label="Fermer">
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">

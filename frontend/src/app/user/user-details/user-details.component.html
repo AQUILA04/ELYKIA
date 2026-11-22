@@ -1,232 +1,246 @@
-<div class="main-container user-details-page page-loading-shell" *ngIf="isLoading">
-  <div class="page-loading">
-    <mat-spinner diameter="44"></mat-spinner>
-    <span>Chargement de l'utilisateur…</span>
-  </div>
-</div>
-
-<div class="main-container user-details-page" *ngIf="!isLoading && user">
-  <div class="page-fixed-head">
-    <div class="breadcrumb-bar">
-      <a routerLink="/user/list" class="breadcrumb-link">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
-        </svg>
-        Liste des utilisateurs
-      </a>
-      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+@if (isLoading) {
+  <div class="main-container user-details-page page-loading-shell">
+    <div class="page-loading">
+      <mat-spinner diameter="44"></mat-spinner>
+      <span>Chargement de l'utilisateur…</span>
     </div>
+  </div>
+}
 
-    <div class="details-header-card">
-      <div class="details-header-main">
-        <div class="details-title-block">
-          <span class="header-surtitle">FICHE UTILISATEUR</span>
-          <h1 class="user-fullname">{{ user.firstname }} {{ user.lastname }}</h1>
-          <p class="user-subtitle">
-            <span class="mono">{{ user.username }}</span>
-            <span class="dot-sep">·</span>
-            {{ user.profil?.name || 'Profil non défini' }}
-          </p>
-          <div class="user-status-badges">
-            <span class="status-chip" [ngClass]="isUserActive() ? 'chip-active' : 'chip-inactive'">
-              {{ getStatusLabel() }}
-            </span>
-            <span class="status-chip chip-warn" *ngIf="user.mustChangePassword">
-              Changement mot de passe requis
-            </span>
+@if (!isLoading && user) {
+  <div class="main-container user-details-page">
+    <div class="page-fixed-head">
+      <div class="breadcrumb-bar">
+        <a routerLink="/user/list" class="breadcrumb-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+          </svg>
+          Liste des utilisateurs
+        </a>
+        <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+      </div>
+      <div class="details-header-card">
+        <div class="details-header-main">
+          <div class="details-title-block">
+            <span class="header-surtitle">FICHE UTILISATEUR</span>
+            <h1 class="user-fullname">{{ user.firstname }} {{ user.lastname }}</h1>
+            <p class="user-subtitle">
+              <span class="mono">{{ user.username }}</span>
+              <span class="dot-sep">·</span>
+              {{ user.profil?.name || 'Profil non défini' }}
+            </p>
+            <div class="user-status-badges">
+              <span class="status-chip" [ngClass]="isUserActive() ? 'chip-active' : 'chip-inactive'">
+                {{ getStatusLabel() }}
+              </span>
+              @if (user.mustChangePassword) {
+                <span class="status-chip chip-warn">
+                  Changement mot de passe requis
+                </span>
+              }
+            </div>
           </div>
-        </div>
-        <div class="details-header-actions">
-          <button type="button" class="btn-outline" (click)="onCancel()">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
-            Retour
-          </button>
-          <button
-            *ngxPermissionsOnly="['ROLE_EDIT_USER']"
-            type="button"
-            class="btn-outline"
-            [class.btn-warn]="isUserActive()"
-            [class.btn-success]="!isUserActive()"
-            (click)="toggleActive()">
-            <svg *ngIf="isUserActive()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            <svg *ngIf="!isUserActive()" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
-            {{ isUserActive() ? 'Désactiver' : 'Activer' }}
-          </button>
-          <button
-            *ngxPermissionsOnly="['ROLE_EDIT_USER']"
-            type="button"
-            class="btn-outline"
-            (click)="resetPassword()">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Réinitialiser le mot de passe
-          </button>
-          <ng-container *ngxPermissionsOnly="['ROLE_EDIT_USER']">
-            <button
-              *ngIf="!user.mustChangePassword"
-              type="button"
-              class="btn-outline btn-warn"
-              (click)="requirePasswordChange()">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-              Exiger le changement de mot de passe
+          <div class="details-header-actions">
+            <button type="button" class="btn-outline" (click)="onCancel()">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+              Retour
             </button>
-          </ng-container>
-          <button type="button" class="btn-primary" (click)="navigateToEdit()">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-            Modifier
-          </button>
+            <button
+              *ngxPermissionsOnly="['ROLE_EDIT_USER']"
+              type="button"
+              class="btn-outline"
+              [class.btn-warn]="isUserActive()"
+              [class.btn-success]="!isUserActive()"
+              (click)="toggleActive()">
+              @if (isUserActive()) {
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              }
+              @if (!isUserActive()) {
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+              }
+              {{ isUserActive() ? 'Désactiver' : 'Activer' }}
+            </button>
+            <button
+              *ngxPermissionsOnly="['ROLE_EDIT_USER']"
+              type="button"
+              class="btn-outline"
+              (click)="resetPassword()">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Réinitialiser le mot de passe
+            </button>
+            <ng-container *ngxPermissionsOnly="['ROLE_EDIT_USER']">
+              @if (!user.mustChangePassword) {
+                <button
+                  type="button"
+                  class="btn-outline btn-warn"
+                  (click)="requirePasswordChange()">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                  Exiger le changement de mot de passe
+                </button>
+              }
+            </ng-container>
+            <button type="button" class="btn-primary" (click)="navigateToEdit()">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+              Modifier
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-
-  <div class="page-scroll-body">
-    <div class="details-layout">
-      <section class="info-card">
-        <div class="info-card-header">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <h2>Informations générales</h2>
-        </div>
-        <dl class="info-grid">
-          <div class="info-item">
-            <dt>Identifiant</dt>
-            <dd class="mono">{{ user.username || '—' }}</dd>
+    <div class="page-scroll-body">
+      <div class="details-layout">
+        <section class="info-card">
+          <div class="info-card-header">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <h2>Informations générales</h2>
           </div>
-          <div class="info-item">
-            <dt>Nom</dt>
-            <dd>{{ user.lastname || '—' }}</dd>
-          </div>
-          <div class="info-item">
-            <dt>Prénom</dt>
-            <dd>{{ user.firstname || '—' }}</dd>
-          </div>
-          <div class="info-item">
-            <dt>Email</dt>
-            <dd>{{ user.email || '—' }}</dd>
-          </div>
-          <div class="info-item">
-            <dt>Téléphone</dt>
-            <dd class="mono">{{ user.phone || '—' }}</dd>
-          </div>
-          <div class="info-item">
-            <dt>Genre</dt>
-            <dd>{{ user.gender || '—' }}</dd>
-          </div>
-          <div class="info-item">
-            <dt>Profil</dt>
-            <dd>{{ user.profil?.name || '—' }}</dd>
-          </div>
-          <div class="info-item">
-            <dt>État du compte</dt>
-            <dd>
-              <span class="status-badge" [ngClass]="isUserActive() ? 'status-active' : 'status-inactive'">
-                {{ getStatusLabel() }}
-              </span>
-            </dd>
-          </div>
-        </dl>
-      </section>
-
-      <section class="info-card mobile-devices-card" *ngIf="mobileDeviceManagementEnabled">
-        <div class="info-card-header">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
-          <div>
-            <h2>Appareils mobiles</h2>
-            <p class="section-hint">Contrôle des appareils autorisés pour l'application mobile</p>
-          </div>
-        </div>
-
-        <div class="mobile-device-banner" *ngIf="!mobileDeviceRestrictionParameterEnabled">
-          Fonctionnalité visible mais non active côté serveur — activez le contrôle dans Paramètres.
-        </div>
-
-        <div class="mobile-device-toggle" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
-          <label class="toggle-label">
-            <input
-              type="checkbox"
-              [checked]="user.mobileDeviceRestrictionEnabled === true"
-              [disabled]="!mobileDeviceRestrictionParameterEnabled || updatingDeviceRestriction"
-              (change)="onDeviceRestrictionToggle($any($event.target).checked)">
-            <span>Restreindre les connexions à des appareils autorisés</span>
-          </label>
-        </div>
-
-        <div class="devices-loading" *ngIf="loadingDevices">
-          <mat-spinner diameter="32"></mat-spinner>
-        </div>
-
-        <div class="devices-empty" *ngIf="!loadingDevices && authorizedDevices.length === 0">
-          Aucun appareil enregistré — le premier login enregistrera automatiquement l'appareil.
-        </div>
-
-        <table class="devices-table" *ngIf="!loadingDevices && authorizedDevices.length > 0">
-          <thead>
-            <tr>
-              <th>Appareil</th>
-              <th>Plateforme</th>
-              <th>Modèle</th>
-              <th>Version</th>
-              <th>Dernière activité</th>
-              <th>Statut</th>
-              <th *ngxPermissionsOnly="['ROLE_EDIT_USER']">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let device of authorizedDevices">
-              <td>{{ device.deviceLabel || '—' }}</td>
-              <td>{{ device.platform || '—' }}</td>
-              <td>{{ device.model || '—' }}</td>
-              <td>{{ device.appVersion || '—' }}</td>
-              <td>{{ device.lastSeenAt | date:'dd/MM/yyyy HH:mm' }}</td>
-              <td>
-                <span class="status-badge" [ngClass]="device.active ? 'status-active' : 'status-inactive'">
-                  {{ device.active ? 'Autorisé' : 'Révoqué' }}
+          <dl class="info-grid">
+            <div class="info-item">
+              <dt>Identifiant</dt>
+              <dd class="mono">{{ user.username || '—' }}</dd>
+            </div>
+            <div class="info-item">
+              <dt>Nom</dt>
+              <dd>{{ user.lastname || '—' }}</dd>
+            </div>
+            <div class="info-item">
+              <dt>Prénom</dt>
+              <dd>{{ user.firstname || '—' }}</dd>
+            </div>
+            <div class="info-item">
+              <dt>Email</dt>
+              <dd>{{ user.email || '—' }}</dd>
+            </div>
+            <div class="info-item">
+              <dt>Téléphone</dt>
+              <dd class="mono">{{ user.phone || '—' }}</dd>
+            </div>
+            <div class="info-item">
+              <dt>Genre</dt>
+              <dd>{{ user.gender || '—' }}</dd>
+            </div>
+            <div class="info-item">
+              <dt>Profil</dt>
+              <dd>{{ user.profil?.name || '—' }}</dd>
+            </div>
+            <div class="info-item">
+              <dt>État du compte</dt>
+              <dd>
+                <span class="status-badge" [ngClass]="isUserActive() ? 'status-active' : 'status-inactive'">
+                  {{ getStatusLabel() }}
                 </span>
-              </td>
-              <td *ngxPermissionsOnly="['ROLE_EDIT_USER']">
-                <button
-                  type="button"
-                  class="btn-outline btn-sm"
-                  *ngIf="device.active"
-                  (click)="revokeDevice(device)">
-                  Révoquer
-                </button>
-                <button
-                  type="button"
-                  class="btn-outline btn-sm"
-                  *ngIf="!device.active"
-                  (click)="restoreDevice(device)">
-                  Réactiver
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      <section class="permissions-card">
-        <div class="info-card-header">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <div>
-            <h2>Permissions spécifiques</h2>
-            <p class="section-hint">Permissions additionnelles au profil « {{ user.profil?.name || '—' }} »</p>
+              </dd>
+            </div>
+          </dl>
+        </section>
+        @if (mobileDeviceManagementEnabled) {
+          <section class="info-card mobile-devices-card">
+            <div class="info-card-header">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg>
+              <div>
+                <h2>Appareils mobiles</h2>
+                <p class="section-hint">Contrôle des appareils autorisés pour l'application mobile</p>
+              </div>
+            </div>
+            @if (!mobileDeviceRestrictionParameterEnabled) {
+              <div class="mobile-device-banner">
+                Fonctionnalité visible mais non active côté serveur — activez le contrôle dans Paramètres.
+              </div>
+            }
+            <div class="mobile-device-toggle" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
+              <label class="toggle-label">
+                <input
+                  type="checkbox"
+                  [checked]="user.mobileDeviceRestrictionEnabled === true"
+                  [disabled]="!mobileDeviceRestrictionParameterEnabled || updatingDeviceRestriction"
+                  (change)="onDeviceRestrictionToggle($any($event.target).checked)">
+                <span>Restreindre les connexions à des appareils autorisés</span>
+              </label>
+            </div>
+            @if (loadingDevices) {
+              <div class="devices-loading">
+                <mat-spinner diameter="32"></mat-spinner>
+              </div>
+            }
+            @if (!loadingDevices && authorizedDevices.length === 0) {
+              <div class="devices-empty">
+                Aucun appareil enregistré — le premier login enregistrera automatiquement l'appareil.
+              </div>
+            }
+            @if (!loadingDevices && authorizedDevices.length > 0) {
+              <table class="devices-table">
+                <thead>
+                  <tr>
+                    <th>Appareil</th>
+                    <th>Plateforme</th>
+                    <th>Modèle</th>
+                    <th>Version</th>
+                    <th>Dernière activité</th>
+                    <th>Statut</th>
+                    <th *ngxPermissionsOnly="['ROLE_EDIT_USER']">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (device of authorizedDevices; track device) {
+                    <tr>
+                      <td>{{ device.deviceLabel || '—' }}</td>
+                      <td>{{ device.platform || '—' }}</td>
+                      <td>{{ device.model || '—' }}</td>
+                      <td>{{ device.appVersion || '—' }}</td>
+                      <td>{{ device.lastSeenAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                      <td>
+                        <span class="status-badge" [ngClass]="device.active ? 'status-active' : 'status-inactive'">
+                          {{ device.active ? 'Autorisé' : 'Révoqué' }}
+                        </span>
+                      </td>
+                      <td *ngxPermissionsOnly="['ROLE_EDIT_USER']">
+                        @if (device.active) {
+                          <button
+                            type="button"
+                            class="btn-outline btn-sm"
+                            (click)="revokeDevice(device)">
+                            Révoquer
+                          </button>
+                        }
+                        @if (!device.active) {
+                          <button
+                            type="button"
+                            class="btn-outline btn-sm"
+                            (click)="restoreDevice(device)">
+                            Réactiver
+                          </button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            }
+          </section>
+        }
+        <section class="permissions-card">
+          <div class="info-card-header">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <div>
+              <h2>Permissions spécifiques</h2>
+              <p class="section-hint">Permissions additionnelles au profil « {{ user.profil?.name || '—' }} »</p>
+            </div>
           </div>
-        </div>
-
-        <div class="permissions-body">
-          <app-permission-picklist
-            [allPermissions]="allPermissions"
-            [assignedPermissions]="assignedPermissions"
-            (assignedPermissionsChange)="onPermissionsChange($event)">
-          </app-permission-picklist>
-        </div>
-
-        <div class="permissions-footer">
-          <button type="button" class="btn-primary" (click)="savePermissions()">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-            Enregistrer les permissions
-          </button>
-        </div>
-      </section>
+          <div class="permissions-body">
+            <app-permission-picklist
+              [allPermissions]="allPermissions"
+              [assignedPermissions]="assignedPermissions"
+              (assignedPermissionsChange)="onPermissionsChange($event)">
+            </app-permission-picklist>
+          </div>
+          <div class="permissions-footer">
+            <button type="button" class="btn-primary" (click)="savePermissions()">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Enregistrer les permissions
+            </button>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
-</div>
+}

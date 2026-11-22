@@ -3,12 +3,14 @@
   <div class="header-fixed">
     <div class="client-view-title-row">
       <h1>Vue client</h1>
-      <span *ngIf="registrationSource === 'CUSTOMER_SPACE'" class="badge badge-self" title="Inscrit via l'Espace client">
-        Inscrit via l'Espace client
-      </span>
+      @if (registrationSource === 'CUSTOMER_SPACE') {
+        <span class="badge badge-self" title="Inscrit via l'Espace client">
+          Inscrit via l'Espace client
+        </span>
+      }
     </div>
   </div>
-  
+
   <div class="client-details">
     <div class="row">
       <div class="col-md-6">
@@ -25,16 +27,16 @@
           <span class="detail-value">{{this.clientDetails.address ?? 'Non spécifié'}}</span>
         </div>
         <div class="detail-line">
-            <span class="detail-label">Occupation:</span>
-            <span class="detail-value">{{this.clientDetails.occupation ?? 'Non spécifié'}}</span>
+          <span class="detail-label">Occupation:</span>
+          <span class="detail-value">{{this.clientDetails.occupation ?? 'Non spécifié'}}</span>
         </div>
         <div class="detail-line">
-            <span class="detail-label">Commercial en charge:</span>
-            <span class="detail-value"><a [routerLink]="['/credit/view', this.clientId]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{this.clientDetails.collector ?? 'Non spécifié'}}</a> </span>
+          <span class="detail-label">Commercial en charge:</span>
+          <span class="detail-value"><a [routerLink]="['/credit/view', this.clientId]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{this.clientDetails.collector ?? 'Non spécifié'}}</a> </span>
         </div>
         <div class="detail-line">
-            <span class="detail-label">Numéro de compte:</span>
-            <span class="detail-value">{{this.clientDetails.accountNumber ?? 'Non spécifié'}}</span>
+          <span class="detail-label">Numéro de compte:</span>
+          <span class="detail-value">{{this.clientDetails.accountNumber ?? 'Non spécifié'}}</span>
         </div>
       </div>
       <div class="col-md-6">
@@ -43,51 +45,57 @@
           <span class="detail-value">{{this.clientDetails.totalInProgressCredit ?? 0}}</span>
         </div>
         <div class="detail-line">
-            <span class="detail-label">Montant total de l'achat en cours:</span>
-            <span class="detail-value">{{this.clientDetails.totalInProgressCreditAmount ?? 0}} {{' FCFA'}}</span>
-          </div>
+          <span class="detail-label">Montant total de l'achat en cours:</span>
+          <span class="detail-value">{{this.clientDetails.totalInProgressCreditAmount ?? 0}} {{' FCFA'}}</span>
+        </div>
         <div class="detail-line">
           <span class="detail-label">Montant total dû à date:</span>
           <span class="detail-value">{{this.clientDetails.totalInProgressAmountDue ?? 0}} {{' FCFA'}}</span>
         </div>
         <div class="detail-line">
-            <span class="detail-label">Montant total payé à date:</span>
-            <span class="detail-value">{{this.clientDetails.totalInProgressAmountCollected ?? 0}} {{' FCFA'}}</span>
-          </div>
+          <span class="detail-label">Montant total payé à date:</span>
+          <span class="detail-value">{{this.clientDetails.totalInProgressAmountCollected ?? 0}} {{' FCFA'}}</span>
+        </div>
         <div class="detail-line">
           <span class="detail-label">Achats terminés:</span>
           <span class="detail-value">{{this.clientDetails.totalCreditClosed ?? 0}}</span>
         </div>
         <div class="detail-line">
-            <span class="detail-label">Achats en retard:</span>
-            <span class="detail-value">{{this.clientDetails.totalCreditDelayed ?? 0}}</span>
-          </div>
+          <span class="detail-label">Achats en retard:</span>
+          <span class="detail-value">{{this.clientDetails.totalCreditDelayed ?? 0}}</span>
+        </div>
       </div>
     </div>
   </div>
-  
+
   <!-- Ajout des onglets avec ng-template -->
   <div class="tabs-container">
     <mat-tab-group (selectedTabChange)="onTabChange($event)">
       <mat-tab label="Achats">
         <ng-template matTabContent>
-          <div class="tab-content" *ngIf="selectedTabIndex === 0">
-            <ng-container *ngTemplateOutlet="achatsTemplate"></ng-container>
-          </div>
+          @if (selectedTabIndex === 0) {
+            <div class="tab-content">
+              <ng-container *ngTemplateOutlet="achatsTemplate"></ng-container>
+            </div>
+          }
         </ng-template>
       </mat-tab>
       <mat-tab label="Historiques">
         <ng-template matTabContent>
-          <div class="tab-content" *ngIf="selectedTabIndex === 1">
-            <ng-container *ngTemplateOutlet="historiquesTemplate"></ng-container>
-          </div>
+          @if (selectedTabIndex === 1) {
+            <div class="tab-content">
+              <ng-container *ngTemplateOutlet="historiquesTemplate"></ng-container>
+            </div>
+          }
         </ng-template>
       </mat-tab>
       <mat-tab label="En Attente">
         <ng-template matTabContent>
-          <div class="tab-content" *ngIf="selectedTabIndex === 2">
-            <ng-container *ngTemplateOutlet="pendingTemplate"></ng-container>
-          </div>
+          @if (selectedTabIndex === 2) {
+            <div class="tab-content">
+              <ng-container *ngTemplateOutlet="pendingTemplate"></ng-container>
+            </div>
+          }
         </ng-template>
       </mat-tab>
     </mat-tab-group>
@@ -109,7 +117,7 @@
         <span>Rafraîchir</span>
       </button>
     </div>
-    
+
     <div class="table-container">
       <table class="article-table">
         <thead>
@@ -122,17 +130,19 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let credit of credits; let i = index">
-            <td>{{(currentPage * pageSize) + (i + 1)}}</td>
-            <td><a [routerLink]="['/credit/view', credit.id, credit.clientType]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{credit.reference}}</a></td>
-            <td>{{credit.totalAmount | number:'1.0-0'}} FCFA</td>
-            <td>{{credit.beginDate | date:'dd/MM/yyyy'}}</td>
-            <td>
-              <span class="badge {{ (credit.status | statusBadge).badgeClass }}">
-                {{ (credit.status | statusBadge).label }}
-              </span>
-            </td>
-          </tr>
+          @for (credit of credits; track credit; let i = $index) {
+            <tr>
+              <td>{{(currentPage * pageSize) + (i + 1)}}</td>
+              <td><a [routerLink]="['/credit/view', credit.id, credit.clientType]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{credit.reference}}</a></td>
+              <td>{{credit.totalAmount | number:'1.0-0'}} FCFA</td>
+              <td>{{credit.beginDate | date:'dd/MM/yyyy'}}</td>
+              <td>
+                <span class="badge {{ (credit.status | statusBadge).badgeClass }}">
+                  {{ (credit.status | statusBadge).label }}
+                </span>
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>

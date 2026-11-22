@@ -20,36 +20,40 @@
   <div class="table-container">
     <table class="article-table">
       <thead>
-      <tr>
-        <th>#</th>
-        <th>Nom complet du Client</th>
-        <th>Localité</th> <th>Mise Journalière</th>
-        <th>Reste à payer</th>
-        <th>Action</th>
-      </tr>
+        <tr>
+          <th>#</th>
+          <th>Nom complet du Client</th>
+          <th>Localité</th> <th>Mise Journalière</th>
+          <th>Reste à payer</th>
+          <th>Action</th>
+        </tr>
       </thead>
       <tbody>
-      <tr *ngFor="let credit of pagedAccounts; let i = index">
-        <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
-        <td>{{ credit.client.firstname }} {{ credit.client.lastname }}</td>
-        <td>{{ credit.client.quarter }}</td> <td>{{ credit.dailyStake | currency:'XOF':'symbol':'1.0-0' }}</td>
-        <td>{{ credit.totalAmountRemaining | currency:'XOF':'symbol':'1.0-0' }}</td>
-        <td>
-          <button mat-icon-button matTooltip="Détails" (click)="viewDetails(credit.id)">
-            <mat-icon>visibility</mat-icon>
-          </button>
-        </td>
-      </tr>
-      <tr *ngIf="!isLoading && (!pagedAccounts || pagedAccounts.length === 0)">
-        <td colspan="6" class="no-data-cell">Aucune opération à afficher.</td> </tr>
-      </tbody>
-    </table>
+        @for (credit of pagedAccounts; track credit; let i = $index) {
+          <tr>
+            <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
+            <td>{{ credit.client.firstname }} {{ credit.client.lastname }}</td>
+            <td>{{ credit.client.quarter }}</td> <td>{{ credit.dailyStake | currency:'XOF':'symbol':'1.0-0' }}</td>
+            <td>{{ credit.totalAmountRemaining | currency:'XOF':'symbol':'1.0-0' }}</td>
+            <td>
+              <button mat-icon-button matTooltip="Détails" (click)="viewDetails(credit.id)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </td>
+          </tr>
+        }
+        @if (!isLoading && (!pagedAccounts || pagedAccounts.length === 0)) {
+          <tr>
+            <td colspan="6" class="no-data-cell">Aucune opération à afficher.</td> </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <mat-paginator
+      [length]="totalElement"
+      [pageIndex]="currentPage"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 25, 100]"
+      (page)="onPageChange($event)">
+    </mat-paginator>
   </div>
-  <mat-paginator
-    [length]="totalElement"
-    [pageIndex]="currentPage"
-    [pageSize]="pageSize"
-    [pageSizeOptions]="[5, 10, 25, 100]"
-    (page)="onPageChange($event)">
-  </mat-paginator>
-</div>

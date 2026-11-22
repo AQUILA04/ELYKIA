@@ -19,10 +19,12 @@
         <span class="summary-label">Total contribué</span>
         <span class="summary-value mono">{{ formatCurrency(data.member.totalContribution) }}</span>
       </div>
-      <div class="summary-row" *ngIf="data.member.amount">
-        <span class="summary-label">Mise journalière</span>
-        <span class="summary-value mono">{{ formatCurrency(data.member.amount) }}</span>
-      </div>
+      @if (data.member.amount) {
+        <div class="summary-row">
+          <span class="summary-label">Mise journalière</span>
+          <span class="summary-value mono">{{ formatCurrency(data.member.amount) }}</span>
+        </div>
+      }
     </div>
 
     <div class="info-banner">
@@ -38,55 +40,67 @@
         <label class="field-label" for="catchup-date">Date de la collecte *</label>
         <mat-form-field appearance="outline" class="elykia-field">
           <input matInput id="catchup-date" [matDatepicker]="picker" formControlName="collectionDate"
-                 [min]="minDate" [max]="maxDate" placeholder="Choisir une date passée"
-                 data-testid="e2e-tontine-catchup-date">
+            [min]="minDate" [max]="maxDate" placeholder="Choisir une date passée"
+            data-testid="e2e-tontine-catchup-date">
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
-          <mat-error *ngIf="form.get('collectionDate')?.hasError('required')">
-            La date est requise
-          </mat-error>
+          @if (form.get('collectionDate')?.hasError('required')) {
+            <mat-error>
+              La date est requise
+            </mat-error>
+          }
         </mat-form-field>
       </div>
 
-      <div class="info-banner info-banner-loading" *ngIf="previewLoading">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-        <p>Prévisualisation en cours…</p>
-      </div>
+      @if (previewLoading) {
+        <div class="info-banner info-banner-loading">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+          <p>Prévisualisation en cours…</p>
+        </div>
+      }
 
-      <div class="info-banner preview-banner preview-editable"
-           *ngIf="!previewLoading && catchupPreview && !catchupPreview.monthLocked">
-        <div class="preview-banner-head">
-          <span class="preview-status-pill preview-status-editable">Modifiable</span>
+      @if (!previewLoading && catchupPreview && !catchupPreview.monthLocked) {
+        <div class="info-banner preview-banner preview-editable"
+          >
+          <div class="preview-banner-head">
+            <span class="preview-status-pill preview-status-editable">Modifiable</span>
+          </div>
+          <div class="preview-banner-body">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+            <p>
+              Mois ciblé : <strong>{{ catchupPreview.monthStart | date:'MM/yyyy' }}</strong>.
+              Aucune collecte existante sur ce mois — vous pouvez ajuster la mise journalière avant soumission.
+            </p>
+          </div>
         </div>
-        <div class="preview-banner-body">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-          <p>
-            Mois ciblé : <strong>{{ catchupPreview.monthStart | date:'MM/yyyy' }}</strong>.
-            Aucune collecte existante sur ce mois — vous pouvez ajuster la mise journalière avant soumission.
-          </p>
-        </div>
-      </div>
+      }
 
-      <div class="info-banner preview-banner preview-locked"
-           *ngIf="!previewLoading && catchupPreview && catchupPreview.monthLocked">
-        <div class="preview-banner-head">
-          <span class="preview-status-pill preview-status-locked">Verrouillé</span>
+      @if (!previewLoading && catchupPreview && catchupPreview.monthLocked) {
+        <div class="info-banner preview-banner preview-locked"
+          >
+          <div class="preview-banner-head">
+            <span class="preview-status-pill preview-status-locked">Verrouillé</span>
+          </div>
+          <div class="preview-banner-body">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <p>
+              Mois ciblé : <strong>{{ catchupPreview.monthStart | date:'MM/yyyy' }}</strong>.
+              Ce mois contient déjà <strong>{{ catchupPreview.existingCollectionsCount }}</strong> collecte(s).
+              La mise journalière est verrouillée à <strong>{{ formatCurrency(catchupPreview.applicableDailyStake) }}</strong>.
+            </p>
+          </div>
         </div>
-        <div class="preview-banner-body">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          <p>
-            Mois ciblé : <strong>{{ catchupPreview.monthStart | date:'MM/yyyy' }}</strong>.
-            Ce mois contient déjà <strong>{{ catchupPreview.existingCollectionsCount }}</strong> collecte(s).
-            La mise journalière est verrouillée à <strong>{{ formatCurrency(catchupPreview.applicableDailyStake) }}</strong>.
-          </p>
-        </div>
-      </div>
+      }
 
       <div class="form-field">
         <label class="field-label" for="catchup-daily-stake">
           Mise journalière du mois ciblé *
-          <span class="field-status field-status-editable" *ngIf="catchupPreview && !catchupPreview.monthLocked">modifiable</span>
-          <span class="field-status field-status-locked" *ngIf="catchupPreview?.monthLocked">verrouillée</span>
+          @if (catchupPreview && !catchupPreview.monthLocked) {
+            <span class="field-status field-status-editable">modifiable</span>
+          }
+          @if (catchupPreview?.monthLocked) {
+            <span class="field-status field-status-locked">verrouillée</span>
+          }
         </label>
         <div class="amount-input-wrap" [class.amount-input-locked]="catchupPreview?.monthLocked">
           <input
@@ -100,10 +114,16 @@
             data-testid="e2e-tontine-catchup-daily-stake">
           <span class="amount-suffix">FCFA</span>
         </div>
-        <div class="field-error" *ngIf="form.get('catchupDailyStake')?.invalid && form.get('catchupDailyStake')?.touched">
-          <span *ngIf="form.get('catchupDailyStake')?.hasError('required')">La mise journalière est requise</span>
-          <span *ngIf="form.get('catchupDailyStake')?.hasError('min')">La mise journalière doit être supérieure à 0</span>
-        </div>
+        @if (form.get('catchupDailyStake')?.invalid && form.get('catchupDailyStake')?.touched) {
+          <div class="field-error">
+            @if (form.get('catchupDailyStake')?.hasError('required')) {
+              <span>La mise journalière est requise</span>
+            }
+            @if (form.get('catchupDailyStake')?.hasError('min')) {
+              <span>La mise journalière doit être supérieure à 0</span>
+            }
+          </div>
+        }
       </div>
 
       <div class="form-field">
@@ -120,23 +140,35 @@
             data-testid="e2e-tontine-catchup-amount">
           <span class="amount-suffix">FCFA</span>
         </div>
-        <div class="field-error" *ngIf="form.get('amount')?.invalid && form.get('amount')?.touched">
-          <span *ngIf="form.get('amount')?.hasError('required')">Le montant est requis</span>
-          <span *ngIf="form.get('amount')?.hasError('min')">Minimum {{ TONTINE_CONSTANTS.MIN_COLLECTION_AMOUNT }} FCFA</span>
-          <span *ngIf="form.get('amount')?.hasError('max')">Maximum {{ TONTINE_CONSTANTS.MAX_COLLECTION_AMOUNT }} FCFA</span>
-        </div>
+        @if (form.get('amount')?.invalid && form.get('amount')?.touched) {
+          <div class="field-error">
+            @if (form.get('amount')?.hasError('required')) {
+              <span>Le montant est requis</span>
+            }
+            @if (form.get('amount')?.hasError('min')) {
+              <span>Minimum {{ TONTINE_CONSTANTS.MIN_COLLECTION_AMOUNT }} FCFA</span>
+            }
+            @if (form.get('amount')?.hasError('max')) {
+              <span>Maximum {{ TONTINE_CONSTANTS.MAX_COLLECTION_AMOUNT }} FCFA</span>
+            }
+          </div>
+        }
       </div>
 
-      <div class="error-banner" *ngIf="error">{{ error }}</div>
+      @if (error) {
+        <div class="error-banner">{{ error }}</div>
+      }
     </form>
   </div>
 
   <div class="modal-footer">
     <button type="button" class="btn-outline" (click)="onCancel()" [disabled]="loading"
-      data-testid="e2e-tontine-catchup-cancel">Annuler</button>
+    data-testid="e2e-tontine-catchup-cancel">Annuler</button>
     <button type="button" class="btn-primary" (click)="onSubmit()" [disabled]="loading || form.invalid"
       data-testid="e2e-tontine-catchup-submit">
-      <span *ngIf="loading" class="btn-spinner"></span>
+      @if (loading) {
+        <span class="btn-spinner"></span>
+      }
       <span>{{ loading ? 'Enregistrement…' : 'Enregistrer le rattrapage' }}</span>
     </button>
   </div>

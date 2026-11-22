@@ -48,169 +48,193 @@
 
   <div class="table-card a5">
     <div class="table-wrapper">
-      <div *ngIf="loading" class="table-loading" style="padding: 40px 0;">
-        <div class="empty-state">
-          <div class="empty-icon">⏳</div>
-          <div class="empty-title">Chargement…</div>
+      @if (loading) {
+        <div class="table-loading" style="padding: 40px 0;">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Chargement…</div>
+          </div>
         </div>
-      </div>
+      }
 
       <!-- Credit Table -->
-      <ng-container *ngIf="!loading && tab === 'credit'">
-        <div *ngIf="submissions.length === 0" class="table-empty-static" style="padding: 40px 0;">
-          <div class="empty-state">
-            <div class="empty-icon">📋</div>
-            <div class="empty-title">Aucune déclaration en attente</div>
-            <div class="empty-sub">Toutes les soumissions de crédit ont été traitées.</div>
+      @if (!loading && tab === 'credit') {
+        @if (submissions.length === 0) {
+          <div class="table-empty-static" style="padding: 40px 0;">
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <div class="empty-title">Aucune déclaration en attente</div>
+              <div class="empty-sub">Toutes les soumissions de crédit ont été traitées.</div>
+            </div>
           </div>
-        </div>
-
-        <div class="desktop-table-wrap" *ngIf="submissions.length > 0">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Client</th>
-                <th>Commercial</th>
-                <th>Crédit</th>
-                <th>Échéance</th>
-                <th>Montant</th>
-                <th>Téléphone</th>
-                <th>Référence</th>
-                <th>Justificatif</th>
-                <th>Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of submissions" [class.highlighted-row]="highlightId === row.id" [attr.data-testid]="'e2e-customer-payment-row'" [attr.data-submission-id]="row.id">
-                <td style="font-weight: 500; color: var(--navy)">{{ row.clientName || ('#' + row.clientId) }}</td>
-                <td>{{ row.targetCollector || '—' }}</td>
-                <td>
-                  <button type="button" class="btn-detail" (click)="openCredit(row)">
-                    #{{ row.creditId }}
-                  </button>
-                </td>
-                <td style="font-family: 'DM Mono', monospace;">{{ row.installmentNumber }}</td>
-                <ng-container
-                  *ngTemplateOutlet="mmProofCells; context: { $implicit: row, tab: 'credit', proofTestId: 'e2e-customer-payment-proof' }"
-                ></ng-container>
-                <td style="color: var(--text-muted); font-size: 12px;">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td class="text-nowrap" style="display: flex; gap: 8px;">
-                  <button
-                    type="button"
-                    class="btn-success-solid"
-                    data-testid="e2e-customer-payment-validate"
-                    [disabled]="isRowBusy('credit', row.id)"
-                    (click)="validate(row)"
-                  >{{ isRowBusy('credit', row.id) ? 'Traitement…' : 'Valider' }}</button>
-                  <button
-                    type="button"
-                    class="btn-danger-outline"
-                    data-testid="e2e-customer-payment-reject"
-                    [disabled]="isRowBusy('credit', row.id)"
-                    (click)="reject(row)"
-                  >Rejeter</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </ng-container>
+        }
+        @if (submissions.length > 0) {
+          <div class="desktop-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Commercial</th>
+                  <th>Crédit</th>
+                  <th>Échéance</th>
+                  <th>Montant</th>
+                  <th>Téléphone</th>
+                  <th>Référence</th>
+                  <th>Justificatif</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of submissions; track row) {
+                  <tr [class.highlighted-row]="highlightId === row.id" [attr.data-testid]="'e2e-customer-payment-row'" [attr.data-submission-id]="row.id">
+                    <td style="font-weight: 500; color: var(--navy)">{{ row.clientName || ('#' + row.clientId) }}</td>
+                    <td>{{ row.targetCollector || '—' }}</td>
+                    <td>
+                      <button type="button" class="btn-detail" (click)="openCredit(row)">
+                        #{{ row.creditId }}
+                      </button>
+                    </td>
+                    <td style="font-family: 'DM Mono', monospace;">{{ row.installmentNumber }}</td>
+                    <ng-container
+                      *ngTemplateOutlet="mmProofCells; context: { $implicit: row, tab: 'credit', proofTestId: 'e2e-customer-payment-proof' }"
+                    ></ng-container>
+                    <td style="color: var(--text-muted); font-size: 12px;">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td class="text-nowrap" style="display: flex; gap: 8px;">
+                      <button
+                        type="button"
+                        class="btn-success-solid"
+                        data-testid="e2e-customer-payment-validate"
+                        [disabled]="isRowBusy('credit', row.id)"
+                        (click)="validate(row)"
+                      >{{ isRowBusy('credit', row.id) ? 'Traitement…' : 'Valider' }}</button>
+                      <button
+                        type="button"
+                        class="btn-danger-outline"
+                        data-testid="e2e-customer-payment-reject"
+                        [disabled]="isRowBusy('credit', row.id)"
+                        (click)="reject(row)"
+                      >Rejeter</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
 
       <!-- Tontine Table -->
-      <ng-container *ngIf="!loading && tab === 'tontine'">
-        <div *ngIf="tontineSubmissions.length === 0" class="table-empty-static" style="padding: 40px 0;">
-          <div class="empty-state">
-            <div class="empty-icon">📋</div>
-            <div class="empty-title">Aucune cotisation en attente</div>
-            <div class="empty-sub">Toutes les cotisations tontine ont été traitées.</div>
+      @if (!loading && tab === 'tontine') {
+        @if (tontineSubmissions.length === 0) {
+          <div class="table-empty-static" style="padding: 40px 0;">
+            <div class="empty-state">
+              <div class="empty-icon">📋</div>
+              <div class="empty-title">Aucune cotisation en attente</div>
+              <div class="empty-sub">Toutes les cotisations tontine ont été traitées.</div>
+            </div>
           </div>
-        </div>
-
-        <div class="desktop-table-wrap" *ngIf="tontineSubmissions.length > 0">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Client</th>
-                <th>Commercial tontine</th>
-                <th>Membre</th>
-                <th>Montant</th>
-                <th>Téléphone</th>
-                <th>Référence</th>
-                <th>Justificatif</th>
-                <th>Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of tontineSubmissions" [class.highlighted-row]="highlightId === row.id" [attr.data-testid]="'e2e-customer-tontine-payment-row'" [attr.data-submission-id]="row.id">
-                <td style="font-weight: 500; color: var(--navy)">{{ row.clientName || ('#' + row.clientId) }}</td>
-                <td>{{ row.tontineCollector || '—' }}</td>
-                <td style="font-family: 'DM Mono', monospace;">#{{ row.tontineMemberId }}</td>
-                <ng-container
-                  *ngTemplateOutlet="mmProofCells; context: { $implicit: row, tab: 'tontine', proofTestId: 'e2e-customer-tontine-payment-proof' }"
-                ></ng-container>
-                <td style="color: var(--text-muted); font-size: 12px;">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td class="text-nowrap" style="display: flex; gap: 8px;">
-                  <button
-                    type="button"
-                    class="btn-success-solid"
-                    data-testid="e2e-customer-tontine-payment-validate"
-                    [disabled]="isRowBusy('tontine', row.id)"
-                    (click)="validateTontine(row)"
-                  >{{ isRowBusy('tontine', row.id) ? 'Traitement…' : 'Valider' }}</button>
-                  <button
-                    type="button"
-                    class="btn-danger-outline"
-                    data-testid="e2e-customer-tontine-payment-reject"
-                    [disabled]="isRowBusy('tontine', row.id)"
-                    (click)="rejectTontine(row)"
-                  >Rejeter</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </ng-container>
+        }
+        @if (tontineSubmissions.length > 0) {
+          <div class="desktop-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Client</th>
+                  <th>Commercial tontine</th>
+                  <th>Membre</th>
+                  <th>Montant</th>
+                  <th>Téléphone</th>
+                  <th>Référence</th>
+                  <th>Justificatif</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of tontineSubmissions; track row) {
+                  <tr [class.highlighted-row]="highlightId === row.id" [attr.data-testid]="'e2e-customer-tontine-payment-row'" [attr.data-submission-id]="row.id">
+                    <td style="font-weight: 500; color: var(--navy)">{{ row.clientName || ('#' + row.clientId) }}</td>
+                    <td>{{ row.tontineCollector || '—' }}</td>
+                    <td style="font-family: 'DM Mono', monospace;">#{{ row.tontineMemberId }}</td>
+                    <ng-container
+                      *ngTemplateOutlet="mmProofCells; context: { $implicit: row, tab: 'tontine', proofTestId: 'e2e-customer-tontine-payment-proof' }"
+                    ></ng-container>
+                    <td style="color: var(--text-muted); font-size: 12px;">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td class="text-nowrap" style="display: flex; gap: 8px;">
+                      <button
+                        type="button"
+                        class="btn-success-solid"
+                        data-testid="e2e-customer-tontine-payment-validate"
+                        [disabled]="isRowBusy('tontine', row.id)"
+                        (click)="validateTontine(row)"
+                      >{{ isRowBusy('tontine', row.id) ? 'Traitement…' : 'Valider' }}</button>
+                      <button
+                        type="button"
+                        class="btn-danger-outline"
+                        data-testid="e2e-customer-tontine-payment-reject"
+                        [disabled]="isRowBusy('tontine', row.id)"
+                        (click)="rejectTontine(row)"
+                      >Rejeter</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      }
     </div>
   </div>
 
-  <div
-    *ngIf="proofPreviewUrl"
-    class="proof-preview-overlay"
-    role="dialog"
-    aria-modal="true"
-    (click)="closeProofPreview()">
-    <div class="proof-preview-modal" (click)="$event.stopPropagation()">
-      <div class="proof-preview-header">
-        <h3>{{ proofPreviewTitle }}</h3>
-        <button type="button" class="proof-preview-close" (click)="closeProofPreview()" aria-label="Fermer">×</button>
-      </div>
-      <div class="proof-preview-body">
-        <img *ngIf="!proofPreviewIsPdf" [src]="proofPreviewUrl" [alt]="proofPreviewTitle" />
-        <iframe *ngIf="proofPreviewIsPdf && proofPreviewSafeUrl" [src]="proofPreviewSafeUrl" title="Justificatif PDF"></iframe>
+  @if (proofPreviewUrl) {
+    <div
+      class="proof-preview-overlay"
+      role="dialog"
+      aria-modal="true"
+      (click)="closeProofPreview()">
+      <div class="proof-preview-modal" (click)="$event.stopPropagation()">
+        <div class="proof-preview-header">
+          <h3>{{ proofPreviewTitle }}</h3>
+          <button type="button" class="proof-preview-close" (click)="closeProofPreview()" aria-label="Fermer">×</button>
+        </div>
+        <div class="proof-preview-body">
+          @if (!proofPreviewIsPdf) {
+            <img [src]="proofPreviewUrl" [alt]="proofPreviewTitle" />
+          }
+          @if (proofPreviewIsPdf && proofPreviewSafeUrl) {
+            <iframe [src]="proofPreviewSafeUrl" title="Justificatif PDF"></iframe>
+          }
+        </div>
       </div>
     </div>
-  </div>
+  }
 
   <ng-template #mmProofCells let-row let-tab="tab" let-proofTestId="proofTestId">
     <td class="mm-proof-amount">{{ row.mobileMoneyAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
     <td class="mm-proof-phone">{{ row.mobileMoneyPhone }}</td>
     <td class="mm-proof-reference">
       {{ row.mobileMoneyReference }}
-      <span class="proof-badge warn" *ngIf="row.referenceMismatch">Référence différente</span>
-      <span class="proof-badge danger" *ngIf="row.duplicateProof">Justificatif déjà utilisé</span>
+      @if (row.referenceMismatch) {
+        <span class="proof-badge warn">Référence différente</span>
+      }
+      @if (row.duplicateProof) {
+        <span class="proof-badge danger">Justificatif déjà utilisé</span>
+      }
     </td>
     <td>
-      <button
-        *ngIf="row.hasProof"
-        type="button"
-        class="btn-detail"
-        [attr.data-testid]="proofTestId"
-        (click)="tab === 'tontine' ? openProofTontine(row) : openProofCredit(row)">
-        Agrandir
-      </button>
-      <span *ngIf="!row.hasProof" class="muted">—</span>
+      @if (row.hasProof) {
+        <button
+          type="button"
+          class="btn-detail"
+          [attr.data-testid]="proofTestId"
+          (click)="tab === 'tontine' ? openProofTontine(row) : openProofCredit(row)">
+          Agrandir
+        </button>
+      }
+      @if (!row.hasProof) {
+        <span class="muted">—</span>
+      }
     </td>
   </ng-template>
 </div>

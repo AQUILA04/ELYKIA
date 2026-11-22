@@ -18,7 +18,7 @@
       <div class="header-card-main">
         <div class="title-group">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
             <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
             <circle cx="12" cy="10" r="3"/>
           </svg>
@@ -91,48 +91,56 @@
 
     <div class="table-card a5">
       <div class="table-wrapper">
-        <div *ngIf="isLoading" class="table-loading">
-          <div class="empty-state">
-            <div class="empty-icon">⏳</div>
-            <div class="empty-title">Chargement…</div>
+        @if (isLoading) {
+          <div class="table-loading">
+            <div class="empty-state">
+              <div class="empty-icon">⏳</div>
+              <div class="empty-title">Chargement…</div>
+            </div>
           </div>
-        </div>
+        }
 
-        <div *ngIf="!isLoading && localities.length === 0" class="table-empty-static">
-          <div class="empty-state">
-            <div class="empty-icon">📍</div>
-            <div class="empty-title">Aucune localité trouvée</div>
-            <div class="empty-sub">Modifiez votre recherche ou ajoutez une nouvelle localité.</div>
+        @if (!isLoading && localities.length === 0) {
+          <div class="table-empty-static">
+            <div class="empty-state">
+              <div class="empty-icon">📍</div>
+              <div class="empty-title">Aucune localité trouvée</div>
+              <div class="empty-sub">Modifiez votre recherche ou ajoutez une nouvelle localité.</div>
+            </div>
           </div>
-        </div>
+        }
 
-        <table class="data-table" *ngIf="!isLoading && localities.length > 0" data-testid="e2e-locality-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Nom</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let locality of localities; let i = index">
-              <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
-              <td><span class="col-name">{{ locality.name }}</span></td>
-              <td class="col-actions">
-                <button type="button" class="btn-detail" (click)="viewDetails(locality.id)" title="Détails">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                  Voir
-                </button>
-                <button *ngxPermissionsOnly="['ROLE_EDIT_LOCALITY']" type="button" class="btn-detail" (click)="editLocality(locality.id)" title="Modifier">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                </button>
-                <button *ngxPermissionsOnly="['ROLE_DEL_LOCALITY']" type="button" class="btn-detail btn-danger" (click)="deleteLocality(locality.id)" title="Supprimer">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        @if (!isLoading && localities.length > 0) {
+          <table class="data-table" data-testid="e2e-locality-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Nom</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (locality of localities; track locality; let i = $index) {
+                <tr>
+                  <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
+                  <td><span class="col-name">{{ locality.name }}</span></td>
+                  <td class="col-actions">
+                    <button type="button" class="btn-detail" (click)="viewDetails(locality.id)" title="Détails">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                      Voir
+                    </button>
+                    <button *ngxPermissionsOnly="['ROLE_EDIT_LOCALITY']" type="button" class="btn-detail" (click)="editLocality(locality.id)" title="Modifier">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    </button>
+                    <button *ngxPermissionsOnly="['ROLE_DEL_LOCALITY']" type="button" class="btn-detail btn-danger" (click)="deleteLocality(locality.id)" title="Supprimer">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </div>
 
       <div class="pagination locality-pagination">

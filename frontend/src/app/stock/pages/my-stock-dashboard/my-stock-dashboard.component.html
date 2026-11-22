@@ -4,225 +4,235 @@
   <div class="header-fixed">
     <h1>{{ channel === 'tontine' ? 'Stock Tontine Annuel' : 'Stock Mensuel' }}</h1>
     <a class="new-layout-link" [routerLink]="['/stock/my-stock']" [queryParams]="{ channel: channel }"
-      data-testid="e2e-my-stock-new-layout-link">Nouvelle présentation</a>
+    data-testid="e2e-my-stock-new-layout-link">Nouvelle présentation</a>
   </div>
 
   <app-stock-channel-segment [channel]="channel" (channelChange)="onChannelChange($event)"></app-stock-channel-segment>
 
-  <ng-container *ngIf="channel === 'credit'">
-  <div class="filter-row">
-    <div class="header-actions">
-      <ng-container *ngIf="showStockReturnHistory">
-        <button mat-raised-button class="historic-btn" [routerLink]="['/stock/return/historique']" *ngxPermissionsOnly="['ROLE_PROMOTER', 'ROLE_GESTIONNAIRE', 'ROLE_ADMIN']">
-          <mat-icon>assignment_return</mat-icon>
-          Retour stock antérieur
-        </button>
-      </ng-container>
+  @if (channel === 'credit') {
+    <div class="filter-row">
+      <div class="header-actions">
+        @if (showStockReturnHistory) {
+          <button mat-raised-button class="historic-btn" [routerLink]="['/stock/return/historique']" *ngxPermissionsOnly="['ROLE_PROMOTER', 'ROLE_GESTIONNAIRE', 'ROLE_ADMIN']">
+            <mat-icon>assignment_return</mat-icon>
+            Retour stock antérieur
+          </button>
+        }
+      </div>
+      @if (canSelectAllAgents) {
+        <div class="agent-select">
+          <ng-select [items]="agents" bindLabel="username" bindValue="username" placeholder="Sélectionner un commercial"
+            [searchFn]="searchAgent" [(ngModel)]="selectedAgent" (change)="onAgentChange($event)" data-testid="e2e-my-stock-agent-select">
+            <ng-template ng-option-tmp let-item="item">
+              {{item.username}} <small class="text-muted">({{item.firstname}} {{item.lastname}})</small>
+            </ng-template>
+          </ng-select>
+        </div>
+      }
+      <button mat-raised-button class="historic-btn" [class.active]="isHistoric" (click)="toggleHistoric()"
+        data-testid="e2e-my-stock-historic">
+        <mat-icon>history</mat-icon>
+        {{ isHistoric ? 'Masquer Historique' : 'Historique' }}
+      </button>
     </div>
-    <div class="agent-select" *ngIf="canSelectAllAgents">
-      <ng-select [items]="agents" bindLabel="username" bindValue="username" placeholder="Sélectionner un commercial"
-        [searchFn]="searchAgent" [(ngModel)]="selectedAgent" (change)="onAgentChange($event)" data-testid="e2e-my-stock-agent-select">
-        <ng-template ng-option-tmp let-item="item">
-          {{item.username}} <small class="text-muted">({{item.firstname}} {{item.lastname}})</small>
-        </ng-template>
-      </ng-select>
-    </div>
-
-    <button mat-raised-button class="historic-btn" [class.active]="isHistoric" (click)="toggleHistoric()"
-      data-testid="e2e-my-stock-historic">
-      <mat-icon>history</mat-icon>
-      {{ isHistoric ? 'Masquer Historique' : 'Historique' }}
-    </button>
-  </div>
-
-  <div *ngIf="stocks && stocks.length > 0">
-    <mat-accordion>
-      <mat-expansion-panel *ngFor="let stock of stocks" data-testid="e2e-my-stock-panel">
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            {{ stock.collector }} - {{ getMonthName(stock.month) | titlecase }} {{ stock.year }}
-          </mat-panel-title>
-          <mat-panel-description>
-            Valeur Stock Restant: {{ getTotalStockValue(stock) | number:'1.0-0' }} FCFA
-          </mat-panel-description>
-        </mat-expansion-panel-header>
-
-        <div class="panel-export-bar">
-          <span class="panel-period-label">
-            Rapport mensuel — {{ getMonthName(stock.month) | titlecase }} {{ stock.year }}
-          </span>
-          <div class="panel-export-actions">
-          <ng-container *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN']">
-            <button type="button"
+    @if (stocks && stocks.length > 0) {
+      <div>
+        <mat-accordion>
+          @for (stock of stocks; track stock) {
+            <mat-expansion-panel data-testid="e2e-my-stock-panel">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  {{ stock.collector }} - {{ getMonthName(stock.month) | titlecase }} {{ stock.year }}
+                </mat-panel-title>
+                <mat-panel-description>
+                  Valeur Stock Restant: {{ getTotalStockValue(stock) | number:'1.0-0' }} FCFA
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+              <div class="panel-export-bar">
+                <span class="panel-period-label">
+                  Rapport mensuel — {{ getMonthName(stock.month) | titlecase }} {{ stock.year }}
+                </span>
+                <div class="panel-export-actions">
+                  <ng-container *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN']">
+                    @if (canCreateMerchandiseDebt(stock)) {
+                      <button type="button"
+                        class="btn-download"
+                        [disabled]="creatingDebtStockId === stock.id"
+                        (click)="createMerchandiseDebt(stock)"
+                        [attr.data-testid]="'e2e-my-stock-create-debt-' + stock.id">
+                        {{ creatingDebtStockId === stock.id ? 'Création…' : 'Créer la dette' }}
+                      </button>
+                    }
+                  </ng-container>
+                  @if (stock.recoverySummary?.merchandiseDebtId) {
+                    <button type="button"
+                      class="btn-download"
+                      (click)="openMerchandiseDebt(stock)"
+                      [attr.data-testid]="'e2e-my-stock-open-debt-' + stock.id">
+                      Voir la dette
+                    </button>
+                  }
+                  <button type="button"
                     class="btn-download"
-                    *ngIf="canCreateMerchandiseDebt(stock)"
-                    [disabled]="creatingDebtStockId === stock.id"
-                    (click)="createMerchandiseDebt(stock)"
-                    [attr.data-testid]="'e2e-my-stock-create-debt-' + stock.id">
-              {{ creatingDebtStockId === stock.id ? 'Création…' : 'Créer la dette' }}
-            </button>
-          </ng-container>
-          <button type="button"
-                  class="btn-download"
-                  *ngIf="stock.recoverySummary?.merchandiseDebtId"
-                  (click)="openMerchandiseDebt(stock)"
-                  [attr.data-testid]="'e2e-my-stock-open-debt-' + stock.id">
-            Voir la dette
-          </button>
-          <button type="button"
-                  class="btn-download"
-                  (click)="onExportPdf(stock)"
-                  [disabled]="isExporting(stock)"
-                  [attr.data-testid]="'e2e-my-stock-export-pdf-' + stock.collector + '-' + stock.year + '-' + stock.month">
-            <svg *ngIf="!isExporting(stock)" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" x2="12" y1="15" y2="3"/>
-            </svg>
-            {{ isExporting(stock) ? 'Export…' : 'Télécharger rapport' }}
-          </button>
-          </div>
-        </div>
+                    (click)="onExportPdf(stock)"
+                    [disabled]="isExporting(stock)"
+                    [attr.data-testid]="'e2e-my-stock-export-pdf-' + stock.collector + '-' + stock.year + '-' + stock.month">
+                    @if (!isExporting(stock)) {
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" x2="12" y1="15" y2="3"/>
+                      </svg>
+                    }
+                    {{ isExporting(stock) ? 'Export…' : 'Télécharger rapport' }}
+                  </button>
+                </div>
+              </div>
+              <div class="stats-row mb-4">
+                <div class="stats-card">
+                  <div class="stats-icon bg-info">
+                    <mat-icon>inventory_2</mat-icon>
+                  </div>
+                  <div class="stats-info">
+                    <p class="stats-label">Valeur Stock Restant</p>
+                    <p class="stats-value">{{ getTotalStockValue(stock) | number:'1.0-0' }} FCFA</p>
+                  </div>
+                </div>
+                <div class="stats-card clickable-kpi"
+                  (click)="openSoldSales(stock)"
+                  role="button"
+                  tabindex="0"
+                  (keydown.enter)="openSoldSales(stock)"
+                  title="Voir les ventes liées"
+                  data-testid="e2e-my-stock-sold-value-kpi">
+                  <div class="stats-icon bg-success">
+                    <mat-icon>monetization_on</mat-icon>
+                  </div>
+                  <div class="stats-info">
+                    <p class="stats-label">Valeur Stock Vendu</p>
+                    <p class="stats-value">{{ getTotalSoldValue(stock) | number:'1.0-0' }} FCFA</p>
+                    <p class="stats-hint">Cliquer pour le détail des ventes</p>
+                  </div>
+                </div>
+                @if (getTotalDebtValue(stock) > 0) {
+                  <div class="stats-card">
+                    <div class="stats-icon bg-warning">
+                      <mat-icon>account_balance_wallet</mat-icon>
+                    </div>
+                    <div class="stats-info">
+                      <p class="stats-label">Valeur Dette</p>
+                      <p class="stats-value">{{ getTotalDebtValue(stock) | number:'1.0-0' }} FCFA</p>
+                      @if (getDebtSettledValue(stock) > 0) {
+                        <p class="stats-hint">
+                          dont réglé : {{ getDebtSettledValue(stock) | number:'1.0-0' }} FCFA
+                        </p>
+                      }
+                    </div>
+                  </div>
+                }
+                <div class="stats-card">
+                  <div class="stats-icon bg-warning">
+                    <mat-icon>summarize</mat-icon>
+                  </div>
+                  <div class="stats-info">
+                    <p class="stats-label">Valeur Total Dû</p>
+                    <p class="stats-value">{{ getTotalDueValue(stock) | number:'1.0-0' }} FCFA</p>
+                    <p class="stats-hint">Vendu + dette + restant</p>
+                  </div>
+                </div>
+              </div>
+              @if (stock.recoverySummary) {
+                <div class="stats-row mb-4">
+                  <div class="stats-card">
+                    <div class="stats-icon bg-recovered">
+                      <mat-icon>payments</mat-icon>
+                    </div>
+                    <div class="stats-info">
+                      <p class="stats-label">Montant Recouvré</p>
+                      <p class="stats-value">{{ getTotalRecoveredValue(stock) | number:'1.0-0' }} FCFA</p>
+                      <p class="stats-hint">Encaissements clients (ventes)</p>
+                    </div>
+                  </div>
+                  <div class="stats-card">
+                    <div class="stats-icon bg-remaining">
+                      <mat-icon>hourglass_empty</mat-icon>
+                    </div>
+                    <div class="stats-info">
+                      <p class="stats-label">Reste à Recouvrer</p>
+                      <p class="stats-value">{{ getTotalRemainingToRecoverValue(stock) | number:'1.0-0' }} FCFA</p>
+                      <p class="stats-hint">Stock physique + créances clients</p>
+                    </div>
+                  </div>
+                  <div class="stats-card">
+                    <div class="stats-icon bg-rate">
+                      <mat-icon>trending_up</mat-icon>
+                    </div>
+                    <div class="stats-info">
+                      <p class="stats-label">Taux de Recouvrement</p>
+                      <p class="stats-value">{{ getRecoveryRate(stock) | number:'1.0-0' }} %</p>
+                      <p class="stats-hint">Sur la valeur totale due</p>
+                    </div>
+                  </div>
+                </div>
+              }
+              <div class="table-container">
+                <table class="article-table">
+                  <thead>
+                    <tr>
+                      <th>Article</th>
+                      <th class="text-center">Pris (Magasin)</th>
+                      <th class="text-center">Vendu (Clients)</th>
+                      <th class="text-center">Retourné</th>
+                      <th class="text-center">Restant</th>
+                      <th class="text-center">Dette</th>
+                      <th class="text-right">Valeur Dette</th>
+                      <th class="text-right">Valeur Restante</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (item of stock.items; track item) {
+                      <tr
+                        data-testid="e2e-my-stock-item-row"
+                        [attr.data-article-id]="item.article?.id">
+                        <td data-testid="e2e-my-stock-item-name">{{ item.article.commercialName + ' ' + item.article.name }}</td>
+                        <td class="text-center clickable-cell" (click)="openStockMovements(item)" style="cursor: pointer;">{{ item.quantityTaken }}</td>
+                        <td class="text-center clickable-cell" (click)="openSalesDetails(item)" style="cursor: pointer;">{{ item.quantitySold }}</td>
+                        <td class="text-center">{{ item.quantityReturned }}</td>
+                        <td class="text-center font-weight-bold" data-testid="e2e-my-stock-item-remaining">{{ item.quantityRemaining }}</td>
+                        <td class="text-center" data-testid="e2e-my-stock-item-debt">{{ item.quantityDebt || 0 }}</td>
+                        <td class="text-right">{{ ((item.quantityDebt || 0) * (item.debtUnitPrice || item.weightedAverageUnitPrice || 0)) | number:'1.0-0' }}
+                          FCFA
+                        </td>
+                        <td class="text-right">{{ (item.quantityRemaining * item.weightedAverageUnitPrice) | number:'1.0-0' }}
+                          FCFA
+                        </td>
+                      </tr>
+                    }
+                    @if (stock.items.length === 0) {
+                      <tr>
+                        <td colspan="8" class="text-center p-4">Aucun article en stock ce mois-ci</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </mat-expansion-panel>
+          }
+        </mat-accordion>
+        <mat-paginator [length]="totalElements" [pageIndex]="pageIndex" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
+          (page)="onPageChange($event)" showFirstLastButtons aria-label="Select page">
+        </mat-paginator>
+      </div>
+    }
+    @if (!stocks || stocks.length === 0) {
+      <div class="empty-state">
+        <mat-icon class="empty-icon">inventory</mat-icon>
+        <p>Aucune donnée de stock trouvée.</p>
+      </div>
+    }
+  }
 
-        <div class="stats-row mb-4">
-          <div class="stats-card">
-            <div class="stats-icon bg-info">
-              <mat-icon>inventory_2</mat-icon>
-            </div>
-            <div class="stats-info">
-              <p class="stats-label">Valeur Stock Restant</p>
-              <p class="stats-value">{{ getTotalStockValue(stock) | number:'1.0-0' }} FCFA</p>
-            </div>
-          </div>
-
-          <div class="stats-card clickable-kpi"
-               (click)="openSoldSales(stock)"
-               role="button"
-               tabindex="0"
-               (keydown.enter)="openSoldSales(stock)"
-               title="Voir les ventes liées"
-               data-testid="e2e-my-stock-sold-value-kpi">
-            <div class="stats-icon bg-success">
-              <mat-icon>monetization_on</mat-icon>
-            </div>
-            <div class="stats-info">
-              <p class="stats-label">Valeur Stock Vendu</p>
-              <p class="stats-value">{{ getTotalSoldValue(stock) | number:'1.0-0' }} FCFA</p>
-              <p class="stats-hint">Cliquer pour le détail des ventes</p>
-            </div>
-          </div>
-
-          <div class="stats-card" *ngIf="getTotalDebtValue(stock) > 0">
-            <div class="stats-icon bg-warning">
-              <mat-icon>account_balance_wallet</mat-icon>
-            </div>
-            <div class="stats-info">
-              <p class="stats-label">Valeur Dette</p>
-              <p class="stats-value">{{ getTotalDebtValue(stock) | number:'1.0-0' }} FCFA</p>
-              <p class="stats-hint" *ngIf="getDebtSettledValue(stock) > 0">
-                dont réglé : {{ getDebtSettledValue(stock) | number:'1.0-0' }} FCFA
-              </p>
-            </div>
-          </div>
-
-          <div class="stats-card">
-            <div class="stats-icon bg-warning">
-              <mat-icon>summarize</mat-icon>
-            </div>
-            <div class="stats-info">
-              <p class="stats-label">Valeur Total Dû</p>
-              <p class="stats-value">{{ getTotalDueValue(stock) | number:'1.0-0' }} FCFA</p>
-              <p class="stats-hint">Vendu + dette + restant</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="stats-row mb-4" *ngIf="stock.recoverySummary">
-          <div class="stats-card">
-            <div class="stats-icon bg-recovered">
-              <mat-icon>payments</mat-icon>
-            </div>
-            <div class="stats-info">
-              <p class="stats-label">Montant Recouvré</p>
-              <p class="stats-value">{{ getTotalRecoveredValue(stock) | number:'1.0-0' }} FCFA</p>
-              <p class="stats-hint">Encaissements clients (ventes)</p>
-            </div>
-          </div>
-
-          <div class="stats-card">
-            <div class="stats-icon bg-remaining">
-              <mat-icon>hourglass_empty</mat-icon>
-            </div>
-            <div class="stats-info">
-              <p class="stats-label">Reste à Recouvrer</p>
-              <p class="stats-value">{{ getTotalRemainingToRecoverValue(stock) | number:'1.0-0' }} FCFA</p>
-              <p class="stats-hint">Stock physique + créances clients</p>
-            </div>
-          </div>
-
-          <div class="stats-card">
-            <div class="stats-icon bg-rate">
-              <mat-icon>trending_up</mat-icon>
-            </div>
-            <div class="stats-info">
-              <p class="stats-label">Taux de Recouvrement</p>
-              <p class="stats-value">{{ getRecoveryRate(stock) | number:'1.0-0' }} %</p>
-              <p class="stats-hint">Sur la valeur totale due</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="table-container">
-          <table class="article-table">
-            <thead>
-              <tr>
-                <th>Article</th>
-                <th class="text-center">Pris (Magasin)</th>
-                <th class="text-center">Vendu (Clients)</th>
-                <th class="text-center">Retourné</th>
-                <th class="text-center">Restant</th>
-                <th class="text-center">Dette</th>
-                <th class="text-right">Valeur Dette</th>
-                <th class="text-right">Valeur Restante</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let item of stock.items"
-                  data-testid="e2e-my-stock-item-row"
-                  [attr.data-article-id]="item.article?.id">
-                <td data-testid="e2e-my-stock-item-name">{{ item.article.commercialName + ' ' + item.article.name }}</td>
-                <td class="text-center clickable-cell" (click)="openStockMovements(item)" style="cursor: pointer;">{{ item.quantityTaken }}</td>
-                <td class="text-center clickable-cell" (click)="openSalesDetails(item)" style="cursor: pointer;">{{ item.quantitySold }}</td>
-                <td class="text-center">{{ item.quantityReturned }}</td>
-                <td class="text-center font-weight-bold" data-testid="e2e-my-stock-item-remaining">{{ item.quantityRemaining }}</td>
-                <td class="text-center" data-testid="e2e-my-stock-item-debt">{{ item.quantityDebt || 0 }}</td>
-                <td class="text-right">{{ ((item.quantityDebt || 0) * (item.debtUnitPrice || item.weightedAverageUnitPrice || 0)) | number:'1.0-0' }}
-                  FCFA
-                </td>
-                <td class="text-right">{{ (item.quantityRemaining * item.weightedAverageUnitPrice) | number:'1.0-0' }}
-                  FCFA
-                </td>
-              </tr>
-              <tr *ngIf="stock.items.length === 0">
-                <td colspan="8" class="text-center p-4">Aucun article en stock ce mois-ci</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-      </mat-expansion-panel>
-    </mat-accordion>
-
-    <mat-paginator [length]="totalElements" [pageIndex]="pageIndex" [pageSize]="pageSize" [pageSizeOptions]="pageSizeOptions"
-      (page)="onPageChange($event)" showFirstLastButtons aria-label="Select page">
-    </mat-paginator>
-  </div>
-
-  <div *ngIf="!stocks || stocks.length === 0" class="empty-state">
-    <mat-icon class="empty-icon">inventory</mat-icon>
-    <p>Aucune donnée de stock trouvée.</p>
-  </div>
-  </ng-container>
-
-  <app-my-tontine-stock-dashboard *ngIf="channel === 'tontine'" [embedded]="true"></app-my-tontine-stock-dashboard>
+  @if (channel === 'tontine') {
+    <app-my-tontine-stock-dashboard [embedded]="true"></app-my-tontine-stock-dashboard>
+  }
 </div>

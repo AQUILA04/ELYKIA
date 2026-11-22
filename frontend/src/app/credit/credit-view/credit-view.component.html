@@ -4,7 +4,7 @@
       <h1>{{ clientType === 'PROMOTER' ? 'Vue Sortie' : 'Vue Ventes' }}</h1>
     </div>
   </div>
-  
+
   <div class="credit-details">
     <div class="row">
       <div class="col-md-6">
@@ -57,34 +57,44 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Onglets conditionnels -->
   <div class="tabs-container">
     <mat-tab-group (selectedTabChange)="onTabChange($event)">
       <!-- Onglet Distribution - visible uniquement pour PROMOTER -->
-      <mat-tab label="Distribution" *ngIf="clientType === 'PROMOTER'">
-        <ng-template matTabContent>
-          <div class="tab-content" *ngIf="selectedTabIndex === 0">
-            <ng-container *ngTemplateOutlet="distributionTemplate"></ng-container>
-          </div>
-        </ng-template>
-      </mat-tab>
-      
+      @if (clientType === 'PROMOTER') {
+        <mat-tab label="Distribution">
+          <ng-template matTabContent>
+            @if (selectedTabIndex === 0) {
+              <div class="tab-content">
+                <ng-container *ngTemplateOutlet="distributionTemplate"></ng-container>
+              </div>
+            }
+          </ng-template>
+        </mat-tab>
+      }
+
       <!-- Onglet Échéance - visible uniquement pour CLIENT -->
-      <mat-tab label="Échéance" *ngIf="clientType === 'CLIENT'">
-        <ng-template matTabContent>
-          <div class="tab-content" *ngIf="selectedTabIndex === 0">
-            <ng-container *ngTemplateOutlet="echeanceTemplate"></ng-container>
-          </div>
-        </ng-template>
-      </mat-tab>
-      
+      @if (clientType === 'CLIENT') {
+        <mat-tab label="Échéance">
+          <ng-template matTabContent>
+            @if (selectedTabIndex === 0) {
+              <div class="tab-content">
+                <ng-container *ngTemplateOutlet="echeanceTemplate"></ng-container>
+              </div>
+            }
+          </ng-template>
+        </mat-tab>
+      }
+
       <!-- Onglet Articles - toujours visible -->
       <mat-tab label="Articles">
         <ng-template matTabContent>
-          <div class="tab-content" *ngIf="(clientType === 'PROMOTER' && selectedTabIndex === 1) || (clientType === 'CLIENT' && selectedTabIndex === 1)">
-            <ng-container *ngTemplateOutlet="articlesTemplate"></ng-container>
-          </div>
+          @if ((clientType === 'PROMOTER' && selectedTabIndex === 1) || (clientType === 'CLIENT' && selectedTabIndex === 1)) {
+            <div class="tab-content">
+              <ng-container *ngTemplateOutlet="articlesTemplate"></ng-container>
+            </div>
+          }
         </ng-template>
       </mat-tab>
     </mat-tab-group>
@@ -105,7 +115,7 @@
         <span>Rafraîchir</span>
       </button>
     </div>
-    
+
     <div class="table-container">
       <table class="article-table">
         <thead>
@@ -119,18 +129,20 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let distribution of distributions; let i = index">
-            <td>{{(currentDistributionPage * distributionPageSize) + (i + 1)}}</td>
-            <td><a [routerLink]="['/credit/view', distribution.id, distribution.clientType]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{distribution.reference}}</a></td>
-            <td><a [routerLink]="['/client/view', distribution.client?.id]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{distribution.client?.firstname}} {{distribution.client?.lastname}}</a></td>
-            <td>{{distribution.totalAmount | number:'1.0-0'}} FCFA</td>
-            <td>{{distribution.beginDate | date:'dd/MM/yyyy'}}</td>
-            <td>
-              <span class="badge {{ (distribution.status | statusBadge).badgeClass }}">
-                {{ (distribution.status | statusBadge).label }}
-              </span>
-            </td>
-          </tr>
+          @for (distribution of distributions; track distribution; let i = $index) {
+            <tr>
+              <td>{{(currentDistributionPage * distributionPageSize) + (i + 1)}}</td>
+              <td><a [routerLink]="['/credit/view', distribution.id, distribution.clientType]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{distribution.reference}}</a></td>
+              <td><a [routerLink]="['/client/view', distribution.client?.id]" style="cursor: pointer; color: #3f51b5; text-decoration: none;">{{distribution.client?.firstname}} {{distribution.client?.lastname}}</a></td>
+              <td>{{distribution.totalAmount | number:'1.0-0'}} FCFA</td>
+              <td>{{distribution.beginDate | date:'dd/MM/yyyy'}}</td>
+              <td>
+                <span class="badge {{ (distribution.status | statusBadge).badgeClass }}">
+                  {{ (distribution.status | statusBadge).label }}
+                </span>
+              </td>
+            </tr>
+          }
         </tbody>
       </table>
     </div>
@@ -153,7 +165,7 @@
         <span>Rafraîchir</span>
       </button>
     </div>
-    
+
     <div class="table-container">
       <table class="article-table">
         <thead>
@@ -166,23 +178,25 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let echeance of echeances; let i = index">
-            <td>{{(currentEcheancePage * echeancePageSize) + (i + 1)}}</td>
-            <td>{{echeance.creationDate | date:'dd/MM/yyyy'}}</td>  
-            <td>{{echeance.dailyStakeAmount | number:'1.0-0'}} FCFA</td>
-            <td>{{echeance.amount | number:'1.0-0'}} FCFA</td>
-            <td>
-              <!-- <span class="badge" [ngClass]="getStatusClass(echeance.status)"> -->
+          @for (echeance of echeances; track echeance; let i = $index) {
+            <tr>
+              <td>{{(currentEcheancePage * echeancePageSize) + (i + 1)}}</td>
+              <td>{{echeance.creationDate | date:'dd/MM/yyyy'}}</td>
+              <td>{{echeance.dailyStakeAmount | number:'1.0-0'}} FCFA</td>
+              <td>{{echeance.amount | number:'1.0-0'}} FCFA</td>
+              <td>
+                <!-- <span class="badge" [ngClass]="getStatusClass(echeance.status)"> -->
                 {{echeance.totalAmountRemaining | number:'1.0-0'}} FCFA
               <!-- </span> -->
             </td>
           </tr>
-        </tbody>
-      </table>
-    </div>
-    <mat-paginator [length]="totalEcheanceElements" [pageSize]="echeancePageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onEcheancePageChange($event)">
-    </mat-paginator>
+        }
+      </tbody>
+    </table>
   </div>
+  <mat-paginator [length]="totalEcheanceElements" [pageSize]="echeancePageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onEcheancePageChange($event)">
+  </mat-paginator>
+</div>
 </ng-template>
 
 <!-- Template pour Articles (basé sur credit-details) -->
@@ -200,13 +214,15 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let articleItem of credit.articles">
-          <td>{{ articleItem.articles.name }}</td>
-          <td>{{ articleItem.articles.type }}</td>
-          <td>{{ articleItem.quantity }}</td>
-          <td *appIfUnitPrice="credit.type">{{ articleItem.articles.creditSalePrice }} FCFA</td>
-          <td *appIfUnitPrice="credit.type">{{ articleItem.quantity * articleItem.articles?.creditSalePrice }} FCFA</td>
-        </tr>
+        @for (articleItem of credit.articles; track articleItem) {
+          <tr>
+            <td>{{ articleItem.articles.name }}</td>
+            <td>{{ articleItem.articles.type }}</td>
+            <td>{{ articleItem.quantity }}</td>
+            <td *appIfUnitPrice="credit.type">{{ articleItem.articles.creditSalePrice }} FCFA</td>
+            <td *appIfUnitPrice="credit.type">{{ articleItem.quantity * articleItem.articles?.creditSalePrice }} FCFA</td>
+          </tr>
+        }
       </tbody>
     </table>
     <div class="details-row">

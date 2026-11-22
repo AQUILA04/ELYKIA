@@ -16,20 +16,22 @@
     </div>
   </div>
   <div class="week-days">
-    <div *ngFor="let day of weekDays"
-         class="day-cell"
-         [class.active]="isActiveDay(day)"
-         [class.today-cell]="day.isToday"
-         [class.has-credits]="day.count > 0 && !isActiveDay(day)"
-         (click)="selectDay(day)">
-      <div class="day-name">{{ day.label }}</div>
-      <div class="day-num">{{ day.date | date:'d' }}</div>
-      <div class="day-badge"
-           [class.orange]="day.count > 0 && day.hasUrgent"
-           [class.navy]="day.count > 0 && !day.hasUrgent"
-           [class.empty]="day.count === 0">
-        {{ day.count > 0 ? day.count : '' }}
+    @for (day of weekDays; track day) {
+      <div
+        class="day-cell"
+        [class.active]="isActiveDay(day)"
+        [class.today-cell]="day.isToday"
+        [class.has-credits]="day.count > 0 && !isActiveDay(day)"
+        (click)="selectDay(day)">
+        <div class="day-name">{{ day.label }}</div>
+        <div class="day-num">{{ day.date | date:'d' }}</div>
+        <div class="day-badge"
+          [class.orange]="day.count > 0 && day.hasUrgent"
+          [class.navy]="day.count > 0 && !day.hasUrgent"
+          [class.empty]="day.count === 0">
+          {{ day.count > 0 ? day.count : '' }}
+        </div>
       </div>
-    </div>
+    }
   </div>
 </div>

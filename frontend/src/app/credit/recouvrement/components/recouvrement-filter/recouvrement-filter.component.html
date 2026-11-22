@@ -1,30 +1,33 @@
 <div class="filter-card a5">
   <div class="filter-controls">
-    
+
     <div class="filter-group">
       <label class="filter-label">Période Rapide</label>
       <div class="period-pills">
-        <button 
-          *ngFor="let opt of periodOptions"
-          class="pill-btn"
-          [class.active]="selectedPeriod === opt.value"
-          [attr.data-testid]="'e2e-recouvrement-period-' + opt.value"
-          (click)="selectPeriod(opt.value)">
-          {{ opt.label }}
-        </button>
+        @for (opt of periodOptions; track opt) {
+          <button
+            class="pill-btn"
+            [class.active]="selectedPeriod === opt.value"
+            [attr.data-testid]="'e2e-recouvrement-period-' + opt.value"
+            (click)="selectPeriod(opt.value)">
+            {{ opt.label }}
+          </button>
+        }
       </div>
     </div>
 
     <!-- Custom Date Range -->
-    <div class="filter-group" *ngIf="selectedPeriod === 'custom'">
-      <label class="filter-label">Dates Personnalisées</label>
-      <div class="date-inputs">
-        <input type="date" lang="fr-FR" [(ngModel)]="customDateFrom" [max]="today" class="filter-input">
-        <span class="date-sep">à</span>
-        <input type="date" lang="fr-FR" [(ngModel)]="customDateTo" [max]="today" class="filter-input">
-        <button class="btn-apply-dates" (click)="applyCustomDates()">Appliquer</button>
+    @if (selectedPeriod === 'custom') {
+      <div class="filter-group">
+        <label class="filter-label">Dates Personnalisées</label>
+        <div class="date-inputs">
+          <input type="date" lang="fr-FR" [(ngModel)]="customDateFrom" [max]="today" class="filter-input">
+          <span class="date-sep">à</span>
+          <input type="date" lang="fr-FR" [(ngModel)]="customDateTo" [max]="today" class="filter-input">
+          <button class="btn-apply-dates" (click)="applyCustomDates()">Appliquer</button>
+        </div>
       </div>
-    </div>
+    }
 
     <div class="filter-group" style="flex: 1; max-width: 300px;">
       <label class="filter-label">Commercial</label>

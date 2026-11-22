@@ -57,8 +57,12 @@
       </div>
     </div>
 
-    <div class="banner banner-ok" *ngIf="resultMessage" role="status" data-testid="e2e-carnet-ecart-result">{{ resultMessage }}</div>
-    <div class="banner banner-error" *ngIf="errorMessage" role="alert" data-testid="e2e-carnet-ecart-error">{{ errorMessage }}</div>
+    @if (resultMessage) {
+      <div class="banner banner-ok" role="status" data-testid="e2e-carnet-ecart-result">{{ resultMessage }}</div>
+    }
+    @if (errorMessage) {
+      <div class="banner banner-error" role="alert" data-testid="e2e-carnet-ecart-error">{{ errorMessage }}</div>
+    }
 
     <div class="toolbar a4">
       <div class="filter-fields">
@@ -79,11 +83,13 @@
             <button type="button" class="pill-btn pill-btn-credit" [class.active]="domain === 'CREDIT'" (click)="domain = 'CREDIT'; load()">Vente</button>
           </div>
         </div>
-        <div class="filter-field filter-field-commercial" *ngIf="canFilterCommercial">
-          <label class="toolbar-label" for="carnet-ecart-commercial">Commercial</label>
-          <input id="carnet-ecart-commercial" class="search-input" type="text" [(ngModel)]="commercial"
-                 (keydown.enter)="load()" placeholder="Identifiant" data-testid="e2e-carnet-ecart-commercial">
-        </div>
+        @if (canFilterCommercial) {
+          <div class="filter-field filter-field-commercial">
+            <label class="toolbar-label" for="carnet-ecart-commercial">Commercial</label>
+            <input id="carnet-ecart-commercial" class="search-input" type="text" [(ngModel)]="commercial"
+              (keydown.enter)="load()" placeholder="Identifiant" data-testid="e2e-carnet-ecart-commercial">
+          </div>
+        }
       </div>
       <div class="filter-actions">
         <button type="button" class="btn-clear" (click)="commercial = ''; domain = ''; queue = 'PENDING'; load()">Réinitialiser</button>
@@ -91,132 +97,176 @@
       </div>
     </div>
 
-    <div class="selection-bar" *ngIf="selected.size > 0">
-      <span>{{ selected.size }} sélectionné(s)</span>
-      <button type="button" class="btn-primary" [disabled]="acting" (click)="askAccept(selectedKeys)" data-testid="e2e-carnet-ecart-accept-selection">
-        Accepter la sélection
-      </button>
-      <button type="button" class="btn-danger" [disabled]="acting" (click)="askReject(selectedKeys)" data-testid="e2e-carnet-ecart-reject-selection">
-        Rejeter la sélection
-      </button>
-    </div>
+    @if (selected.size > 0) {
+      <div class="selection-bar">
+        <span>{{ selected.size }} sélectionné(s)</span>
+        <button type="button" class="btn-primary" [disabled]="acting" (click)="askAccept(selectedKeys)" data-testid="e2e-carnet-ecart-accept-selection">
+          Accepter la sélection
+        </button>
+        <button type="button" class="btn-danger" [disabled]="acting" (click)="askReject(selectedKeys)" data-testid="e2e-carnet-ecart-reject-selection">
+          Rejeter la sélection
+        </button>
+      </div>
+    }
 
     <div class="table-card a5">
       <div class="table-wrapper">
-        <div class="empty-state" *ngIf="loading">
-          <div class="empty-icon" aria-hidden="true">⏳</div>
-          <div class="empty-title">Chargement</div>
-          <div class="empty-sub">Les écarts de carnet arrivent.</div>
-        </div>
-        <div class="empty-state" *ngIf="!loading && items.length === 0">
-          <div class="empty-icon" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        @if (loading) {
+          <div class="empty-state">
+            <div class="empty-icon" aria-hidden="true">⏳</div>
+            <div class="empty-title">Chargement</div>
+            <div class="empty-sub">Les écarts de carnet arrivent.</div>
           </div>
-          <div class="empty-title">Aucun écart</div>
-          <div class="empty-sub">Aucune ligne ne correspond à ce filtre.</div>
+        }
+        @if (!loading && items.length === 0) {
+          <div class="empty-state">
+            <div class="empty-icon" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            </div>
+            <div class="empty-title">Aucun écart</div>
+            <div class="empty-sub">Aucune ligne ne correspond à ce filtre.</div>
+          </div>
+        }
+        @if (!loading && items.length > 0) {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>
+                  <input type="checkbox" [checked]="allSelected" (change)="toggleAll($any($event.target).checked)" aria-label="Tout sélectionner">
+                </th>
+                <th>Dossier</th>
+                <th>Client</th>
+                <th>Commercial</th>
+                <th>Système</th>
+                <th>Carnet</th>
+                <th>Écart</th>
+                <th>Sens</th>
+                <th>Constat</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of items; track item) {
+                <tr [attr.data-testid]="'e2e-carnet-ecart-row-' + item.key">
+                  <td>
+                    <input type="checkbox" [checked]="selected.has(item.key)" (change)="toggle(item.key, $any($event.target).checked)" [attr.aria-label]="'Sélectionner ' + (item.subjectReference || item.clientName)">
+                  </td>
+                  <td>
+                    <div class="col-client">{{ domainLabel(item) }}</div>
+                    <div class="col-ref">{{ item.subjectReference || '—' }}</div>
+                  </td>
+                  <td>{{ item.clientName || '—' }}</td>
+                  <td>
+                    @if (item.commercialKnown) {
+                      <span>{{ item.commercialUsername }}</span>
+                    }
+                    @if (!item.commercialKnown) {
+                      <span class="status-pill status-warn">Commercial non identifié</span>
+                    }
+                  </td>
+                  <td class="col-amount">{{ item.systemAmount | number:'1.0-0' }}</td>
+                  <td class="col-amount">{{ item.notebookAmount | number:'1.0-0' }}</td>
+                  <td class="col-amount">{{ item.differenceAmount | number:'1.0-0' }}</td>
+                  <td><span class="status-pill" [class.status-ok]="item.direction === 'NOTEBOOK_ABOVE_SYSTEM'" [class.status-warn]="item.direction !== 'NOTEBOOK_ABOVE_SYSTEM'">{{ directionLabel(item) }}</span></td>
+                  <td>{{ item.observedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td class="col-actions">
+                    @if (canAccept(item)) {
+                      <button type="button" class="btn-detail" [disabled]="acting" (click)="askAccept([item.key])">Accepter</button>
+                    }
+                    @if (item.status === 'PENDING') {
+                      <button type="button" class="btn-detail btn-danger" [disabled]="acting" (click)="askReject([item.key])">Rejeter</button>
+                    }
+                  </td>
+                </tr>
+                @if (item.months?.length) {
+                  <tr class="month-row">
+                    <td colspan="10">
+                      @for (month of item.months; track month) {
+                        <span class="month-chip">
+                          {{ monthLabel(month.month, month.year) }} · écart {{ month.differenceAmount | number:'1.0-0' }} FCFA
+                          @if (month.status !== 'PENDING') {
+                            <em>· {{ month.status === 'ACCEPTED' ? 'Accepté' : 'Rejeté' }}</em>
+                          }
+                        </span>
+                      }
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+    </div>
+  </div>
+
+  @if (showAccept) {
+    <div class="dialog-backdrop" role="presentation" (click)="cancelDialog()">
+      <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="accept-title" (click)="$event.stopPropagation()" data-testid="e2e-carnet-ecart-accept-dialog">
+        <h2 id="accept-title">Accepter l’écart</h2>
+        @if (acceptPreviewAmount > 0) {
+          <p>
+            Une mise de <strong>{{ acceptPreviewAmount | number:'1.0-0' }} FCFA</strong> sera enregistrée,
+            et un manquant de caisse du même montant sera ouvert pour le commercial.
+          </p>
+        }
+        @if (selectedTontineInverse > 0) {
+          <p>
+            Les mois où le système dépasse le carnet sont annulés et retirés de la caisse de ces jours.
+            Ils ne restent pas en plus du carnet. Si cet argent a déjà été versé, ce jour pourra afficher un surplus.
+          </p>
+        }
+        @if (acceptPreviewAmount <= 0 && selectedTontineInverse > 0) {
+          <p>
+            Aucun manquant n’est ouvert.
+          </p>
+        }
+        @if (acceptPreviewAmount <= 0 && selectedTontineInverse === 0) {
+          <p>
+            Aucune mise ne sera créée : le carnet n’est pas supérieur au système.
+          </p>
+        }
+        @if (adhesionWarnings.length) {
+          <p>
+            @for (warning of adhesionWarnings; track warning) {
+              <span>{{ warning }}. </span>
+            }
+            La mise déjà connue s'applique depuis cette date, sauf si une mise de mois est indiquée ci-dessous.
+          </p>
+        }
+        @if (stakeWarnings.length) {
+          <p>
+            @for (warning of stakeWarnings; track warning) {
+              <span>{{ warning }}. </span>
+            }
+          </p>
+        }
+        @if (selectedCreditInverse > 0) {
+          <p>
+            Les ventes où le système dépasse le carnet ne sont pas modifiées. Vous pouvez les rejeter avec un motif.
+          </p>
+        }
+        <div class="dialog-actions">
+          <button type="button" class="btn-clear" (click)="cancelDialog()">Annuler</button>
+          <button type="button" class="btn-primary" [disabled]="acting || (acceptPreviewAmount <= 0 && selectedTontineInverse === 0)" (click)="confirmAccept()" data-testid="e2e-carnet-ecart-accept-confirm">Confirmer</button>
         </div>
-        <table class="data-table" *ngIf="!loading && items.length > 0">
-          <thead>
-            <tr>
-              <th>
-                <input type="checkbox" [checked]="allSelected" (change)="toggleAll($any($event.target).checked)" aria-label="Tout sélectionner">
-              </th>
-              <th>Dossier</th>
-              <th>Client</th>
-              <th>Commercial</th>
-              <th>Système</th>
-              <th>Carnet</th>
-              <th>Écart</th>
-              <th>Sens</th>
-              <th>Constat</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <ng-container *ngFor="let item of items">
-              <tr [attr.data-testid]="'e2e-carnet-ecart-row-' + item.key">
-                <td>
-                  <input type="checkbox" [checked]="selected.has(item.key)" (change)="toggle(item.key, $any($event.target).checked)" [attr.aria-label]="'Sélectionner ' + (item.subjectReference || item.clientName)">
-                </td>
-                <td>
-                  <div class="col-client">{{ domainLabel(item) }}</div>
-                  <div class="col-ref">{{ item.subjectReference || '—' }}</div>
-                </td>
-                <td>{{ item.clientName || '—' }}</td>
-                <td>
-                  <span *ngIf="item.commercialKnown">{{ item.commercialUsername }}</span>
-                  <span class="status-pill status-warn" *ngIf="!item.commercialKnown">Commercial non identifié</span>
-                </td>
-                <td class="col-amount">{{ item.systemAmount | number:'1.0-0' }}</td>
-                <td class="col-amount">{{ item.notebookAmount | number:'1.0-0' }}</td>
-                <td class="col-amount">{{ item.differenceAmount | number:'1.0-0' }}</td>
-                <td><span class="status-pill" [class.status-ok]="item.direction === 'NOTEBOOK_ABOVE_SYSTEM'" [class.status-warn]="item.direction !== 'NOTEBOOK_ABOVE_SYSTEM'">{{ directionLabel(item) }}</span></td>
-                <td>{{ item.observedAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td class="col-actions">
-                  <button type="button" class="btn-detail" *ngIf="canAccept(item)" [disabled]="acting" (click)="askAccept([item.key])">Accepter</button>
-                  <button type="button" class="btn-detail btn-danger" *ngIf="item.status === 'PENDING'" [disabled]="acting" (click)="askReject([item.key])">Rejeter</button>
-                </td>
-              </tr>
-              <tr *ngIf="item.months?.length" class="month-row">
-                <td colspan="10">
-                  <span class="month-chip" *ngFor="let month of item.months">
-                    {{ monthLabel(month.month, month.year) }} · écart {{ month.differenceAmount | number:'1.0-0' }} FCFA
-                    <em *ngIf="month.status !== 'PENDING'">· {{ month.status === 'ACCEPTED' ? 'Accepté' : 'Rejeté' }}</em>
-                  </span>
-                </td>
-              </tr>
-            </ng-container>
-          </tbody>
-        </table>
       </div>
     </div>
-  </div>
+  }
 
-  <div class="dialog-backdrop" *ngIf="showAccept" role="presentation" (click)="cancelDialog()">
-    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="accept-title" (click)="$event.stopPropagation()" data-testid="e2e-carnet-ecart-accept-dialog">
-      <h2 id="accept-title">Accepter l’écart</h2>
-      <p *ngIf="acceptPreviewAmount > 0">
-        Une mise de <strong>{{ acceptPreviewAmount | number:'1.0-0' }} FCFA</strong> sera enregistrée,
-        et un manquant de caisse du même montant sera ouvert pour le commercial.
-      </p>
-      <p *ngIf="selectedTontineInverse > 0">
-        Les mois où le système dépasse le carnet sont annulés et retirés de la caisse de ces jours.
-        Ils ne restent pas en plus du carnet. Si cet argent a déjà été versé, ce jour pourra afficher un surplus.
-      </p>
-      <p *ngIf="acceptPreviewAmount <= 0 && selectedTontineInverse > 0">
-        Aucun manquant n’est ouvert.
-      </p>
-      <p *ngIf="acceptPreviewAmount <= 0 && selectedTontineInverse === 0">
-        Aucune mise ne sera créée : le carnet n’est pas supérieur au système.
-      </p>
-      <p *ngIf="adhesionWarnings.length">
-        <span *ngFor="let warning of adhesionWarnings">{{ warning }}. </span>
-        La mise déjà connue s'applique depuis cette date, sauf si une mise de mois est indiquée ci-dessous.
-      </p>
-      <p *ngIf="stakeWarnings.length">
-        <span *ngFor="let warning of stakeWarnings">{{ warning }}. </span>
-      </p>
-      <p *ngIf="selectedCreditInverse > 0">
-        Les ventes où le système dépasse le carnet ne sont pas modifiées. Vous pouvez les rejeter avec un motif.
-      </p>
-      <div class="dialog-actions">
-        <button type="button" class="btn-clear" (click)="cancelDialog()">Annuler</button>
-        <button type="button" class="btn-primary" [disabled]="acting || (acceptPreviewAmount <= 0 && selectedTontineInverse === 0)" (click)="confirmAccept()" data-testid="e2e-carnet-ecart-accept-confirm">Confirmer</button>
+  @if (showReject) {
+    <div class="dialog-backdrop" role="presentation" (click)="cancelDialog()">
+      <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="reject-title" (click)="$event.stopPropagation()" data-testid="e2e-carnet-ecart-reject-dialog">
+        <h2 id="reject-title">Rejeter l’écart</h2>
+        <p>Aucune mise et aucun manquant ne seront créés. Le motif est obligatoire.</p>
+        <label class="toolbar-label" for="reject-note">Motif</label>
+        <textarea id="reject-note" class="reject-note" rows="4" [(ngModel)]="rejectNote" data-testid="e2e-carnet-ecart-reject-note" aria-describedby="reject-hint"></textarea>
+        <p id="reject-hint" class="empty-sub">Décrivez pourquoi le constat ne doit pas être repris en caisse.</p>
+        <div class="dialog-actions">
+          <button type="button" class="btn-clear" (click)="cancelDialog()">Annuler</button>
+          <button type="button" class="btn-danger" [disabled]="acting || !rejectNote.trim()" (click)="confirmReject()" data-testid="e2e-carnet-ecart-reject-confirm">Rejeter</button>
+        </div>
       </div>
     </div>
-  </div>
-
-  <div class="dialog-backdrop" *ngIf="showReject" role="presentation" (click)="cancelDialog()">
-    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="reject-title" (click)="$event.stopPropagation()" data-testid="e2e-carnet-ecart-reject-dialog">
-      <h2 id="reject-title">Rejeter l’écart</h2>
-      <p>Aucune mise et aucun manquant ne seront créés. Le motif est obligatoire.</p>
-      <label class="toolbar-label" for="reject-note">Motif</label>
-      <textarea id="reject-note" class="reject-note" rows="4" [(ngModel)]="rejectNote" data-testid="e2e-carnet-ecart-reject-note" aria-describedby="reject-hint"></textarea>
-      <p id="reject-hint" class="empty-sub">Décrivez pourquoi le constat ne doit pas être repris en caisse.</p>
-      <div class="dialog-actions">
-        <button type="button" class="btn-clear" (click)="cancelDialog()">Annuler</button>
-        <button type="button" class="btn-danger" [disabled]="acting || !rejectNote.trim()" (click)="confirmReject()" data-testid="e2e-carnet-ecart-reject-confirm">Rejeter</button>
-      </div>
-    </div>
-  </div>
+  }
 </div>

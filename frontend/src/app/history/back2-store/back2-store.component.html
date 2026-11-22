@@ -14,8 +14,8 @@
           <tr>
             <th class="mat-header-cell">
               <input type="checkbox"
-                     [checked]="allSelected"
-                     (change)="toggleAllSelection($event)">
+                [checked]="allSelected"
+                (change)="toggleAllSelection($event)">
             </th>
             <th class="mat-header-cell">#</th>
             <th class="mat-header-cell">Article</th>
@@ -24,32 +24,34 @@
           </tr>
         </thead>
         <tbody>
-  <tr *ngFor="let line of articles; let i = index">
-    <td class="mat-cell">
-      <input type="checkbox"
-             [formControlName]="'selected_' + i"
-             (change)="onSelectLine(i)">
-    </td>
-    <td class="mat-cell">{{ (i + 1) }}</td>
-    <td class="mat-cell">{{ line.articles.name }} {{ line.articles.model }}</td>
-    <td class="mat-cell">{{ line.quantity }}</td>
-    <td class="mat-cell">
-      <ng-container [formArrayName]="'quantities'">
-        <ng-container *ngIf="backToStoreFormGroup.get('selected_' + i)?.value">
-          <input
-            type="number"
-            [formControlName]="i"
-            class="amount-input"
-            [max]="line.quantity"
-            min="0"
-            name="backQuantity"
-            required
-          >
-        </ng-container>
-      </ng-container>
-    </td>
-  </tr>
-</tbody>
+          @for (line of articles; track line; let i = $index) {
+            <tr>
+              <td class="mat-cell">
+                <input type="checkbox"
+                  [formControlName]="'selected_' + i"
+                  (change)="onSelectLine(i)">
+              </td>
+              <td class="mat-cell">{{ (i + 1) }}</td>
+              <td class="mat-cell">{{ line.articles.name }} {{ line.articles.model }}</td>
+              <td class="mat-cell">{{ line.quantity }}</td>
+              <td class="mat-cell">
+                <ng-container [formArrayName]="'quantities'">
+                  @if (backToStoreFormGroup.get('selected_' + i)?.value) {
+                    <input
+                      type="number"
+                      [formControlName]="i"
+                      class="amount-input"
+                      [max]="line.quantity"
+                      min="0"
+                      name="backQuantity"
+                      required
+                      >
+                  }
+                </ng-container>
+              </td>
+            </tr>
+          }
+        </tbody>
       </table>
     </div>
     <div class="button-container">

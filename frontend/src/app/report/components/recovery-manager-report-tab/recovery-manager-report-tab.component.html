@@ -1,222 +1,244 @@
 <div class="p-4">
-  <div class="rm-toolbar" *ngIf="isManager">
-    <div class="filter-field">
-      <span class="toolbar-label">Chef de recouvrement</span>
-      <input type="text" class="rm-input" placeholder="Username du chef de recouvrement"
-        [(ngModel)]="recoveryManagerUsername" (ngModelChange)="onRecoveryManagerChange($event)" />
+  @if (isManager) {
+    <div class="rm-toolbar">
+      <div class="filter-field">
+        <span class="toolbar-label">Chef de recouvrement</span>
+        <input type="text" class="rm-input" placeholder="Username du chef de recouvrement"
+          [(ngModel)]="recoveryManagerUsername" (ngModelChange)="onRecoveryManagerChange($event)" />
+      </div>
     </div>
-  </div>
+  }
 
   <!-- Loading -->
-  <div *ngIf="isLoading" class="loading-container">
-    <mat-spinner diameter="40"></mat-spinner>
-  </div>
+  @if (isLoading) {
+    <div class="loading-container">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  }
 
   <!-- No Data -->
-  <div *ngIf="!isLoading && showNoData && !hasTerrainActivity" class="empty-state">
-    <mat-icon class="empty-icon">search_off</mat-icon>
-    <p class="empty-text">Aucune opération de recouvrement pour cette période.</p>
-  </div>
+  @if (!isLoading && showNoData && !hasTerrainActivity) {
+    <div class="empty-state">
+      <mat-icon class="empty-icon">search_off</mat-icon>
+      <p class="empty-text">Aucune opération de recouvrement pour cette période.</p>
+    </div>
+  }
 
   <!-- Taux du mois (portefeuille retards délai app) -->
-  <div class="month-rate-banner" *ngIf="!isLoading && monthlyRate as rate" data-testid="rm-month-rate-banner">
-    <div class="month-rate-text">
-      <span class="month-rate-title">Taux du mois</span>
-      <span class="month-rate-sub">Taux de recouvrement · {{ monthLabel }} · tous les retards délai</span>
+  @if (!isLoading && monthlyRate; as rate) {
+    <div class="month-rate-banner" data-testid="rm-month-rate-banner">
+      <div class="month-rate-text">
+        <span class="month-rate-title">Taux du mois</span>
+        <span class="month-rate-sub">Taux de recouvrement · {{ monthLabel }} · tous les retards délai</span>
+      </div>
+      <div class="month-rate-value">
+        <strong>{{ rate.recoveryRatePercent | number:'1.0-1' }} %</strong>
+        <span>
+          Encaissé {{ rate.amountCollectedByChef | number }} FCFA
+          · Dû app {{ rate.latePortfolioDue | number }} FCFA
+        </span>
+      </div>
     </div>
-    <div class="month-rate-value">
-      <strong>{{ rate.recoveryRatePercent | number:'1.0-1' }} %</strong>
-      <span>
-        Encaissé {{ rate.amountCollectedByChef | number }} FCFA
-        · Dû app {{ rate.latePortfolioDue | number }} FCFA
-      </span>
-    </div>
-  </div>
+  }
 
   <!-- Activité terrain : contrôles sur le portefeuille, clôtures -->
-  <section class="activity-block" *ngIf="!isLoading && activity as act" data-testid="rm-activity">
-    <div class="activity-head">
-      <h3 class="section-title">Activité terrain</h3>
-      <p class="activity-sub">
-        Sur la période du rapport. Chaque total est le portefeuille encore en cours
-        <ng-container *ngIf="commercialUsername"> du commercial choisi</ng-container>.
-      </p>
-    </div>
-    <div class="activity-grid">
-      <article class="activity-card" data-testid="rm-activity-credit-controls">
-        <div class="kpi-label">Contrôles carnet crédit</div>
-        <div class="activity-figure">
-          <span class="kpi-value">{{ act.creditControlsDone }}<span class="activity-of"> / {{ act.creditPortfolioTotal }}</span></span>
-          <span class="activity-pct">{{ act.creditCoveragePercent }} %</span>
+  @if (!isLoading && activity; as act) {
+    <section class="activity-block" data-testid="rm-activity">
+      <div class="activity-head">
+        <h3 class="section-title">Activité terrain</h3>
+        <p class="activity-sub">
+          Sur la période du rapport. Chaque total est le portefeuille encore en cours
+          @if (commercialUsername) {
+            du commercial choisi
+            }.
+          </p>
         </div>
-        <div class="coverage-track" role="progressbar"
-          [attr.aria-valuenow]="barWidth(act.creditCoveragePercent)" aria-valuemin="0" aria-valuemax="100"
-          aria-label="Part des crédits en cours contrôlés">
-          <div class="coverage-fill coverage-fill-credit" [style.width.%]="barWidth(act.creditCoveragePercent)"></div>
+        <div class="activity-grid">
+          <article class="activity-card" data-testid="rm-activity-credit-controls">
+            <div class="kpi-label">Contrôles carnet crédit</div>
+            <div class="activity-figure">
+              <span class="kpi-value">{{ act.creditControlsDone }}<span class="activity-of"> / {{ act.creditPortfolioTotal }}</span></span>
+              <span class="activity-pct">{{ act.creditCoveragePercent }} %</span>
+            </div>
+            <div class="coverage-track" role="progressbar"
+              [attr.aria-valuenow]="barWidth(act.creditCoveragePercent)" aria-valuemin="0" aria-valuemax="100"
+              aria-label="Part des crédits en cours contrôlés">
+              <div class="coverage-fill coverage-fill-credit" [style.width.%]="barWidth(act.creditCoveragePercent)"></div>
+            </div>
+            <p class="activity-hint">{{ controlHint(act.creditControlsEvents, act.creditControlsDone, act.creditControlsConforme, act.creditControlsEcart, act.creditPortfolioTotal, 'Aucun crédit en cours') }}</p>
+          </article>
+          <article class="activity-card" data-testid="rm-activity-tontine-controls">
+            <div class="kpi-label">Contrôles carnet tontine</div>
+            <div class="activity-figure">
+              <span class="kpi-value">{{ act.tontineControlsDone }}<span class="activity-of"> / {{ act.tontinePortfolioTotal }}</span></span>
+              <span class="activity-pct">{{ act.tontineCoveragePercent }} %</span>
+            </div>
+            <div class="coverage-track" role="progressbar"
+              [attr.aria-valuenow]="barWidth(act.tontineCoveragePercent)" aria-valuemin="0" aria-valuemax="100"
+              aria-label="Part des membres tontine en cours contrôlés">
+              <div class="coverage-fill coverage-fill-tontine" [style.width.%]="barWidth(act.tontineCoveragePercent)"></div>
+            </div>
+            <p class="activity-hint">{{ controlHint(act.tontineControlsEvents, act.tontineControlsDone, act.tontineControlsConforme, act.tontineControlsEcart, act.tontinePortfolioTotal, 'Aucun membre en cours') }}</p>
+          </article>
+          <article class="activity-card" data-testid="rm-activity-closures">
+            <div class="kpi-label">Clôtures crédit</div>
+            <div class="kpi-value">{{ act.creditClosuresCount }}</div>
+            <p class="activity-hint">{{ closureHint }}</p>
+          </article>
+          <article class="activity-card" data-testid="rm-activity-verifications">
+            <div class="kpi-label">Carnets vérifiés</div>
+            <div class="verify-lines">
+              <div>
+                <span class="verify-count">{{ act.creditCarnetVerifications }}</span>
+                <span class="verify-label">Crédit</span>
+              </div>
+              <div>
+                <span class="verify-count">{{ act.tontineCarnetVerifications }}</span>
+                <span class="verify-label">Tontine</span>
+              </div>
+            </div>
+            <p class="activity-hint">Vérifications enregistrées sur la période</p>
+          </article>
         </div>
-        <p class="activity-hint">{{ controlHint(act.creditControlsEvents, act.creditControlsDone, act.creditControlsConforme, act.creditControlsEcart, act.creditPortfolioTotal, 'Aucun crédit en cours') }}</p>
-      </article>
+      </section>
+    }
 
-      <article class="activity-card" data-testid="rm-activity-tontine-controls">
-        <div class="kpi-label">Contrôles carnet tontine</div>
-        <div class="activity-figure">
-          <span class="kpi-value">{{ act.tontineControlsDone }}<span class="activity-of"> / {{ act.tontinePortfolioTotal }}</span></span>
-          <span class="activity-pct">{{ act.tontineCoveragePercent }} %</span>
+    <!-- KPIs Row -->
+    @if (!isLoading && summary) {
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-label">Total collecté</div>
+          <div class="kpi-value">{{ summary.totalAmountCollected | number }} FCFA</div>
         </div>
-        <div class="coverage-track" role="progressbar"
-          [attr.aria-valuenow]="barWidth(act.tontineCoveragePercent)" aria-valuemin="0" aria-valuemax="100"
-          aria-label="Part des membres tontine en cours contrôlés">
-          <div class="coverage-fill coverage-fill-tontine" [style.width.%]="barWidth(act.tontineCoveragePercent)"></div>
+        <div class="kpi-card">
+          <div class="kpi-label">Nb opérations</div>
+          <div class="kpi-value">{{ summary.totalOperationsCount }}</div>
         </div>
-        <p class="activity-hint">{{ controlHint(act.tontineControlsEvents, act.tontineControlsDone, act.tontineControlsConforme, act.tontineControlsEcart, act.tontinePortfolioTotal, 'Aucun membre en cours') }}</p>
-      </article>
+        <div class="kpi-card">
+          <div class="kpi-label">Commerciaux concernés</div>
+          <div class="kpi-value">{{ summary.commercialsCount }}</div>
+        </div>
+      </div>
+    }
 
-      <article class="activity-card" data-testid="rm-activity-closures">
-        <div class="kpi-label">Clôtures crédit</div>
-        <div class="kpi-value">{{ act.creditClosuresCount }}</div>
-        <p class="activity-hint">{{ closureHint }}</p>
-      </article>
-
-      <article class="activity-card" data-testid="rm-activity-verifications">
-        <div class="kpi-label">Carnets vérifiés</div>
-        <div class="verify-lines">
-          <div>
-            <span class="verify-count">{{ act.creditCarnetVerifications }}</span>
-            <span class="verify-label">Crédit</span>
+    <!-- Tableau "À remettre par commercial" -->
+    @if (summary; as s) {
+      @if (s.remittanceByCommercial?.length) {
+        <div class="section-card">
+          <h3 class="section-title">À remettre par commercial</h3>
+          <div class="desktop-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Commercial</th>
+                  <th class="text-right">Nb opérations</th>
+                  <th class="text-right">Montant à remettre</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (rem of s.remittanceByCommercial; track rem) {
+                  <tr>
+                    <td>{{ rem.commercialUsername }}</td>
+                    <td class="text-right">{{ rem.operationsCount }}</td>
+                    <td class="text-right">{{ rem.totalToRemit | number }} FCFA</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
           </div>
-          <div>
-            <span class="verify-count">{{ act.tontineCarnetVerifications }}</span>
-            <span class="verify-label">Tontine</span>
+          <div class="mobile-card-list">
+            @for (rem of s.remittanceByCommercial; track rem) {
+              <div class="mobile-card">
+                <div class="mobile-card-client">{{ rem.commercialUsername }}</div>
+                <div class="mobile-card-meta">
+                  <span>{{ rem.operationsCount }} opération(s)</span>
+                </div>
+                <div class="mobile-card-amount">{{ rem.totalToRemit | number }} FCFA</div>
+              </div>
+            }
           </div>
         </div>
-        <p class="activity-hint">Vérifications enregistrées sur la période</p>
-      </article>
-    </div>
-  </section>
+      }
+    }
 
-  <!-- KPIs Row -->
-  <div class="kpi-row" *ngIf="!isLoading && summary">
-    <div class="kpi-card">
-      <div class="kpi-label">Total collecté</div>
-      <div class="kpi-value">{{ summary.totalAmountCollected | number }} FCFA</div>
+    <!-- Détail des opérations -->
+    <div class="section-card">
+      <h3 class="section-title">Détail des opérations</h3>
+      @if (operations.length > 0) {
+        <div>
+          <div class="desktop-table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Réf. crédit</th>
+                  <th>Client</th>
+                  <th>Commercial</th>
+                  <th class="text-right">Montant</th>
+                  <th>Type</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (op of operations; track op) {
+                  <tr>
+                    <td>{{ op.operationDate | date:'dd/MM/yyyy' }}</td>
+                    <td>{{ op.creditReference }}</td>
+                    <td>{{ op.clientName }}</td>
+                    <td>{{ op.commercialUsername }}</td>
+                    <td class="text-right">{{ op.amountCollected | number }} FCFA</td>
+                    <td>
+                      <span class="type-badge" [class.partial]="op.isPartial" [class.total]="!op.isPartial">
+                        {{ op.isPartial ? 'Partiel' : 'Total' }}
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="mobile-card-list">
+            @for (op of operations; track op) {
+              <div class="mobile-card">
+                <div class="mobile-card-top">
+                  <span class="type-badge" [class.partial]="op.isPartial" [class.total]="!op.isPartial">
+                    {{ op.isPartial ? 'Partiel' : 'Total' }}
+                  </span>
+                  <span class="mobile-card-ref">{{ op.operationDate | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="mobile-card-client">{{ op.clientName }}</div>
+                <div class="mobile-card-meta">
+                  <span>{{ op.creditReference }}</span>
+                  <span>{{ op.commercialUsername }}</span>
+                </div>
+                <div class="mobile-card-amount">{{ op.amountCollected | number }} FCFA</div>
+              </div>
+            }
+          </div>
+          <div class="mt-3">
+            <mat-paginator [length]="totalElements" [pageSize]="pageSize"
+              [pageSizeOptions]="[10, 20, 50]" (page)="onPageChange($event)">
+            </mat-paginator>
+          </div>
+        </div>
+      } @else {
+        <p class="text-muted">Aucune opération à afficher.</p>
+      }
     </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Nb opérations</div>
-      <div class="kpi-value">{{ summary.totalOperationsCount }}</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Commerciaux concernés</div>
-      <div class="kpi-value">{{ summary.commercialsCount }}</div>
+
+    <!-- Export PDF -->
+    <div class="export-row">
+      <button class="btn-download" (click)="onExportPdf()" [disabled]="isDownloading" [class.loading]="isDownloading">
+        @if (!isDownloading) {
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        }
+        @if (isDownloading) {
+          <div class="spinner-small"></div>
+        }
+        Exporter PDF
+      </button>
     </div>
   </div>
-
-  <!-- Tableau "À remettre par commercial" -->
-  <ng-container *ngIf="summary as s">
-    <div class="section-card" *ngIf="s.remittanceByCommercial?.length">
-      <h3 class="section-title">À remettre par commercial</h3>
-
-      <div class="desktop-table-wrap">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Commercial</th>
-              <th class="text-right">Nb opérations</th>
-              <th class="text-right">Montant à remettre</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let rem of s.remittanceByCommercial">
-              <td>{{ rem.commercialUsername }}</td>
-              <td class="text-right">{{ rem.operationsCount }}</td>
-              <td class="text-right">{{ rem.totalToRemit | number }} FCFA</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="mobile-card-list">
-        <div class="mobile-card" *ngFor="let rem of s.remittanceByCommercial">
-          <div class="mobile-card-client">{{ rem.commercialUsername }}</div>
-          <div class="mobile-card-meta">
-            <span>{{ rem.operationsCount }} opération(s)</span>
-          </div>
-          <div class="mobile-card-amount">{{ rem.totalToRemit | number }} FCFA</div>
-        </div>
-      </div>
-    </div>
-  </ng-container>
-
-  <!-- Détail des opérations -->
-  <div class="section-card">
-    <h3 class="section-title">Détail des opérations</h3>
-    <div *ngIf="operations.length > 0; else noOps">
-      <div class="desktop-table-wrap">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Réf. crédit</th>
-              <th>Client</th>
-              <th>Commercial</th>
-              <th class="text-right">Montant</th>
-              <th>Type</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let op of operations">
-              <td>{{ op.operationDate | date:'dd/MM/yyyy' }}</td>
-              <td>{{ op.creditReference }}</td>
-              <td>{{ op.clientName }}</td>
-              <td>{{ op.commercialUsername }}</td>
-              <td class="text-right">{{ op.amountCollected | number }} FCFA</td>
-              <td>
-                <span class="type-badge" [class.partial]="op.isPartial" [class.total]="!op.isPartial">
-                  {{ op.isPartial ? 'Partiel' : 'Total' }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="mobile-card-list">
-        <div class="mobile-card" *ngFor="let op of operations">
-          <div class="mobile-card-top">
-            <span class="type-badge" [class.partial]="op.isPartial" [class.total]="!op.isPartial">
-              {{ op.isPartial ? 'Partiel' : 'Total' }}
-            </span>
-            <span class="mobile-card-ref">{{ op.operationDate | date:'dd/MM/yyyy' }}</span>
-          </div>
-          <div class="mobile-card-client">{{ op.clientName }}</div>
-          <div class="mobile-card-meta">
-            <span>{{ op.creditReference }}</span>
-            <span>{{ op.commercialUsername }}</span>
-          </div>
-          <div class="mobile-card-amount">{{ op.amountCollected | number }} FCFA</div>
-        </div>
-      </div>
-
-      <div class="mt-3">
-        <mat-paginator [length]="totalElements" [pageSize]="pageSize"
-          [pageSizeOptions]="[10, 20, 50]" (page)="onPageChange($event)">
-        </mat-paginator>
-      </div>
-    </div>
-    <ng-template #noOps>
-      <p class="text-muted">Aucune opération à afficher.</p>
-    </ng-template>
-  </div>
-
-  <!-- Export PDF -->
-  <div class="export-row">
-    <button class="btn-download" (click)="onExportPdf()" [disabled]="isDownloading" [class.loading]="isDownloading">
-      <svg *ngIf="!isDownloading" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-        <polyline points="7 10 12 15 17 10"></polyline>
-        <line x1="12" y1="15" x2="12" y2="3"></line>
-      </svg>
-      <div class="spinner-small" *ngIf="isDownloading"></div>
-      Exporter PDF
-    </button>
-  </div>
-</div>

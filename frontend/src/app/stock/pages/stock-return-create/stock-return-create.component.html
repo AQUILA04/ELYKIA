@@ -7,38 +7,44 @@
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" data-testid="e2e-stock-return-form">
     <!-- Commercial Selector (Storekeepers only) -->
-    <div *ngIf="isStoreKeeper" class="commercial-selector-section">
-      <div class="form-group">
-        <label>Commercial <span class="required">*</span></label>
-        <ng-select [items]="commercials" bindLabel="username" bindValue="username" [(ngModel)]="selectedCommercial"
-          data-testid="e2e-stock-return-collector"
-          [ngModelOptions]="{standalone: true}" (change)="onCommercialSelected()" [searchFn]="searchCommercial"
-          placeholder="Sélectionner un commercial" [clearable]="false">
-          <ng-template ng-option-tmp let-item="item">
-            <div class="commercial-option">
-              <strong>{{ item.username }}</strong>
-              <span class="commercial-name">{{ item.firstname }} {{ item.lastname }}</span>
-            </div>
-          </ng-template>
-        </ng-select>
+    @if (isStoreKeeper) {
+      <div class="commercial-selector-section">
+        <div class="form-group">
+          <label>Commercial <span class="required">*</span></label>
+          <ng-select [items]="commercials" bindLabel="username" bindValue="username" [(ngModel)]="selectedCommercial"
+            data-testid="e2e-stock-return-collector"
+            [ngModelOptions]="{standalone: true}" (change)="onCommercialSelected()" [searchFn]="searchCommercial"
+            placeholder="Sélectionner un commercial" [clearable]="false">
+            <ng-template ng-option-tmp let-item="item">
+              <div class="commercial-option">
+                <strong>{{ item.username }}</strong>
+                <span class="commercial-name">{{ item.firstname }} {{ item.lastname }}</span>
+              </div>
+            </ng-template>
+          </ng-select>
+        </div>
       </div>
-    </div>
+    }
 
-    <div class="form-group" *ngIf="selectedCommercial || !isStoreKeeper">
-      <label>Articles à retourner<span class="text-danger">*</span></label>
-      <app-article-selector
-        formControlName="items"
-        [articles]="availableStockItems"
-        [priceType]="'inventory'"
-        [showPrices]="false"
-        [showStock]="true"
-        [validateStock]="true"
-      >
-      </app-article-selector>
-      <mat-error *ngIf="form.get('items')?.invalid && form.get('items')?.touched">
-        Au moins un article doit être sélectionné.
-      </mat-error>
-    </div>
+    @if (selectedCommercial || !isStoreKeeper) {
+      <div class="form-group">
+        <label>Articles à retourner<span class="text-danger">*</span></label>
+        <app-article-selector
+          formControlName="items"
+          [articles]="availableStockItems"
+          [priceType]="'inventory'"
+          [showPrices]="false"
+          [showStock]="true"
+          [validateStock]="true"
+          >
+        </app-article-selector>
+        @if (form.get('items')?.invalid && form.get('items')?.touched) {
+          <mat-error>
+            Au moins un article doit être sélectionné.
+          </mat-error>
+        }
+      </div>
+    }
 
     <div class="actions">
       <button type="button" class="btn btn-cancel" [routerLink]="['/stock/return']" [queryParams]="{ channel: channel }">Annuler</button>

@@ -17,80 +17,92 @@
       </p>
     </div>
 
-    <div class="collector-block" *ngFor="let block of blocks" [attr.data-commercial]="block.commercialUsername">
-      <div class="collector-head">
-        <div>
-          <strong>{{ block.commercialUsername }}</strong>
-          <span class="collector-total">Système : {{ block.totalAmount | number }} FCFA</span>
+    @for (block of blocks; track block) {
+      <div class="collector-block" [attr.data-commercial]="block.commercialUsername">
+        <div class="collector-head">
+          <div>
+            <strong>{{ block.commercialUsername }}</strong>
+            <span class="collector-total">Système : {{ block.totalAmount | number }} FCFA</span>
+          </div>
+          @if (block.currentCollector) {
+            <span class="current-badge">Actuel</span>
+          }
         </div>
-        <span class="current-badge" *ngIf="block.currentCollector">Actuel</span>
-      </div>
-
-      <div class="collector-gap" *ngIf="blockSelected(block).length">
-        Écart {{ block.commercialUsername }} :
-        <strong [class.is-ok]="blockDifference(block) === 0" [class.is-gap]="blockDifference(block) !== 0">
-          {{ blockDifference(block) | number }} FCFA
-        </strong>
-      </div>
-
-      <div class="months-list">
-        <div class="month-row" *ngFor="let row of block.rows" [class.selected]="row.selected">
-          <label class="month-check">
-            <input
-              type="checkbox"
-              [checked]="row.selected"
-              [disabled]="isSubmitting || (!row.selected && monthCollectedElsewhere(row))"
-              (change)="toggleRow(row)"
-            />
-            <span class="month-name">{{ row.monthName }} {{ row.year }}</span>
-          </label>
-          <div class="month-system">
-            Système : <strong>{{ row.systemAmount | number }} FCFA</strong>
+        @if (blockSelected(block).length) {
+          <div class="collector-gap">
+            Écart {{ block.commercialUsername }} :
+            <strong [class.is-ok]="blockDifference(block) === 0" [class.is-gap]="blockDifference(block) !== 0">
+              {{ blockDifference(block) | number }} FCFA
+            </strong>
           </div>
-          <div class="month-input" *ngIf="row.selected">
-            <label [attr.for]="'notebook-' + block.commercialUsername + '-' + row.year + '-' + row.calendarMonth">Carnet</label>
-            <div class="input-wrap">
-              <input
-                [id]="'notebook-' + block.commercialUsername + '-' + row.year + '-' + row.calendarMonth"
-                type="number"
-                min="0"
-                [(ngModel)]="row.notebookAmount"
-                [disabled]="isSubmitting"
-                placeholder="0"
-              />
-              <span class="input-suffix">FCFA</span>
-            </div>
-          </div>
-          <div class="month-extra" *ngIf="row.selected && canEditAttribution(row)">
-            <div class="month-input">
-              <label [attr.for]="'commercial-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername">Collecté par</label>
-              <select
-                [id]="'commercial-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername"
-                [ngModel]="row.commercialUsername"
-                (ngModelChange)="onCommercialChange(row, $event)"
-                [disabled]="isSubmitting">
-                <option *ngFor="let promoter of promotersFor(row)" [value]="promoter.username">
-                  {{ promoter.label }} ({{ promoter.username }})
-                </option>
-              </select>
-            </div>
-            <div class="month-input">
-              <label [attr.for]="'mise-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername">Mise du mois</label>
-              <div class="input-wrap">
+        }
+        <div class="months-list">
+          @for (row of block.rows; track row) {
+            <div class="month-row" [class.selected]="row.selected">
+              <label class="month-check">
                 <input
-                  [id]="'mise-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername"
-                  type="number"
-                  min="1"
-                  [(ngModel)]="row.declaredDailyAmount"
-                  [disabled]="isSubmitting"
-                />
-                <span class="input-suffix">FCFA</span>
+                  type="checkbox"
+                  [checked]="row.selected"
+                  [disabled]="isSubmitting || (!row.selected && monthCollectedElsewhere(row))"
+                  (change)="toggleRow(row)"
+                  />
+                <span class="month-name">{{ row.monthName }} {{ row.year }}</span>
+              </label>
+              <div class="month-system">
+                Système : <strong>{{ row.systemAmount | number }} FCFA</strong>
               </div>
+              @if (row.selected) {
+                <div class="month-input">
+                  <label [attr.for]="'notebook-' + block.commercialUsername + '-' + row.year + '-' + row.calendarMonth">Carnet</label>
+                  <div class="input-wrap">
+                    <input
+                      [id]="'notebook-' + block.commercialUsername + '-' + row.year + '-' + row.calendarMonth"
+                      type="number"
+                      min="0"
+                      [(ngModel)]="row.notebookAmount"
+                      [disabled]="isSubmitting"
+                      placeholder="0"
+                      />
+                    <span class="input-suffix">FCFA</span>
+                  </div>
+                </div>
+              }
+              @if (row.selected && canEditAttribution(row)) {
+                <div class="month-extra">
+                  <div class="month-input">
+                    <label [attr.for]="'commercial-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername">Collecté par</label>
+                    <select
+                      [id]="'commercial-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername"
+                      [ngModel]="row.commercialUsername"
+                      (ngModelChange)="onCommercialChange(row, $event)"
+                      [disabled]="isSubmitting">
+                      @for (promoter of promotersFor(row); track promoter) {
+                        <option [value]="promoter.username">
+                          {{ promoter.label }} ({{ promoter.username }})
+                        </option>
+                      }
+                    </select>
+                  </div>
+                  <div class="month-input">
+                    <label [attr.for]="'mise-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername">Mise du mois</label>
+                    <div class="input-wrap">
+                      <input
+                        [id]="'mise-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername"
+                        type="number"
+                        min="1"
+                        [(ngModel)]="row.declaredDailyAmount"
+                        [disabled]="isSubmitting"
+                        />
+                      <span class="input-suffix">FCFA</span>
+                    </div>
+                  </div>
+                </div>
+              }
             </div>
-          </div>
+          }
         </div>
       </div>
-    </div>
+    }
 
     <div class="form-group">
       <label for="tontineFieldNote">Note terrain <span class="optional">(optionnel)</span></label>

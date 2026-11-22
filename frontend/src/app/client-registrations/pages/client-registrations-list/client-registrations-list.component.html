@@ -37,235 +37,267 @@
   <div class="toolbar a4">
     <button type="button" class="btn-filter" [class.active]="depositFilter === 'all'" (click)="setDepositFilter('all')">Toutes</button>
     <button type="button" class="btn-filter" [class.active]="depositFilter === 'with'" (click)="setDepositFilter('with')"
-      data-testid="e2e-client-registrations-filter-deposit">Avec dépôt</button>
+    data-testid="e2e-client-registrations-filter-deposit">Avec dépôt</button>
     <button type="button" class="btn-filter" [class.active]="depositFilter === 'without'" (click)="setDepositFilter('without')">Sans dépôt</button>
   </div>
 
   <div class="table-card a5">
     <div class="table-wrapper">
-      <div class="loading-state" *ngIf="loading">Chargement…</div>
-      <div class="empty-state" *ngIf="!loading && registrations.length === 0">
-        <p>Aucune inscription en attente.</p>
-      </div>
-      <table *ngIf="!loading && registrations.length > 0">
-        <thead>
-          <tr>
-            <th>Client</th>
-            <th>Téléphone</th>
-            <th>Pièce</th>
-            <th>Dépôt</th>
-            <th>Inscrit le</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of registrations" [class.has-deposit]="row.hasInitialDeposit"
-            data-testid="e2e-client-registration-row">
-            <td>
-              <div class="client-cell">
-                <ng-container *ngIf="listPhotoSrc(row) as src; else listAvatar">
-                  <img [src]="src" alt="" class="thumb" (error)="onPhotoError(src)" />
-                </ng-container>
-                <ng-template #listAvatar>
-                  <span
-                    class="thumb thumb-avatar"
-                    [attr.data-tone]="avatarTone(row)"
-                    [attr.aria-label]="'Avatar ' + row.fullName">
-                    {{ getInitials(row) }}
-                  </span>
-                </ng-template>
-                <span>{{ row.fullName }}</span>
-              </div>
-            </td>
-            <td>{{ row.phone }}</td>
-            <td>
-              <span *ngIf="row.cardPhotoUrl || row.cardPhotoThumbUrl" class="badge ok">Photo OK</span>
-              <span *ngIf="!row.cardPhotoUrl && !row.cardPhotoThumbUrl" class="badge warn">Manquante</span>
-            </td>
-            <td>
-              <ng-container *ngIf="row.hasInitialDeposit; else noDeposit">
-                {{ row.initialDepositAmount | number:'1.0-0' }} F
-                <span class="muted">({{ row.initialDepositStatus }})</span>
-              </ng-container>
-              <ng-template #noDeposit>—</ng-template>
-            </td>
-            <td>{{ row.registeredAt | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td>
-              <button type="button" class="btn-detail" (click)="openDetail(row)"
-                data-testid="e2e-client-registration-open">Voir</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="table-pagination" *ngIf="!loading && totalElements > 0"
-        data-testid="e2e-client-registrations-pagination">
-        <span class="pagination-label">{{ pageLabel }}</span>
-        <div class="pagination-actions">
-          <button type="button" class="btn-clear" (click)="goToPrevPage()"
-            [disabled]="!canGoPrev" data-testid="e2e-client-registrations-prev">
-            Précédent
-          </button>
-          <button type="button" class="btn-clear" (click)="goToNextPage()"
-            [disabled]="!canGoNext" data-testid="e2e-client-registrations-next">
-            Suivant
-          </button>
+      @if (loading) {
+        <div class="loading-state">Chargement…</div>
+      }
+      @if (!loading && registrations.length === 0) {
+        <div class="empty-state">
+          <p>Aucune inscription en attente.</p>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="detail-panel" *ngIf="selected" data-testid="e2e-client-registration-detail">
-    <div class="detail-backdrop" (click)="closeDetail()"></div>
-    <div class="detail-card">
-      <div class="detail-header">
-        <div class="detail-identity">
-          <ng-container *ngIf="profilThumbSrc(selected) as thumb; else headerAvatar">
-            <button
-              type="button"
-              class="header-avatar-btn"
-              (click)="openPhotoPreview('PROFIL', selected, 'Photo de profil')"
-              data-testid="e2e-client-registration-profil-photo"
-              aria-label="Agrandir la photo de profil">
-              <img [src]="thumb" alt="" class="header-avatar-img" (error)="onPhotoError(thumb)" />
+      }
+      @if (!loading && registrations.length > 0) {
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Téléphone</th>
+              <th>Pièce</th>
+              <th>Dépôt</th>
+              <th>Inscrit le</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of registrations; track row) {
+              <tr [class.has-deposit]="row.hasInitialDeposit"
+                data-testid="e2e-client-registration-row">
+                <td>
+                  <div class="client-cell">
+                    @if (listPhotoSrc(row); as src) {
+                      <img [src]="src" alt="" class="thumb" (error)="onPhotoError(src)" />
+                    } @else {
+                      <span
+                        class="thumb thumb-avatar"
+                        [attr.data-tone]="avatarTone(row)"
+                        [attr.aria-label]="'Avatar ' + row.fullName">
+                        {{ getInitials(row) }}
+                      </span>
+                    }
+                    <span>{{ row.fullName }}</span>
+                  </div>
+                </td>
+                <td>{{ row.phone }}</td>
+                <td>
+                  @if (row.cardPhotoUrl || row.cardPhotoThumbUrl) {
+                    <span class="badge ok">Photo OK</span>
+                  }
+                  @if (!row.cardPhotoUrl && !row.cardPhotoThumbUrl) {
+                    <span class="badge warn">Manquante</span>
+                  }
+                </td>
+                <td>
+                  @if (row.hasInitialDeposit) {
+                    {{ row.initialDepositAmount | number:'1.0-0' }} F
+                    <span class="muted">({{ row.initialDepositStatus }})</span>
+                  } @else {
+                    —
+                  }
+                </td>
+                <td>{{ row.registeredAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  <button type="button" class="btn-detail" (click)="openDetail(row)"
+                  data-testid="e2e-client-registration-open">Voir</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+      @if (!loading && totalElements > 0) {
+        <div class="table-pagination"
+          data-testid="e2e-client-registrations-pagination">
+          <span class="pagination-label">{{ pageLabel }}</span>
+          <div class="pagination-actions">
+            <button type="button" class="btn-clear" (click)="goToPrevPage()"
+              [disabled]="!canGoPrev" data-testid="e2e-client-registrations-prev">
+              Précédent
             </button>
-          </ng-container>
-          <ng-template #headerAvatar>
-            <div
-              class="header-avatar header-avatar--initials"
-              [attr.data-tone]="avatarTone(selected)"
-              [attr.aria-label]="'Avatar ' + selected.fullName"
-              data-testid="e2e-client-registration-profil-avatar">
-              {{ getInitials(selected) }}
-            </div>
-          </ng-template>
-          <h2>{{ selected.fullName }}</h2>
-        </div>
-        <button type="button" class="btn-clear" (click)="closeDetail()">Fermer</button>
-      </div>
-
-      <div class="detail-card-doc">
-        <span class="label">Pièce d’identité</span>
-        <ng-container *ngIf="cardThumbSrc(selected) as thumb; else cardEmpty">
-          <button
-            type="button"
-            class="card-doc-btn"
-            (click)="openPhotoPreview('CARD', selected, 'Photo de la pièce')"
-            data-testid="e2e-client-registration-card-photo"
-            aria-label="Agrandir la photo de la pièce">
-            <img [src]="thumb" alt="Miniature pièce" class="card-doc-thumb" (error)="onPhotoError(thumb)" />
-            <span class="card-doc-hint">Agrandir</span>
-          </button>
-        </ng-container>
-        <ng-template #cardEmpty>
-          <div class="card-doc-empty" aria-label="Aucune photo de pièce">
-            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-              <path fill="currentColor"
-                d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
-            </svg>
-            <span class="muted">Non fournie</span>
+            <button type="button" class="btn-clear" (click)="goToNextPage()"
+              [disabled]="!canGoNext" data-testid="e2e-client-registrations-next">
+              Suivant
+            </button>
           </div>
-        </ng-template>
-      </div>
-      <dl class="detail-grid">
-        <div><dt>Téléphone</dt><dd>{{ selected.phone }}</dd></div>
-        <div><dt>Adresse</dt><dd>{{ selected.address }} — {{ selected.quarter }}</dd></div>
-        <p class="zone-pending" *ngIf="selected.customQuarter">Cette zone n’est pas encore dans la liste.</p>
-        <div><dt>Naissance</dt><dd>{{ selected.dateOfBirth | date:'dd/MM/yyyy' }}</dd></div>
-        <div><dt>Occupation</dt><dd>{{ selected.occupation }}</dd></div>
-        <div><dt>Pièce</dt><dd>{{ selected.cardType }} — {{ selected.cardID }}</dd></div>
-        <div *ngIf="selected.hasInitialDeposit">
-          <dt>Dépôt initial</dt>
-          <dd>
-            {{ selected.initialDepositAmount | number:'1.0-0' }} F
-            · {{ selected.initialDepositPhone }}
-            · réf. {{ selected.initialDepositReference }}
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (selected) {
+    <div class="detail-panel" data-testid="e2e-client-registration-detail">
+      <div class="detail-backdrop" (click)="closeDetail()"></div>
+      <div class="detail-card">
+        <div class="detail-header">
+          <div class="detail-identity">
+            @if (profilThumbSrc(selected); as thumb) {
+              <button
+                type="button"
+                class="header-avatar-btn"
+                (click)="openPhotoPreview('PROFIL', selected, 'Photo de profil')"
+                data-testid="e2e-client-registration-profil-photo"
+                aria-label="Agrandir la photo de profil">
+                <img [src]="thumb" alt="" class="header-avatar-img" (error)="onPhotoError(thumb)" />
+              </button>
+            } @else {
+              <div
+                class="header-avatar header-avatar--initials"
+                [attr.data-tone]="avatarTone(selected)"
+                [attr.aria-label]="'Avatar ' + selected.fullName"
+                data-testid="e2e-client-registration-profil-avatar">
+                {{ getInitials(selected) }}
+              </div>
+            }
+            <h2>{{ selected.fullName }}</h2>
+          </div>
+          <button type="button" class="btn-clear" (click)="closeDetail()">Fermer</button>
+        </div>
+        <div class="detail-card-doc">
+          <span class="label">Pièce d’identité</span>
+          @if (cardThumbSrc(selected); as thumb) {
             <button
-              *ngIf="selected.initialDepositHasProof"
               type="button"
-              class="btn-clear"
-              style="margin-left:8px"
-              data-testid="e2e-client-registration-deposit-proof"
-              (click)="openDepositProof(selected)">
-              Voir le justificatif
+              class="card-doc-btn"
+              (click)="openPhotoPreview('CARD', selected, 'Photo de la pièce')"
+              data-testid="e2e-client-registration-card-photo"
+              aria-label="Agrandir la photo de la pièce">
+              <img [src]="thumb" alt="Miniature pièce" class="card-doc-thumb" (error)="onPhotoError(thumb)" />
+              <span class="card-doc-hint">Agrandir</span>
             </button>
-          </dd>
+          } @else {
+            <div class="card-doc-empty" aria-label="Aucune photo de pièce">
+              <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                <path fill="currentColor"
+                  d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+              </svg>
+              <span class="muted">Non fournie</span>
+            </div>
+          }
         </div>
-      </dl>
-
-      <form [formGroup]="activateForm" (ngSubmit)="activate()" class="activate-form">
-        <label *ngIf="selected.customQuarter">
-          Nom de la zone
-          <input
-            type="text"
-            formControlName="quarter"
-            maxlength="100"
-            data-testid="e2e-client-registration-quarter" />
-          <span class="field-hint" *ngIf="!activateForm.get('quarter')?.hasError('otherLabel')">Vous pouvez corriger le nom. À la validation, la zone est ajoutée à la liste, ou rattachée si elle existe déjà.</span>
-          <span class="field-hint field-hint--error" *ngIf="activateForm.get('quarter')?.hasError('otherLabel')">Indiquez le nom de la zone.</span>
-        </label>
-        <label>
-          Commercial crédit
-          <select formControlName="collector" data-testid="e2e-client-registration-collector">
-            <option value="" disabled>Sélectionner</option>
-            <option *ngFor="let a of agents" [value]="a.username">{{ agentLabel(a) }}</option>
-          </select>
-        </label>
-        <label>
-          Commercial tontine
-          <select formControlName="tontineCollector" data-testid="e2e-client-registration-tontine-collector">
-            <option value="" disabled>Sélectionner</option>
-            <option *ngFor="let a of agents" [value]="a.username">{{ agentLabel(a) }}</option>
-          </select>
-        </label>
-        <label class="checkbox" *ngIf="selected.initialDepositStatus === 'INITIE'">
-          <input type="checkbox" formControlName="validateInitialDeposit" />
-          Valider le dépôt initial et créditer le solde
-        </label>
-        <div class="detail-actions">
-          <button type="submit" class="btn-primary" data-testid="e2e-client-registration-activate"
-            [disabled]="activateForm.invalid">
-            Valider l'inscription
-          </button>
-          <button type="button" class="btn-clear" (click)="reject()" data-testid="e2e-client-registration-reject">
-            Refuser
-          </button>
-        </div>
-      </form>
+        <dl class="detail-grid">
+          <div><dt>Téléphone</dt><dd>{{ selected.phone }}</dd></div>
+          <div><dt>Adresse</dt><dd>{{ selected.address }} — {{ selected.quarter }}</dd></div>
+          @if (selected.customQuarter) {
+            <p class="zone-pending">Cette zone n’est pas encore dans la liste.</p>
+          }
+          <div><dt>Naissance</dt><dd>{{ selected.dateOfBirth | date:'dd/MM/yyyy' }}</dd></div>
+          <div><dt>Occupation</dt><dd>{{ selected.occupation }}</dd></div>
+          <div><dt>Pièce</dt><dd>{{ selected.cardType }} — {{ selected.cardID }}</dd></div>
+          @if (selected.hasInitialDeposit) {
+            <div>
+              <dt>Dépôt initial</dt>
+              <dd>
+                {{ selected.initialDepositAmount | number:'1.0-0' }} F
+                · {{ selected.initialDepositPhone }}
+                · réf. {{ selected.initialDepositReference }}
+                @if (selected.initialDepositHasProof) {
+                  <button
+                    type="button"
+                    class="btn-clear"
+                    style="margin-left:8px"
+                    data-testid="e2e-client-registration-deposit-proof"
+                    (click)="openDepositProof(selected)">
+                    Voir le justificatif
+                  </button>
+                }
+              </dd>
+            </div>
+          }
+        </dl>
+        <form [formGroup]="activateForm" (ngSubmit)="activate()" class="activate-form">
+          @if (selected.customQuarter) {
+            <label>
+              Nom de la zone
+              <input
+                type="text"
+                formControlName="quarter"
+                maxlength="100"
+                data-testid="e2e-client-registration-quarter" />
+              @if (!activateForm.get('quarter')?.hasError('otherLabel')) {
+                <span class="field-hint">Vous pouvez corriger le nom. À la validation, la zone est ajoutée à la liste, ou rattachée si elle existe déjà.</span>
+              }
+              @if (activateForm.get('quarter')?.hasError('otherLabel')) {
+                <span class="field-hint field-hint--error">Indiquez le nom de la zone.</span>
+              }
+            </label>
+          }
+          <label>
+            Commercial crédit
+            <select formControlName="collector" data-testid="e2e-client-registration-collector">
+              <option value="" disabled>Sélectionner</option>
+              @for (a of agents; track a) {
+                <option [value]="a.username">{{ agentLabel(a) }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            Commercial tontine
+            <select formControlName="tontineCollector" data-testid="e2e-client-registration-tontine-collector">
+              <option value="" disabled>Sélectionner</option>
+              @for (a of agents; track a) {
+                <option [value]="a.username">{{ agentLabel(a) }}</option>
+              }
+            </select>
+          </label>
+          @if (selected.initialDepositStatus === 'INITIE') {
+            <label class="checkbox">
+              <input type="checkbox" formControlName="validateInitialDeposit" />
+              Valider le dépôt initial et créditer le solde
+            </label>
+          }
+          <div class="detail-actions">
+            <button type="submit" class="btn-primary" data-testid="e2e-client-registration-activate"
+              [disabled]="activateForm.invalid">
+              Valider l'inscription
+            </button>
+            <button type="button" class="btn-clear" (click)="reject()" data-testid="e2e-client-registration-reject">
+              Refuser
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  </div>
+  }
 
-  <div
-    class="photo-preview-overlay"
-    *ngIf="photoPreviewUrl"
-    (click)="closePhotoPreview()"
-    role="presentation"
-    data-testid="e2e-client-registration-photo-preview">
+  @if (photoPreviewUrl) {
     <div
-      class="photo-preview-modal"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="registration-photo-preview-title"
-      (click)="$event.stopPropagation()">
-      <div class="photo-preview-header">
-        <h3 id="registration-photo-preview-title">{{ photoPreviewTitle }}</h3>
-        <button type="button" class="photo-preview-close" (click)="closePhotoPreview()" aria-label="Fermer">
-          ×
-        </button>
-      </div>
-      <div class="photo-preview-body">
-        <img
-          *ngIf="!photoPreviewIsPdf && photoPreviewUrl"
-          [src]="photoPreviewUrl"
-          [alt]="photoPreviewTitle"
-          class="photo-preview-image"
-          (error)="onPhotoError(photoPreviewUrl)" />
-        <iframe
-          *ngIf="photoPreviewIsPdf && photoPreviewSafeUrl"
-          [src]="photoPreviewSafeUrl"
-          title="Justificatif PDF"
-          class="photo-preview-image"
-          style="width:100%;min-height:70vh;border:0"></iframe>
+      class="photo-preview-overlay"
+      (click)="closePhotoPreview()"
+      role="presentation"
+      data-testid="e2e-client-registration-photo-preview">
+      <div
+        class="photo-preview-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="registration-photo-preview-title"
+        (click)="$event.stopPropagation()">
+        <div class="photo-preview-header">
+          <h3 id="registration-photo-preview-title">{{ photoPreviewTitle }}</h3>
+          <button type="button" class="photo-preview-close" (click)="closePhotoPreview()" aria-label="Fermer">
+            ×
+          </button>
+        </div>
+        <div class="photo-preview-body">
+          @if (!photoPreviewIsPdf && photoPreviewUrl) {
+            <img
+              [src]="photoPreviewUrl"
+              [alt]="photoPreviewTitle"
+              class="photo-preview-image"
+              (error)="onPhotoError(photoPreviewUrl)" />
+          }
+          @if (photoPreviewIsPdf && photoPreviewSafeUrl) {
+            <iframe
+              [src]="photoPreviewSafeUrl"
+              title="Justificatif PDF"
+              class="photo-preview-image"
+            style="width:100%;min-height:70vh;border:0"></iframe>
+          }
+        </div>
       </div>
     </div>
-  </div>
+  }
 </div>

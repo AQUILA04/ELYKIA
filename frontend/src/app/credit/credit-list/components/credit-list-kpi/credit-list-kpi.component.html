@@ -1,10 +1,12 @@
-<div class="credit-list-kpi" *ngIf="loading" data-testid="e2e-credit-list-kpi-loading">
-  <div class="kpi-section">
-    <div class="kpi-section-title">Chargement des indicateurs…</div>
+@if (loading) {
+  <div class="credit-list-kpi" data-testid="e2e-credit-list-kpi-loading">
+    <div class="kpi-section">
+      <div class="kpi-section-title">Chargement des indicateurs…</div>
+    </div>
   </div>
-</div>
+}
 
-<ng-container *ngIf="!loading && summary">
+@if (!loading && summary) {
   <div class="kpi-section a3" data-testid="e2e-credit-list-kpi-closed">
     <div class="kpi-section-title">Ventes clôturées · {{ periodLabel }}</div>
     <div class="kpi-strip kpi-strip-4">
@@ -30,7 +32,6 @@
       </div>
     </div>
   </div>
-
   <div class="kpi-section a3b">
     <div class="kpi-section-title">Encours & recouvrement</div>
     <div class="kpi-strip kpi-strip-2">
@@ -50,4 +51,4 @@
       </div>
     </div>
   </div>
-</ng-container>
+}

@@ -52,12 +52,14 @@
         </div>
       </div>
 
-      <div class="filter-group filter-group-dates" *ngIf="periodPreset === periodPresets.CUSTOM">
-        <span class="toolbar-label">Du</span>
-        <input type="date" class="date-input" [(ngModel)]="customStartDate" (change)="onCustomPeriodChange()">
-        <span class="toolbar-label">Au</span>
-        <input type="date" class="date-input" [(ngModel)]="customEndDate" (change)="onCustomPeriodChange()">
-      </div>
+      @if (periodPreset === periodPresets.CUSTOM) {
+        <div class="filter-group filter-group-dates">
+          <span class="toolbar-label">Du</span>
+          <input type="date" class="date-input" [(ngModel)]="customStartDate" (change)="onCustomPeriodChange()">
+          <span class="toolbar-label">Au</span>
+          <input type="date" class="date-input" [(ngModel)]="customEndDate" (change)="onCustomPeriodChange()">
+        </div>
+      }
 
       <button
         type="button"
@@ -66,7 +68,9 @@
         (click)="toggleAdvancedSearch()"
         data-testid="e2e-credit-advanced-toggle">
         Recherche avancée
-        <span class="filter-count-badge" *ngIf="activeFiltersCount > 0">{{ activeFiltersCount }}</span>
+        @if (activeFiltersCount > 0) {
+          <span class="filter-count-badge">{{ activeFiltersCount }}</span>
+        }
       </button>
 
       <span class="result-count">
@@ -75,25 +79,27 @@
 
       <div class="toolbar-actions">
         <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']">
-          <button
-            *ngIf="selectedCredits.size > 0"
-            type="button"
-            class="btn-secondary"
-            data-testid="e2e-credit-bulk-change-collector"
-            (click)="openBulkChangeCollectorModal()">
-            Changer l'agent ({{ selectedCredits.size }})
-          </button>
+          @if (selectedCredits.size > 0) {
+            <button
+              type="button"
+              class="btn-secondary"
+              data-testid="e2e-credit-bulk-change-collector"
+              (click)="openBulkChangeCollectorModal()">
+              Changer l'agent ({{ selectedCredits.size }})
+            </button>
+          }
         </ng-container>
         <ng-container *ngxPermissionsOnly="['ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']">
-          <button
-            *ngIf="selectedCredits.size > 0"
-            type="button"
-            class="btn-secondary"
-            data-testid="e2e-credit-carnet-bulk-verify"
-            [disabled]="verifyingBulk"
-            (click)="onBulkVerifyCarnet()">
-            {{ verifyingBulk ? 'Enregistrement…' : 'Vérifier la sélection (' + selectedCredits.size + ')' }}
-          </button>
+          @if (selectedCredits.size > 0) {
+            <button
+              type="button"
+              class="btn-secondary"
+              data-testid="e2e-credit-carnet-bulk-verify"
+              [disabled]="verifyingBulk"
+              (click)="onBulkVerifyCarnet()">
+              {{ verifyingBulk ? 'Enregistrement…' : 'Vérifier la sélection (' + selectedCredits.size + ')' }}
+            </button>
+          }
         </ng-container>
         <button *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" type="button" class="btn-primary" (click)="addCredit()" data-testid="e2e-credit-add-btn">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
@@ -118,213 +124,248 @@
 
   <div class="table-card a5">
     <div class="table-wrapper">
-      <div *ngIf="isLoading" class="table-loading">
-        <div class="empty-state">
-          <div class="empty-icon">⏳</div>
-          <div class="empty-title">Chargement…</div>
+      @if (isLoading) {
+        <div class="table-loading">
+          <div class="empty-state">
+            <div class="empty-icon">⏳</div>
+            <div class="empty-title">Chargement…</div>
+          </div>
         </div>
-      </div>
+      }
 
-      <div *ngIf="!isLoading && filteredCredits.length === 0" class="table-empty-static">
-        <div class="empty-state">
-          <div class="empty-icon">📋</div>
-          <div class="empty-title">Aucune vente trouvée</div>
-          <div class="empty-sub">Modifiez vos filtres ou créez une nouvelle vente.</div>
+      @if (!isLoading && filteredCredits.length === 0) {
+        <div class="table-empty-static">
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div class="empty-title">Aucune vente trouvée</div>
+            <div class="empty-sub">Modifiez vos filtres ou créez une nouvelle vente.</div>
+          </div>
         </div>
-      </div>
+      }
 
-      <div class="desktop-table-wrap" *ngIf="!isLoading && filteredCredits.length > 0">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR', 'ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']" class="col-select" data-testid="e2e-credit-collector-select-col">
-              <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedCredits.size > 0 && !isAllSelected"></mat-checkbox>
-            </th>
-            <th>#</th>
-            <th>Client</th>
-            <th>Commercial</th>
-            <th>Début</th>
-            <th>Montant</th>
-            <th>Mise/j</th>
-            <th>Statut</th>
-            <th>Carnet</th>
-            <th>Jours rest.</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let credit of filteredCredits; let i = index"
+      @if (!isLoading && filteredCredits.length > 0) {
+        <div class="desktop-table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR', 'ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']" class="col-select" data-testid="e2e-credit-collector-select-col">
+                  <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedCredits.size > 0 && !isAllSelected"></mat-checkbox>
+                </th>
+                <th>#</th>
+                <th>Client</th>
+                <th>Commercial</th>
+                <th>Début</th>
+                <th>Montant</th>
+                <th>Mise/j</th>
+                <th>Statut</th>
+                <th>Carnet</th>
+                <th>Jours rest.</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (credit of filteredCredits; track credit; let i = $index) {
+                <tr
+                  data-testid="e2e-credit-row"
+                  [attr.data-credit-id]="credit.id"
+                  [attr.data-credit-reference]="credit.reference"
+                  [attr.data-client-lastname]="credit.client?.lastname"
+                  [attr.data-status]="credit.status">
+                  <td *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR', 'ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']" class="col-select">
+                    @if (credit.status !== 'SETTLED') {
+                      <mat-checkbox
+                        (change)="toggleSelection(credit.id)"
+                      [checked]="isSelected(credit.id)"></mat-checkbox>
+                    }
+                    @if (credit.status === 'SETTLED') {
+                      <span>—</span>
+                    }
+                  </td>
+                  <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
+                  <td>{{ credit.client?.firstname }} {{ credit.client?.lastname }}</td>
+                  <td>{{ credit.collector }}</td>
+                  <td>{{ credit.beginDate | date:'dd/MM/yyyy' }}</td>
+                  <td class="col-amount">{{ credit.totalAmount | number:'1.0-0' }} FCFA</td>
+                  <td>{{ credit.dailyStake | number:'1.0-0' }}</td>
+                  <td>
+                    <span class="status-badge" [ngClass]="isPendingCashSale(credit) ? 'badge-warning' : (credit.status | statusBadge).badgeClass">
+                      {{ isPendingCashSale(credit) ? 'En attente de livraison' : (credit.status | statusBadge).label }}
+                    </span>
+                  </td>
+                  <td>
+                    <ng-container *ngTemplateOutlet="creditCarnetBadge; context: { $implicit: credit, testId: 'e2e-credit-carnet-badge' }"></ng-container>
+                  </td>
+                  <td>
+                    <span [ngClass]="getBadgeClass(credit.remainingDaysCount)">
+                      {{ credit.remainingDaysCount ?? 0 }}
+                    </span>
+                  </td>
+                  <td class="col-actions">
+                    <ng-container *ngTemplateOutlet="creditActions; context: { $implicit: credit }"></ng-container>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (!isLoading && filteredCredits.length > 0) {
+        <div class="mobile-card-list">
+          <div class="mobile-select-bar" *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR', 'ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']">
+            <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedCredits.size > 0 && !isAllSelected">
+              Tout sélectionner
+            </mat-checkbox>
+            @if (selectedCredits.size > 0) {
+              <span class="mobile-select-count">{{ selectedCredits.size }} sélectionné(s)</span>
+            }
+          </div>
+          @for (credit of filteredCredits; track credit; let i = $index) {
+            <div
+              class="mobile-card"
               data-testid="e2e-credit-row"
               [attr.data-credit-id]="credit.id"
               [attr.data-credit-reference]="credit.reference"
               [attr.data-client-lastname]="credit.client?.lastname"
               [attr.data-status]="credit.status">
-            <td *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR', 'ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']" class="col-select">
-              <mat-checkbox
-                *ngIf="credit.status !== 'SETTLED'"
-                (change)="toggleSelection(credit.id)"
-                [checked]="isSelected(credit.id)"></mat-checkbox>
-              <span *ngIf="credit.status === 'SETTLED'">—</span>
-            </td>
-            <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
-            <td>{{ credit.client?.firstname }} {{ credit.client?.lastname }}</td>
-            <td>{{ credit.collector }}</td>
-            <td>{{ credit.beginDate | date:'dd/MM/yyyy' }}</td>
-            <td class="col-amount">{{ credit.totalAmount | number:'1.0-0' }} FCFA</td>
-            <td>{{ credit.dailyStake | number:'1.0-0' }}</td>
-            <td>
-              <span class="status-badge" [ngClass]="isPendingCashSale(credit) ? 'badge-warning' : (credit.status | statusBadge).badgeClass">
-                {{ isPendingCashSale(credit) ? 'En attente de livraison' : (credit.status | statusBadge).label }}
-              </span>
-            </td>
-            <td>
-              <ng-container *ngTemplateOutlet="creditCarnetBadge; context: { $implicit: credit, testId: 'e2e-credit-carnet-badge' }"></ng-container>
-            </td>
-            <td>
-              <span [ngClass]="getBadgeClass(credit.remainingDaysCount)">
-                {{ credit.remainingDaysCount ?? 0 }}
-              </span>
-            </td>
-            <td class="col-actions">
-              <ng-container *ngTemplateOutlet="creditActions; context: { $implicit: credit }"></ng-container>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      </div>
-
-      <div class="mobile-card-list" *ngIf="!isLoading && filteredCredits.length > 0">
-        <div class="mobile-select-bar" *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR', 'ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']">
-          <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedCredits.size > 0 && !isAllSelected">
-            Tout sélectionner
-          </mat-checkbox>
-          <span class="mobile-select-count" *ngIf="selectedCredits.size > 0">{{ selectedCredits.size }} sélectionné(s)</span>
+              <div class="mobile-card-top">
+                <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR', 'ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']">
+                  @if (credit.status !== 'SETTLED') {
+                    <mat-checkbox
+                      (change)="toggleSelection(credit.id)"
+                      [checked]="isSelected(credit.id)">
+                    </mat-checkbox>
+                  }
+                </ng-container>
+                <span class="mobile-card-ref">#{{ (currentPage * pageSize) + (i + 1) }}</span>
+                <span class="status-badge" [ngClass]="isPendingCashSale(credit) ? 'badge-warning' : (credit.status | statusBadge).badgeClass">
+                  {{ isPendingCashSale(credit) ? 'En attente de livraison' : (credit.status | statusBadge).label }}
+                </span>
+                <ng-container *ngTemplateOutlet="creditCarnetBadge; context: { $implicit: credit }"></ng-container>
+              </div>
+              <div class="mobile-card-client">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</div>
+              <div class="mobile-card-meta">
+                <span>{{ credit.collector || '—' }}</span>
+                <span>{{ credit.beginDate | date:'dd/MM/yyyy' }}</span>
+                <span [ngClass]="getBadgeClass(credit.remainingDaysCount)">{{ credit.remainingDaysCount ?? 0 }} j rest.</span>
+              </div>
+              <div class="mobile-card-amount">
+                {{ credit.totalAmount | number:'1.0-0' }} FCFA
+                <span class="mobile-card-amount-sub">· mise {{ credit.dailyStake | number:'1.0-0' }}/j</span>
+              </div>
+              <div class="mobile-card-actions">
+                <ng-container *ngTemplateOutlet="creditActions; context: { $implicit: credit }"></ng-container>
+              </div>
+            </div>
+          }
         </div>
-        <div
-          class="mobile-card"
-          *ngFor="let credit of filteredCredits; let i = index"
-          data-testid="e2e-credit-row"
-          [attr.data-credit-id]="credit.id"
-          [attr.data-credit-reference]="credit.reference"
-          [attr.data-client-lastname]="credit.client?.lastname"
-          [attr.data-status]="credit.status">
-          <div class="mobile-card-top">
-            <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR', 'ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']">
-              <mat-checkbox
-                *ngIf="credit.status !== 'SETTLED'"
-                (change)="toggleSelection(credit.id)"
-                [checked]="isSelected(credit.id)">
-              </mat-checkbox>
-            </ng-container>
-            <span class="mobile-card-ref">#{{ (currentPage * pageSize) + (i + 1) }}</span>
-            <span class="status-badge" [ngClass]="isPendingCashSale(credit) ? 'badge-warning' : (credit.status | statusBadge).badgeClass">
-              {{ isPendingCashSale(credit) ? 'En attente de livraison' : (credit.status | statusBadge).label }}
-            </span>
-            <ng-container *ngTemplateOutlet="creditCarnetBadge; context: { $implicit: credit }"></ng-container>
-          </div>
-          <div class="mobile-card-client">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</div>
-          <div class="mobile-card-meta">
-            <span>{{ credit.collector || '—' }}</span>
-            <span>{{ credit.beginDate | date:'dd/MM/yyyy' }}</span>
-            <span [ngClass]="getBadgeClass(credit.remainingDaysCount)">{{ credit.remainingDaysCount ?? 0 }} j rest.</span>
-          </div>
-          <div class="mobile-card-amount">
-            {{ credit.totalAmount | number:'1.0-0' }} FCFA
-            <span class="mobile-card-amount-sub">· mise {{ credit.dailyStake | number:'1.0-0' }}/j</span>
-          </div>
-          <div class="mobile-card-actions">
-            <ng-container *ngTemplateOutlet="creditActions; context: { $implicit: credit }"></ng-container>
-          </div>
-        </div>
-      </div>
+      }
     </div>
 
     <ng-template #creditCarnetBadge let-credit let-testId="testId">
       <span class="carnet-badge"
-            [class.is-verified]="credit.carnetVerified"
-            [class.is-pending]="!credit.carnetVerified"
-            [attr.data-testid]="testId || null">
+        [class.is-verified]="credit.carnetVerified"
+        [class.is-pending]="!credit.carnetVerified"
+        [attr.data-testid]="testId || null">
         {{ credit.carnetVerified ? 'Vérifié' : '—' }}
       </span>
     </ng-template>
 
     <ng-template #creditActions let-credit>
       <span *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
-        <button *ngIf="credit.status === 'VALIDATED' && credit.type !== 'CASH'" type="button" class="btn-detail" title="Démarrer" (click)="startCredit(credit.id)">Démarrer</button>
+        @if (credit.status === 'VALIDATED' && credit.type !== 'CASH') {
+          <button type="button" class="btn-detail" title="Démarrer" (click)="startCredit(credit.id)">Démarrer</button>
+        }
       </span>
       <span *ngxPermissionsOnly="['ROLE_VALIDATE_CREDIT']">
-        <button *ngIf="credit.status === 'CREATED'" type="button" class="btn-detail btn-detail-success" title="Valider" (click)="validateCredit(credit.id)">Valider</button>
+        @if (credit.status === 'CREATED') {
+          <button type="button" class="btn-detail btn-detail-success" title="Valider" (click)="validateCredit(credit.id)">Valider</button>
+        }
       </span>
       <button type="button" class="btn-detail" title="Détails" (click)="viewDetails(credit.id)">Détails</button>
-      <button *ngIf="['CREATED', 'VALIDATED', 'INPROGRESS'].includes(credit.status) && credit.type !== 'CASH' && !isRecoveryManager" type="button" class="btn-detail" title="Changer la mise" (click)="changeDailyStake(credit.id)">Mise</button>
-      <button
-        *ngIf="credit.status === 'INPROGRESS' && credit.type === 'CREDIT' && credit.clientType === 'CLIENT' && !isRecoveryManager"
-        type="button"
-        class="btn-detail btn-detail-success"
-        title="Faire une mise"
-        data-testid="e2e-credit-daily-stake-btn"
-        (click)="openDailyStakeModal(credit)">
-        Encaisser
-      </button>
-      <span *ngIf="['CREATED', 'VALIDATED'].includes(credit.status) && credit.type !== 'CASH'">
-        <button *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" type="button" class="btn-detail" title="Modifier" (click)="editCredit(credit.id)">Modifier</button>
-        <button *ngxPermissionsOnly="['ROLE_DEL_CREDIT']" type="button" class="btn-detail btn-detail-danger" title="Supprimer" (click)="deleteCredit(credit.id)">Supprimer</button>
-      </span>
+      @if (['CREATED', 'VALIDATED', 'INPROGRESS'].includes(credit.status) && credit.type !== 'CASH' && !isRecoveryManager) {
+        <button type="button" class="btn-detail" title="Changer la mise" (click)="changeDailyStake(credit.id)">Mise</button>
+      }
+      @if (credit.status === 'INPROGRESS' && credit.type === 'CREDIT' && credit.clientType === 'CLIENT' && !isRecoveryManager) {
+        <button
+          type="button"
+          class="btn-detail btn-detail-success"
+          title="Faire une mise"
+          data-testid="e2e-credit-daily-stake-btn"
+          (click)="openDailyStakeModal(credit)">
+          Encaisser
+        </button>
+      }
+      @if (['CREATED', 'VALIDATED'].includes(credit.status) && credit.type !== 'CASH') {
+        <span>
+          <button *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" type="button" class="btn-detail" title="Modifier" (click)="editCredit(credit.id)">Modifier</button>
+          <button *ngxPermissionsOnly="['ROLE_DEL_CREDIT']" type="button" class="btn-detail btn-detail-danger" title="Supprimer" (click)="deleteCredit(credit.id)">Supprimer</button>
+        </span>
+      }
       <span *ngxPermissionsOnly="['ROLE_DEL_CREDIT']">
-        <button *ngIf="credit.type === 'CASH' && credit.status === 'VALIDATED'" type="button" class="btn-detail btn-detail-danger" title="Annuler" (click)="cancelCashSale(credit.id)">Annuler</button>
+        @if (credit.type === 'CASH' && credit.status === 'VALIDATED') {
+          <button type="button" class="btn-detail btn-detail-danger" title="Annuler" (click)="cancelCashSale(credit.id)">Annuler</button>
+        }
       </span>
     </ng-template>
 
-    <mat-paginator
-      *ngIf="!isLoading && totalElement > 0"
-      [length]="totalElement"
-      [pageIndex]="currentPage"
-      [pageSize]="pageSize"
-      [pageSizeOptions]="[5, 10, 25, 100]"
-      (page)="onPageChange($event)">
-    </mat-paginator>
+    @if (!isLoading && totalElement > 0) {
+      <mat-paginator
+        [length]="totalElement"
+        [pageIndex]="currentPage"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[5, 10, 25, 100]"
+        (page)="onPageChange($event)">
+      </mat-paginator>
+    }
   </div>
 </div>
 
-<app-credit-merge-modal
-  *ngIf="showMergeModal"
-  [collectors]="collectors"
-  (onMergeSuccess)="onMergeSuccess($event)"
-  (onClose)="closeMergeModal()">
-</app-credit-merge-modal>
+@if (showMergeModal) {
+  <app-credit-merge-modal
+    [collectors]="collectors"
+    (onMergeSuccess)="onMergeSuccess($event)"
+    (onClose)="closeMergeModal()">
+  </app-credit-merge-modal>
+}
 
-<app-daily-stake-modal
-  *ngIf="showDailyStakeModal"
-  [credit]="selectedCreditForStake"
-  [clientReliquatAmount]="clientReliquatForStake"
-  [isSubmitting]="isSubmittingStake"
-  (onSubmit)="onDailyStakeSubmit($event)"
-  (onClose)="closeDailyStakeModal()">
-</app-daily-stake-modal>
+@if (showDailyStakeModal) {
+  <app-daily-stake-modal
+    [credit]="selectedCreditForStake"
+    [clientReliquatAmount]="clientReliquatForStake"
+    [isSubmitting]="isSubmittingStake"
+    (onSubmit)="onDailyStakeSubmit($event)"
+    (onClose)="closeDailyStakeModal()">
+  </app-daily-stake-modal>
+}
 
-<div class="credit-list-bulk-modal modal-overlay" *ngIf="showBulkChangeCollectorModal" (click)="closeBulkChangeCollectorModal()">
-  <div class="bulk-modal-dialog" role="dialog" (click)="$event.stopPropagation()">
-    <div class="bulk-modal-content">
-      <div class="bulk-modal-header">
-        <h5 class="bulk-modal-title">Changer l'agent collecteur</h5>
-        <button type="button" class="bulk-modal-close" aria-label="Fermer" (click)="closeBulkChangeCollectorModal()">&times;</button>
-      </div>
-      <div class="bulk-modal-body">
-        <p>Sélectionnez le nouveau commercial pour les {{ selectedCredits.size }} ventes sélectionnées.</p>
-        <div class="bulk-form-group">
-          <label for="collectorSelect">Commercial</label>
-          <select class="bulk-form-control" id="collectorSelect" [(ngModel)]="selectedNewCollector">
-            <option value="" disabled selected>Choisir un commercial</option>
-            <option *ngFor="let collector of collectors" [value]="collector.username">
-              {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
-            </option>
-          </select>
+@if (showBulkChangeCollectorModal) {
+  <div class="credit-list-bulk-modal modal-overlay" (click)="closeBulkChangeCollectorModal()">
+    <div class="bulk-modal-dialog" role="dialog" (click)="$event.stopPropagation()">
+      <div class="bulk-modal-content">
+        <div class="bulk-modal-header">
+          <h5 class="bulk-modal-title">Changer l'agent collecteur</h5>
+          <button type="button" class="bulk-modal-close" aria-label="Fermer" (click)="closeBulkChangeCollectorModal()">&times;</button>
         </div>
-      </div>
-      <div class="bulk-modal-footer">
-        <button type="button" class="btn-cancel" (click)="closeBulkChangeCollectorModal()">Annuler</button>
-        <button type="button" class="btn-validate" (click)="confirmBulkChangeCollector()" [disabled]="!selectedNewCollector">Valider</button>
+        <div class="bulk-modal-body">
+          <p>Sélectionnez le nouveau commercial pour les {{ selectedCredits.size }} ventes sélectionnées.</p>
+          <div class="bulk-form-group">
+            <label for="collectorSelect">Commercial</label>
+            <select class="bulk-form-control" id="collectorSelect" [(ngModel)]="selectedNewCollector">
+              <option value="" disabled selected>Choisir un commercial</option>
+              @for (collector of collectors; track collector) {
+                <option [value]="collector.username">
+                  {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
+                </option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="bulk-modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeBulkChangeCollectorModal()">Annuler</button>
+          <button type="button" class="btn-validate" (click)="confirmBulkChangeCollector()" [disabled]="!selectedNewCollector">Valider</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+}

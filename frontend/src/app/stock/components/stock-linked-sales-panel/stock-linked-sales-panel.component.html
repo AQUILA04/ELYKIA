@@ -9,77 +9,97 @@
           <span class="panel-hint">Ventes qui ont débité ce stock, rattrapages compris</span>
         </div>
         <button #closeButton type="button" class="btn-ghost icon-btn" aria-label="Fermer le panneau" (click)="close()"
-          data-testid="e2e-stock-linked-sales-close">×</button>
+        data-testid="e2e-stock-linked-sales-close">×</button>
       </div>
 
-      <ng-container *ngIf="response as r">
+      @if (response; as r) {
         <div class="side-kpis">
           <div class="flow-box"><span class="kpi-label">Stock vendu</span><span class="flow-val num">{{ r.stockSoldValue | fcfa }}</span></div>
           <div class="flow-box"><span class="kpi-label">Ventes liées</span><span class="flow-val num">{{ r.salesCount }} · {{ r.sumSoldValueOnStock | fcfa }}</span></div>
           <div class="flow-box flow-box--ok"><span class="kpi-label">Payé</span><span class="flow-val num">{{ (r.sumPaidAmount || 0) | fcfa }}</span></div>
           <div class="flow-box" [class.flow-box--warn]="(r.sumRemainingAmount || 0) > 0.5">
             <span class="kpi-label">Reste chez clients</span><span class="flow-val num">{{ (r.sumRemainingAmount || 0) | fcfa }}</span></div>
-        </div>
-        <div class="check-banner" [class.check-banner--warn]="!consistent" data-testid="e2e-stock-linked-sales-check">
-          <strong>{{ consistent ? '✓ Concordant' : 'Écart à expliquer' }}</strong>
-          <span *ngIf="consistent">Stock vendu = montant imputé au stock par les ventes liées ({{ r.stockSoldValue | fcfa }}).</span>
-          <span *ngIf="!consistent">Le stock vendu ({{ r.stockSoldValue | fcfa }}) et le montant imputé par les ventes
-            ({{ r.sumSoldValueOnStock | fcfa }}) diffèrent de {{ (r.gapAmount || 0) | fcfa:'signed' }}.</span>
-        </div>
-      </ng-container>
+          </div>
+          <div class="check-banner" [class.check-banner--warn]="!consistent" data-testid="e2e-stock-linked-sales-check">
+            <strong>{{ consistent ? '✓ Concordant' : 'Écart à expliquer' }}</strong>
+            @if (consistent) {
+              <span>Stock vendu = montant imputé au stock par les ventes liées ({{ r.stockSoldValue | fcfa }}).</span>
+            }
+            @if (!consistent) {
+              <span>Le stock vendu ({{ r.stockSoldValue | fcfa }}) et le montant imputé par les ventes
+              ({{ r.sumSoldValueOnStock | fcfa }}) diffèrent de {{ (r.gapAmount || 0) | fcfa:'signed' }}.</span>
+            }
+          </div>
+        }
 
-      <div class="side-tools" *ngIf="sales.length">
-        <label class="search-field">
-          <span class="sr-only">Rechercher une vente</span>
-          <input type="search" [(ngModel)]="search" placeholder="Client ou référence…" data-testid="e2e-stock-linked-sales-search">
-        </label>
-        <div class="chips" role="group" aria-label="Filtrer les ventes">
-          <button type="button" class="chip" [class.chip--on]="filter === 'all'" [attr.aria-pressed]="filter === 'all'" (click)="setFilter('all')">Toutes ({{ counts.all }})</button>
-          <button type="button" class="chip" [class.chip--on]="filter === 'open'" [attr.aria-pressed]="filter === 'open'" (click)="setFilter('open')">En cours ({{ counts.open }})</button>
-          <button type="button" class="chip" [class.chip--on]="filter === 'settled'" [attr.aria-pressed]="filter === 'settled'" (click)="setFilter('settled')">Soldées ({{ counts.settled }})</button>
-        </div>
+        @if (sales.length) {
+          <div class="side-tools">
+            <label class="search-field">
+              <span class="sr-only">Rechercher une vente</span>
+              <input type="search" [(ngModel)]="search" placeholder="Client ou référence…" data-testid="e2e-stock-linked-sales-search">
+            </label>
+            <div class="chips" role="group" aria-label="Filtrer les ventes">
+              <button type="button" class="chip" [class.chip--on]="filter === 'all'" [attr.aria-pressed]="filter === 'all'" (click)="setFilter('all')">Toutes ({{ counts.all }})</button>
+              <button type="button" class="chip" [class.chip--on]="filter === 'open'" [attr.aria-pressed]="filter === 'open'" (click)="setFilter('open')">En cours ({{ counts.open }})</button>
+              <button type="button" class="chip" [class.chip--on]="filter === 'settled'" [attr.aria-pressed]="filter === 'settled'" (click)="setFilter('settled')">Soldées ({{ counts.settled }})</button>
+            </div>
+          </div>
+        }
+      </header>
+
+      <div class="side-body side-body--flush">
+        @if (loading) {
+          <div class="skeleton side-skeleton"></div>
+        }
+        @if (!loading && error) {
+          <div class="empty-state"><div class="empty-title">Les ventes liées n'ont pas pu être chargées.</div></div>
+        }
+        @if (!loading && !error && !sales.length) {
+          <div class="empty-state"><div class="empty-title">Aucune vente n'a débité ce stock.</div></div>
+        }
+
+        @if (!loading && sales.length) {
+          <div class="table-wrapper">
+            <table class="data-table side-table">
+              <thead>
+                <tr>
+                  <th scope="col">Crédit</th><th scope="col">Client</th><th scope="col">Date</th>
+                  <th scope="col" class="r">Montant</th><th scope="col" class="r">Imputé stock</th>
+                  <th scope="col" class="r">Payé</th><th scope="col" class="r">Reste client</th><th scope="col">Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (s of visibleSales; track s) {
+                  <tr data-testid="e2e-stock-linked-sale-row">
+                    <td><button type="button" class="btn-link num ref-link" (click)="openCredit(s)">{{ s.reference }}</button></td>
+                    <td>{{ s.clientFullName }}</td>
+                    <td class="num">{{ s.beginDate | date:'dd/MM/yyyy' }}</td>
+                    <td class="r num">{{ s.totalAmount | fcfa:'bare' }}</td>
+                    <td class="r num">{{ s.soldValueOnStock | fcfa:'bare' }}</td>
+                    <td class="r num">{{ (s.paidAmount || 0) | fcfa:'bare' }}</td>
+                    <td class="r num" [class.gap-neg]="(s.remainingAmount || 0) > 0.5">{{ (s.remainingAmount || 0) | fcfa:'bare' }}</td>
+                    <td><span class="pill" [ngClass]="statusLabel(s) === 'Soldé' ? 'pill-ok' : 'pill-late'">{{ statusLabel(s) }}</span></td>
+                  </tr>
+                }
+                @if (!visibleSales.length) {
+                  <tr><td colspan="8"><div class="empty-state"><div class="empty-title">Aucune vente pour ce filtre.</div></div></td></tr>
+                }
+              </tbody>
+              @if (response; as r) {
+                <tfoot>
+                  <tr>
+                    <td colspan="3">Total · {{ r.salesCount }} vente(s)</td>
+                    <td class="r num">{{ r.sumCreditTotalAmount | fcfa:'bare' }}</td>
+                    <td class="r num">{{ r.sumSoldValueOnStock | fcfa:'bare' }}</td>
+                    <td class="r num">{{ (r.sumPaidAmount || 0) | fcfa:'bare' }}</td>
+                    <td class="r num">{{ (r.sumRemainingAmount || 0) | fcfa:'bare' }}</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              }
+            </table>
+          </div>
+        }
       </div>
-    </header>
-
-    <div class="side-body side-body--flush">
-      <div class="skeleton side-skeleton" *ngIf="loading"></div>
-      <div class="empty-state" *ngIf="!loading && error"><div class="empty-title">Les ventes liées n'ont pas pu être chargées.</div></div>
-      <div class="empty-state" *ngIf="!loading && !error && !sales.length"><div class="empty-title">Aucune vente n'a débité ce stock.</div></div>
-
-      <div class="table-wrapper" *ngIf="!loading && sales.length">
-        <table class="data-table side-table">
-          <thead>
-            <tr>
-              <th scope="col">Crédit</th><th scope="col">Client</th><th scope="col">Date</th>
-              <th scope="col" class="r">Montant</th><th scope="col" class="r">Imputé stock</th>
-              <th scope="col" class="r">Payé</th><th scope="col" class="r">Reste client</th><th scope="col">Statut</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let s of visibleSales" data-testid="e2e-stock-linked-sale-row">
-              <td><button type="button" class="btn-link num ref-link" (click)="openCredit(s)">{{ s.reference }}</button></td>
-              <td>{{ s.clientFullName }}</td>
-              <td class="num">{{ s.beginDate | date:'dd/MM/yyyy' }}</td>
-              <td class="r num">{{ s.totalAmount | fcfa:'bare' }}</td>
-              <td class="r num">{{ s.soldValueOnStock | fcfa:'bare' }}</td>
-              <td class="r num">{{ (s.paidAmount || 0) | fcfa:'bare' }}</td>
-              <td class="r num" [class.gap-neg]="(s.remainingAmount || 0) > 0.5">{{ (s.remainingAmount || 0) | fcfa:'bare' }}</td>
-              <td><span class="pill" [ngClass]="statusLabel(s) === 'Soldé' ? 'pill-ok' : 'pill-late'">{{ statusLabel(s) }}</span></td>
-            </tr>
-            <tr *ngIf="!visibleSales.length"><td colspan="8"><div class="empty-state"><div class="empty-title">Aucune vente pour ce filtre.</div></div></td></tr>
-          </tbody>
-          <tfoot *ngIf="response as r">
-            <tr>
-              <td colspan="3">Total · {{ r.salesCount }} vente(s)</td>
-              <td class="r num">{{ r.sumCreditTotalAmount | fcfa:'bare' }}</td>
-              <td class="r num">{{ r.sumSoldValueOnStock | fcfa:'bare' }}</td>
-              <td class="r num">{{ (r.sumPaidAmount || 0) | fcfa:'bare' }}</td>
-              <td class="r num">{{ (r.sumRemainingAmount || 0) | fcfa:'bare' }}</td>
-              <td></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-  </aside>
-</div>
+    </aside>
+  </div>

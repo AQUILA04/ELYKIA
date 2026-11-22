@@ -32,35 +32,39 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let credit of credits; let i = index">
-          <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
-          <td>{{ credit.client.firstname }} </td>
-          <td>{{ credit.beginDate | date: 'dd/MM/yyyy' }}</td>
-          <td>{{ credit.totalAmount | currency }}</td>
-          <td>{{ credit.status }}</td>
-<td class="action-buttons">
-  <button mat-icon-button matTooltip="Détails" (click)="viewDetails(credit.id)">
-    <mat-icon>visibility</mat-icon>
-  </button>
-  <span *ngIf="credit.updatable">
-    <button *ngxPermissionsOnly="['ROLE_STOREKEEPER']" mat-icon-button matTooltip="Retour en stock" (click)="backToStore(credit.id)">
-      <mat-icon>compare-arrows</mat-icon>
-    </button>
-  </span>
-  <!-- <button *ngxPermissionsOnly="['ROLE_DEL_CREDIT']" mat-icon-button matTooltip="Supprimer" (click)="deleteCredit(credit.id)">
-    <mat-icon style="color: #c90a17;">delete</mat-icon>
-  </button> -->
-</td>
-</tr>
-</tbody>
-</table>
+        @for (credit of credits; track credit; let i = $index) {
+          <tr>
+            <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
+            <td>{{ credit.client.firstname }} </td>
+            <td>{{ credit.beginDate | date: 'dd/MM/yyyy' }}</td>
+            <td>{{ credit.totalAmount | currency }}</td>
+            <td>{{ credit.status }}</td>
+            <td class="action-buttons">
+              <button mat-icon-button matTooltip="Détails" (click)="viewDetails(credit.id)">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              @if (credit.updatable) {
+                <span>
+                  <button *ngxPermissionsOnly="['ROLE_STOREKEEPER']" mat-icon-button matTooltip="Retour en stock" (click)="backToStore(credit.id)">
+                    <mat-icon>compare-arrows</mat-icon>
+                  </button>
+                </span>
+              }
+              <!-- <button *ngxPermissionsOnly="['ROLE_DEL_CREDIT']" mat-icon-button matTooltip="Supprimer" (click)="deleteCredit(credit.id)">
+              <mat-icon style="color: #c90a17;">delete</mat-icon>
+            </button> -->
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
 </div>
 
-  <!-- Pagination -->
-  <mat-paginator
-    [length]="totalItems"
-    [pageSize]="pageSize"
-    [pageSizeOptions]="[5, 10, 25, 100]"
-    (page)="onPageChange($event)">
-  </mat-paginator>
+<!-- Pagination -->
+<mat-paginator
+  [length]="totalItems"
+  [pageSize]="pageSize"
+  [pageSizeOptions]="[5, 10, 25, 100]"
+  (page)="onPageChange($event)">
+</mat-paginator>
 </div>

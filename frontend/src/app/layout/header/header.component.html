@@ -10,69 +10,82 @@
     </ul>
     <div class="navbar-collapse justify-content-end px-0" id="navbarNav">
       <ul class="navbar-nav flex-row ms-auto align-items-center justify-content-end">
-        <li class="nav-item" *ngIf="showElykiaAi">
-          <a class="nav-link nav-icon-hover btn-ask-ai" routerLink="/ai-chat" title="Elykia IA">
-            <mat-icon>auto_awesome</mat-icon>
-            <span class="ask-ai-label">Ask AI</span>
-          </a>
-        </li>
+        @if (showElykiaAi) {
+          <li class="nav-item">
+            <a class="nav-link nav-icon-hover btn-ask-ai" routerLink="/ai-chat" title="Elykia IA">
+              <mat-icon>auto_awesome</mat-icon>
+              <span class="ask-ai-label">Ask AI</span>
+            </a>
+          </li>
+        }
         <li class="nav-item">
           <span class="nav-link">{{ username }}</span>
         </li>
 
-        <li class="nav-item dropdown" *ngIf="showNotifications" data-testid="e2e-app-notif-root">
-          <a class="nav-link nav-icon-hover position-relative" href="javascript:void(0)"
-            id="appNotifDrop" data-bs-toggle="dropdown" aria-expanded="false"
-            title="Notifications" (click)="onNotificationsOpen()"
-            data-testid="e2e-app-notif-bell">
-            <mat-icon [matBadge]="unreadCount > 0 ? unreadCount : null"
-              matBadgeColor="warn" matBadgeSize="small"
-              [matBadgeHidden]="unreadCount === 0"
-              [attr.data-testid]="'e2e-app-notif-badge'"
+        @if (showNotifications) {
+          <li class="nav-item dropdown" data-testid="e2e-app-notif-root">
+            <a class="nav-link nav-icon-hover position-relative" href="javascript:void(0)"
+              id="appNotifDrop" data-bs-toggle="dropdown" aria-expanded="false"
+              title="Notifications" (click)="onNotificationsOpen()"
+              data-testid="e2e-app-notif-bell">
+              <mat-icon [matBadge]="unreadCount > 0 ? unreadCount : null"
+                matBadgeColor="warn" matBadgeSize="small"
+                [matBadgeHidden]="unreadCount === 0"
+                [attr.data-testid]="'e2e-app-notif-badge'"
               [attr.data-unread-count]="unreadCount">notifications</mat-icon>
-          </a>
-          <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up catchup-notif-panel"
-            aria-labelledby="appNotifDrop" style="min-width: 340px; max-height: 420px; overflow-y: auto;"
-            data-testid="e2e-app-notif-panel">
-            <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
-              <strong class="fs-3 mb-0">Notifications</strong>
-              <button type="button" class="btn btn-link btn-sm p-0" (click)="markAllRead(); $event.stopPropagation()"
+            </a>
+            <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up catchup-notif-panel"
+              aria-labelledby="appNotifDrop" style="min-width: 340px; max-height: 420px; overflow-y: auto;"
+              data-testid="e2e-app-notif-panel">
+              <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                <strong class="fs-3 mb-0">Notifications</strong>
+                <button type="button" class="btn btn-link btn-sm p-0" (click)="markAllRead(); $event.stopPropagation()"
                 [disabled]="unreadCount === 0" data-testid="e2e-app-notif-mark-all-read">Tout lire</button>
-            </div>
-            <div class="px-3 py-3 text-muted" *ngIf="notificationsLoading" data-testid="e2e-app-notif-loading">Chargement…</div>
-            <div class="px-3 py-3 text-muted" *ngIf="!notificationsLoading && notificationGroups.length === 0"
-              data-testid="e2e-app-notif-empty">
-              Aucune notification
-            </div>
-            <ng-container *ngFor="let group of notificationGroups">
-              <div class="px-3 pt-2 pb-1 text-uppercase text-muted small fw-semibold"
-                data-testid="e2e-app-notif-group-date">
-                {{ group.operationDate | date:'dd/MM/yyyy' }}
               </div>
-              <a href="javascript:void(0)" class="dropdown-item catchup-notif-item"
-                *ngFor="let item of group.items"
-                [class.unread]="!item.read"
-                [attr.data-testid]="'e2e-app-notif-item'"
-                [attr.data-notification-id]="item.id"
-                [attr.data-notification-type]="item.type"
-                [attr.data-commercial]="item.targetCollector"
-                [attr.data-operation-date]="item.operationDate"
-                (click)="openNotification(item); $event.preventDefault()">
-                <div class="d-flex justify-content-between gap-2">
-                  <span class="fw-semibold">{{ item.title || typeLabel(item.type) }}</span>
-                  <span *ngIf="item.amount != null">{{ item.amount | currency:'XOF':'symbol':'1.0-0' }}</span>
+              @if (notificationsLoading) {
+                <div class="px-3 py-3 text-muted" data-testid="e2e-app-notif-loading">Chargement…</div>
+              }
+              @if (!notificationsLoading && notificationGroups.length === 0) {
+                <div class="px-3 py-3 text-muted"
+                  data-testid="e2e-app-notif-empty">
+                  Aucune notification
                 </div>
-                <div class="small text-muted text-truncate">
-                  {{ item.message || item.clientName || 'Opération' }}
+              }
+              @for (group of notificationGroups; track group) {
+                <div class="px-3 pt-2 pb-1 text-uppercase text-muted small fw-semibold"
+                  data-testid="e2e-app-notif-group-date">
+                  {{ group.operationDate | date:'dd/MM/yyyy' }}
                 </div>
-                <div class="small text-primary">{{ typeLabel(item.type) }}</div>
-              </a>
-            </ng-container>
-            <div class="border-top px-3 py-2" *ngIf="!notificationsLoading && notificationGroups.length > 0">
-              <a routerLink="/notifications" class="small" (click)="$event.stopPropagation()">Voir toutes les notifications</a>
+                @for (item of group.items; track item) {
+                  <a href="javascript:void(0)" class="dropdown-item catchup-notif-item"
+                    [class.unread]="!item.read"
+                    [attr.data-testid]="'e2e-app-notif-item'"
+                    [attr.data-notification-id]="item.id"
+                    [attr.data-notification-type]="item.type"
+                    [attr.data-commercial]="item.targetCollector"
+                    [attr.data-operation-date]="item.operationDate"
+                    (click)="openNotification(item); $event.preventDefault()">
+                    <div class="d-flex justify-content-between gap-2">
+                      <span class="fw-semibold">{{ item.title || typeLabel(item.type) }}</span>
+                      @if (item.amount != null) {
+                        <span>{{ item.amount | currency:'XOF':'symbol':'1.0-0' }}</span>
+                      }
+                    </div>
+                    <div class="small text-muted text-truncate">
+                      {{ item.message || item.clientName || 'Opération' }}
+                    </div>
+                    <div class="small text-primary">{{ typeLabel(item.type) }}</div>
+                  </a>
+                }
+              }
+              @if (!notificationsLoading && notificationGroups.length > 0) {
+                <div class="border-top px-3 py-2">
+                  <a routerLink="/notifications" class="small" (click)="$event.stopPropagation()">Voir toutes les notifications</a>
+                </div>
+              }
             </div>
-          </div>
-        </li>
+          </li>
+        }
 
         <li class="nav-item dropdown">
           <a class="nav-link nav-icon-hover" href="javascript:void(0)" id="drop2" data-bs-toggle="dropdown"

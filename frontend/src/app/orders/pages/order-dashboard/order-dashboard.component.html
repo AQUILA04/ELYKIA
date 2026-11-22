@@ -18,7 +18,7 @@
       <div class="header-card-main">
         <div class="title-group">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
             <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
             <path d="M3 6h18"/>
             <path d="M16 10a4 4 0 0 1-8 0"/>
@@ -36,16 +36,19 @@
 
   <div class="page-scroll-body">
     <div class="kpi-strip a3">
-      <div
-        *ngFor="let kpi of (kpiCards$ | async) || []; trackBy: trackByKpiTitle"
-        class="kpi-card"
-        [ngClass]="getKpiCardClass(kpi.color)">
-        <div class="kpi-label">{{ kpi.title }}</div>
-        <div class="kpi-value" [class.kpi-value-loading]="(state$ | async)?.loading">
-          {{ (state$ | async)?.loading ? '—' : kpi.value }}
+      @for (kpi of (kpiCards$ | async) || []; track trackByKpiTitle($index, kpi)) {
+        <div
+          class="kpi-card"
+          [ngClass]="getKpiCardClass(kpi.color)">
+          <div class="kpi-label">{{ kpi.title }}</div>
+          <div class="kpi-value" [class.kpi-value-loading]="(state$ | async)?.loading">
+            {{ (state$ | async)?.loading ? '—' : kpi.value }}
+          </div>
+          @if (kpi.subtitle) {
+            <div class="kpi-sub">{{ kpi.subtitle }}</div>
+          }
         </div>
-        <div class="kpi-sub" *ngIf="kpi.subtitle">{{ kpi.subtitle }}</div>
-      </div>
+      }
     </div>
 
     <div class="toolbar a4">
@@ -65,36 +68,40 @@
             </button>
           </div>
         </div>
-        <div class="filter-field filter-field-commercial" *ngIf="canSelectCommercial">
-          <span class="toolbar-label">Commercial</span>
-          <app-commercial-selector
-            [initialValue]="selectedCommercial"
-            (commercialSelected)="onCommercialSelected($event)">
-          </app-commercial-selector>
-        </div>
+        @if (canSelectCommercial) {
+          <div class="filter-field filter-field-commercial">
+            <span class="toolbar-label">Commercial</span>
+            <app-commercial-selector
+              [initialValue]="selectedCommercial"
+              (commercialSelected)="onCommercialSelected($event)">
+            </app-commercial-selector>
+          </div>
+        }
         <button type="button" class="btn-clear" (click)="resetFilters()">Réinitialiser</button>
       </div>
       <span class="result-count">
         <strong>{{ totalElements }}</strong> commande(s)
       </span>
       <div class="toolbar-actions">
-        <button
-          type="button"
-          class="btn-primary"
-          *ngIf="showAcceptAll"
-          [disabled]="acceptAllBusy || totalElements === 0"
-          (click)="acceptAllPending()">
-          {{ onlineMode ? 'Tout valider' : 'Tout accepter' }}
-        </button>
-        <button
-          type="button"
-          class="btn-primary"
-          *ngIf="canRequestStock"
-          [disabled]="pendingStockBusy"
-          (click)="requestStockForAllPending()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-          Demande de stock (en attente)
-        </button>
+        @if (showAcceptAll) {
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="acceptAllBusy || totalElements === 0"
+            (click)="acceptAllPending()">
+            {{ onlineMode ? 'Tout valider' : 'Tout accepter' }}
+          </button>
+        }
+        @if (canRequestStock) {
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="pendingStockBusy"
+            (click)="requestStockForAllPending()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            Demande de stock (en attente)
+          </button>
+        }
         <button type="button" class="btn-download" [matMenuTriggerFor]="reportsMenu">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
           Rapports
@@ -110,10 +117,12 @@
             <span>Rapport de réapprovisionnement</span>
           </button>
         </mat-menu>
-        <button type="button" class="btn-primary" *ngIf="!onlineMode" (click)="createOrder()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-          Créer une commande
-        </button>
+        @if (!onlineMode) {
+          <button type="button" class="btn-primary" (click)="createOrder()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            Créer une commande
+          </button>
+        }
       </div>
     </div>
 
@@ -124,64 +133,70 @@
         class="status-tabs"
         animationDuration="300ms">
 
-        <mat-tab *ngFor="let tab of statusTabs; trackBy: trackByTabStatus">
-          <ng-template mat-tab-label>
-            <div class="tab-label">
-              <mat-icon class="tab-icon">{{ tab.icon }}</mat-icon>
-              <span class="tab-text">{{ tab.label }}</span>
-              <span
-                *ngIf="countFor(tab) as tabCount"
-                class="tab-badge"
-                [style.background-color]="getTabColor(tab)">
-                {{ tabCount }}
-              </span>
-            </div>
-          </ng-template>
-
-          <div class="tab-content">
-            <app-order-table
-              *ngIf="!(state$ | async)?.loading"
-              [orders]="(filteredOrders$ | async) || []"
-              [loading]="(state$ | async)?.loading || false"
-              [selectable]="true"
-              [onlineMode]="onlineMode"
-              [showOnlineBadge]="!onlineMode"
-              [selectedOrderIds]="selectedOrderIds"
-              [serverTotal]="totalElements"
-              [pageIndex]="pageIndex"
-              [pageSize]="pageSize"
-              [currentUsername]="currentUsername"
-              [canDelete]="canDelete"
-              [canDeny]="canDeny"
-              [canRequestStock]="canRequestStock"
-              (selectionChange)="onSelectionChange($event)"
-              (actionClick)="onOrderAction($event)"
-              (rowClick)="onRowClick($event)"
-              (pageChange)="onPageChange($event)"
-              (downloadClick)="downloadOrderSheet($event)">
-            </app-order-table>
-
-            <div *ngIf="(state$ | async)?.loading" class="table-loading">
-              <div class="empty-state">
-                <div class="empty-icon">⏳</div>
-                <div class="empty-title">Chargement…</div>
+        @for (tab of statusTabs; track trackByTabStatus($index, tab)) {
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <div class="tab-label">
+                <mat-icon class="tab-icon">{{ tab.icon }}</mat-icon>
+                <span class="tab-text">{{ tab.label }}</span>
+                @if (countFor(tab); as tabCount) {
+                  <span
+                    class="tab-badge"
+                    [style.background-color]="getTabColor(tab)">
+                    {{ tabCount }}
+                  </span>
+                }
               </div>
+            </ng-template>
+            <div class="tab-content">
+              @if (!(state$ | async)?.loading) {
+                <app-order-table
+                  [orders]="(filteredOrders$ | async) || []"
+                  [loading]="(state$ | async)?.loading || false"
+                  [selectable]="true"
+                  [onlineMode]="onlineMode"
+                  [showOnlineBadge]="!onlineMode"
+                  [selectedOrderIds]="selectedOrderIds"
+                  [serverTotal]="totalElements"
+                  [pageIndex]="pageIndex"
+                  [pageSize]="pageSize"
+                  [currentUsername]="currentUsername"
+                  [canDelete]="canDelete"
+                  [canDeny]="canDeny"
+                  [canRequestStock]="canRequestStock"
+                  (selectionChange)="onSelectionChange($event)"
+                  (actionClick)="onOrderAction($event)"
+                  (rowClick)="onRowClick($event)"
+                  (pageChange)="onPageChange($event)"
+                  (downloadClick)="downloadOrderSheet($event)">
+                </app-order-table>
+              }
+              @if ((state$ | async)?.loading) {
+                <div class="table-loading">
+                  <div class="empty-state">
+                    <div class="empty-icon">⏳</div>
+                    <div class="empty-title">Chargement…</div>
+                  </div>
+                </div>
+              }
             </div>
-          </div>
-        </mat-tab>
+          </mat-tab>
+        }
       </mat-tab-group>
     </div>
 
-    <div class="global-error" *ngIf="(state$ | async)?.error as error">
-      <div class="error-panel">
-        <div class="error-icon">⚠</div>
-        <div class="error-text">
-          <h3>Une erreur s'est produite</h3>
-          <p>{{ error }}</p>
+    @if ((state$ | async)?.error; as error) {
+      <div class="global-error">
+        <div class="error-panel">
+          <div class="error-icon">⚠</div>
+          <div class="error-text">
+            <h3>Une erreur s'est produite</h3>
+            <p>{{ error }}</p>
+          </div>
+          <button type="button" class="btn-primary" (click)="loadInitialData()">Réessayer</button>
         </div>
-        <button type="button" class="btn-primary" (click)="loadInitialData()">Réessayer</button>
       </div>
-    </div>
+    }
   </div>
 
   <app-order-action-bar

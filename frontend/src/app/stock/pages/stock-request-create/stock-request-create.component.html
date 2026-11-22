@@ -5,18 +5,17 @@
     <h1>{{ isEditMode ? 'Modifier la Demande' : (channel === 'tontine' ? 'Nouvelle demande de sortie tontine' : 'Nouvelle Demande de Sortie Stock') }}</h1>
   </div>
 
-  <ng-container *ngIf="channel === 'credit'">
+  @if (channel === 'credit') {
     <app-alerte-fin-mois
       [daysRemaining]="daysUntilMonthEnd"
       [showAlert]="showMonthEndAlert">
     </app-alerte-fin-mois>
-
     <app-option-mois-prochain
       [daysRemaining]="daysUntilMonthEnd"
       [isVisible]="showNextMonthOption"
       (selectNextMonth)="onSelectNextMonth($event)">
     </app-option-mois-prochain>
-  </ng-container>
+  }
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" data-testid="e2e-stock-request-form">
     <div class="form-group">
@@ -25,32 +24,38 @@
         formControlName="collector" placeholder="Sélectionner un commercial" [clearable]="false"
         data-testid="e2e-stock-request-collector">
         <ng-template ng-option-tmp let-item="item">
-          {{item.username}} <small *ngIf="item.firstname || item.lastname">({{item.firstname}}
-            {{item.lastname}})</small>
-        </ng-template>
-      </ng-select>
-      <mat-error *ngIf="form.get('collector')?.invalid && form.get('collector')?.touched">
+          {{item.username}} @if (item.firstname || item.lastname) {
+          <small>({{item.firstname}}
+          {{item.lastname}})</small>
+        }
+      </ng-template>
+    </ng-select>
+    @if (form.get('collector')?.invalid && form.get('collector')?.touched) {
+      <mat-error>
         Le commercial est requis.
       </mat-error>
-    </div>
+    }
+  </div>
 
-    <div class="form-group">
-      <label>Articles <span class="text-danger">*</span></label>
-      <app-article-selector formControlName="items" [lazyLoad]="true" [priceType]="'credit'" [showPrices]="true"
-        [showStock]="true" [validateStock]="false">
-      </app-article-selector>
-      <mat-error *ngIf="form.get('items')?.invalid && form.get('items')?.touched">
+  <div class="form-group">
+    <label>Articles <span class="text-danger">*</span></label>
+    <app-article-selector formControlName="items" [lazyLoad]="true" [priceType]="'credit'" [showPrices]="true"
+      [showStock]="true" [validateStock]="false">
+    </app-article-selector>
+    @if (form.get('items')?.invalid && form.get('items')?.touched) {
+      <mat-error>
         Veuillez sélectionner au moins un article.
       </mat-error>
-    </div>
+    }
+  </div>
 
-    <div class="actions">
-      <button type="button" class="btn btn-cancel" [routerLink]="['/stock/request']" [queryParams]="{ channel: channel }" [disabled]="isSubmitting">
-        Annuler
-      </button>
-      <button type="submit" class="btn btn-submit" [disabled]="form.invalid || isSubmitting" data-testid="e2e-stock-request-submit">
-        {{ isSubmitting ? 'En cours...' : (isEditMode ? 'Enregistrer les modifications' : 'Envoyer la Demande') }}
-      </button>
-    </div>
-  </form>
+  <div class="actions">
+    <button type="button" class="btn btn-cancel" [routerLink]="['/stock/request']" [queryParams]="{ channel: channel }" [disabled]="isSubmitting">
+      Annuler
+    </button>
+    <button type="submit" class="btn btn-submit" [disabled]="form.invalid || isSubmitting" data-testid="e2e-stock-request-submit">
+      {{ isSubmitting ? 'En cours...' : (isEditMode ? 'Enregistrer les modifications' : 'Envoyer la Demande') }}
+    </button>
+  </div>
+</form>
 </div>

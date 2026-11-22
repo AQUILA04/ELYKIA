@@ -8,20 +8,26 @@
     <div class="form-group">
       <label for="agencyId">Agence <span class="text-danger">*</span></label>
       <mat-select formControlName="agencyId" class="form-control">
-        <mat-option *ngFor="let agency of agencies" [value]="agency.id">
-          {{ agency.name }}
-        </mat-option>
+        @for (agency of agencies; track agency) {
+          <mat-option [value]="agency.id">
+            {{ agency.name }}
+          </mat-option>
+        }
       </mat-select>
-      <mat-error *ngIf="depositForm.get('agencyId')?.invalid && depositForm.get('agencyId')?.touched">
-        L'agence est requise.
-      </mat-error>
+      @if (depositForm.get('agencyId')?.invalid && depositForm.get('agencyId')?.touched) {
+        <mat-error>
+          L'agence est requise.
+        </mat-error>
+      }
     </div>
     <div class="form-group">
       <label for="totalAmount">Montant total <span class="text-danger">*</span></label>
       <input id="totalAmount" formControlName="totalAmount" type="number" class="form-control" />
-      <mat-error *ngIf="depositForm.get('totalAmount')?.invalid && depositForm.get('totalAmount')?.touched">
-        Le montant total est requis.
-      </mat-error>
+      @if (depositForm.get('totalAmount')?.invalid && depositForm.get('totalAmount')?.touched) {
+        <mat-error>
+          Le montant total est requis.
+        </mat-error>
+      }
     </div>
     <div class="form-group">
       <label for="depositStatus">Statut du dépôt <span class="text-danger">*</span></label>
@@ -30,10 +36,12 @@
         <mat-option value="SURPLUS">Surplus</mat-option>
         <mat-option value="MANQUANT">Manquant</mat-option>
       </mat-select>
-      <mat-error *ngIf="depositForm.get('depositStatus')?.invalid && depositForm.get('depositStatus')?.touched">
-        Le statut du dépôt est requis.
-      </mat-error>
-    </div>    
+      @if (depositForm.get('depositStatus')?.invalid && depositForm.get('depositStatus')?.touched) {
+        <mat-error>
+          Le statut du dépôt est requis.
+        </mat-error>
+      }
+    </div>
     <div class="form-group">
       <label for="irregularityAmount">Montant d'irregularité</label>
       <input id="irregularityAmount" formControlName="irregularityAmount" type="number" class="form-control" />
@@ -41,9 +49,11 @@
     <div class="form-group">
       <label for="balance">Solde <span class="text-danger">*</span></label>
       <input id="balance" formControlName="balance" type="number" class="form-control" />
-      <mat-error *ngIf="depositForm.get('balance')?.invalid && depositForm.get('balance')?.touched">
-        Le solde est requis.
-      </mat-error>
+      @if (depositForm.get('balance')?.invalid && depositForm.get('balance')?.touched) {
+        <mat-error>
+          Le solde est requis.
+        </mat-error>
+      }
     </div>
     <div class="actions">
       <button type="button" class="btn btn-cancel" (click)="onCancel()">Annuler</button>

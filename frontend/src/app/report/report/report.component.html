@@ -6,9 +6,11 @@
       <mat-form-field>
         <mat-label>Période</mat-label>
         <mat-select [(value)]="selectedPeriod">
-          <mat-option *ngFor="let period of availablePeriods" [value]="period.code">
-            {{ period.name }}
-          </mat-option>
+          @for (period of availablePeriods; track period) {
+            <mat-option [value]="period.code">
+              {{ period.name }}
+            </mat-option>
+          }
         </mat-select>
       </mat-form-field>
       <button (click)="onGetReport()" mat-icon-button class="icon-button ml-2">
@@ -33,32 +35,33 @@
     </div>
     <table class="article-table">
       <thead>
-      <tr>
-        <th>#</th>
-        <th>Noms de l'agent</th>
-        <th>Montant système</th>
-        <th>Montant réel</th>
-        <th>Status</th>
-        <th>Total Sortie</th>
-        <th>Écart</th> </tr>
-      </thead>
-      <tbody>
-      <tr *ngFor="let rapport of rapports; let i = index">
-        <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
-        <td>{{ rapport.collector }}</td>
-        <td>{{ rapport.systemBalance}}</td>
-        <td>{{ rapport.realBalance }}</td>
-        <td>{{ rapport.status }}</td>
-        <td>{{ rapport.releasedTotalAmount }}</td>
-
+        <tr>
+          <th>#</th>
+          <th>Noms de l'agent</th>
+          <th>Montant système</th>
+          <th>Montant réel</th>
+          <th>Status</th>
+          <th>Total Sortie</th>
+          <th>Écart</th> </tr>
+        </thead>
+        <tbody>
+          @for (rapport of rapports; track rapport; let i = $index) {
+            <tr>
+              <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
+              <td>{{ rapport.collector }}</td>
+              <td>{{ rapport.systemBalance}}</td>
+              <td>{{ rapport.realBalance }}</td>
+              <td>{{ rapport.status }}</td>
+              <td>{{ rapport.releasedTotalAmount }}</td>
         <td [ngClass]="{
               'surplus-color': (rapport.realBalance - rapport.systemBalance) > 0,
               'manquant-color': (rapport.realBalance - rapport.systemBalance) < 0
             }">
-          {{ rapport.realBalance - rapport.systemBalance }}
-        </td>
-      </tr>
-      </tbody>
-    </table>
+                {{ rapport.realBalance - rapport.systemBalance }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>

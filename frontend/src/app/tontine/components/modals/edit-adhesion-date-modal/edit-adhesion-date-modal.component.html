@@ -32,23 +32,29 @@
         <label class="field-label" for="adhesion-date">Date d'adhésion *</label>
         <mat-form-field appearance="outline" class="elykia-field">
           <input matInput id="adhesion-date" [matDatepicker]="picker" formControlName="registrationDate"
-                 [min]="minDate" [max]="maxDate" placeholder="Choisir une date"
-                 data-testid="e2e-tontine-adhesion-date">
+            [min]="minDate" [max]="maxDate" placeholder="Choisir une date"
+            data-testid="e2e-tontine-adhesion-date">
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
-          <mat-error *ngIf="form.get('registrationDate')?.hasError('required')">
-            La date est requise
-          </mat-error>
+          @if (form.get('registrationDate')?.hasError('required')) {
+            <mat-error>
+              La date est requise
+            </mat-error>
+          }
         </mat-form-field>
       </div>
 
-      <div class="error-banner" *ngIf="error" role="alert">{{ error }}</div>
+      @if (error) {
+        <div class="error-banner" role="alert">{{ error }}</div>
+      }
 
       <div class="modal-footer">
         <button type="button" class="btn-outline" (click)="onCancel()" [disabled]="loading">Annuler</button>
         <button type="submit" class="btn-primary" [disabled]="loading || form.invalid"
-                data-testid="e2e-tontine-adhesion-date-submit">
-          <span class="btn-spinner" *ngIf="loading" aria-hidden="true"></span>
+          data-testid="e2e-tontine-adhesion-date-submit">
+          @if (loading) {
+            <span class="btn-spinner" aria-hidden="true"></span>
+          }
           Enregistrer
         </button>
       </div>

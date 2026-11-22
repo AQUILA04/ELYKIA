@@ -1,708 +1,829 @@
-<div class="main-container member-details-page a1" *ngIf="member" data-testid="e2e-tontine-member-details">
-  <div class="breadcrumb-bar">
-    <a routerLink="/tontine" class="breadcrumb-link">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
-      </svg>
-      Gestion des Tontines
-    </a>
-    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
-  </div>
-
-  <app-tontine-allocation-migration-banner></app-tontine-allocation-migration-banner>
-
-  <div class="page-header-card a2">
-    <div class="header-card-top">
-      <span class="header-surtitle">FICHE MEMBRE</span>
-      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
-    </div>
-
-    <div class="header-card-main">
-      <div class="title-group">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="member-icon">
-          <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+@if (member) {
+  <div class="main-container member-details-page a1" data-testid="e2e-tontine-member-details">
+    <div class="breadcrumb-bar">
+      <a routerLink="/tontine" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
         </svg>
-        <div>
-          <h1 class="page-title">{{ getClientName() }}</h1>
-          <p class="page-subtitle inline-subtitle">
-            Code {{ member.client?.code || 'N/A' }}
-            <span class="dot-sep">·</span>
-            Commercial : {{ getCommercial() }}
-            <span class="dot-sep">·</span>
-            <span class="carnet-badge"
-                  [class.is-verified]="member.carnetVerified"
-                  [class.is-pending]="!member.carnetVerified"
-                  data-testid="e2e-tontine-carnet-badge">
-              {{ member.carnetVerified ? 'Carnet vérifié' : 'Carnet non vérifié' }}
-            </span>
-            <span class="field-controlled-badge" *ngIf="hasFieldControl"
-                  data-testid="e2e-tontine-member-field-controlled-badge">Déjà contrôlé</span>
-            <span *ngIf="member.selfRegistered || member.registrationSource === 'CUSTOMER_SPACE'"
+        Gestion des Tontines
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+    <app-tontine-allocation-migration-banner></app-tontine-allocation-migration-banner>
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">FICHE MEMBRE</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="member-icon">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          <div>
+            <h1 class="page-title">{{ getClientName() }}</h1>
+            <p class="page-subtitle inline-subtitle">
+              Code {{ member.client?.code || 'N/A' }}
+              <span class="dot-sep">·</span>
+              Commercial : {{ getCommercial() }}
+              <span class="dot-sep">·</span>
+              <span class="carnet-badge"
+                [class.is-verified]="member.carnetVerified"
+                [class.is-pending]="!member.carnetVerified"
+                data-testid="e2e-tontine-carnet-badge">
+                {{ member.carnetVerified ? 'Carnet vérifié' : 'Carnet non vérifié' }}
+              </span>
+              @if (hasFieldControl) {
+                <span class="field-controlled-badge"
+                data-testid="e2e-tontine-member-field-controlled-badge">Déjà contrôlé</span>
+              }
+              @if (member.selfRegistered || member.registrationSource === 'CUSTOMER_SPACE') {
+                <span
                   class="badge badge-self"
                   title="Inscrit via l'Espace client"
                   data-testid="e2e-tontine-self-registered-badge">
-              Inscrit via l'Espace client
-            </span>
-          </p>
-          <p class="carnet-meta" *ngIf="member.carnetVerified" data-testid="e2e-tontine-carnet-meta">
-            Vérifié le {{ member.carnetVerifiedAt | date:'dd/MM/yyyy HH:mm' }}
-            par {{ member.carnetVerifiedBy }}
-          </p>
-        </div>
-      </div>
-      <button class="btn-refresh" (click)="refreshData()">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
-        Actualiser
-      </button>
-    </div>
-
-    <div class="header-actions">
-      <ng-container *ngxPermissionsOnly="['ROLE_TONTINE_MEMBER_PDF', 'ROLE_ADMIN']">
-        <button class="btn-download" type="button" (click)="onDownloadPdf()"
-                [disabled]="exportingPdf || !member"
-                data-testid="e2e-tontine-member-export-pdf">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          {{ exportingPdf ? 'Export…' : 'Télécharger' }}
-        </button>
-      </ng-container>
-      <button class="btn-field-control" type="button" (click)="onFieldControl()"
-              *ngIf="isRecoveryManager" [disabled]="isFieldControlBusy">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
-        {{ isFieldControlBusy ? 'Contrôle en cours...' : 'Contrôle terrain' }}
-      </button>
-      <ng-container *ngxPermissionsOnly="['ROLE_TONTINE_CARNET_VERIFY', 'ROLE_ADMIN']">
-        <button class="btn-carnet-verify" type="button" (click)="onToggleCarnetVerification()"
-                [disabled]="isCarnetBusy || !canVerifyCarnet"
-                data-testid="e2e-tontine-carnet-verify-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-          {{ isCarnetBusy ? 'Enregistrement…' : (member.carnetVerified ? 'Annuler la vérification' : 'Vérifier') }}
-        </button>
-      </ng-container>
-      <button class="btn-primary" (click)="onRecordCollection()" *ngIf="isSessionActive" [disabled]="tontineService.isAllocationMigrationRunning()" data-testid="e2e-tontine-record-collection-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
-        Enregistrer une Collecte
-      </button>
-      <button class="btn-outline" (click)="onRecordCatchupCollection()" *ngIf="isSessionActive"
-        [disabled]="tontineService.isAllocationMigrationRunning()"
-        data-testid="e2e-tontine-record-catchup-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-        Collecte de rattrapage
-      </button>
-      <button class="btn-accent" (click)="onPrepareDelivery()"
-              *ngIf="currentSessionStatus === 'ACTIVE' && member?.deliveryStatus === 'SESSION_INPROGRESS'"
-              data-testid="e2e-tontine-prepare-delivery-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
-        Préparer la Livraison
-      </button>
-      <button class="btn-outline" (click)="onEditMember()" *ngIf="isSessionActive">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-        Modifier
-      </button>
-      <ng-container *ngxPermissionsOnly="['ROLE_REPORT', 'ROLE_ADMIN']">
-        <button class="btn-warn" (click)="onValidateDelivery()" *ngIf="member?.deliveryStatus === 'PENDING'">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-          Valider la Livraison
-        </button>
-      </ng-container>
-      <ng-container *ngxPermissionsOnly="['ROLE_REPORT', 'ROLE_EDIT_TONTINE']">
-        <button class="btn-primary" (click)="onMarkAsDelivered()"
-                *ngIf="member?.deliveryStatus === 'VALIDATED' && currentSessionStatus === 'CLOSED'"
-                data-testid="e2e-tontine-mark-delivered-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-          Livrer
-        </button>
-      </ng-container>
-    </div>
-  </div>
-
-  <!-- KPI strip -->
-  <div class="kpi-strip member-kpi-strip a3">
-    <div class="kpi-card kpi-green">
-      <div class="kpi-label">Total Contribué</div>
-      <div class="kpi-value">{{ formatCurrency(member.totalContribution) }}</div>
-      <div class="kpi-sub">Épargne cumulée</div>
-    </div>
-    <div class="kpi-card kpi-amount">
-      <div class="kpi-label">Solde Disponible</div>
-      <div class="kpi-value">{{ formatCurrency(member.availableContribution || 0) }}</div>
-      <div class="kpi-sub">Montant utilisable</div>
-    </div>
-    <div class="kpi-card kpi-total" [class.kpi-echeance]="getSocietyShareStatusColor() === 'warn'">
-      <div class="kpi-label">Part Société (Payé / Dû)</div>
-      <div class="kpi-value">{{ formatCurrency(member.societyShare || 0) }} / {{ formatCurrency(getTheoreticalSocietyShare()) }}</div>
-      <div class="kpi-sub">Cotisation société</div>
-    </div>
-    <div class="kpi-card kpi-total">
-      <div class="kpi-label">Collectes à la livraison</div>
-      <div class="kpi-value">{{ formatCurrency(member.totalDeliveryCollections || 0) }}</div>
-      <div class="kpi-sub">Lors de la livraison</div>
-    </div>
-  </div>
-
-  <div class="section-card a3 contribution-commercial-section" data-testid="e2e-member-contributions-by-commercial">
-    <div class="section-header">
-      <div>
-        <h2 class="section-title">Cotisations par commercial</h2>
-        <p class="section-description">
-          Répartition selon le commercial ayant enregistré chaque collecte.
-        </p>
-      </div>
-      <span class="result-count" *ngIf="!loadingContributionsByCommercial">
-        Total : <strong>{{ formatCurrency(contributionsByCommercialTotal) }}</strong>
-      </span>
-    </div>
-
-    <div class="contribution-commercial-loading" *ngIf="loadingContributionsByCommercial">
-      Chargement de la répartition…
-    </div>
-
-    <div class="contribution-commercial-grid"
-         *ngIf="!loadingContributionsByCommercial && contributionsByCommercial.length > 0">
-      <div class="contribution-commercial-card"
-           *ngFor="let contribution of contributionsByCommercial"
-           [class.is-current]="contribution.currentCollector"
-           data-testid="e2e-member-contribution-card"
-           [attr.data-commercial]="contribution.commercialUsername"
-           [attr.data-current]="contribution.currentCollector">
-        <div class="contribution-commercial-identity">
-          <div class="col-collector-dot">{{ getInitials(contribution.commercialUsername) }}</div>
-          <div>
-            <div class="contribution-commercial-name">{{ contribution.commercialUsername }}</div>
-            <div class="contribution-commercial-count">
-              {{ contribution.collectionsCount }} collecte(s)
-            </div>
+                  Inscrit via l'Espace client
+                </span>
+              }
+            </p>
+            @if (member.carnetVerified) {
+              <p class="carnet-meta" data-testid="e2e-tontine-carnet-meta">
+                Vérifié le {{ member.carnetVerifiedAt | date:'dd/MM/yyyy HH:mm' }}
+                par {{ member.carnetVerifiedBy }}
+              </p>
+            }
           </div>
-          <span class="current-collector-badge" *ngIf="contribution.currentCollector"
-                data-testid="e2e-member-contribution-actuel">Actuel</span>
         </div>
-        <div class="contribution-commercial-amount">
-          {{ formatCurrency(contribution.totalAmount) }}
-        </div>
+        <button class="btn-refresh" (click)="refreshData()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
       </div>
-    </div>
-
-    <div class="contribution-commercial-empty"
-         *ngIf="!loadingContributionsByCommercial && contributionsByCommercial.length === 0">
-      Aucune collecte enregistrée pour ce membre.
-    </div>
-  </div>
-
-  <!-- Contrôle terrain -->
-  <div class="section-card a3 field-control-section" *ngIf="fieldControlLatest">
-    <div class="section-header">
-      <h2 class="section-title">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
-        Contrôle terrain
-      </h2>
-      <span class="field-control-badge"
-            [ngClass]="fieldControlLatest.status === 'CONFORME' ? 'badge-ok' : 'badge-gap'">
-        {{ fieldControlLatest.status === 'CONFORME' ? 'Conforme' : 'Disparité' }}
-      </span>
-    </div>
-
-    <div class="field-control-totals">
-      <div class="field-control-item">
-        <span class="field-control-label">Total système (mois contrôlés)</span>
-        <span class="field-control-value">{{ formatCurrency(fieldControlLatest.systemTotalAmount) }}</span>
-      </div>
-      <div class="field-control-item">
-        <span class="field-control-label">Total carnet</span>
-        <span class="field-control-value">{{ formatCurrency(fieldControlLatest.notebookTotalAmount) }}</span>
-      </div>
-      <div class="field-control-item">
-        <span class="field-control-label">Écart constaté</span>
-        <span class="field-control-value"
-              [ngClass]="fieldControlLatest.differenceAmount === 0 ? 'is-ok' : 'is-gap'">
-          {{ formatCurrency(fieldControlLatest.differenceAmount) }}
-        </span>
-      </div>
-    </div>
-
-    <div class="field-control-meta">
-      Saisi le {{ fieldControlLatest.observedAt | date:'dd/MM/yyyy HH:mm' }}
-      par <strong>{{ fieldControlLatest.observedBy }}</strong>
-    </div>
-    <div class="field-control-note" *ngIf="fieldControlLatest.note">
-      {{ fieldControlLatest.note }}
-    </div>
-
-    <div class="field-control-collectors" *ngIf="fieldControlLatest.collectors?.length">
-      <div class="field-control-collector" *ngFor="let collector of fieldControlLatest.collectors">
-        <div class="field-control-collector-head">
-          <strong>{{ collector.commercialUsername }}</strong>
-          <span class="field-control-badge"
-                [ngClass]="collector.status === 'CONFORME' ? 'badge-ok' : 'badge-gap'">
-            {{ collector.status === 'CONFORME' ? 'Conforme' : 'Disparité' }}
-          </span>
-        </div>
-        <div class="field-control-month-values">
-          <span>Système : <strong class="mono">{{ formatCurrency(collector.systemTotalAmount) }}</strong></span>
-          <span class="sep" aria-hidden="true">|</span>
-          <span>Carnet : <strong class="mono">{{ formatCurrency(collector.notebookTotalAmount) }}</strong></span>
-          <span class="sep" aria-hidden="true">|</span>
-          <span>
-            Écart :
-            <strong class="mono" [ngClass]="collector.differenceAmount === 0 ? 'is-ok' : 'is-gap'">
-              {{ formatCurrency(collector.differenceAmount) }}
-            </strong>
-          </span>
-        </div>
-      </div>
-    </div>
-
-    <ng-container *ngIf="fieldControlLatest.uncontrolledCollectors as uncontrolled">
-      <div class="field-control-uncontrolled"
-           *ngIf="uncontrolled.length"
-           data-testid="e2e-member-field-control-uncontrolled">
-        Non contrôlés :
-        <strong>{{ uncontrolled.join(', ') }}</strong>
-      </div>
-    </ng-container>
-
-    <div class="field-control-lines" *ngIf="fieldControlLatest.lines?.length">
-      <div class="field-control-month" *ngFor="let line of fieldControlLatest.lines">
-        <div class="field-control-month-name">
-          <ng-container *ngIf="line.commercialUsername; else legacyCommercial">
-            {{ line.commercialUsername }} · {{ getFieldControlMonthLabel(line.month) }} {{ line.year }}
-          </ng-container>
-          <ng-template #legacyCommercial>
-            Ensemble des commerciaux · {{ getFieldControlMonthLabel(line.month) }} {{ line.year }}
-          </ng-template>
-        </div>
-        <div class="field-control-month-values">
-          <span>Système : <strong class="mono">{{ formatCurrency(line.systemAmount) }}</strong></span>
-          <span class="sep" aria-hidden="true">|</span>
-          <span>Carnet : <strong class="mono">{{ formatCurrency(line.notebookAmount) }}</strong></span>
-          <span class="sep" aria-hidden="true">|</span>
-          <span>
-            Écart :
-            <strong class="mono" [ngClass]="line.differenceAmount === 0 ? 'is-ok' : 'is-gap'">
-              {{ formatCurrency(line.differenceAmount) }}
-            </strong>
-          </span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Summary details -->
-  <div class="section-card a3">
-    <div class="section-header">
-      <h2 class="section-title">Informations générales</h2>
-    </div>
-    <div class="summary-grid">
-      <div class="summary-item">
-        <span class="summary-label">Statut Session</span>
-        <span class="summary-value">{{ member.tontineSession?.status ?? currentSessionStatus ?? 'N/A' }}</span>
-      </div>
-      <div class="summary-item">
-        <span class="summary-label">Statut de Livraison</span>
-        <span *ngIf="member.deliveryStatus" class="status-badge" [ngClass]="getStatusBadgeClass(member.deliveryStatus)">
-          {{ getStatusLabel(member.deliveryStatus) }}
-        </span>
-        <span *ngIf="!member.deliveryStatus" class="summary-value">N/A</span>
-      </div>
-      <div class="summary-item">
-        <span class="summary-label">Date d'Inscription</span>
-        <span class="summary-value mono">{{ member.registrationDate ? formatDateTime(member.registrationDate) : 'N/A' }}</span>
-        <ng-container *ngxPermissionsOnly="['ROLE_EDIT_TONTINE_ADHESION_DATE', 'ROLE_ADMIN', 'ROLE_ROOT']">
-          <button type="button" class="btn-edit-date" *ngIf="isSessionActive"
-                  (click)="onEditAdhesionDate()"
-                  data-testid="e2e-tontine-edit-adhesion-date">
-            Modifier la date
+      <div class="header-actions">
+        <ng-container *ngxPermissionsOnly="['ROLE_TONTINE_MEMBER_PDF', 'ROLE_ADMIN']">
+          <button class="btn-download" type="button" (click)="onDownloadPdf()"
+            [disabled]="exportingPdf || !member"
+            data-testid="e2e-tontine-member-export-pdf">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            {{ exportingPdf ? 'Export…' : 'Télécharger' }}
           </button>
         </ng-container>
-      </div>
-      <div class="summary-item">
-        <span class="summary-label">Commercial</span>
-        <div class="col-collector" *ngIf="getCommercial() !== '—'">
-          <div class="col-collector-dot">{{ getInitials(getCommercial()) }}</div>
-          {{ getCommercial() }}
-        </div>
-        <span *ngIf="getCommercial() === '—'" class="summary-value">N/A</span>
-      </div>
-    </div>
-
-    <div class="progress-section" *ngIf="member.validatedMonths !== undefined">
-      <h3 class="section-subtitle">Progression des Mois ({{ member.validatedMonths }}/10)</h3>
-      <div class="months-grid">
-        <div *ngFor="let month of monthsList; let i = index"
-             class="month-item"
-             [class.validated]="i < (member.validatedMonths || 0)"
-             [class.current]="i === (member.validatedMonths || 0)"
-             [class.pending]="i > (member.validatedMonths || 0)">
-          <span class="month-name">{{ month }}</span>
-          <svg *ngIf="i < (member.validatedMonths || 0)" class="validated-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-          <div *ngIf="i === (member.validatedMonths || 0)" class="current-month-progress">
-            <div class="progress-track">
-              <div class="progress-fill" [style.width.%]="((member.currentMonthDays || 0) / 31) * 100"></div>
-            </div>
-            <span class="days-count">{{ member.currentMonthDays || 0 }}/31j</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="collections-by-month-section" *ngIf="member.validatedMonths !== undefined">
-      <div class="collections-by-month-header">
-        <h3 class="section-subtitle">Synthèse des collectes par mois</h3>
-        <span class="result-count" *ngIf="!loadingMonthlySummary">
-          <strong>{{ monthlyCollectionsTotals.count }}</strong> collecte(s)
-          <ng-container *ngIf="canShowEquivalentDays">
-            · <strong>{{ formatCollectionDaysLabel(monthlyCollectionsTotals.equivalentDays) }}</strong>
-          </ng-container>
-          · <strong>{{ formatCurrency(monthlyCollectionsTotals.amount) }}</strong>
-        </span>
-      </div>
-
-      <div *ngIf="loadingMonthlySummary" class="collections-by-month-loading">
-        <span class="text-muted">Chargement de la synthèse…</span>
-      </div>
-
-      <ul class="collections-by-month-list" *ngIf="!loadingMonthlySummary">
-        <li *ngFor="let summary of monthlyCollectionSummaries"
-            class="collections-by-month-row"
-            [class.is-current]="summary.isCurrent"
-            [class.is-future]="summary.isFuture"
-            [class.is-empty]="summary.count === 0 && !summary.isFuture">
-          <span class="month-row-label">{{ summary.monthName }} {{ summary.year }}</span>
-
-          <div class="month-row-pastilles-wrap" *ngIf="summary.count > 0 && summary.equivalentDays > 0">
-            <div class="month-row-pastilles" [attr.aria-label]="formatCollectionDaysLabel(summary.equivalentDays)">
-              <span *ngFor="let day of getDayPastilles(summary.equivalentDays)" class="month-pastille">{{ day }}</span>
-            </div>
-          </div>
-          <div class="month-row-pastilles-wrap month-row-pastilles-empty" *ngIf="summary.count > 0 && summary.equivalentDays === 0">
-            <span class="month-row-no-data">—</span>
-          </div>
-          <div class="month-row-pastilles-wrap month-row-pastilles-empty" *ngIf="summary.count === 0 && !summary.isFuture">
-            <span class="month-row-no-data">Aucune collecte</span>
-          </div>
-          <div class="month-row-pastilles-wrap month-row-pastilles-empty" *ngIf="summary.isFuture">
-            <span class="month-row-no-data">—</span>
-          </div>
-
-          <div class="month-row-stats">
-            <span class="month-row-count" *ngIf="summary.count > 0">
-              {{ summary.count }} collecte{{ summary.count > 1 ? 's' : '' }}
-              <span class="month-row-days" *ngIf="canShowEquivalentDays">
-                · {{ formatCollectionDaysLabel(summary.equivalentDays) }}
-              </span>
-            </span>
-            <span class="month-row-amount col-amount" *ngIf="summary.count > 0">{{ formatCurrency(summary.totalAmount) }}</span>
-          </div>
-        </li>
-      </ul>
-    </div>
-  </div>
-
-  <!-- Historique des montants de mise -->
-  <div class="section-card a4">
-    <div class="section-header">
-      <h2 class="section-title">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-8"/></svg>
-        Historique des montants de mise
-      </h2>
-      <span class="result-count" *ngIf="!loadingAmountHistory">
-        <strong>{{ amountHistory.length }}</strong> période(s)
-        <ng-container *ngIf="member.amount">
-          · mise actuelle : <strong>{{ formatCurrency(member.amount) }}</strong>
+        @if (isRecoveryManager) {
+          <button class="btn-field-control" type="button" (click)="onFieldControl()"
+            [disabled]="isFieldControlBusy">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+            {{ isFieldControlBusy ? 'Contrôle en cours...' : 'Contrôle terrain' }}
+          </button>
+        }
+        <ng-container *ngxPermissionsOnly="['ROLE_TONTINE_CARNET_VERIFY', 'ROLE_ADMIN']">
+          <button class="btn-carnet-verify" type="button" (click)="onToggleCarnetVerification()"
+            [disabled]="isCarnetBusy || !canVerifyCarnet"
+            data-testid="e2e-tontine-carnet-verify-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+            {{ isCarnetBusy ? 'Enregistrement…' : (member.carnetVerified ? 'Annuler la vérification' : 'Vérifier') }}
+          </button>
         </ng-container>
-      </span>
-    </div>
-
-    <div class="member-notes" *ngIf="member.notes" data-testid="e2e-tontine-member-notes">
-      <span class="member-notes-label">Note actuelle</span>
-      <p class="member-notes-content">{{ member.notes }}</p>
-    </div>
-
-    <div *ngIf="loadingAmountHistory" class="table-loading">
-      <div class="empty-state">
-        <div class="empty-icon">⏳</div>
-        <div class="empty-title">Chargement de l'historique…</div>
+        @if (isSessionActive) {
+          <button class="btn-primary" (click)="onRecordCollection()" [disabled]="tontineService.isAllocationMigrationRunning()" data-testid="e2e-tontine-record-collection-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            Enregistrer une Collecte
+          </button>
+        }
+        @if (isSessionActive) {
+          <button class="btn-outline" (click)="onRecordCatchupCollection()"
+            [disabled]="tontineService.isAllocationMigrationRunning()"
+            data-testid="e2e-tontine-record-catchup-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+            Collecte de rattrapage
+          </button>
+        }
+        @if (currentSessionStatus === 'ACTIVE' && member?.deliveryStatus === 'SESSION_INPROGRESS') {
+          <button class="btn-accent" (click)="onPrepareDelivery()"
+            data-testid="e2e-tontine-prepare-delivery-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+            Préparer la Livraison
+          </button>
+        }
+        @if (isSessionActive) {
+          <button class="btn-outline" (click)="onEditMember()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+            Modifier
+          </button>
+        }
+        <ng-container *ngxPermissionsOnly="['ROLE_REPORT', 'ROLE_ADMIN']">
+          @if (member?.deliveryStatus === 'PENDING') {
+            <button class="btn-warn" (click)="onValidateDelivery()">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+              Valider la Livraison
+            </button>
+          }
+        </ng-container>
+        <ng-container *ngxPermissionsOnly="['ROLE_REPORT', 'ROLE_EDIT_TONTINE']">
+          @if (member?.deliveryStatus === 'VALIDATED' && currentSessionStatus === 'CLOSED') {
+            <button class="btn-primary" (click)="onMarkAsDelivered()"
+              data-testid="e2e-tontine-mark-delivered-btn">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+              Livrer
+            </button>
+          }
+        </ng-container>
       </div>
     </div>
-
-    <div *ngIf="!loadingAmountHistory && sortedAmountHistory.length === 0" class="table-empty-static">
-      <div class="empty-state">
-        <div class="empty-icon">📋</div>
-        <div class="empty-title">Aucun historique de mise</div>
-        <div class="empty-sub">Les changements de montant journalier apparaîtront ici.</div>
+    <!-- KPI strip -->
+    <div class="kpi-strip member-kpi-strip a3">
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Total Contribué</div>
+        <div class="kpi-value">{{ formatCurrency(member.totalContribution) }}</div>
+        <div class="kpi-sub">Épargne cumulée</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">Solde Disponible</div>
+        <div class="kpi-value">{{ formatCurrency(member.availableContribution || 0) }}</div>
+        <div class="kpi-sub">Montant utilisable</div>
+      </div>
+      <div class="kpi-card kpi-total" [class.kpi-echeance]="getSocietyShareStatusColor() === 'warn'">
+        <div class="kpi-label">Part Société (Payé / Dû)</div>
+        <div class="kpi-value">{{ formatCurrency(member.societyShare || 0) }} / {{ formatCurrency(getTheoreticalSocietyShare()) }}</div>
+        <div class="kpi-sub">Cotisation société</div>
+      </div>
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Collectes à la livraison</div>
+        <div class="kpi-value">{{ formatCurrency(member.totalDeliveryCollections || 0) }}</div>
+        <div class="kpi-sub">Lors de la livraison</div>
       </div>
     </div>
-
-    <div class="table-card inner-table" *ngIf="!loadingAmountHistory && sortedAmountHistory.length > 0">
-      <div class="table-wrapper">
-        <table class="data-table amount-history-table">
-          <thead>
-            <tr>
-              <th>Date début</th>
-              <th>Date fin</th>
-              <th>Montant journalier</th>
-              <th>Statut</th>
-              <th>Enregistré le</th>
-              <th>Note</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let entry of sortedAmountHistory" [class.is-current-row]="isActiveAmountHistory(entry)">
-              <td><span class="date-ok">{{ formatDateOnly(entry.startDate) }}</span></td>
-              <td>
-                <span *ngIf="entry.endDate" class="date-ok">{{ formatDateOnly(entry.endDate) }}</span>
-                <span *ngIf="!entry.endDate" class="text-muted">—</span>
-              </td>
-              <td><span class="col-amount">{{ formatCurrency(entry.amount) }}</span></td>
-              <td>
-                <span class="status-badge" [ngClass]="getAmountHistoryStatusClass(entry)">
-                  {{ getAmountHistoryStatusLabel(entry) }}
-                </span>
-              </td>
-              <td>
-                <span *ngIf="entry.creationDate" class="date-ok">{{ formatDateTime(entry.creationDate) }}</span>
-                <span *ngIf="!entry.creationDate" class="text-muted">N/A</span>
-              </td>
-              <td class="col-notes">
-                <span *ngIf="entry.notes">{{ entry.notes }}</span>
-                <span *ngIf="!entry.notes" class="text-muted">—</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Archives des mises antérieures (Visible uniquement au rôle ADMIN) -->
-    <div class="archive-history-section" *ngIf="isAdmin && amountHistoryArchives.length > 0">
-      <div class="archive-toggle-bar" (click)="showArchives = !showArchives">
-        <div class="archive-toggle-title">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/>
-          </svg>
-          <span>Archives des mises antérieures (Reset Global)</span>
-          <span class="archive-count-badge">{{ amountHistoryArchives.length }} tranche(s)</span>
+    <div class="section-card a3 contribution-commercial-section" data-testid="e2e-member-contributions-by-commercial">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Cotisations par commercial</h2>
+          <p class="section-description">
+            Répartition selon le commercial ayant enregistré chaque collecte.
+          </p>
         </div>
-        <button type="button" class="btn-toggle-archive">
-          {{ showArchives ? 'Masquer' : 'Afficher' }}
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.rotated]="showArchives">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
-        </button>
+        @if (!loadingContributionsByCommercial) {
+          <span class="result-count">
+            Total : <strong>{{ formatCurrency(contributionsByCommercialTotal) }}</strong>
+          </span>
+        }
       </div>
-
-      <div class="table-wrapper archive-table-wrapper" *ngIf="showArchives">
-        <table class="data-table amount-history-archive-table">
-          <thead>
-            <tr>
-              <th>Date d'archivage</th>
-              <th>Opérateur</th>
-              <th>Période appliquée</th>
-              <th>Ancienne mise</th>
-              <th>Mise post-reset</th>
-              <th>Note</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let arch of amountHistoryArchives">
-              <td><span class="date-ok">{{ formatDateTime(arch.archivedAt) }}</span></td>
-              <td><span class="badge-operator">{{ arch.archivedBy }}</span></td>
-              <td>
-                <span class="date-ok">{{ formatDateOnly(arch.startDate) }}</span>
-                <span class="text-muted"> → </span>
-                <span *ngIf="arch.endDate" class="date-ok">{{ formatDateOnly(arch.endDate) }}</span>
-                <span *ngIf="!arch.endDate" class="text-muted">—</span>
-              </td>
-              <td><span class="col-amount text-archive">{{ formatCurrency(arch.amount) }}</span></td>
-              <td><span class="col-amount text-new-amount">{{ formatCurrency(arch.newAmount) }}</span></td>
-              <td class="col-notes">
-                <span *ngIf="arch.notes">{{ arch.notes }}</span>
-                <span *ngIf="!arch.notes" class="text-muted">—</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      @if (loadingContributionsByCommercial) {
+        <div class="contribution-commercial-loading">
+          Chargement de la répartition…
+        </div>
+      }
+      @if (!loadingContributionsByCommercial && contributionsByCommercial.length > 0) {
+        <div class="contribution-commercial-grid"
+          >
+          @for (contribution of contributionsByCommercial; track contribution) {
+            <div class="contribution-commercial-card"
+              [class.is-current]="contribution.currentCollector"
+              data-testid="e2e-member-contribution-card"
+              [attr.data-commercial]="contribution.commercialUsername"
+              [attr.data-current]="contribution.currentCollector">
+              <div class="contribution-commercial-identity">
+                <div class="col-collector-dot">{{ getInitials(contribution.commercialUsername) }}</div>
+                <div>
+                  <div class="contribution-commercial-name">{{ contribution.commercialUsername }}</div>
+                  <div class="contribution-commercial-count">
+                    {{ contribution.collectionsCount }} collecte(s)
+                  </div>
+                </div>
+                @if (contribution.currentCollector) {
+                  <span class="current-collector-badge"
+                  data-testid="e2e-member-contribution-actuel">Actuel</span>
+                }
+              </div>
+              <div class="contribution-commercial-amount">
+                {{ formatCurrency(contribution.totalAmount) }}
+              </div>
+            </div>
+          }
+        </div>
+      }
+      @if (!loadingContributionsByCommercial && contributionsByCommercial.length === 0) {
+        <div class="contribution-commercial-empty"
+          >
+          Aucune collecte enregistrée pour ce membre.
+        </div>
+      }
     </div>
-  </div>
-
-  <!-- Consent -->
-  <div class="section-card a4" *ngIf="member.operationConsentCode || member.syncConsentCode">
-    <div class="section-header">
-      <h2 class="section-title">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
-        Informations de consentement
-      </h2>
+    <!-- Contrôle terrain -->
+    @if (fieldControlLatest) {
+      <div class="section-card a3 field-control-section">
+        <div class="section-header">
+          <h2 class="section-title">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
+            Contrôle terrain
+          </h2>
+          <span class="field-control-badge"
+            [ngClass]="fieldControlLatest.status === 'CONFORME' ? 'badge-ok' : 'badge-gap'">
+            {{ fieldControlLatest.status === 'CONFORME' ? 'Conforme' : 'Disparité' }}
+          </span>
+        </div>
+        <div class="field-control-totals">
+          <div class="field-control-item">
+            <span class="field-control-label">Total système (mois contrôlés)</span>
+            <span class="field-control-value">{{ formatCurrency(fieldControlLatest.systemTotalAmount) }}</span>
+          </div>
+          <div class="field-control-item">
+            <span class="field-control-label">Total carnet</span>
+            <span class="field-control-value">{{ formatCurrency(fieldControlLatest.notebookTotalAmount) }}</span>
+          </div>
+          <div class="field-control-item">
+            <span class="field-control-label">Écart constaté</span>
+            <span class="field-control-value"
+              [ngClass]="fieldControlLatest.differenceAmount === 0 ? 'is-ok' : 'is-gap'">
+              {{ formatCurrency(fieldControlLatest.differenceAmount) }}
+            </span>
+          </div>
+        </div>
+        <div class="field-control-meta">
+          Saisi le {{ fieldControlLatest.observedAt | date:'dd/MM/yyyy HH:mm' }}
+          par <strong>{{ fieldControlLatest.observedBy }}</strong>
+        </div>
+        @if (fieldControlLatest.note) {
+          <div class="field-control-note">
+            {{ fieldControlLatest.note }}
+          </div>
+        }
+        @if (fieldControlLatest.collectors?.length) {
+          <div class="field-control-collectors">
+            @for (collector of fieldControlLatest.collectors; track collector) {
+              <div class="field-control-collector">
+                <div class="field-control-collector-head">
+                  <strong>{{ collector.commercialUsername }}</strong>
+                  <span class="field-control-badge"
+                    [ngClass]="collector.status === 'CONFORME' ? 'badge-ok' : 'badge-gap'">
+                    {{ collector.status === 'CONFORME' ? 'Conforme' : 'Disparité' }}
+                  </span>
+                </div>
+                <div class="field-control-month-values">
+                  <span>Système : <strong class="mono">{{ formatCurrency(collector.systemTotalAmount) }}</strong></span>
+                  <span class="sep" aria-hidden="true">|</span>
+                  <span>Carnet : <strong class="mono">{{ formatCurrency(collector.notebookTotalAmount) }}</strong></span>
+                  <span class="sep" aria-hidden="true">|</span>
+                  <span>
+                    Écart :
+                    <strong class="mono" [ngClass]="collector.differenceAmount === 0 ? 'is-ok' : 'is-gap'">
+                      {{ formatCurrency(collector.differenceAmount) }}
+                    </strong>
+                  </span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+        @if (fieldControlLatest.uncontrolledCollectors; as uncontrolled) {
+          @if (uncontrolled.length) {
+            <div class="field-control-uncontrolled"
+              data-testid="e2e-member-field-control-uncontrolled">
+              Non contrôlés :
+              <strong>{{ uncontrolled.join(', ') }}</strong>
+            </div>
+          }
+        }
+        @if (fieldControlLatest.lines?.length) {
+          <div class="field-control-lines">
+            @for (line of fieldControlLatest.lines; track line) {
+              <div class="field-control-month">
+                <div class="field-control-month-name">
+                  @if (line.commercialUsername) {
+                    {{ line.commercialUsername }} · {{ getFieldControlMonthLabel(line.month) }} {{ line.year }}
+                  } @else {
+                    Ensemble des commerciaux · {{ getFieldControlMonthLabel(line.month) }} {{ line.year }}
+                  }
+                </div>
+                <div class="field-control-month-values">
+                  <span>Système : <strong class="mono">{{ formatCurrency(line.systemAmount) }}</strong></span>
+                  <span class="sep" aria-hidden="true">|</span>
+                  <span>Carnet : <strong class="mono">{{ formatCurrency(line.notebookAmount) }}</strong></span>
+                  <span class="sep" aria-hidden="true">|</span>
+                  <span>
+                    Écart :
+                    <strong class="mono" [ngClass]="line.differenceAmount === 0 ? 'is-ok' : 'is-gap'">
+                      {{ formatCurrency(line.differenceAmount) }}
+                    </strong>
+                  </span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+    <!-- Summary details -->
+    <div class="section-card a3">
+      <div class="section-header">
+        <h2 class="section-title">Informations générales</h2>
+      </div>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="summary-label">Statut Session</span>
+          <span class="summary-value">{{ member.tontineSession?.status ?? currentSessionStatus ?? 'N/A' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Statut de Livraison</span>
+          @if (member.deliveryStatus) {
+            <span class="status-badge" [ngClass]="getStatusBadgeClass(member.deliveryStatus)">
+              {{ getStatusLabel(member.deliveryStatus) }}
+            </span>
+          }
+          @if (!member.deliveryStatus) {
+            <span class="summary-value">N/A</span>
+          }
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Date d'Inscription</span>
+          <span class="summary-value mono">{{ member.registrationDate ? formatDateTime(member.registrationDate) : 'N/A' }}</span>
+          <ng-container *ngxPermissionsOnly="['ROLE_EDIT_TONTINE_ADHESION_DATE', 'ROLE_ADMIN', 'ROLE_ROOT']">
+            @if (isSessionActive) {
+              <button type="button" class="btn-edit-date"
+                (click)="onEditAdhesionDate()"
+                data-testid="e2e-tontine-edit-adhesion-date">
+                Modifier la date
+              </button>
+            }
+          </ng-container>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Commercial</span>
+          @if (getCommercial() !== '—') {
+            <div class="col-collector">
+              <div class="col-collector-dot">{{ getInitials(getCommercial()) }}</div>
+              {{ getCommercial() }}
+            </div>
+          }
+          @if (getCommercial() === '—') {
+            <span class="summary-value">N/A</span>
+          }
+        </div>
+      </div>
+      @if (member.validatedMonths !== undefined) {
+        <div class="progress-section">
+          <h3 class="section-subtitle">Progression des Mois ({{ member.validatedMonths }}/10)</h3>
+          <div class="months-grid">
+            @for (month of monthsList; track month; let i = $index) {
+              <div
+                class="month-item"
+                [class.validated]="i < (member.validatedMonths || 0)"
+                [class.current]="i === (member.validatedMonths || 0)"
+                [class.pending]="i > (member.validatedMonths || 0)">
+                <span class="month-name">{{ month }}</span>
+                @if (i < (member.validatedMonths || 0)) {
+                  <svg class="validated-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                }
+                @if (i === (member.validatedMonths || 0)) {
+                  <div class="current-month-progress">
+                    <div class="progress-track">
+                      <div class="progress-fill" [style.width.%]="((member.currentMonthDays || 0) / 31) * 100"></div>
+                    </div>
+                    <span class="days-count">{{ member.currentMonthDays || 0 }}/31j</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+      @if (member.validatedMonths !== undefined) {
+        <div class="collections-by-month-section">
+          <div class="collections-by-month-header">
+            <h3 class="section-subtitle">Synthèse des collectes par mois</h3>
+            @if (!loadingMonthlySummary) {
+              <span class="result-count">
+                <strong>{{ monthlyCollectionsTotals.count }}</strong> collecte(s)
+                @if (canShowEquivalentDays) {
+                  · <strong>{{ formatCollectionDaysLabel(monthlyCollectionsTotals.equivalentDays) }}</strong>
+                }
+                · <strong>{{ formatCurrency(monthlyCollectionsTotals.amount) }}</strong>
+              </span>
+            }
+          </div>
+          @if (loadingMonthlySummary) {
+            <div class="collections-by-month-loading">
+              <span class="text-muted">Chargement de la synthèse…</span>
+            </div>
+          }
+          @if (!loadingMonthlySummary) {
+            <ul class="collections-by-month-list">
+              @for (summary of monthlyCollectionSummaries; track summary) {
+                <li
+                  class="collections-by-month-row"
+                  [class.is-current]="summary.isCurrent"
+                  [class.is-future]="summary.isFuture"
+                  [class.is-empty]="summary.count === 0 && !summary.isFuture">
+                  <span class="month-row-label">{{ summary.monthName }} {{ summary.year }}</span>
+                  @if (summary.count > 0 && summary.equivalentDays > 0) {
+                    <div class="month-row-pastilles-wrap">
+                      <div class="month-row-pastilles" [attr.aria-label]="formatCollectionDaysLabel(summary.equivalentDays)">
+                        @for (day of getDayPastilles(summary.equivalentDays); track day) {
+                          <span class="month-pastille">{{ day }}</span>
+                        }
+                      </div>
+                    </div>
+                  }
+                  @if (summary.count > 0 && summary.equivalentDays === 0) {
+                    <div class="month-row-pastilles-wrap month-row-pastilles-empty">
+                      <span class="month-row-no-data">—</span>
+                    </div>
+                  }
+                  @if (summary.count === 0 && !summary.isFuture) {
+                    <div class="month-row-pastilles-wrap month-row-pastilles-empty">
+                      <span class="month-row-no-data">Aucune collecte</span>
+                    </div>
+                  }
+                  @if (summary.isFuture) {
+                    <div class="month-row-pastilles-wrap month-row-pastilles-empty">
+                      <span class="month-row-no-data">—</span>
+                    </div>
+                  }
+                  <div class="month-row-stats">
+                    @if (summary.count > 0) {
+                      <span class="month-row-count">
+                        {{ summary.count }} collecte{{ summary.count > 1 ? 's' : '' }}
+                        @if (canShowEquivalentDays) {
+                          <span class="month-row-days">
+                            · {{ formatCollectionDaysLabel(summary.equivalentDays) }}
+                          </span>
+                        }
+                      </span>
+                    }
+                    @if (summary.count > 0) {
+                      <span class="month-row-amount col-amount">{{ formatCurrency(summary.totalAmount) }}</span>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
     </div>
-    <div class="summary-grid">
-      <div class="summary-item" *ngIf="member.operationConsentCode">
-        <span class="summary-label">Code Opération</span>
-        <span class="consent-code">{{ member.operationConsentCode }}</span>
+    <!-- Historique des montants de mise -->
+    <div class="section-card a4">
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 4 4-8"/></svg>
+          Historique des montants de mise
+        </h2>
+        @if (!loadingAmountHistory) {
+          <span class="result-count">
+            <strong>{{ amountHistory.length }}</strong> période(s)
+            @if (member.amount) {
+              · mise actuelle : <strong>{{ formatCurrency(member.amount) }}</strong>
+            }
+          </span>
+        }
       </div>
-      <div class="summary-item" *ngIf="member.syncConsentCode">
-        <span class="summary-label">Code Synchronisation</span>
-        <span class="consent-code">{{ member.syncConsentCode }}</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Delivery -->
-  <div class="section-card a4" *ngIf="member.delivery">
-    <div class="section-header">
-      <h2 class="section-title">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
-        Livraison de Fin d'Année
-      </h2>
-      <span class="status-badge status-delivered" *ngIf="member.deliveryStatus === 'DELIVERED'">LIVRÉ</span>
-      <button type="button" class="btn-outline" (click)="downloadOrderReceipt()" [disabled]="receiptBusy">
-        {{ receiptBusy ? 'Téléchargement…' : 'Télécharger le reçu' }}
-      </button>
-    </div>
-
-    <div class="delivery-info">
-      <div class="info-row">
-        <span class="label">Date de livraison</span>
-        <span class="value mono">{{ formatDateTime(member.delivery?.deliveryDate ?? '') || '—' }}</span>
-      </div>
-      <div class="info-row">
-        <span class="label">Commercial</span>
-        <span class="value">{{ member.delivery?.commercialUsername || '—' }}</span>
-      </div>
-      <div class="info-row" *ngIf="member.delivery?.plannedDeliveryDate" data-testid="e2e-tontine-planned-date-value">
-        <span class="label">Livraison prévue le</span>
-        <span class="value mono">{{ member.delivery?.plannedDeliveryDate | date:'dd/MM/yyyy' }}</span>
-      </div>
-      <div class="info-row" data-testid="e2e-tontine-order-net-contribution">
-        <span class="label">{{ member.deliveryStatus === 'DELIVERED' ? 'Total cotisé (net)' : 'Solde net cotisé' }}</span>
-        <span class="value">{{ formatCurrency(member.delivery?.netContribution ?? 0) }}</span>
-      </div>
-      <div class="info-row">
-        <span class="label">{{ member.deliveryStatus === 'DELIVERED' ? 'Total utilisé' : 'Montant de la commande' }}</span>
-        <span class="value highlight">{{ formatCurrency(member.delivery?.totalAmount ?? 0) }}</span>
-      </div>
-      <div class="info-row" *ngIf="(member.delivery?.amountDue ?? 0) > 0" data-testid="e2e-tontine-order-amount-due">
-        <span class="label">Reste à payer</span>
-        <span class="value value-due">{{ formatCurrency(member.delivery?.amountDue ?? 0) }}</span>
-      </div>
-      <div class="info-row" *ngIf="(member.delivery?.amountDue ?? 0) <= 0" data-testid="e2e-tontine-order-refundable">
-        <span class="label">{{ member.deliveryStatus === 'DELIVERED' ? 'Total restant' : 'Reliquat à restituer' }}</span>
-        <span class="value">{{ formatCurrency(member.delivery?.refundableBalance ?? 0) }}</span>
-      </div>
-    </div>
-
-    <h4 class="table-section-title">Articles livrés</h4>
-    <div class="table-card inner-table">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Article</th>
-            <th *appIfUnitPrice="'CASH'">Prix unitaire</th>
-            <th>Quantité</th>
-            <th *appIfUnitPrice="'CASH'">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of member?.delivery?.items">
-            <td>
-              <div class="col-ref">{{ item.articleCode }}</div>
-              <div class="col-client">{{ item.articleName }}</div>
-            </td>
-            <td *appIfUnitPrice="'CASH'"><span class="col-amount">{{ formatCurrency(item.unitPrice) }}</span></td>
-            <td>{{ item.quantity }}</td>
-            <td *appIfUnitPrice="'CASH'"><span class="col-amount">{{ formatCurrency(item.totalPrice) }}</span></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Collections -->
-  <div class="section-card a5">
-    <div class="section-header">
-      <h2 class="section-title">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
-        Historique des Collectes
-      </h2>
-      <span class="result-count" *ngIf="!loadingCollections">
-        <strong>{{ collectionsDataSource.data.length }}</strong> collecte(s)
-      </span>
-    </div>
-
-    <div class="table-card">
-      <div class="table-wrapper">
-        <div *ngIf="loadingCollections" class="table-loading">
+      @if (member.notes) {
+        <div class="member-notes" data-testid="e2e-tontine-member-notes">
+          <span class="member-notes-label">Note actuelle</span>
+          <p class="member-notes-content">{{ member.notes }}</p>
+        </div>
+      }
+      @if (loadingAmountHistory) {
+        <div class="table-loading">
           <div class="empty-state">
             <div class="empty-icon">⏳</div>
-            <div class="empty-title">Chargement…</div>
+            <div class="empty-title">Chargement de l'historique…</div>
           </div>
         </div>
-
-        <div *ngIf="!loadingCollections && collectionsDataSource.data.length === 0" class="table-empty-static">
+      }
+      @if (!loadingAmountHistory && sortedAmountHistory.length === 0) {
+        <div class="table-empty-static">
           <div class="empty-state">
             <div class="empty-icon">📋</div>
-            <div class="empty-title">Aucune collecte enregistrée</div>
-            <div class="empty-sub">Les collectes de ce membre apparaîtront ici.</div>
+            <div class="empty-title">Aucun historique de mise</div>
+            <div class="empty-sub">Les changements de montant journalier apparaîtront ici.</div>
           </div>
         </div>
-
-        <table mat-table [dataSource]="collectionsDataSource" *ngIf="!loadingCollections && collectionsDataSource.data.length > 0" class="collections-table">
-          <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef>Date</th>
-            <td mat-cell *matCellDef="let collection"><span class="date-ok">{{ formatDateTime(collection.collectionDate) }}</span></td>
-          </ng-container>
-
-          <ng-container matColumnDef="amount">
-            <th mat-header-cell *matHeaderCellDef>Montant</th>
-            <td mat-cell *matCellDef="let collection"><span class="col-amount">{{ formatCurrency(collection.amount) }}</span></td>
-          </ng-container>
-
-          <ng-container matColumnDef="commercial">
-            <th mat-header-cell *matHeaderCellDef>Perçu par</th>
-            <td mat-cell *matCellDef="let collection">
-              <div class="col-collector">
-                <div class="col-collector-dot">{{ getInitials(collection.commercialUsername) }}</div>
-                {{ collection.commercialUsername }}
+      }
+      @if (!loadingAmountHistory && sortedAmountHistory.length > 0) {
+        <div class="table-card inner-table">
+          <div class="table-wrapper">
+            <table class="data-table amount-history-table">
+              <thead>
+                <tr>
+                  <th>Date début</th>
+                  <th>Date fin</th>
+                  <th>Montant journalier</th>
+                  <th>Statut</th>
+                  <th>Enregistré le</th>
+                  <th>Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (entry of sortedAmountHistory; track entry) {
+                  <tr [class.is-current-row]="isActiveAmountHistory(entry)">
+                    <td><span class="date-ok">{{ formatDateOnly(entry.startDate) }}</span></td>
+                    <td>
+                      @if (entry.endDate) {
+                        <span class="date-ok">{{ formatDateOnly(entry.endDate) }}</span>
+                      }
+                      @if (!entry.endDate) {
+                        <span class="text-muted">—</span>
+                      }
+                    </td>
+                    <td><span class="col-amount">{{ formatCurrency(entry.amount) }}</span></td>
+                    <td>
+                      <span class="status-badge" [ngClass]="getAmountHistoryStatusClass(entry)">
+                        {{ getAmountHistoryStatusLabel(entry) }}
+                      </span>
+                    </td>
+                    <td>
+                      @if (entry.creationDate) {
+                        <span class="date-ok">{{ formatDateTime(entry.creationDate) }}</span>
+                      }
+                      @if (!entry.creationDate) {
+                        <span class="text-muted">N/A</span>
+                      }
+                    </td>
+                    <td class="col-notes">
+                      @if (entry.notes) {
+                        <span>{{ entry.notes }}</span>
+                      }
+                      @if (!entry.notes) {
+                        <span class="text-muted">—</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+      <!-- Archives des mises antérieures (Visible uniquement au rôle ADMIN) -->
+      @if (isAdmin && amountHistoryArchives.length > 0) {
+        <div class="archive-history-section">
+          <div class="archive-toggle-bar" (click)="showArchives = !showArchives">
+            <div class="archive-toggle-title">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/>
+              </svg>
+              <span>Archives des mises antérieures (Reset Global)</span>
+              <span class="archive-count-badge">{{ amountHistoryArchives.length }} tranche(s)</span>
+            </div>
+            <button type="button" class="btn-toggle-archive">
+              {{ showArchives ? 'Masquer' : 'Afficher' }}
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.rotated]="showArchives">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          @if (showArchives) {
+            <div class="table-wrapper archive-table-wrapper">
+              <table class="data-table amount-history-archive-table">
+                <thead>
+                  <tr>
+                    <th>Date d'archivage</th>
+                    <th>Opérateur</th>
+                    <th>Période appliquée</th>
+                    <th>Ancienne mise</th>
+                    <th>Mise post-reset</th>
+                    <th>Note</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (arch of amountHistoryArchives; track arch) {
+                    <tr>
+                      <td><span class="date-ok">{{ formatDateTime(arch.archivedAt) }}</span></td>
+                      <td><span class="badge-operator">{{ arch.archivedBy }}</span></td>
+                      <td>
+                        <span class="date-ok">{{ formatDateOnly(arch.startDate) }}</span>
+                        <span class="text-muted"> → </span>
+                        @if (arch.endDate) {
+                          <span class="date-ok">{{ formatDateOnly(arch.endDate) }}</span>
+                        }
+                        @if (!arch.endDate) {
+                          <span class="text-muted">—</span>
+                        }
+                      </td>
+                      <td><span class="col-amount text-archive">{{ formatCurrency(arch.amount) }}</span></td>
+                      <td><span class="col-amount text-new-amount">{{ formatCurrency(arch.newAmount) }}</span></td>
+                      <td class="col-notes">
+                        @if (arch.notes) {
+                          <span>{{ arch.notes }}</span>
+                        }
+                        @if (!arch.notes) {
+                          <span class="text-muted">—</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      }
+    </div>
+    <!-- Consent -->
+    @if (member.operationConsentCode || member.syncConsentCode) {
+      <div class="section-card a4">
+        <div class="section-header">
+          <h2 class="section-title">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+            Informations de consentement
+          </h2>
+        </div>
+        <div class="summary-grid">
+          @if (member.operationConsentCode) {
+            <div class="summary-item">
+              <span class="summary-label">Code Opération</span>
+              <span class="consent-code">{{ member.operationConsentCode }}</span>
+            </div>
+          }
+          @if (member.syncConsentCode) {
+            <div class="summary-item">
+              <span class="summary-label">Code Synchronisation</span>
+              <span class="consent-code">{{ member.syncConsentCode }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+    <!-- Delivery -->
+    @if (member.delivery) {
+      <div class="section-card a4">
+        <div class="section-header">
+          <h2 class="section-title">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+            Livraison de Fin d'Année
+          </h2>
+          @if (member.deliveryStatus === 'DELIVERED') {
+            <span class="status-badge status-delivered">LIVRÉ</span>
+          }
+          <button type="button" class="btn-outline" (click)="downloadOrderReceipt()" [disabled]="receiptBusy">
+            {{ receiptBusy ? 'Téléchargement…' : 'Télécharger le reçu' }}
+          </button>
+        </div>
+        <div class="delivery-info">
+          <div class="info-row">
+            <span class="label">Date de livraison</span>
+            <span class="value mono">{{ formatDateTime(member.delivery?.deliveryDate ?? '') || '—' }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">Commercial</span>
+            <span class="value">{{ member.delivery?.commercialUsername || '—' }}</span>
+          </div>
+          @if (member.delivery?.plannedDeliveryDate) {
+            <div class="info-row" data-testid="e2e-tontine-planned-date-value">
+              <span class="label">Livraison prévue le</span>
+              <span class="value mono">{{ member.delivery?.plannedDeliveryDate | date:'dd/MM/yyyy' }}</span>
+            </div>
+          }
+          <div class="info-row" data-testid="e2e-tontine-order-net-contribution">
+            <span class="label">{{ member.deliveryStatus === 'DELIVERED' ? 'Total cotisé (net)' : 'Solde net cotisé' }}</span>
+            <span class="value">{{ formatCurrency(member.delivery?.netContribution ?? 0) }}</span>
+          </div>
+          <div class="info-row">
+            <span class="label">{{ member.deliveryStatus === 'DELIVERED' ? 'Total utilisé' : 'Montant de la commande' }}</span>
+            <span class="value highlight">{{ formatCurrency(member.delivery?.totalAmount ?? 0) }}</span>
+          </div>
+          @if ((member.delivery?.amountDue ?? 0) > 0) {
+            <div class="info-row" data-testid="e2e-tontine-order-amount-due">
+              <span class="label">Reste à payer</span>
+              <span class="value value-due">{{ formatCurrency(member.delivery?.amountDue ?? 0) }}</span>
+            </div>
+          }
+          @if ((member.delivery?.amountDue ?? 0) <= 0) {
+            <div class="info-row" data-testid="e2e-tontine-order-refundable">
+              <span class="label">{{ member.deliveryStatus === 'DELIVERED' ? 'Total restant' : 'Reliquat à restituer' }}</span>
+              <span class="value">{{ formatCurrency(member.delivery?.refundableBalance ?? 0) }}</span>
+            </div>
+          }
+        </div>
+        <h4 class="table-section-title">Articles livrés</h4>
+        <div class="table-card inner-table">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Article</th>
+                <th *appIfUnitPrice="'CASH'">Prix unitaire</th>
+                <th>Quantité</th>
+                <th *appIfUnitPrice="'CASH'">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of member?.delivery?.items; track item) {
+                <tr>
+                  <td>
+                    <div class="col-ref">{{ item.articleCode }}</div>
+                    <div class="col-client">{{ item.articleName }}</div>
+                  </td>
+                  <td *appIfUnitPrice="'CASH'"><span class="col-amount">{{ formatCurrency(item.unitPrice) }}</span></td>
+                  <td>{{ item.quantity }}</td>
+                  <td *appIfUnitPrice="'CASH'"><span class="col-amount">{{ formatCurrency(item.totalPrice) }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+    <!-- Collections -->
+    <div class="section-card a5">
+      <div class="section-header">
+        <h2 class="section-title">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></svg>
+          Historique des Collectes
+        </h2>
+        @if (!loadingCollections) {
+          <span class="result-count">
+            <strong>{{ collectionsDataSource.data.length }}</strong> collecte(s)
+          </span>
+        }
+      </div>
+      <div class="table-card">
+        <div class="table-wrapper">
+          @if (loadingCollections) {
+            <div class="table-loading">
+              <div class="empty-state">
+                <div class="empty-icon">⏳</div>
+                <div class="empty-title">Chargement…</div>
               </div>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="consent">
-            <th mat-header-cell *matHeaderCellDef>Consentement</th>
-            <td mat-cell *matCellDef="let collection">
-              <div *ngIf="collection.operationConsentCode || collection.syncConsentCode || collection.confirmedAmount !== null" class="consent-cell">
-                <div *ngIf="collection.operationConsentCode">Op: <strong class="consent-code-inline">{{ collection.operationConsentCode }}</strong></div>
-                <div *ngIf="collection.syncConsentCode">Sync: <strong class="consent-code-inline">{{ collection.syncConsentCode }}</strong></div>
-                <div *ngIf="collection.confirmedAmount !== null">Conf: <strong>{{ formatCurrency(collection.confirmedAmount) }}</strong></div>
+            </div>
+          }
+          @if (!loadingCollections && collectionsDataSource.data.length === 0) {
+            <div class="table-empty-static">
+              <div class="empty-state">
+                <div class="empty-icon">📋</div>
+                <div class="empty-title">Aucune collecte enregistrée</div>
+                <div class="empty-sub">Les collectes de ce membre apparaîtront ici.</div>
               </div>
-              <span *ngIf="!collection.operationConsentCode && !collection.syncConsentCode && collection.confirmedAmount === null" class="text-muted">N/A</span>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let collection">
-              <ng-container *ngxPermissionsOnly="['ROLE_CANCEL_TONTINE_COLLECTION', 'ROLE_ADMIN']">
-                <button
-                  type="button"
-                  class="btn-outline btn-sm"
-                  (click)="onCancelCollection(collection)"
-                  [disabled]="!isAdmin"
-                >
-                  Annuler
-                </button>
+            </div>
+          }
+          @if (!loadingCollections && collectionsDataSource.data.length > 0) {
+            <table mat-table [dataSource]="collectionsDataSource" class="collections-table">
+              <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let collection"><span class="date-ok">{{ formatDateTime(collection.collectionDate) }}</span></td>
               </ng-container>
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
+              <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef>Montant</th>
+                <td mat-cell *matCellDef="let collection"><span class="col-amount">{{ formatCurrency(collection.amount) }}</span></td>
+              </ng-container>
+              <ng-container matColumnDef="commercial">
+                <th mat-header-cell *matHeaderCellDef>Perçu par</th>
+                <td mat-cell *matCellDef="let collection">
+                  <div class="col-collector">
+                    <div class="col-collector-dot">{{ getInitials(collection.commercialUsername) }}</div>
+                    {{ collection.commercialUsername }}
+                  </div>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="consent">
+                <th mat-header-cell *matHeaderCellDef>Consentement</th>
+                <td mat-cell *matCellDef="let collection">
+                  @if (collection.operationConsentCode || collection.syncConsentCode || collection.confirmedAmount !== null) {
+                    <div class="consent-cell">
+                      @if (collection.operationConsentCode) {
+                        <div>Op: <strong class="consent-code-inline">{{ collection.operationConsentCode }}</strong></div>
+                      }
+                      @if (collection.syncConsentCode) {
+                        <div>Sync: <strong class="consent-code-inline">{{ collection.syncConsentCode }}</strong></div>
+                      }
+                      @if (collection.confirmedAmount !== null) {
+                        <div>Conf: <strong>{{ formatCurrency(collection.confirmedAmount) }}</strong></div>
+                      }
+                    </div>
+                  }
+                  @if (!collection.operationConsentCode && !collection.syncConsentCode && collection.confirmedAmount === null) {
+                    <span class="text-muted">N/A</span>
+                  }
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let collection">
+                  <ng-container *ngxPermissionsOnly="['ROLE_CANCEL_TONTINE_COLLECTION', 'ROLE_ADMIN']">
+                    <button
+                      type="button"
+                      class="btn-outline btn-sm"
+                      (click)="onCancelCollection(collection)"
+                      [disabled]="!isAdmin"
+                      >
+                      Annuler
+                    </button>
+                  </ng-container>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          }
+        </div>
       </div>
     </div>
   </div>
-</div>
+}
 
-<div *ngIf="loading" class="page-loading">
-  <div class="empty-state">
-    <div class="empty-icon">⏳</div>
-    <div class="empty-title">Chargement du membre…</div>
+@if (loading) {
+  <div class="page-loading">
+    <div class="empty-state">
+      <div class="empty-icon">⏳</div>
+      <div class="empty-title">Chargement du membre…</div>
+    </div>
   </div>
-</div>
+}

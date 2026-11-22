@@ -1,165 +1,207 @@
 <div class="elykia-article-selector" [formGroup]="articleForm" data-testid="e2e-article-selector">
   <div formArrayName="articles" class="article-rows">
-    <div *ngFor="let articleCtrl of articlesArray.controls; let i = index" [formGroupName]="i" class="article-row"
-      [class.simple-layout]="!shouldShowPriceColumns()" [class.stock-exceeded]="validateStock && isStockExceeded(i)"
-      [class.with-validation]="validateStock">
-
-      <div class="form-field article-field">
-        <label [attr.for]="'articleId-' + i">Article</label>
-        <ng-select class="article-select-wrap" [id]="'articleId-' + i" [attr.data-testid]="'e2e-article-select-' + i" formControlName="articleId"
-          [items]="availableArticlesPerRow[i]" bindValue="id" [searchFn]="lazyLoad ? alwaysPassSearch : searchArticle" [disabled]="readonly"
-          [loading]="lazyLoad && articlesLoading" [virtualScroll]="lazyLoad"
-          (scrollToEnd)="onArticlesScrollToEnd()" (search)="onArticlesSearch($event)"
-          placeholder="Rechercher et sélectionner un article" notFoundText="Aucun article trouvé">
-
-          <ng-template ng-label-tmp let-item="item">
-            <div class="selected-article">
-              {{ item.commercialName || item.name }}
-              <span *ngIf="showStock" class="stock-badge" [ngClass]="getStockClass(item.id)">
-                Stock : {{ item.stockQuantity || 0 }}
-              </span>
-            </div>
-          </ng-template>
-
-          <ng-template ng-option-tmp let-item="item">
-            <div class="article-option" [attr.data-article-id]="item.id">
-              <div class="option-title">{{ item.commercialName || item.name }}{{ item.name && item.commercialName !== item.name ? ' | ' + item.name : '' }}</div>
-              <small class="option-details">
-                Marque : {{ item.marque }} · Modèle : {{ item.model }}
-                <span *ngIf="showStock" class="stock-info" [ngClass]="getStockClass(item.id)">
-                  · Stock : {{ item.stockQuantity || 0 }}
+    @for (articleCtrl of articlesArray.controls; track articleCtrl; let i = $index) {
+      <div [formGroupName]="i" class="article-row"
+        [class.simple-layout]="!shouldShowPriceColumns()" [class.stock-exceeded]="validateStock && isStockExceeded(i)"
+        [class.with-validation]="validateStock">
+        <div class="form-field article-field">
+          <label [attr.for]="'articleId-' + i">Article</label>
+          <ng-select class="article-select-wrap" [id]="'articleId-' + i" [attr.data-testid]="'e2e-article-select-' + i" formControlName="articleId"
+            [items]="availableArticlesPerRow[i]" bindValue="id" [searchFn]="lazyLoad ? alwaysPassSearch : searchArticle" [disabled]="readonly"
+            [loading]="lazyLoad && articlesLoading" [virtualScroll]="lazyLoad"
+            (scrollToEnd)="onArticlesScrollToEnd()" (search)="onArticlesSearch($event)"
+            placeholder="Rechercher et sélectionner un article" notFoundText="Aucun article trouvé">
+            <ng-template ng-label-tmp let-item="item">
+              <div class="selected-article">
+                {{ item.commercialName || item.name }}
+                @if (showStock) {
+                  <span class="stock-badge" [ngClass]="getStockClass(item.id)">
+                    Stock : {{ item.stockQuantity || 0 }}
+                  </span>
+                }
+              </div>
+            </ng-template>
+            <ng-template ng-option-tmp let-item="item">
+              <div class="article-option" [attr.data-article-id]="item.id">
+                <div class="option-title">{{ item.commercialName || item.name }}{{ item.name && item.commercialName !== item.name ? ' | ' + item.name : '' }}</div>
+                <small class="option-details">
+                  Marque : {{ item.marque }} · Modèle : {{ item.model }}
+                  @if (showStock) {
+                    <span class="stock-info" [ngClass]="getStockClass(item.id)">
+                      · Stock : {{ item.stockQuantity || 0 }}
+                    </span>
+                  }
+                </small>
+              </div>
+            </ng-template>
+          </ng-select>
+          @if (articleCtrl.get('articleId')?.invalid && articleCtrl.get('articleId')?.touched) {
+            <span class="field-error">
+              L'article est requis.
+            </span>
+          }
+        </div>
+        @if (shouldShowPurchasePriceColumn() && hasArticlePackaging(articleCtrl.get('articleId')?.value)) {
+          <div class="form-field packaging-mode-field">
+            <label [attr.for]="'entryPackagingMode-' + i">Mode d'entrée</label>
+            <select [id]="'entryPackagingMode-' + i" formControlName="entryPackagingMode" class="field-input">
+              <option value="UNIT">Unitaire</option>
+              <option value="WHOLESALE">Gros ({{ getPackagingLabel(articleCtrl.get('articleId')?.value) }})</option>
+              @if (articleHasHalf(articleCtrl.get('articleId')?.value)) {
+                <option value="HALF_WHOLESALE">Demi-gros</option>
+              }
+            </select>
+          </div>
+        }
+        @if (!isPackageMode(i)) {
+          <div class="form-field quantity-field">
+            <label [attr.for]="'quantity-' + i">{{ quantityLabel(i) }}</label>
+            <div class="quantity-input-wrapper">
+              <input [id]="'quantity-' + i" type="number" formControlName="quantity" [readonly]="readonly"
+                [attr.data-testid]="'e2e-article-quantity-' + i"
+                class="field-input field-mono" min="1"
+                [class.stock-warning]="validateStock && isStockExceeded(i)">
+              @if (showStock && articleCtrl.get('articleId')?.value) {
+                <span class="stock-indicator"
+                  [ngClass]="getStockClass(articleCtrl.get('articleId')?.value)">
+                  Stock : {{ getArticleStock(articleCtrl.get('articleId')?.value) }}
                 </span>
-              </small>
+              }
             </div>
-          </ng-template>
-        </ng-select>
-        <span class="field-error" *ngIf="articleCtrl.get('articleId')?.invalid && articleCtrl.get('articleId')?.touched">
-          L'article est requis.
-        </span>
+            @if (articleCtrl.get('quantity')?.hasError('required') && articleCtrl.get('quantity')?.touched) {
+              <span class="field-error">
+                La quantité est requise.
+              </span>
+            }
+            @if (articleCtrl.get('quantity')?.hasError('min') && articleCtrl.get('quantity')?.touched) {
+              <span class="field-error">
+                La quantité doit être supérieure à zéro.
+              </span>
+            }
+            @if (articleCtrl.get('quantity')?.hasError('stockExceeded')) {
+              <span class="field-error">
+                Stock insuffisant — disponible : {{ articleCtrl.get('quantity')?.errors?.['stockExceeded'].available }}
+              </span>
+            }
+          </div>
+        }
+        @if (shouldShowPurchasePriceColumn() && isPackageMode(i)) {
+          <div class="form-field quantity-field">
+            <label [attr.for]="'packageCount-' + i">
+              Nb {{ articleCtrl.get('entryPackagingMode')?.value === 'HALF_WHOLESALE' ? 'demi-' : '' }}{{ getPackagingLabel(articleCtrl.get('articleId')?.value) }}s
+            </label>
+            <input [id]="'packageCount-' + i" type="number" formControlName="packageCount"
+              class="field-input field-mono" min="1">
+            @if (articleCtrl.get('packageCount')?.invalid && articleCtrl.get('packageCount')?.touched) {
+              <span class="field-error">
+                Nombre requis (≥ 1).
+              </span>
+            }
+          </div>
+        }
+        @if (shouldShowPurchasePriceColumn() && !isPackageMode(i)) {
+          <div class="form-field purchase-price-field">
+            <label [attr.for]="'unitPrice-' + i">PU achat</label>
+            <input [id]="'unitPrice-' + i" type="number" formControlName="unitPrice" class="field-input field-mono" min="0.01" step="1">
+            @if (articleCtrl.get('articleId')?.value) {
+              <small class="field-hint">
+                Catalogue : {{ getCatalogPurchasePrice(articleCtrl.get('articleId')?.value) | number:'1.0-0' }} FCFA
+              </small>
+            }
+            @if (articleCtrl.get('unitPrice')?.invalid && articleCtrl.get('unitPrice')?.touched) {
+              <span class="field-error">
+                Le prix d'achat est requis.
+              </span>
+            }
+          </div>
+        }
+        @if (shouldShowPurchasePriceColumn() && isPackageMode(i)) {
+          <div class="form-field purchase-price-field">
+            <label [attr.for]="'packagePrice-' + i">
+              Prix {{ articleCtrl.get('entryPackagingMode')?.value === 'HALF_WHOLESALE' ? 'demi-gros' : 'gros' }}
+            </label>
+            <input [id]="'packagePrice-' + i" type="number" formControlName="packagePrice" class="field-input field-mono" min="0.01" step="1">
+            <small class="field-hint">
+              ≈ {{ getComputedQuantity(i) }} u · PU {{ getComputedUnitPrice(i) | number:'1.0-2' }} · Total {{ getComputedLineTotal(i) | number:'1.0-0' }} FCFA
+            </small>
+            @if (articleCtrl.get('packagePrice')?.invalid && articleCtrl.get('packagePrice')?.touched) {
+              <span class="field-error">
+                Le prix colis est requis.
+              </span>
+            }
+          </div>
+        }
+        @if (shouldShowPurchasePriceColumn() && articleCtrl.get('articleId')?.value) {
+          <div class="form-field">
+            <label [attr.for]="'unitSalePrice-' + i">Prix de vente unitaire du lot</label>
+            <input [id]="'unitSalePrice-' + i" type="number" formControlName="unitSalePrice" class="field-input field-mono" min="0">
+          </div>
+        }
+        @if (shouldShowPurchasePriceColumn() && hasArticlePackaging(articleCtrl.get('articleId')?.value)) {
+          <div class="form-field">
+            <label [attr.for]="'wholesaleSalePrice-' + i">Prix de vente gros du lot</label>
+            <input [id]="'wholesaleSalePrice-' + i" type="number" formControlName="wholesaleSalePrice" class="field-input field-mono" min="0">
+          </div>
+        }
+        @if (shouldShowPurchasePriceColumn() && articleHasHalf(articleCtrl.get('articleId')?.value)) {
+          <div class="form-field">
+            <label [attr.for]="'halfWholesaleSalePrice-' + i">Prix de vente demi-gros du lot</label>
+            <input [id]="'halfWholesaleSalePrice-' + i" type="number" formControlName="halfWholesaleSalePrice" class="field-input field-mono" min="0">
+          </div>
+        }
+        @if (isCashSale() && articleCtrl.get('articleId')?.value) {
+          <div class="form-field">
+            <label [attr.for]="'saleOffer-' + i">Offre</label>
+            <select [id]="'saleOffer-' + i" formControlName="saleOffer" class="field-input">
+              @for (offer of offersFor(articleCtrl.get('articleId')?.value); track offer) {
+                <option [value]="offerKey(offer)">
+                  {{ offer.label }} — {{ offer.salePrice | number:'1.0-0' }} FCFA
+                </option>
+              }
+            </select>
+          </div>
+        }
+        @if (shouldShowPriceColumns()) {
+          <div class="form-field price-field">
+            <label>Prix unitaire</label>
+            <div class="price-display field-mono">
+              {{ getArticlePrice(articleCtrl.get('articleId')?.value) | number:'1.0-0' }} FCFA
+            </div>
+          </div>
+        }
+        @if (shouldShowPriceColumns()) {
+          <div class="form-field subtotal-field">
+            <label>Sous-total</label>
+            <div class="subtotal-display field-mono">
+              {{ getLineTotal(i) | number:'1.0-0' }} FCFA
+            </div>
+          </div>
+        }
+        @if (!readonly) {
+          <button type="button" class="btn-row-remove" (click)="deleteArticle(i)"
+            [disabled]="articlesArray.length === 1" [attr.aria-label]="'Retirer la ligne ' + (i + 1)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 0 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 0 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
+            </svg>
+          </button>
+        }
       </div>
+    }
 
-      <div class="form-field packaging-mode-field" *ngIf="shouldShowPurchasePriceColumn() && hasArticlePackaging(articleCtrl.get('articleId')?.value)">
-        <label [attr.for]="'entryPackagingMode-' + i">Mode d'entrée</label>
-        <select [id]="'entryPackagingMode-' + i" formControlName="entryPackagingMode" class="field-input">
-          <option value="UNIT">Unitaire</option>
-          <option value="WHOLESALE">Gros ({{ getPackagingLabel(articleCtrl.get('articleId')?.value) }})</option>
-          <option *ngIf="articleHasHalf(articleCtrl.get('articleId')?.value)" value="HALF_WHOLESALE">Demi-gros</option>
-        </select>
-      </div>
-
-      <div class="form-field quantity-field" *ngIf="!isPackageMode(i)">
-        <label [attr.for]="'quantity-' + i">{{ quantityLabel(i) }}</label>
-        <div class="quantity-input-wrapper">
-          <input [id]="'quantity-' + i" type="number" formControlName="quantity" [readonly]="readonly"
-            [attr.data-testid]="'e2e-article-quantity-' + i"
-            class="field-input field-mono" min="1"
-            [class.stock-warning]="validateStock && isStockExceeded(i)">
-
-          <span *ngIf="showStock && articleCtrl.get('articleId')?.value" class="stock-indicator"
-            [ngClass]="getStockClass(articleCtrl.get('articleId')?.value)">
-            Stock : {{ getArticleStock(articleCtrl.get('articleId')?.value) }}
-          </span>
-        </div>
-        <span class="field-error" *ngIf="articleCtrl.get('quantity')?.hasError('required') && articleCtrl.get('quantity')?.touched">
-          La quantité est requise.
-        </span>
-        <span class="field-error" *ngIf="articleCtrl.get('quantity')?.hasError('min') && articleCtrl.get('quantity')?.touched">
-          La quantité doit être supérieure à zéro.
-        </span>
-        <span class="field-error" *ngIf="articleCtrl.get('quantity')?.hasError('stockExceeded')">
-          Stock insuffisant — disponible : {{ articleCtrl.get('quantity')?.errors?.['stockExceeded'].available }}
-        </span>
-      </div>
-
-      <div class="form-field quantity-field" *ngIf="shouldShowPurchasePriceColumn() && isPackageMode(i)">
-        <label [attr.for]="'packageCount-' + i">
-          Nb {{ articleCtrl.get('entryPackagingMode')?.value === 'HALF_WHOLESALE' ? 'demi-' : '' }}{{ getPackagingLabel(articleCtrl.get('articleId')?.value) }}s
-        </label>
-        <input [id]="'packageCount-' + i" type="number" formControlName="packageCount"
-          class="field-input field-mono" min="1">
-        <span class="field-error" *ngIf="articleCtrl.get('packageCount')?.invalid && articleCtrl.get('packageCount')?.touched">
-          Nombre requis (≥ 1).
-        </span>
-      </div>
-
-      <div class="form-field purchase-price-field" *ngIf="shouldShowPurchasePriceColumn() && !isPackageMode(i)">
-        <label [attr.for]="'unitPrice-' + i">PU achat</label>
-        <input [id]="'unitPrice-' + i" type="number" formControlName="unitPrice" class="field-input field-mono" min="0.01" step="1">
-        <small class="field-hint" *ngIf="articleCtrl.get('articleId')?.value">
-          Catalogue : {{ getCatalogPurchasePrice(articleCtrl.get('articleId')?.value) | number:'1.0-0' }} FCFA
-        </small>
-        <span class="field-error" *ngIf="articleCtrl.get('unitPrice')?.invalid && articleCtrl.get('unitPrice')?.touched">
-          Le prix d'achat est requis.
-        </span>
-      </div>
-
-      <div class="form-field purchase-price-field" *ngIf="shouldShowPurchasePriceColumn() && isPackageMode(i)">
-        <label [attr.for]="'packagePrice-' + i">
-          Prix {{ articleCtrl.get('entryPackagingMode')?.value === 'HALF_WHOLESALE' ? 'demi-gros' : 'gros' }}
-        </label>
-        <input [id]="'packagePrice-' + i" type="number" formControlName="packagePrice" class="field-input field-mono" min="0.01" step="1">
-        <small class="field-hint">
-          ≈ {{ getComputedQuantity(i) }} u · PU {{ getComputedUnitPrice(i) | number:'1.0-2' }} · Total {{ getComputedLineTotal(i) | number:'1.0-0' }} FCFA
-        </small>
-        <span class="field-error" *ngIf="articleCtrl.get('packagePrice')?.invalid && articleCtrl.get('packagePrice')?.touched">
-          Le prix colis est requis.
-        </span>
-      </div>
-
-      <div class="form-field" *ngIf="shouldShowPurchasePriceColumn() && articleCtrl.get('articleId')?.value">
-        <label [attr.for]="'unitSalePrice-' + i">Prix de vente unitaire du lot</label>
-        <input [id]="'unitSalePrice-' + i" type="number" formControlName="unitSalePrice" class="field-input field-mono" min="0">
-      </div>
-      <div class="form-field" *ngIf="shouldShowPurchasePriceColumn() && hasArticlePackaging(articleCtrl.get('articleId')?.value)">
-        <label [attr.for]="'wholesaleSalePrice-' + i">Prix de vente gros du lot</label>
-        <input [id]="'wholesaleSalePrice-' + i" type="number" formControlName="wholesaleSalePrice" class="field-input field-mono" min="0">
-      </div>
-      <div class="form-field" *ngIf="shouldShowPurchasePriceColumn() && articleHasHalf(articleCtrl.get('articleId')?.value)">
-        <label [attr.for]="'halfWholesaleSalePrice-' + i">Prix de vente demi-gros du lot</label>
-        <input [id]="'halfWholesaleSalePrice-' + i" type="number" formControlName="halfWholesaleSalePrice" class="field-input field-mono" min="0">
-      </div>
-
-      <div class="form-field" *ngIf="isCashSale() && articleCtrl.get('articleId')?.value">
-        <label [attr.for]="'saleOffer-' + i">Offre</label>
-        <select [id]="'saleOffer-' + i" formControlName="saleOffer" class="field-input">
-          <option *ngFor="let offer of offersFor(articleCtrl.get('articleId')?.value)" [value]="offerKey(offer)">
-            {{ offer.label }} — {{ offer.salePrice | number:'1.0-0' }} FCFA
-          </option>
-        </select>
-      </div>
-
-      <div class="form-field price-field" *ngIf="shouldShowPriceColumns()">
-        <label>Prix unitaire</label>
-        <div class="price-display field-mono">
-          {{ getArticlePrice(articleCtrl.get('articleId')?.value) | number:'1.0-0' }} FCFA
-        </div>
-      </div>
-
-      <div class="form-field subtotal-field" *ngIf="shouldShowPriceColumns()">
-        <label>Sous-total</label>
-        <div class="subtotal-display field-mono">
-          {{ getLineTotal(i) | number:'1.0-0' }} FCFA
-        </div>
-      </div>
-
-      <button *ngIf="!readonly" type="button" class="btn-row-remove" (click)="deleteArticle(i)"
-        [disabled]="articlesArray.length === 1" [attr.aria-label]="'Retirer la ligne ' + (i + 1)">
+    @if (!readonly) {
+      <button type="button" class="btn-add-row" (click)="addArticle()" data-testid="e2e-article-add-btn">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-          <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 0 0 6 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 0 0 .23 1.482l.149-.022.841 10.518A2.75 2.75 0 0 0 7.596 19h4.807a2.75 2.75 0 0 0 2.742-2.53l.841-10.52.149.023a.75.75 0 0 0 .23-1.482A41.03 41.03 0 0 0 14 4.193V3.75A2.75 2.75 0 0 0 11.25 1h-2.5ZM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4ZM8.58 7.72a.75.75 0 0 0-1.5.06l.3 7.5a.75.75 0 1 0 1.5-.06l-.3-7.5Zm4.34.06a.75.75 0 0 0-1.5-.06l-.3 7.5a.75.75 0 1 0 1.5.06l.3-7.5Z" clip-rule="evenodd" />
+          <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
         </svg>
+        Ajouter un article
       </button>
-    </div>
+    }
 
-    <button *ngIf="!readonly" type="button" class="btn-add-row" (click)="addArticle()" data-testid="e2e-article-add-btn">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-        <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
-      </svg>
-      Ajouter un article
-    </button>
-
-    <div class="total-bar" *ngIf="(showPrices && !capturePurchasePrice) || shouldShowPurchasePriceColumn()">
-      <span class="total-label">Montant total</span>
-      <span class="total-value field-mono">{{ totalAmount | number:'1.0-0' }} FCFA</span>
-    </div>
+    @if ((showPrices && !capturePurchasePrice) || shouldShowPurchasePriceColumn()) {
+      <div class="total-bar">
+        <span class="total-label">Montant total</span>
+        <span class="total-value field-mono">{{ totalAmount | number:'1.0-0' }} FCFA</span>
+      </div>
+    }
   </div>
 </div>

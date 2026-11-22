@@ -25,14 +25,15 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let commercial of commercials; let i = index">
-          <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
-          <td>
-            <a [routerLink]="['/commercial/view', commercial.id, commercial.username]" class="username-link">{{ commercial.username }}</a>
-          </td>
-          <td>{{ commercial.firstname }} {{ commercial.lastname }}</td>
-          <td>{{ commercial.phone }}</td>
-          <!-- <td>
+        @for (commercial of commercials; track commercial; let i = $index) {
+          <tr>
+            <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
+            <td>
+              <a [routerLink]="['/commercial/view', commercial.id, commercial.username]" class="username-link">{{ commercial.username }}</a>
+            </td>
+            <td>{{ commercial.firstname }} {{ commercial.lastname }}</td>
+            <td>{{ commercial.phone }}</td>
+            <!-- <td>
             <button mat-icon-button matTooltip="Détails" (click)="viewDetails(commercial.id)">
               <mat-icon>visibility</mat-icon>
             </button>
@@ -44,9 +45,10 @@
             </button>
           </td> -->
         </tr>
-      </tbody>
-    </table>
-  </div>
-  <mat-paginator [length]="totalElement" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onPageChange($event)">
-  </mat-paginator>
+      }
+    </tbody>
+  </table>
+</div>
+<mat-paginator [length]="totalElement" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25, 100]" (page)="onPageChange($event)">
+</mat-paginator>
 </div>

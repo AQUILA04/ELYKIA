@@ -18,7 +18,7 @@
       <div class="header-card-main">
         <div class="title-group">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
             <rect width="20" height="12" x="2" y="6" rx="2"/>
             <circle cx="12" cy="12" r="2"/>
             <path d="M6 12h.01M18 12h.01"/>
@@ -41,7 +41,7 @@
         <div class="kpi-value">{{ totalElement }}</div>
         <div class="kpi-sub">Total référencé</div>
       </div>
-      <ng-container *ngIf="accountKpis">
+      @if (accountKpis) {
         <div class="kpi-card kpi-green">
           <div class="kpi-label">Comptes actifs</div>
           <div class="kpi-value">{{ accountKpis.activeCount }}</div>
@@ -57,7 +57,7 @@
           <div class="kpi-value kpi-value-sm">{{ accountKpis.activeTotalBalance | currency:'XOF':'symbol':'1.0-0' }}</div>
           <div class="kpi-sub">Somme des soldes (comptes actifs)</div>
         </div>
-      </ng-container>
+      }
     </div>
 
     <div class="toolbar a4">
@@ -94,51 +94,58 @@
 
     <div class="table-card a5">
       <div class="table-wrapper">
-        <div *ngIf="isLoading" class="table-loading">
-          <div class="empty-state">
-            <div class="empty-icon">⏳</div>
-            <div class="empty-title">Chargement…</div>
+        @if (isLoading) {
+          <div class="table-loading">
+            <div class="empty-state">
+              <div class="empty-icon">⏳</div>
+              <div class="empty-title">Chargement…</div>
+            </div>
           </div>
-        </div>
+        }
 
-        <div *ngIf="!isLoading && accounts.length === 0" class="table-empty-static">
-          <div class="empty-state">
-            <div class="empty-icon">💳</div>
-            <div class="empty-title">Aucun compte trouvé</div>
-            <div class="empty-sub">Modifiez votre recherche ou créez un nouveau compte.</div>
+        @if (!isLoading && accounts.length === 0) {
+          <div class="table-empty-static">
+            <div class="empty-state">
+              <div class="empty-icon">💳</div>
+              <div class="empty-title">Aucun compte trouvé</div>
+              <div class="empty-sub">Modifiez votre recherche ou créez un nouveau compte.</div>
+            </div>
           </div>
-        </div>
+        }
 
-        <table class="data-table" *ngIf="!isLoading && accounts.length > 0">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Client</th>
-              <th>N° compte</th>
-              <th>Solde</th>
-              <th>Statut</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let account of accounts; let i = index"
-                data-testid="e2e-account-row"
-                [attr.data-client-lastname]="account.client?.lastname"
-                [attr.data-status]="account.status">
-              <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
-              <td>
-                <span class="col-name">{{ account.client?.firstname }} {{ account.client?.lastname }}</span>
-              </td>
-              <td><span class="col-account">{{ account.accountNumber }}</span></td>
-              <td><span class="col-balance">{{ account.accountBalance | currency:'XOF':'symbol':'1.0-0' }}</span></td>
-              <td>
-                <span class="status-badge" [class]="getStatusClass(account.status)">
-                  {{ getStatusLabel(account.status) }}
-                </span>
-              </td>
-              <td class="col-actions">
-                <ng-container *ngxPermissionsOnly="['ROLE_START_CREDIT','ROLE_VALIDATE_CREDIT']">
-                  <button *ngIf="account.status === 'CREATED' || account.status === 'ACTIF' || account.status === 'CLOSED'"
+        @if (!isLoading && accounts.length > 0) {
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Client</th>
+                <th>N° compte</th>
+                <th>Solde</th>
+                <th>Statut</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (account of accounts; track account; let i = $index) {
+                <tr
+                  data-testid="e2e-account-row"
+                  [attr.data-client-lastname]="account.client?.lastname"
+                  [attr.data-status]="account.status">
+                  <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
+                  <td>
+                    <span class="col-name">{{ account.client?.firstname }} {{ account.client?.lastname }}</span>
+                  </td>
+                  <td><span class="col-account">{{ account.accountNumber }}</span></td>
+                  <td><span class="col-balance">{{ account.accountBalance | currency:'XOF':'symbol':'1.0-0' }}</span></td>
+                  <td>
+                    <span class="status-badge" [class]="getStatusClass(account.status)">
+                      {{ getStatusLabel(account.status) }}
+                    </span>
+                  </td>
+                  <td class="col-actions">
+                    <ng-container *ngxPermissionsOnly="['ROLE_START_CREDIT','ROLE_VALIDATE_CREDIT']">
+                      @if (account.status === 'CREATED' || account.status === 'ACTIF' || account.status === 'CLOSED') {
+                        <button
                           type="button"
                           class="btn-detail"
                           [class.btn-status-activate]="account.status === 'CREATED'"
@@ -147,28 +154,37 @@
                           data-testid="e2e-account-toggle-status"
                           (click)="toggleAccountStatus(account.id, account.status)"
                           [title]="getToggleLabel(account.status)">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path *ngIf="account.status === 'CREATED'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                      <path *ngIf="account.status === 'ACTIF'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6 6 18M6 6l12 12"/>
-                      <path *ngIf="account.status === 'CLOSED'" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                    </svg>
-                    {{ getToggleLabel(account.status) }}
-                  </button>
-                </ng-container>
-                <button type="button" class="btn-detail" (click)="viewDetails(account.id)" title="Détails">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                  Voir
-                </button>
-                <button *ngxPermissionsOnly="['ROLE_EDIT_ACCOUNT']" type="button" class="btn-detail" (click)="editAccount(account.id)" title="Modifier">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
-                </button>
-                <button *ngxPermissionsOnly="['ROLE_DEL_ACCOUNT']" type="button" class="btn-detail btn-danger" (click)="deleteAccount(account.id)" title="Supprimer">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            @if (account.status === 'CREATED') {
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            }
+                            @if (account.status === 'ACTIF') {
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 6 6 18M6 6l12 12"/>
+                            }
+                            @if (account.status === 'CLOSED') {
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                            }
+                          </svg>
+                          {{ getToggleLabel(account.status) }}
+                        </button>
+                      }
+                    </ng-container>
+                    <button type="button" class="btn-detail" (click)="viewDetails(account.id)" title="Détails">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                      Voir
+                    </button>
+                    <button *ngxPermissionsOnly="['ROLE_EDIT_ACCOUNT']" type="button" class="btn-detail" (click)="editAccount(account.id)" title="Modifier">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                    </button>
+                    <button *ngxPermissionsOnly="['ROLE_DEL_ACCOUNT']" type="button" class="btn-detail btn-danger" (click)="deleteAccount(account.id)" title="Supprimer">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h18"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
       </div>
 
       <div class="pagination account-pagination">
@@ -184,63 +200,70 @@
     </div>
   </div>
 
-  <div class="detail-panel" *ngIf="selected || detailLoading" data-testid="e2e-account-detail">
-    <div class="detail-backdrop" (click)="closeDetail()"></div>
-    <div class="detail-card">
-      <div class="detail-header">
-        <div class="detail-identity" *ngIf="selected">
-          <div class="header-avatar header-avatar--initials" [attr.aria-label]="'Avatar ' + clientFullName(selected)">
-            {{ getInitials(selected) }}
-          </div>
-          <div class="detail-identity-text">
-            <h2>{{ clientFullName(selected) }}</h2>
-            <span class="detail-account-number">{{ selected.accountNumber }}</span>
-          </div>
+  @if (selected || detailLoading) {
+    <div class="detail-panel" data-testid="e2e-account-detail">
+      <div class="detail-backdrop" (click)="closeDetail()"></div>
+      <div class="detail-card">
+        <div class="detail-header">
+          @if (selected) {
+            <div class="detail-identity">
+              <div class="header-avatar header-avatar--initials" [attr.aria-label]="'Avatar ' + clientFullName(selected)">
+                {{ getInitials(selected) }}
+              </div>
+              <div class="detail-identity-text">
+                <h2>{{ clientFullName(selected) }}</h2>
+                <span class="detail-account-number">{{ selected.accountNumber }}</span>
+              </div>
+            </div>
+          }
+          @if (!selected && detailLoading) {
+            <h2>Chargement…</h2>
+          }
+          <button type="button" class="btn-clear" (click)="closeDetail()">Fermer</button>
         </div>
-        <h2 *ngIf="!selected && detailLoading">Chargement…</h2>
-        <button type="button" class="btn-clear" (click)="closeDetail()">Fermer</button>
-      </div>
-
-      <div *ngIf="detailLoading && !selected" class="detail-loading">Chargement du compte…</div>
-
-      <ng-container *ngIf="selected">
-        <dl class="detail-grid">
-          <div>
-            <dt>Client</dt>
-            <dd>{{ clientFullName(selected) }}</dd>
-          </div>
-          <div>
-            <dt>N° compte</dt>
-            <dd class="mono">{{ selected.accountNumber }}</dd>
-          </div>
-          <div>
-            <dt>Solde</dt>
-            <dd class="balance">{{ selected.accountBalance | currency:'XOF':'symbol':'1.0-0' }}</dd>
-          </div>
-          <div>
-            <dt>Statut</dt>
-            <dd>
-              <span class="status-badge" [class]="getStatusClass(selected.status)">
-                {{ getStatusLabel(selected.status) }}
-              </span>
-            </dd>
-          </div>
-        </dl>
-
-        <div class="detail-actions">
-          <ng-container *ngxPermissionsOnly="['ROLE_START_CREDIT','ROLE_VALIDATE_CREDIT']">
-            <button *ngIf="selected.status === 'CREATED' || selected.status === 'ACTIF' || selected.status === 'CLOSED'"
-                    type="button"
-                    class="btn-primary"
-                    (click)="toggleAccountStatus(selected.id, selected.status)">
-              {{ getToggleLabel(selected.status) }}
+        @if (detailLoading && !selected) {
+          <div class="detail-loading">Chargement du compte…</div>
+        }
+        @if (selected) {
+          <dl class="detail-grid">
+            <div>
+              <dt>Client</dt>
+              <dd>{{ clientFullName(selected) }}</dd>
+            </div>
+            <div>
+              <dt>N° compte</dt>
+              <dd class="mono">{{ selected.accountNumber }}</dd>
+            </div>
+            <div>
+              <dt>Solde</dt>
+              <dd class="balance">{{ selected.accountBalance | currency:'XOF':'symbol':'1.0-0' }}</dd>
+            </div>
+            <div>
+              <dt>Statut</dt>
+              <dd>
+                <span class="status-badge" [class]="getStatusClass(selected.status)">
+                  {{ getStatusLabel(selected.status) }}
+                </span>
+              </dd>
+            </div>
+          </dl>
+          <div class="detail-actions">
+            <ng-container *ngxPermissionsOnly="['ROLE_START_CREDIT','ROLE_VALIDATE_CREDIT']">
+              @if (selected.status === 'CREATED' || selected.status === 'ACTIF' || selected.status === 'CLOSED') {
+                <button
+                  type="button"
+                  class="btn-primary"
+                  (click)="toggleAccountStatus(selected.id, selected.status)">
+                  {{ getToggleLabel(selected.status) }}
+                </button>
+              }
+            </ng-container>
+            <button *ngxPermissionsOnly="['ROLE_EDIT_ACCOUNT']" type="button" class="btn-clear" (click)="editSelected()">
+              Modifier
             </button>
-          </ng-container>
-          <button *ngxPermissionsOnly="['ROLE_EDIT_ACCOUNT']" type="button" class="btn-clear" (click)="editSelected()">
-            Modifier
-          </button>
-        </div>
-      </ng-container>
+          </div>
+        }
+      </div>
     </div>
-  </div>
+  }
 </div>

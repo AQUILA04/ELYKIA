@@ -8,23 +8,26 @@
       <button type="button" class="btn-refresh" (click)="load()">Actualiser</button>
     </div>
     <p class="page-subtitle">
-        <ng-container *ngIf="account?.holderName; else freeAccount">
-          Titulaire en cours : {{ account?.holderName }}, depuis le {{ account?.holderSince | date:'dd/MM/yyyy' }}
-        </ng-container>
-        <ng-template #freeAccount>Aucune affectation en cours</ng-template>
-      </p>
+      @if (account?.holderName) {
+        Titulaire en cours : {{ account?.holderName }}, depuis le {{ account?.holderSince | date:'dd/MM/yyyy' }}
+      } @else {
+        Aucune affectation en cours
+      }
+    </p>
   </app-commercial-page-head>
 
   <div class="page-scroll-body">
-    <div class="notice a3" *ngIf="openAssignment">
-      <strong>{{ openAssignment.promoterName }}</strong> utilise ce compte depuis le {{ openAssignment.startDate | date:'dd/MM/yyyy' }}.
-      Clôturez cette période avant d'en ouvrir une qui la chevauche. La date de fin est incluse : la suivante commence le lendemain.
-      <div class="notice-row">
-        <label class="toolbar-label" for="commercial-close-date">Date de fin</label>
-        <input id="commercial-close-date" class="field-input" type="date" [(ngModel)]="closeDate" [min]="openAssignment.startDate">
-        <button type="button" class="btn-primary" [disabled]="saving" (click)="closeCurrent()">Clôturer</button>
+    @if (openAssignment) {
+      <div class="notice a3">
+        <strong>{{ openAssignment.promoterName }}</strong> utilise ce compte depuis le {{ openAssignment.startDate | date:'dd/MM/yyyy' }}.
+        Clôturez cette période avant d'en ouvrir une qui la chevauche. La date de fin est incluse : la suivante commence le lendemain.
+        <div class="notice-row">
+          <label class="toolbar-label" for="commercial-close-date">Date de fin</label>
+          <input id="commercial-close-date" class="field-input" type="date" [(ngModel)]="closeDate" [min]="openAssignment.startDate">
+          <button type="button" class="btn-primary" [disabled]="saving" (click)="closeCurrent()">Clôturer</button>
+        </div>
       </div>
-    </div>
+    }
 
     <form class="panel a4" (ngSubmit)="save()">
       <h2>{{ editingId ? 'Corriger une période' : 'Affecter une personne' }}</h2>
@@ -33,7 +36,9 @@
           <span class="toolbar-label">Personne</span>
           <select class="field-select" [(ngModel)]="promoterId" name="promoterId" required>
             <option [ngValue]="null">Choisir</option>
-            <option *ngFor="let person of people" [ngValue]="person.id">{{ person.name }}</option>
+            @for (person of people; track person) {
+              <option [ngValue]="person.id">{{ person.name }}</option>
+            }
           </select>
         </label>
         <label>
@@ -47,45 +52,59 @@
       </div>
       <div class="form-actions">
         <button type="submit" class="btn-primary" [disabled]="saving">{{ editingId ? 'Enregistrer' : 'Affecter' }}</button>
-        <button type="button" class="btn-ghost" *ngIf="editingId" (click)="cancelEdit()">Annuler</button>
+        @if (editingId) {
+          <button type="button" class="btn-ghost" (click)="cancelEdit()">Annuler</button>
+        }
       </div>
     </form>
 
     <div class="table-card a5">
-      <div class="empty-state" *ngIf="loading">
-        <div class="empty-title">Chargement</div>
-      </div>
-      <div class="empty-state" *ngIf="!loading && history.length === 0">
-        <div class="empty-title">Aucune période</div>
-        <div class="empty-sub">Ce compte n'a pas encore été affecté.</div>
-      </div>
-      <table class="data-table" *ngIf="!loading && history.length > 0">
-        <thead>
-          <tr>
-            <th>Personne</th>
-            <th>Début</th>
-            <th>Fin</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let item of history">
-            <td>
-              <div class="person-cell">
-                <img *ngIf="item.photoUrl" class="avatar" [src]="item.photoUrl" [alt]="item.promoterName">
-                <span *ngIf="!item.photoUrl" class="avatar-fallback">{{ item.initials }}</span>
-                <span>{{ item.promoterName }}</span>
-              </div>
-            </td>
-            <td>{{ item.startDate | date:'dd/MM/yyyy' }}</td>
-            <td>{{ item.endDate ? (item.endDate | date:'dd/MM/yyyy') : 'En cours' }}</td>
-            <td class="row-actions">
-              <button type="button" class="btn-detail" (click)="edit(item)">Corriger</button>
-              <button type="button" class="btn-detail btn-danger" (click)="remove(item)">Retirer</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      @if (loading) {
+        <div class="empty-state">
+          <div class="empty-title">Chargement</div>
+        </div>
+      }
+      @if (!loading && history.length === 0) {
+        <div class="empty-state">
+          <div class="empty-title">Aucune période</div>
+          <div class="empty-sub">Ce compte n'a pas encore été affecté.</div>
+        </div>
+      }
+      @if (!loading && history.length > 0) {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Personne</th>
+              <th>Début</th>
+              <th>Fin</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of history; track item) {
+              <tr>
+                <td>
+                  <div class="person-cell">
+                    @if (item.photoUrl) {
+                      <img class="avatar" [src]="item.photoUrl" [alt]="item.promoterName">
+                    }
+                    @if (!item.photoUrl) {
+                      <span class="avatar-fallback">{{ item.initials }}</span>
+                    }
+                    <span>{{ item.promoterName }}</span>
+                  </div>
+                </td>
+                <td>{{ item.startDate | date:'dd/MM/yyyy' }}</td>
+                <td>{{ item.endDate ? (item.endDate | date:'dd/MM/yyyy') : 'En cours' }}</td>
+                <td class="row-actions">
+                  <button type="button" class="btn-detail" (click)="edit(item)">Corriger</button>
+                  <button type="button" class="btn-detail btn-danger" (click)="remove(item)">Retirer</button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
     </div>
   </div>
 </div>

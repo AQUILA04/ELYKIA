@@ -6,18 +6,20 @@
     </div>
   </div>
 
-  <div class="mobile-device-parameter-card mb-3" *ngIf="mobileDeviceManagementEnabled">
-    <h2>Contrôle des appareils mobiles (sécurité serveur)</h2>
-    <p>Active l'enforcement côté backend pour les utilisateurs dont la restriction est activée sur leur fiche.</p>
-    <label class="mobile-device-parameter-toggle">
-      <input
-        type="checkbox"
-        [checked]="isMobileDeviceRestrictionEnabled()"
-        [disabled]="!mobileDeviceRestrictionParameter || updatingMobileDeviceRestriction"
-        (change)="toggleMobileDeviceRestriction($any($event.target).checked)">
-      <span>Activer le contrôle des appareils mobiles</span>
-    </label>
-  </div>
+  @if (mobileDeviceManagementEnabled) {
+    <div class="mobile-device-parameter-card mb-3">
+      <h2>Contrôle des appareils mobiles (sécurité serveur)</h2>
+      <p>Active l'enforcement côté backend pour les utilisateurs dont la restriction est activée sur leur fiche.</p>
+      <label class="mobile-device-parameter-toggle">
+        <input
+          type="checkbox"
+          [checked]="isMobileDeviceRestrictionEnabled()"
+          [disabled]="!mobileDeviceRestrictionParameter || updatingMobileDeviceRestriction"
+          (change)="toggleMobileDeviceRestriction($any($event.target).checked)">
+        <span>Activer le contrôle des appareils mobiles</span>
+      </label>
+    </div>
+  }
 
   <div class="d-flex justify-content-between align-items-center mb-3">
     <div class="button-group ml-auto">
@@ -36,36 +38,42 @@
   <div class="table-container">
     <table class="article-table">
       <thead>
-      <tr>
-        <th>#</th>
-        <th>Clé</th>
-        <th>Valeur</th>
-        <th>Description</th>
-        <th style="text-align: right;">Action</th>
-      </tr>
+        <tr>
+          <th>#</th>
+          <th>Clé</th>
+          <th>Valeur</th>
+          <th>Description</th>
+          <th style="text-align: right;">Action</th>
+        </tr>
       </thead>
       <tbody>
-      <tr *ngFor="let param of parameters; let i = index" [attr.data-testid]="'e2e-parameter-row-' + param.key">
-        <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
-        <td>{{ param.key }}</td>
-        <td>
-          <span *ngIf="isBoolean(param.value)" class="badge" [ngClass]="{'bg-success': param.value === 'true', 'bg-danger': param.value === 'false'}">
-            {{ formatValue(param.value) }}
-          </span>
-          <span *ngIf="!isBoolean(param.value)">{{ displayValue(param) }}</span>
-        </td>
-        <td>{{ param.description }}</td>
-        <td>
-          <div style="display: flex; justify-content: flex-end;">
-            <button mat-icon-button matTooltip="Modifier" (click)="editParameter(param)" [attr.data-testid]="'e2e-parameter-edit-' + param.key">
-              <mat-icon style="color: #003366;">edit</mat-icon>
-            </button>
-            <button mat-icon-button matTooltip="Supprimer" (click)="deleteParameter(param.id)">
-              <mat-icon style="color: #c90a17;">delete</mat-icon>
-            </button>
-          </div>
-        </td>
-      </tr>
+        @for (param of parameters; track param; let i = $index) {
+          <tr [attr.data-testid]="'e2e-parameter-row-' + param.key">
+            <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
+            <td>{{ param.key }}</td>
+            <td>
+              @if (isBoolean(param.value)) {
+                <span class="badge" [ngClass]="{'bg-success': param.value === 'true', 'bg-danger': param.value === 'false'}">
+                  {{ formatValue(param.value) }}
+                </span>
+              }
+              @if (!isBoolean(param.value)) {
+                <span>{{ displayValue(param) }}</span>
+              }
+            </td>
+            <td>{{ param.description }}</td>
+            <td>
+              <div style="display: flex; justify-content: flex-end;">
+                <button mat-icon-button matTooltip="Modifier" (click)="editParameter(param)" [attr.data-testid]="'e2e-parameter-edit-' + param.key">
+                  <mat-icon style="color: #003366;">edit</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Supprimer" (click)="deleteParameter(param.id)">
+                  <mat-icon style="color: #c90a17;">delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        }
       </tbody>
     </table>
   </div>

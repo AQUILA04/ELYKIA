@@ -11,13 +11,14 @@
   </div>
 
   <!-- SKELETON si pas encore chargé -->
-  <div *ngIf="isReceptionLoading || !reception" class="empty-state" style="margin-top:60px">
-    <div class="empty-icon">⏳</div>
-    <div class="empty-title">Chargement…</div>
-  </div>
+  @if (isReceptionLoading || !reception) {
+    <div class="empty-state" style="margin-top:60px">
+      <div class="empty-icon">⏳</div>
+      <div class="empty-title">Chargement…</div>
+    </div>
+  }
 
-  <ng-container *ngIf="reception">
-
+  @if (reception) {
     <!-- HEADER -->
     <div class="page-header-card">
       <div class="header-card-top">
@@ -27,17 +28,25 @@
       <div class="header-card-main">
         <div class="title-group">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-               class="entry-icon" style="display:block;flex-shrink:0">
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="entry-icon" style="display:block;flex-shrink:0">
             <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
           <h1 class="page-title" style="margin:0;padding:0;line-height:1">Réception de stock</h1>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn-validate" *ngIf="canValidateOrRefuse()" (click)="validateReception()">Valider</button>
-          <button class="btn-refuse" *ngIf="canValidateOrRefuse()" (click)="refuseReception()">Refuser</button>
-          <button class="btn-cancel" *ngIf="canAbandonPending()" (click)="abandonReception()">Abandonner</button>
-          <button class="btn-cancel" *ngIf="canCancelValidated()" (click)="cancelValidatedReception()">Annuler</button>
+          @if (canValidateOrRefuse()) {
+            <button class="btn-validate" (click)="validateReception()">Valider</button>
+          }
+          @if (canValidateOrRefuse()) {
+            <button class="btn-refuse" (click)="refuseReception()">Refuser</button>
+          }
+          @if (canAbandonPending()) {
+            <button class="btn-cancel" (click)="abandonReception()">Abandonner</button>
+          }
+          @if (canCancelValidated()) {
+            <button class="btn-cancel" (click)="cancelValidatedReception()">Annuler</button>
+          }
           <button class="btn-download" (click)="downloadPdf()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Télécharger PDF
@@ -51,9 +60,10 @@
       <p class="page-subtitle">
         {{ reception.receptionDate | date:'dd/MM/yyyy' }} · Reçu par {{ reception.receivedBy }} · Statut : {{ getStatusLabel(reception.status) }}
       </p>
-      <p class="page-subtitle" *ngIf="reception.refusalReason">Motif de refus : {{ reception.refusalReason }}</p>
+      @if (reception.refusalReason) {
+        <p class="page-subtitle">Motif de refus : {{ reception.refusalReason }}</p>
+      }
     </div>
-
     <!-- KPI STRIP -->
     <div class="kpi-strip a3">
       <div class="kpi-card kpi-ref">
@@ -77,7 +87,6 @@
         <div class="kpi-sub">FCFA</div>
       </div>
     </div>
-
     <!-- TABLE ARTICLES -->
     <div class="table-card a5">
       <div class="table-header-bar">
@@ -90,42 +99,60 @@
             <th>#</th>
             <th>Article</th>
             <th>Quantité</th>
-            <th *ngIf="canShowPurchasePrice">Prix unitaire</th>
-            <th *ngIf="canShowPurchasePrice">Prix total</th>
+            @if (canShowPurchasePrice) {
+              <th>Prix unitaire</th>
+            }
+            @if (canShowPurchasePrice) {
+              <th>Prix total</th>
+            }
           </tr>
         </thead>
         <tbody>
-          <tr *ngIf="!isItemsLoading && receptionItems.length === 0">
-            <td [attr.colspan]="canShowPurchasePrice ? 5 : 3">
-              <div class="empty-state">
-                <div class="empty-icon">📦</div>
-                <div class="empty-title">Aucun article</div>
-              </div>
-            </td>
-          </tr>
-          <tr *ngFor="let item of receptionItems; let i = index">
-            <td><span class="row-num">{{ i + 1 }}</span></td>
-            <td>
-              <div class="col-article">{{ item.articleName || item.article?.name || '—' }}</div>
-              <small class="packaging-summary" *ngIf="formatPackagingSummary(item) as summary">{{ summary }}</small>
-            </td>
-            <td>
-              <span class="qty-badge">{{ item.quantity }}</span>
-            </td>
-            <td *ngIf="canShowPurchasePrice"><div class="col-amount">{{ item.unitPrice | number }} FCFA</div></td>
-            <td *ngIf="canShowPurchasePrice"><div class="col-amount col-total">{{ item.totalPrice | number }} FCFA</div></td>
-          </tr>
+          @if (!isItemsLoading && receptionItems.length === 0) {
+            <tr>
+              <td [attr.colspan]="canShowPurchasePrice ? 5 : 3">
+                <div class="empty-state">
+                  <div class="empty-icon">📦</div>
+                  <div class="empty-title">Aucun article</div>
+                </div>
+              </td>
+            </tr>
+          }
+          @for (item of receptionItems; track item; let i = $index) {
+            <tr>
+              <td><span class="row-num">{{ i + 1 }}</span></td>
+              <td>
+                <div class="col-article">{{ item.articleName || item.article?.name || '—' }}</div>
+                @if (formatPackagingSummary(item); as summary) {
+                  <small class="packaging-summary">{{ summary }}</small>
+                }
+              </td>
+              <td>
+                <span class="qty-badge">{{ item.quantity }}</span>
+              </td>
+              @if (canShowPurchasePrice) {
+                <td><div class="col-amount">{{ item.unitPrice | number }} FCFA</div></td>
+              }
+              @if (canShowPurchasePrice) {
+                <td><div class="col-amount col-total">{{ item.totalPrice | number }} FCFA</div></td>
+              }
+            </tr>
+          }
         </tbody>
       </table>
-
-      <div class="items-loader-bar" *ngIf="isItemsLoading || hasMoreItems">
-        <button class="btn-refresh" *ngIf="hasMoreItems && !isItemsLoading" (click)="loadMoreItems()">
-          Charger plus d'articles
-        </button>
-        <span class="result-count" *ngIf="isItemsLoading">Chargement des articles…</span>
-      </div>
+      @if (isItemsLoading || hasMoreItems) {
+        <div class="items-loader-bar">
+          @if (hasMoreItems && !isItemsLoading) {
+            <button class="btn-refresh" (click)="loadMoreItems()">
+              Charger plus d'articles
+            </button>
+          }
+          @if (isItemsLoading) {
+            <span class="result-count">Chargement des articles…</span>
+          }
+        </div>
+      }
     </div>
-
-  </ng-container>
+  }
 
 </div>

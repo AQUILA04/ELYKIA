@@ -41,41 +41,56 @@
     </div>
 
     <div class="table-card a5">
-      <div class="empty-state" *ngIf="loading">
-        <div class="empty-title">Chargement</div>
-        <div class="empty-sub">Lecture des comptes commerciaux</div>
-      </div>
-      <div class="empty-state" *ngIf="!loading && filtered.length === 0">
-        <div class="empty-title">Aucun compte</div>
-        <div class="empty-sub">Aucun compte commercial ne correspond à la recherche.</div>
-      </div>
-      <table class="data-table" *ngIf="!loading && filtered.length > 0">
-        <thead>
-          <tr>
-            <th>Compte</th>
-            <th>Titulaire en cours</th>
-            <th>Depuis</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let account of filtered">
-            <td><span class="username">{{ account.username }}</span></td>
-            <td>
-              <div class="person-cell" *ngIf="account.holderName; else noHolder">
-                <img *ngIf="account.holderPhotoUrl" class="avatar" [src]="account.holderPhotoUrl" [alt]="account.holderName">
-                <span *ngIf="!account.holderPhotoUrl" class="avatar-fallback">{{ account.holderInitials }}</span>
-                <span>{{ account.holderName }}</span>
-              </div>
-              <ng-template #noHolder><span class="muted">Aucune affectation</span></ng-template>
-            </td>
-            <td>{{ account.holderSince ? (account.holderSince | date:'dd/MM/yyyy') : '—' }}</td>
-            <td class="row-actions">
-              <a class="btn-detail" [routerLink]="['/commercial/accounts', account.userId]">Historique</a>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      @if (loading) {
+        <div class="empty-state">
+          <div class="empty-title">Chargement</div>
+          <div class="empty-sub">Lecture des comptes commerciaux</div>
+        </div>
+      }
+      @if (!loading && filtered.length === 0) {
+        <div class="empty-state">
+          <div class="empty-title">Aucun compte</div>
+          <div class="empty-sub">Aucun compte commercial ne correspond à la recherche.</div>
+        </div>
+      }
+      @if (!loading && filtered.length > 0) {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Compte</th>
+              <th>Titulaire en cours</th>
+              <th>Depuis</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (account of filtered; track account) {
+              <tr>
+                <td><span class="username">{{ account.username }}</span></td>
+                <td>
+                  @if (account.holderName) {
+                    <div class="person-cell">
+                      @if (account.holderPhotoUrl) {
+                        <img class="avatar" [src]="account.holderPhotoUrl" [alt]="account.holderName">
+                      }
+                      @if (!account.holderPhotoUrl) {
+                        <span class="avatar-fallback">{{ account.holderInitials }}</span>
+                      }
+                      <span>{{ account.holderName }}</span>
+                    </div>
+                  } @else {
+                    <span class="muted">Aucune affectation</span>
+                  }
+                </td>
+                <td>{{ account.holderSince ? (account.holderSince | date:'dd/MM/yyyy') : '—' }}</td>
+                <td class="row-actions">
+                  <a class="btn-detail" [routerLink]="['/commercial/accounts', account.userId]">Historique</a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
     </div>
   </div>
 </div>
