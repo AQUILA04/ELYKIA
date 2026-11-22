@@ -4,8 +4,7 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { DashboardChartComponent } from './dashboard-chart.component';
 
 @NgModule({
-  declarations: [DashboardChartComponent],
-  imports: [CommonModule, NgApexchartsModule],
+  imports: [CommonModule, NgApexchartsModule, DashboardChartComponent],
   exports: [DashboardChartComponent]
 })
 export class DashboardChartModule {}

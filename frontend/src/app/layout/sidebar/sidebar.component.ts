@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { Router, NavigationEnd, RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 import { filter } from 'rxjs/operators';
 import { AlertService } from 'src/app/shared/service/alert.service';
 
-import { NgxPermissionsService } from 'ngx-permissions';
+import { NgxPermissionsModule, NgxPermissionsService } from 'ngx-permissions';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { AuthService } from "../../auth/service/auth.service";
 import { LayoutService } from 'src/app/shared/service/layout.service';
@@ -16,9 +18,9 @@ import { AiPermissions } from 'src/app/shared/constants/ai-permission.constant';
 
 @Component({
   selector: 'app-sidebar',
+  imports: [CommonModule, RouterLink, MatIconModule, NgxPermissionsModule],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
-  standalone: false
 })
 export class SidebarComponent implements OnInit {
   isCaisseOpen: boolean = false;

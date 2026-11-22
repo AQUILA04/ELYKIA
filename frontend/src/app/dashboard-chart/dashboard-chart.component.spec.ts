@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { DashboardChartComponent } from './dashboard-chart.component';
 
 describe('DashboardChartComponent', () => {
@@ -8,9 +7,8 @@ describe('DashboardChartComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ DashboardChartComponent ]
-    })
-    .compileComponents();
+      imports: [DashboardChartComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardChartComponent);
     component = fixture.componentInstance;

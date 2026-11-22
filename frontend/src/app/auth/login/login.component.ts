@@ -1,6 +1,7 @@
 import { Component, OnInit, HostBinding } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { AuthService } from '../service/auth.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
@@ -20,9 +21,9 @@ interface MobileSsoPayload {
 
 @Component({
   selector: 'app-login',
+  imports: [ReactiveFormsModule, MatFormFieldModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
-  standalone: false
 })
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;

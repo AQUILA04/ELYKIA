@@ -10,37 +10,41 @@ description: >
 
 # Architecture Angular 21 — Lazy-Loading & Composants Standalone (Frontend ELYKIA)
 
-## État depuis Frontend `3.0.0` (Angular 21)
+## État depuis Frontend `3.0.0` (Angular 21 — `docs/adr/ADR-001-frontend-angular-21-architecture.md`)
 
-**100 % des domaines métier historiques sont lazy-loaded** via `loadChildren` dans `app-routing.module.ts` :
-
-`account`, `accounting-day`, `ai-chat`, `article`, `article-type`, `bi`, `carnet-ecart`, `cash-desk`, `client`, `client-registrations`, `commercial`, `credit`, `customer-activity-audit`, `customer-payments`, `dashboard` (URL `/home`), `debt`, `deposit`, `expense`, `gestion`, `history`, `inventory`, `locality`, `notifications`, `operation`, `orders`, `out`, `parameters`, `recruitment`, `report`, `security`, `stock`, `stock-tontine`, `tontine`, `user`.
-
-Seuls les éléments transverses / socle restent chargés au démarrage : `shared/`, `layout/`, `interceptors/`, `guards/`, `auth/` (login), `license/`, `mobile-money-config/`, `billetage/` (sous-module partagé).
+- **Bootstrap 100 % standalone :** `main.ts` (`bootstrapApplication`), `app.config.ts`, `app.routes.ts` (routes publiques `/login`, `/license` hors shell + route parente `MainLayoutComponent` pour tous les domaines protégés). `AppModule` et `AppRoutingModule` sont supprimés.
+- **100 % des domaines métier historiques sont lazy-loaded** (`loadChildren` / `loadComponent` dans `app.routes.ts`).
+- **4 couches & path aliases :** `core/` (`@core/*`), `layout/` (`@layout/*`), `shared/` (`@shared/*`), `features/` (`@features/*`), `environments/` (`@env/*`).
 
 ## Mécanismes de contrôle
 
 | Mécanisme | Fichier | Rôle |
 |-----------|---------|------|
+| **ADR** | `docs/adr/ADR-001-frontend-angular-21-architecture.md` | Architecture 4 couches, frontières et plan en 4 lots |
 | **Règle Cursor** | `.cursor/rules/frontend-lazy-loading-migration.mdc` | Standards Angular 21 (standalone, lazy routes, control flow, Vitest) |
-| **Hook Cursor** | `.cursor/hooks/lazy-loading-reminder.py` | Rappel si un nouveau domaine sous `frontend/src/app/` n'a pas encore `{domaine}.routes.ts` ou `{domaine}.module.ts` |
+| **Hook Cursor** | `.cursor/hooks/lazy-loading-reminder.py` | Rappel si un nouveau domaine sous `frontend/src/app/` ou `features/` n'a pas encore `{domaine}.routes.ts` |
 | **CI** | `.github/scripts/check-frontend-lazy-loading.py` | Garde anti-régression acceptant `{domaine}.routes.ts` (standalone) et `{domaine}.module.ts` |
 
 ## Règles pour tout nouveau développement
 
-### 1. Nouveau domaine métier → Standalone + `{domaine}.routes.ts` (recommandé)
+### 1. Nouveau domaine métier → `features/{domaine}/` en Standalone + `{domaine}.routes.ts`
 
 Ne plus créer de nouveaux `NgModule` pour un nouveau domaine. En Angular 21, les composants sont **standalone par défaut** :
 
 ```
-frontend/src/app/{domaine}/
+frontend/src/app/features/{domaine}/
   {domaine}.routes.ts
+  index.ts
   pages/
     {domaine}-list/{domaine}-list.component.ts
     {domaine}-add/{domaine}-add.component.ts
+  components/
+  data-access/
+  models/
+  utils/
 ```
 
-Dans `frontend/src/app/{domaine}/{domaine}.routes.ts` :
+Dans `frontend/src/app/features/{domaine}/{domaine}.routes.ts` :
 
 ```typescript
 import { Routes } from '@angular/router';
@@ -60,13 +64,12 @@ export const MON_DOMAINE_ROUTES: Routes = [
 ];
 ```
 
-Dans `frontend/src/app/app-routing.module.ts` :
+Dans `frontend/src/app/app.routes.ts` (enfant de `MainLayoutComponent`) :
 
 ```typescript
 {
   path: 'mon-domaine',
-  loadChildren: () => import('./mon-domaine/mon-domaine.routes').then(m => m.MON_DOMAINE_ROUTES),
-  canActivate: [AuthGuard],
+  loadChildren: () => import('@features/mon-domaine/mon-domaine.routes').then(m => m.MON_DOMAINE_ROUTES),
 }
 ```
 

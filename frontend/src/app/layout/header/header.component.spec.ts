@@ -1,9 +1,4 @@
-import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { NgxPermissionsModule } from 'ngx-permissions';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { HeaderComponent } from './header.component';
 
 describe('HeaderComponent', () => {
@@ -12,11 +7,8 @@ describe('HeaderComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPermissionsModule],
-      schemas: [NO_ERRORS_SCHEMA],
-      declarations: [ HeaderComponent ]
-    })
-    .compileComponents();
+      imports: [HeaderComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(HeaderComponent);
     component = fixture.componentInstance;

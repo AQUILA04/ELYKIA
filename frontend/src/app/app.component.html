@@ -1,42 +1,6 @@
-<div class="page-wrapper" id="main-wrapper" data-testid="e2e-app-shell" data-layout="vertical" data-navbarbg="skin6" data-sidebartype="full"
-  data-sidebar-position="fixed" data-header-position="fixed"
-  [class.show-sidebar]="showHeaderAndSidebar && (layoutService.isSidebarOpen$ | async)">
+<app-environment-ribbon />
 
-  <app-environment-ribbon></app-environment-ribbon>
-
-  <!-- Mobile sidebar backdrop -->
-  @if (showHeaderAndSidebar && (layoutService.isSidebarOpen$ | async)) {
-    <div
-      class="sidebar-backdrop"
-      (click)="layoutService.closeSidebar()"
-    aria-hidden="true"></div>
-  }
-
-  <!-- Sidebar -->
-  @if (showHeaderAndSidebar) {
-    <div class="sidebar">
-      <app-sidebar></app-sidebar>
-    </div>
-  }
-
-  <!-- Content -->
-  <div class="content">
-    <!-- Header -->
-    @if (showHeaderAndSidebar) {
-      <app-header></app-header>
-    }
-
-    <!-- Page Content -->
-    <div class="page-content">
-      @if (showHeaderAndSidebar) {
-        <app-breadcrumb></app-breadcrumb>
-      }
-
-      <!-- Main Router Outlet for Pages -->
-      <router-outlet></router-outlet>
-    </div>
-  </div>
-</div>
+<router-outlet />
 
 <ngx-sonner-toaster
   position="top-right"

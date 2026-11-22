@@ -1,0 +1,39 @@
+<div
+  class="page-wrapper"
+  id="main-wrapper"
+  data-testid="e2e-app-shell"
+  data-layout="vertical"
+  data-navbarbg="skin6"
+  data-sidebartype="full"
+  data-sidebar-position="fixed"
+  data-header-position="fixed"
+  [class.show-sidebar]="layoutService.isSidebarOpen$ | async"
+>
+  <!-- Mobile sidebar backdrop -->
+  @if (layoutService.isSidebarOpen$ | async) {
+    <div
+      class="sidebar-backdrop"
+      (click)="layoutService.closeSidebar()"
+      aria-hidden="true"
+    ></div>
+  }
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <app-sidebar />
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <!-- Header -->
+    <app-header />
+
+    <!-- Page Content -->
+    <div class="page-content">
+      <app-breadcrumb />
+
+      <!-- Main Router Outlet for Authenticated Feature Pages -->
+      <router-outlet />
+    </div>
+  </div>
+</div>

@@ -1,4 +1,5 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import {
   ApexAxisChartSeries,
   ApexChart,
@@ -9,7 +10,8 @@ import {
   ApexTitleSubtitle,
   ApexXAxis,
   ApexFill,
-  ApexStroke
+  ApexStroke,
+  NgApexchartsModule
 } from 'ng-apexcharts';
 import { TokenStorageService } from '../shared/service/token-storage.service';
 
@@ -27,9 +29,9 @@ export type ChartOptions = {
 
 @Component({
   selector: 'app-dashboard-chart',
+  imports: [CommonModule, NgApexchartsModule],
   templateUrl: './dashboard-chart.component.html',
   styleUrls: ['./dashboard-chart.component.scss'],
-  standalone: false
 })
 export class DashboardChartComponent implements OnInit {
   @ViewChild('chart') chart!: ChartComponent;

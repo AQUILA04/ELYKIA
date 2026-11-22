@@ -1,38 +1,48 @@
-import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { NgxPermissionsService } from 'ngx-permissions';
 import { AppComponent } from './app.component';
 import { AuthService } from './auth/service/auth.service';
-import { LayoutService } from './shared/service/layout.service';
-import { TokenStorageService } from './shared/service/token-storage.service';
-import { UnitPriceVisibilityService } from './shared/service/unit-price-visibility.service';
+import { TokenStorageService } from '@shared/service/token-storage.service';
+import { UnitPriceVisibilityService } from '@shared/service/unit-price-visibility.service';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [AppComponent],
-      schemas: [NO_ERRORS_SCHEMA],
+      imports: [AppComponent],
       providers: [
         provideRouter([]),
-        { provide: NgxPermissionsService, useValue: { flushPermissions: vi.fn(), loadPermissions: vi.fn() } },
+        {
+          provide: NgxPermissionsService,
+          useValue: { flushPermissions: vi.fn(), loadPermissions: vi.fn() },
+        },
         { provide: TokenStorageService, useValue: { getUser: vi.fn().mockReturnValue(null) } },
-        { provide: AuthService, useValue: { isLoggedIn: vi.fn().mockReturnValue(true), loadPermissionsFromCurrentUser: vi.fn() } },
-        { provide: LayoutService, useValue: { isSidebarOpen$: of(false) } },
-        { provide: UnitPriceVisibilityService, useValue: { ensureLoaded: vi.fn().mockReturnValue(of(false)) } },
+        {
+          provide: AuthService,
+          useValue: {
+            isLoggedIn: vi.fn().mockReturnValue(true),
+            loadPermissionsFromCurrentUser: vi.fn(),
+          },
+        },
+        {
+          provide: UnitPriceVisibilityService,
+          useValue: { ensureLoaded: vi.fn().mockReturnValue(of(false)) },
+        },
       ],
     }).compileComponents();
   });
 
   it('should create the app', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should show header and sidebar by default', () => {
+  it('mounts root router-outlet and ngx-sonner-toaster', () => {
     const fixture = TestBed.createComponent(AppComponent);
-    expect(fixture.componentInstance.showHeaderAndSidebar).toBe(true);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('router-outlet')).not.toBeNull();
+    expect(el.querySelector('ngx-sonner-toaster')).not.toBeNull();
   });
 });

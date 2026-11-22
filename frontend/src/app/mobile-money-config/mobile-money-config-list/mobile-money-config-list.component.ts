@@ -1,4 +1,7 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ToastrService } from 'ngx-toastr';
 import { MobileMoneyConfigService } from '../mobile-money-config.service';
@@ -15,9 +18,9 @@ interface EditableRow extends CommercialMobileMoneyConfigRow {
 
 @Component({
   selector: 'app-mobile-money-config-list',
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './mobile-money-config-list.component.html',
   styleUrls: ['./mobile-money-config-list.component.scss'],
-  standalone: false
 })
 export class MobileMoneyConfigListComponent implements OnInit, OnDestroy {
   page: CommercialMobileMoneyConfigPage | null = null;

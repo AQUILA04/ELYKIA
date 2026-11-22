@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
+import { NgClass } from '@angular/common';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-breadcrumb',
+  imports: [NgClass, RouterLink],
   templateUrl: './breadcrumb.component.html',
   styleUrls: ['./breadcrumb.component.scss'],
-  standalone: false
 })
 export class BreadcrumbComponent implements OnInit {
   breadcrumbs: Array<{ label: string, url: string }> = [];

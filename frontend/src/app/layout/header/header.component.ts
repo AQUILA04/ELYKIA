@@ -1,5 +1,8 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { MatBadgeModule } from '@angular/material/badge';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { AuthService } from "../../auth/service/auth.service";
@@ -20,9 +23,9 @@ import { Subscription, interval } from 'rxjs';
 
 @Component({
   selector: 'app-header',
+  imports: [CommonModule, RouterLink, MatIconModule, MatBadgeModule],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
-  standalone: false
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   username: string | null = '';

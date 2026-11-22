@@ -6,7 +6,7 @@ These rules apply to all agent interactions across the project to ensure consist
 - **Contabo Patching (`contabo-patch-must-be-in-repo`)**: Any change applied to Contabo (VPS) must FIRST be committed to the repository (compose, Dockerfile, scripts, etc.). Hotfixing directly on the VPS without a Git commit is forbidden because the CD (`install.sh`, `deploy.sh`) will overwrite it.
 
 ## Frontend
-- **Lazy Loading & Standalone (`frontend-lazy-loading-migration`)**: All historical frontend domains are now lazy-loaded (Frontend `3.0.0`, Angular 21). For any new domain or screen, use **standalone components** (default in Angular 21) with lazy `{domaine}.routes.ts` / `loadChildren` or `loadComponent`, native control flow (`@if`/`@for`/`@switch`), and Vitest unit tests (`npm run test:ci`). Never declare a new feature screen in `AppModule`.
+- **Lazy Loading & Standalone (`frontend-lazy-loading-migration`)**: Frontend `3.0.0` (Angular 21) uses standalone bootstrap (`app.config.ts`, `app.routes.ts`, `MainLayoutComponent` — no `AppModule`, see `docs/adr/ADR-001-frontend-angular-21-architecture.md`) and 100% lazy-loaded domains. Create any new domain under `frontend/src/app/features/{domaine}/` with **standalone components**, `{domaine}.routes.ts` (`loadChildren`/`loadComponent`), `index.ts`, path aliases (`@core/*`, `@layout/*`, `@shared/*`, `@features/*`, `@env/*`), native control flow (`@if`/`@for`/`@switch`), `AlertService` (`ngx-sonner` + `@angular/cdk/dialog`), and Vitest unit tests (`npm run test:ci`).
 - **UI Style (`frontend-ui-style`)**: Apply the standard ELYKIA UI style for any angular page modification (breadcrumb, KPI strip, toolbar, table-card). Do NOT use raw material buttons for primary actions. Refer to the skill `frontend-ui-style`.
 
 ## Mobile

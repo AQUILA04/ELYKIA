@@ -43,11 +43,10 @@ SKILL_PATH = ".cursor/skills/frontend-lazy-loading-migration/SKILL.md"
 
 def is_migrated(domain: str) -> bool:
     """Return True when the domain has a lazy-loaded module or Angular 21 standalone routes file."""
-    domain_dir = FRONTEND_APP / domain
-    return (
-        (domain_dir / f"{domain}.module.ts").is_file()
-        or (domain_dir / f"{domain}.routes.ts").is_file()
-    )
+    for base in (FRONTEND_APP / domain, FRONTEND_APP / "features" / domain):
+        if (base / f"{domain}.module.ts").is_file() or (base / f"{domain}.routes.ts").is_file():
+            return True
+    return False
 
 
 def git_output(*args: str) -> str:

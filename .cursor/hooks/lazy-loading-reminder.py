@@ -16,26 +16,33 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_APP = REPO_ROOT / "frontend" / "src" / "app"
 
 CORE_EXEMPT_FOLDERS = frozenset({
+    "core",
     "shared",
     "layout",
-    "interceptors",
     "guards",
     "services",
     "auth",
     "license",
     "mobile-money-config",
     "billetage",
+    "dashboard-chart",
 })
 
 
-def domain_from_path(path: str) -> str | None:
+def domain_from_path(path: str) -> tuple[Path, str] | None:
     normalized = path.replace("\\", "/")
+    feature_match = re.search(r"frontend/src/app/features/([^/]+)/", normalized)
+    if feature_match:
+        domain = feature_match.group(1)
+        return (FRONTEND_APP / "features" / domain, domain)
     match = re.search(r"frontend/src/app/([^/]+)/", normalized)
-    return match.group(1) if match else None
+    if match:
+        domain = match.group(1)
+        return (FRONTEND_APP / domain, domain)
+    return None
 
 
-def is_lazy_configured(domain: str) -> bool:
-    domain_dir = FRONTEND_APP / domain
+def is_lazy_configured(domain_dir: Path, domain: str) -> bool:
     return (
         (domain_dir / f"{domain}.routes.ts").is_file()
         or (domain_dir / f"{domain}.module.ts").is_file()
@@ -68,8 +75,12 @@ def main() -> int:
         print("{}")
         return 0
 
-    domain = domain_from_path(file_path)
-    if not domain or domain in CORE_EXEMPT_FOLDERS or is_lazy_configured(domain):
+    resolved = domain_from_path(file_path)
+    if not resolved:
+        print("{}")
+        return 0
+    domain_dir, domain = resolved
+    if domain in CORE_EXEMPT_FOLDERS or is_lazy_configured(domain_dir, domain):
         print("{}")
         return 0
 

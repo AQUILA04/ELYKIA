@@ -40,10 +40,8 @@ import { EnvironmentRibbonComponent } from './environment-ribbon/environment-rib
         ClientSelectComponent,
         ArticlePhotoFieldComponent,
         StatusBadgePipe,
-        BreadcrumbComponent,
         IfUnitPriceDirective,
         IfNoUnitPriceDirective,
-        EnvironmentRibbonComponent,
     ],
     imports: [
         CommonModule,
@@ -59,7 +57,9 @@ import { EnvironmentRibbonComponent } from './environment-ribbon/environment-rib
         MatTooltipModule,
         MatSnackBarModule,
         MatDialogModule,
-        NgxSpinnerModule
+        NgxSpinnerModule,
+        BreadcrumbComponent,
+        EnvironmentRibbonComponent,
     ],
     exports: [
         PermissionPicklistComponent,

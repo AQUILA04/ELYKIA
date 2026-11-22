@@ -1,15 +1,18 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { WithdrawalFeeBracket, WithdrawalFeeService } from './withdrawal-fee.service';
 
 @Component({
   selector: 'app-withdrawal-fee-grid',
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './withdrawal-fee-grid.component.html',
   styleUrls: [
     '../mobile-money-config-list/mobile-money-config-list.component.scss',
     './withdrawal-fee-grid.component.scss',
   ],
-  standalone: false
 })
 export class WithdrawalFeeGridComponent implements OnInit {
   rows: WithdrawalFeeBracket[] = [];

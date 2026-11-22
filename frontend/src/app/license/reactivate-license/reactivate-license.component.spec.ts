@@ -1,10 +1,4 @@
-import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { NgxPermissionsModule } from 'ngx-permissions';
-import { LicenseKeyFormatterPipe } from '@shared/pipes/license-key-formatter.pipe';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { ReactivateLicenseComponent } from './reactivate-license.component';
 
 describe('ReactivateLicenseComponent', () => {
@@ -13,11 +7,8 @@ describe('ReactivateLicenseComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPermissionsModule],
-      schemas: [NO_ERRORS_SCHEMA],
-      declarations: [ReactivateLicenseComponent, LicenseKeyFormatterPipe]
-    })
-    .compileComponents();
+      imports: [ReactivateLicenseComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ReactivateLicenseComponent);
     component = fixture.componentInstance;

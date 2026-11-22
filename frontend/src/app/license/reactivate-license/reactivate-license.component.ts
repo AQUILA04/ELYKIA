@@ -1,14 +1,16 @@
 import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LicenseService } from '../service/license.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import { LicenseKeyFormatterPipe } from '@shared/pipes/license-key-formatter.pipe';
 
 @Component({
   selector: 'app-reactivate-license',
+  imports: [FormsModule, LicenseKeyFormatterPipe],
   templateUrl: './reactivate-license.component.html',
   styleUrls: ['./reactivate-license.component.scss'],
-  standalone: false
 })
 export class ReactivateLicenseComponent {
   licenseKey: string = '';

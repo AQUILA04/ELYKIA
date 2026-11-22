@@ -6,7 +6,6 @@ import { resolveEnvironmentLabel } from '../../utils/environment-label.util';
   selector: 'app-environment-ribbon',
   templateUrl: './environment-ribbon.component.html',
   styleUrls: ['./environment-ribbon.component.scss'],
-  standalone: false
 })
 export class EnvironmentRibbonComponent {
   readonly label: string | null = resolveEnvironmentLabel({
