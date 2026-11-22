@@ -17,6 +17,11 @@
     "module": "preserve",
     "moduleResolution": "bundler",
     "paths": {
+      "@core/*": ["./src/app/core/*"],
+      "@layout/*": ["./src/app/layout/*"],
+      "@shared/*": ["./src/app/shared/*"],
+      "@features/*": ["./src/app/features/*"],
+      "@env/*": ["./src/environments/*"],
       "src/*": ["./src/*"]
     }
   },

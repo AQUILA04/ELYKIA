@@ -2,7 +2,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgxPermissionsModule } from 'ngx-permissions';
-import { LicenseKeyFormatterPipe } from 'src/app/shared/pipe/license-key-formatter.pipe';
+import { LicenseKeyFormatterPipe } from '@shared/pipes/license-key-formatter.pipe';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ReactivateLicenseComponent } from './reactivate-license.component';

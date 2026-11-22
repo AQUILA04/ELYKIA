@@ -49,9 +49,9 @@ import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-mon
 import { WithdrawalFeeGridComponent } from './mobile-money-config/withdrawal-fee-grid/withdrawal-fee-grid.component';
 import { DashboardChartModule } from './dashboard-chart/dashboard-chart.module';
 import { SharedComponentsModule } from './shared/components/shared-components.module';
-import { LicenseKeyFormatterPipe } from './shared/pipe/license-key-formatter.pipe';
-import { AuthInterceptor } from './shared/auth.interceptor';
-import { LicenseInterceptorService } from './interceptors/license-interceptor.service';
+import { LicenseKeyFormatterPipe } from '@shared/pipes/license-key-formatter.pipe';
+import { AuthInterceptor } from '@core/http/auth.interceptor';
+import { LicenseInterceptorService } from '@core/http/license-interceptor.service';
 import { FeatureFlagService } from './shared/service/feature-flag.service';
 import { GoogleAnalyticsService } from './shared/service/google-analytics.service';
 

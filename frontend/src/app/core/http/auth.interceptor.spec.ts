@@ -3,11 +3,11 @@ import { TestBed } from '@angular/core/testing';
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
-import { AuthService } from '../auth/service/auth.service';
+import { AuthService } from '../../auth/service/auth.service';
 import { AuthInterceptor } from './auth.interceptor';
-import { AlertService } from './service/alert.service';
-import { SessionExpiryState } from './service/session-expiry.state';
-import { TokenStorageService } from './service/token-storage.service';
+import { AlertService } from '@shared/service/alert.service';
+import { SessionExpiryState } from '@shared/service/session-expiry.state';
+import { TokenStorageService } from '@shared/service/token-storage.service';
 
 describe('AuthInterceptor', () => {
     let http: HttpClient;

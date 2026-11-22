@@ -23,7 +23,7 @@ import { CommercialSelectorComponent } from './commercial-selector/commercial-se
 import { ClientSelectComponent } from './client-select/client-select.component';
 import { ArticlePhotoFieldComponent } from './article-photo-field/article-photo-field.component';
 import { StatusBadgePipe } from '../pipes/status-badge.pipe';
-import { BreadcrumbComponent } from '../../bread/breadcrumb/breadcrumb.component';
+import { BreadcrumbComponent } from '@layout/breadcrumb/breadcrumb.component';
 import { IfUnitPriceDirective } from '../directives/if-unit-price.directive';
 import { IfNoUnitPriceDirective } from '../directives/if-no-unit-price.directive';
 import { EnvironmentRibbonComponent } from './environment-ribbon/environment-ribbon.component';
