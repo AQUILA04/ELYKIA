@@ -638,6 +638,45 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [3.0.0] — 2026-11-22
+
+### Changed
+
+- **Migration Ionic Framework `8` → `9.0.13` (Option 2B — Standalone Build complet) :** suppression intégrale de `IonicModule` (0 import `IonicModule`, 0 import `@ionic/angular/lazy`), adoption de `provideIonicAngular()` dans `AppModule`, déclarations explicites des composants standalone `Ion*` (`@ionic/angular`) dans tous les 73 NgModules et composants standalone concernés, registre centralisé `src/app/core/icons/register-icons.ts` enregistrant via `addIcons(...)` les 122 icônes Ionicons (`8.1.1`) utilisées dans `src/`, et retrait de la copie des SVG Ionicons dans `angular.json`.
+- **Migration Angular `20.0` → `21` LTS (`21.2.26`, CLI/Build `21.2.30`) & builder esbuild :** remplacement de `@angular-builders/custom-webpack` (`webpack.config.js`) et des polyfills Node (`buffer`, `crypto-browserify`, `process`, `stream-browserify`, `vm-browserify`) par `@angular/build:application` (`outputPath: { base: "www", browser: "" }`), `platformBrowser().bootstrapModule(...)`, `provideZoneChangeDetection({ eventCoalescing: true })`, `provideHttpClient(withInterceptorsFromDi())`, `provideAppInitializer(...)`, `tsconfig.json` en `moduleResolution: "bundler"`, `.browserslistrc` mis à jour (`Chrome >=111`, `iOS >=16.4`), unification NgRx `21.1.1`, `angularx-qrcode` `21.0.5`, `firebase` `12.19.0`, `@playwright/test` `1.60.0`, et suppression des dépendances mortes (`@ionic-native/file-picker`, `@angular/animations`, `@angular/localize`, `@angular/platform-browser-dynamic`).
+- **Migration Capacitor `7.4.2` → `8.6.2` & Android Edge-to-Edge :** alignement de tous les plugins natifs en v8 (`@capacitor-community/sqlite@8.1.1`, `@capacitor/*@8.x`, `@capacitor-firebase/*@8.6.0`, `@capacitor-mlkit/face-detection@8.2.2`, `@capawesome/capacitor-file-picker@8.1.1`, `@bcyesil/capacitor-plugin-printer@0.0.6`), remplacement de `android.adjustMarginsForEdgeToEdge` par le plugin `SystemBars` (`insetsHandling: 'css', style: 'DARK'`) et variables `--ion-safe-area-*` dans `global.scss`, garde défensive `try/catch` sur `StatusBar` pour Android 16 (API 36), et ajout de `|density` à `android:configChanges` dans les deux `AndroidManifest.xml`.
+- **Dépendances strictes (`npm ci`) & CI/CD Mobile :** suppression de `mobile/.npmrc` (`legacy-peer-deps=true`), épinglage `sql.js@1.11.0` (compatibilité binaire WASM avec `jeep-sqlite@2.8.0`), passage à Node `22` LTS et `npm ci` strict dans `.github/workflows/ci-mobile.yml` et `.github/actions/build-mobile-apk/action.yml`, ajout de l'étape Vitest (`npm run test:ci`) dans `ci-mobile.yml` et unification du script Firebase (`configure-android-firebase.sh`).
+- **Migration Karma/Jasmine → Vitest `4.1.12` (`@angular/build:unit-test`) :** suppression de `karma.conf.js` et `src/test.ts`, ajout de `src/test-providers.ts` et migration des **103 fichiers `.spec.ts`** (**565/565 tests verts**).
+
+### Fixed
+
+- **Double déclaration NgModule (`NG6007`) :** `ClientDetailPageModule` importe désormais `LocationUpdateModule` au lieu de redéclarer `LocationUpdateComponent`.
+
+## Mobile — [2.49.1] — 2026-11-22
+
+### Fixed
+
+- **Tontine —** la liste des membres n'affiche plus de « Client Inconnu » pour les membres dont le client a été réassigné à un autre commercial. À la synchronisation des membres, les membres déjà synchronisés que le serveur ne renvoie plus sont retirés de la base locale. Les membres créés localement, non synchronisés, avec une cotisation non synchronisée ou avec une livraison sont conservés. La purge n'a lieu que si toutes les pages de membres ont été reçues sans erreur.
+
+## Mobile — [2.49.0] — 2026-11-21
+
+### Fixed
+
+- **Articles qui s'ajoutaient « tout seuls » à une commande tontine —** l'import des commandes du serveur (`saveTontineDeliveries`) et `TontineDeliveryRepository.saveAll` ajoutaient les articles par identifiant sans effacer ceux déjà présents : après une modification, une fusion de seconde commande ou une création hors ligne, les anciennes lignes restaient et réapparaissaient à l'ouverture (total faux, refus 400 à l'enregistrement). Les articles du serveur remplacent maintenant ceux de la commande ; les tablettes déjà touchées se corrigent au prochain chargement.
+- **Remise hors ligne écrasée —** une livraison faite hors ligne et pas encore envoyée n'est plus remplacée par la commande « en attente » renvoyée par le serveur.
+- **Plafond non contrôlé en modification —** « Enregistrer la commande » vérifie le plafond (plus grand du solde prévisionnel et du solde net cotisé) avant d'appeler le serveur ; message avec plafond et dépassement, bouton désactivé tant que la commande dépasse.
+- **Chargement « Enregistrement… » bloqué sur l'aperçu du reçu —** le chargement est fermé avant d'ouvrir le reçu. Les reçus tontine (commande, bon de remise, cotisation) s'enregistrent en PDF à l'ouverture avec un délai maximal ; si l'impression échoue, le PDF est enregistré, un message donne son emplacement et l'aperçu se ferme.
+- **Toasts « Http failure response … 400 OK » —** les erreurs affichent le message du backend (`message` de la réponse) ou un texte en français, jamais le texte technique d'Angular.
+- **« Livrée le » sur une commande non livrée,** montants au format anglais (« 12,800 ») dans les reçus et le récapitulatif (locale `fr-FR` pour toute l'application), titre du récapitulatif tronqué sur fond blanc, prix passant à la ligne dans la liste d'articles.
+- **Refus du serveur à la création ou à la remise —** plus de proposition d'enregistrer hors ligne une saisie que le serveur refuse (elle serait refusée de nouveau à la synchronisation) ; le message de solde insuffisant du serveur ouvre toujours « Compléter le solde ».
+
+### Added
+
+- **Fenêtres communes d'erreur et de succès** (`FeedbackService`, `ElykFeedbackModalComponent`) au design system, réutilisables dans toute l'application ; utilisées par la fiche membre et la création de commande tontine.
+- **Page « Modifier la commande »** (`tontine/order-edit/:memberId`) : la fiche membre reste en lecture seule ; le crayon de la carte **Livraison**, le bouton **Modifier la commande** et le menu ⋮ ouvrent cette page (quantités, ajout d'article, plafond, confirmation avant d'abandonner des changements). Après l'enregistrement, retour à la fiche, qui ouvre le reçu si demandé.
+- **Ajouter un article** pendant la modification d'une commande (stock tontine ou catalogue, recherche, plafond restant) et au récapitulatif de livraison (stock tontine du commercial uniquement, quantité bornée par le stock). Une commande modifiée au récapitulatif est enregistrée avant la remise ou avant d'aller compléter le solde.
+- **Plafond affiché** sur la fiche membre (commande non livrée) et au récapitulatif « Livrer ».
+
 ## Mobile — [2.48.0] — 2026-11-21
 
 ### Added

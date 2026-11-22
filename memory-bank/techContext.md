@@ -1,12 +1,12 @@
 # Contexte technique
 
-Versions lues le 2026-11-22 (branche `migration/sale-domain-refactoring`). En cas d’écart, les fichiers sources gagnent.
+Versions lues le 2026-11-22 (branche `migration/mobile-ionic-9`). En cas d’écart, les fichiers sources gagnent.
 
 | Composant | Version | Fichier | Stack constatée |
 |-----------|---------|---------|-----------------|
 | Backend | 2.11.2 | `backend/pom.xml` (`optimize-elykia-core`) | **Java 25 (LTS)** (+ Project Leyden AOT Cache Docker), **Spring Boot 4.2.0**, **Spring Modulith 2.2.0** (19 modules DDD vérifiés en CI, `core/` supprimé), Spring AI **2.1.0** (`google-genai`), JPA / Hibernate 7.4 (`BootstrapMode.LAZY` en `prod`), Jackson 3, Flyway 12.11 (`spring-boot-starter-flyway`), JJWT 0.13.0, MinIO 9.0.4 + `okhttp-jvm` 5.5.1, MapStruct 1.6.3, Lombok 1.18.48, springdoc 3.2.1 (désactivé en `prod`), iText 9.8.1 / html2pdf 6.3.4 / PDFBox 3.0.8 / POI 5.5.1, Testcontainers 2.0.5, JaCoCo 0.8.16 (seuil lignes global 0,46) |
 | Frontend | 3.1.0 | `frontend/package.json` | **Angular 21 LTS (`21.2.26`)**, **bootstrap standalone (`app.config.ts` / `app.routes.ts` / `MainLayoutComponent`, ADR-001)**, **Material/CDK `21.2.14`** (`@angular/cdk/dialog` pour modales d'alerte), builder **`@angular/build:application` (esbuild/Vite)**, TypeScript `5.9.3`, control flow natif (`@if`/`@for`/`@switch`), `ngx-sonner` 3.1, `ng-select` 21, `ngx-permissions` 19, `ngx-spinner` 21, `ngx-toastr` 20, `ng2-charts` 10, `ng-apexcharts` 2.5, **Vitest 4.1** (`@angular/build:unit-test`), Playwright 1.60. `npm ci` strict (sans `--legacy-peer-deps`) |
-| Mobile | 2.48.0 | `mobile/package.json` (+ `environment.ts` et `environment.prod.ts`) | Angular **20**, Ionic **8**, Capacitor **7.4**, SQLite, NgRx 20 |
+| Mobile | 3.0.0 | `mobile/package.json` (+ `environment.ts` et `environment.prod.ts`) | **Angular 21 LTS (`21.2.26`)**, **Ionic 9 (`9.0.13`, Option 2B standalone `provideIonicAngular()` + `Ion*` + `addIcons()`, 0 `IonicModule`)**, **Capacitor 8.6.2** (`SystemBars` CSS Edge-to-Edge, `@capacitor-community/sqlite` 8.1.1, `sql.js@1.11.0` épinglé pour `jeep-sqlite@2.8.0`), builder **`@angular/build:application` (esbuild/Vite)**, **NgRx 21.1.1**, **Vitest 4.1** (`@angular/build:unit-test`), Playwright 1.60. `npm ci` strict (sans `--legacy-peer-deps`) |
 | Espace client | 0.18.0 | `customer-space/package.json` | Angular **20.3**, Ionic **8**, Capacitor **8.4** |
 
 `docs/project-overview.md` et `docs/architecture-frontend.md` indiquent encore Angular 14 : c’est périmé.
@@ -24,7 +24,7 @@ Prérequis : Java 25 (branches migration ; Java 17 sur `main` avant fusion), Mav
 cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=prod
 
 cd frontend && npm ci && npm start                              # http://localhost:4200
-cd mobile && npm install --legacy-peer-deps && npm start      # ionic serve
+cd mobile && npm ci && npm start                                # http://localhost:4200 (ou ionic serve)
 cd customer-space && npm install && npm start
 ```
 
@@ -37,8 +37,9 @@ Profils Spring présents : `application.yml` (actif par défaut `prod`), `applic
 | Cible | Commande |
 |-------|----------|
 | Backend | `mvn test` dans `backend/` (Testcontainers + Postgres ; JaCoCo gate) |
-| Frontend unitaire | `npm test` |
+| Frontend unitaire | `npm run test:ci` (Vitest) |
 | Frontend E2E | `npm run test:e2e:smoke`, `test:e2e:golden`, `test:e2e` — guide `docs/README_E2E_TEST.md` |
+| Mobile unitaire | `npm run test:ci` (Vitest) |
 | Mobile E2E | `npm run test:e2e`, `test:e2e:smoke` |
 | Espace client | `npm run test:unit`, `npm run test:e2e` |
 
