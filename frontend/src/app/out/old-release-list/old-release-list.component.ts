@@ -6,7 +6,8 @@ import {AlertService} from "../../shared/service/alert.service";
 @Component({
   selector: 'app-old-release-list',
   templateUrl: './old-release-list.component.html',
-  styleUrls: ['./old-release-list.component.scss']
+  styleUrls: ['./old-release-list.component.scss'],
+  standalone: false
 })
 export class OldReleaseListComponent implements OnInit {
   oldReleaseFolder: any[] = [];

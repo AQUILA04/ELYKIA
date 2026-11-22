@@ -7,7 +7,8 @@ import { NgxSpinnerService } from 'ngx-spinner';
 @Component({
   selector: 'app-gestion-details',
   templateUrl: './gestion-details.component.html',
-  styleUrls: ['./gestion-details.component.scss']
+  styleUrls: ['./gestion-details.component.scss'],
+  standalone: false
 })
 export class GestionDetailsComponent implements OnInit {
   agency: Agency | undefined;

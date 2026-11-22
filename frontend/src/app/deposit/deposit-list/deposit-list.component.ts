@@ -10,7 +10,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-deposit-list',
   templateUrl: './deposit-list.component.html',
-  styleUrls: ['./deposit-list.component.scss']
+  styleUrls: ['./deposit-list.component.scss'],
+  standalone: false
 })
 export class DepositListComponent implements OnInit {
   deposits: any[] = [];

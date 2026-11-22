@@ -17,6 +17,7 @@ interface EditableRow extends CommercialMobileMoneyConfigRow {
   selector: 'app-mobile-money-config-list',
   templateUrl: './mobile-money-config-list.component.html',
   styleUrls: ['./mobile-money-config-list.component.scss'],
+  standalone: false
 })
 export class MobileMoneyConfigListComponent implements OnInit, OnDestroy {
   page: CommercialMobileMoneyConfigPage | null = null;

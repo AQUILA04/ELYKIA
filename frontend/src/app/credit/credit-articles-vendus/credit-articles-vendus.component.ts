@@ -3,7 +3,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { CreditService } from '../service/credit.service';
 import { ClientService } from '../../client/service/client.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
-import * as moment from 'moment';
+import moment from 'moment';
 
 @Component({
   selector: 'app-credit-articles-vendus',

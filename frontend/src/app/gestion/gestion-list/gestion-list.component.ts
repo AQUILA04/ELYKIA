@@ -10,7 +10,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-gestion-list',
   templateUrl: './gestion-list.component.html',
-  styleUrls: ['./gestion-list.component.scss']
+  styleUrls: ['./gestion-list.component.scss'],
+  standalone: false
 })
 export class GestionListComponent implements OnInit {
   gestions: any[] = [];

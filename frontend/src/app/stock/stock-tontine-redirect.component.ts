@@ -3,7 +3,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-stock-tontine-redirect',
-  template: ''
+  template: '',
+  standalone: false
 })
 export class StockTontineRedirectComponent implements OnInit {
 

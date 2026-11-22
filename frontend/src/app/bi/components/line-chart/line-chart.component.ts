@@ -5,7 +5,8 @@ import { BaseChartDirective } from 'ng2-charts';
 @Component({
   selector: 'app-line-chart',
   templateUrl: './line-chart.component.html',
-  styleUrls: ['./line-chart.component.scss']
+  styleUrls: ['./line-chart.component.scss'],
+  standalone: false
 })
 export class LineChartComponent implements OnInit {
   @Input() chartData!: ChartData<'line'>;

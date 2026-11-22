@@ -12,7 +12,8 @@ export interface TontineStockMovementDialogData {
 @Component({
   selector: 'app-tontine-stock-movement-dialog',
   templateUrl: './tontine-stock-movement-dialog.component.html',
-  styleUrls: ['./tontine-stock-movement-dialog.component.scss']
+  styleUrls: ['./tontine-stock-movement-dialog.component.scss'],
+  standalone: false
 })
 export class TontineStockMovementDialogComponent implements OnInit {
   movements: TontineStockMovement[] = [];

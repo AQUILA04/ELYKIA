@@ -10,7 +10,8 @@ import { AlertService } from '../shared/service/alert.service';
 @Component({
   selector: 'app-history',
   templateUrl: './history.component.html',
-  styleUrls: ['./history.component.scss']
+  styleUrls: ['./history.component.scss'],
+  standalone: false
 })
 export class HistoryComponent implements OnInit {              
   pageSize = 5;     

@@ -3,7 +3,8 @@ import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChange
 @Component({
     selector: 'app-permission-picklist',
     templateUrl: './permission-picklist.component.html',
-    styleUrls: ['./permission-picklist.component.scss']
+    styleUrls: ['./permission-picklist.component.scss'],
+    standalone: false
 })
 export class PermissionPicklistComponent implements OnInit, OnChanges {
     @Input() allPermissions: any[] = [];

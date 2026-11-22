@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 CI guard: fail when files under an eager frontend domain are changed
-without a corresponding {domain}.module.ts lazy-loading migration.
+without a corresponding lazy-loading entry point ({domain}.module.ts or
+Angular 21 standalone {domain}.routes.ts).
 
 Usage:
   python .github/scripts/check-frontend-lazy-loading.py
@@ -19,8 +20,9 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_APP = REPO_ROOT / "frontend" / "src" / "app"
 
-# Domains still eager — sync with .cursor/rules/frontend-lazy-loading-migration.mdc
-EAGER_DOMAINS = frozenset({
+# Historical eager domains — all migrated as of Frontend 3.0.0 (Angular 21).
+# Kept here as a regression guard so none can regress back to eager loading.
+TRACKED_DOMAINS = frozenset({
     "locality",
     "client",
     "dashboard-chart",
@@ -40,9 +42,12 @@ SKILL_PATH = ".cursor/skills/frontend-lazy-loading-migration/SKILL.md"
 
 
 def is_migrated(domain: str) -> bool:
-    """Return True when the domain has a feature module (lazy-loaded)."""
-    module_file = FRONTEND_APP / domain / f"{domain}.module.ts"
-    return module_file.is_file()
+    """Return True when the domain has a lazy-loaded module or Angular 21 standalone routes file."""
+    domain_dir = FRONTEND_APP / domain
+    return (
+        (domain_dir / f"{domain}.module.ts").is_file()
+        or (domain_dir / f"{domain}.routes.ts").is_file()
+    )
 
 
 def git_output(*args: str) -> str:
@@ -94,17 +99,20 @@ def domain_from_path(path: str) -> str | None:
 def is_cross_reference_exempt(domain: str, changed_files: list[str]) -> bool:
     """
     Autorise une touche minimale sur un autre domaine eager (ex. lien sidebar/dashboard)
-    lorsqu'un nouveau feature module est ajouté dans le même changeset.
+    lorsqu'un nouveau module ou fichier routes lazy est ajouté dans le même changeset.
     """
     domain_files = [path for path in changed_files if domain_from_path(path) == domain]
     if not domain_files or not all(path.endswith(".html") for path in domain_files):
         return False
 
-    new_modules = [
+    new_lazy_entries = [
         path for path in changed_files
-        if re.match(r"frontend/src/app/[^/]+/[^/]+\.module\.ts$", path.replace("\\", "/"))
+        if re.match(
+            r"frontend/src/app/[^/]+/[^/]+\.(module|routes)\.ts$",
+            path.replace("\\", "/"),
+        )
     ]
-    return len(new_modules) > 0
+    return len(new_lazy_entries) > 0
 
 
 def main() -> int:
@@ -113,14 +121,14 @@ def main() -> int:
         print("Lazy-loading check passed (no changed files).")
         return 0
 
-    touched_eager = {
+    touched_tracked = {
         domain
         for path in changed
-        if (domain := domain_from_path(path)) in EAGER_DOMAINS
+        if (domain := domain_from_path(path)) in TRACKED_DOMAINS
     }
 
     violations = sorted(
-        d for d in touched_eager
+        d for d in touched_tracked
         if not is_migrated(d) and not is_cross_reference_exempt(d, changed)
     )
     if not violations:
@@ -128,15 +136,14 @@ def main() -> int:
         return 0
 
     print(
-        "::error::Modification détectée dans des domaines frontend encore eager "
-        "sans migration lazy-loading.",
+        "::error::Modification détectée dans des domaines frontend sans point d'entrée lazy-loading.",
         file=sys.stderr,
     )
     for domain in violations:
         print(
-            f"  - {domain}: créer frontend/src/app/{domain}/{domain}.module.ts "
-            f"et migrer le routing vers /{domain}/... "
-            f"(voir {SKILL_PATH})",
+            f"  - {domain}: créer frontend/src/app/{domain}/{domain}.routes.ts "
+            f"(standalone Angular 21, recommandé) ou {domain}.module.ts "
+            f"et charger en lazy via loadChildren/loadComponent (voir {SKILL_PATH})",
             file=sys.stderr,
         )
     return 1

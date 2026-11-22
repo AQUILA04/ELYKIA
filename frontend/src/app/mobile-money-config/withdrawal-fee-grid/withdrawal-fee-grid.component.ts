@@ -9,6 +9,7 @@ import { WithdrawalFeeBracket, WithdrawalFeeService } from './withdrawal-fee.ser
     '../mobile-money-config-list/mobile-money-config-list.component.scss',
     './withdrawal-fee-grid.component.scss',
   ],
+  standalone: false
 })
 export class WithdrawalFeeGridComponent implements OnInit {
   rows: WithdrawalFeeBracket[] = [];

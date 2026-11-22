@@ -4,7 +4,8 @@ import { ApiIntegrationTestService, ApiTestSuite } from '../../services/api-inte
 @Component({
   selector: 'app-api-test',
   templateUrl: './api-test.component.html',
-  styleUrls: ['./api-test.component.scss']
+  styleUrls: ['./api-test.component.scss'],
+  standalone: false
 })
 export class ApiTestComponent {
   testSuite: ApiTestSuite | null = null;

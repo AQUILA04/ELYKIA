@@ -6,7 +6,8 @@ import { StockMetrics, StockAlert, KpiCardData } from '../../types/bi.types';
 @Component({
   selector: 'app-bi-stock-dashboard',
   templateUrl: './bi-stock-dashboard.component.html',
-  styleUrls: ['./bi-stock-dashboard.component.scss']
+  styleUrls: ['./bi-stock-dashboard.component.scss'],
+  standalone: false
 })
 export class BiStockDashboardComponent implements OnInit {
   loading: boolean = false;

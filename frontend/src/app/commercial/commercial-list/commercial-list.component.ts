@@ -9,7 +9,8 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-commercial-list',
   templateUrl: './commercial-list.component.html',
-  styleUrls: ['./commercial-list.component.scss']
+  styleUrls: ['./commercial-list.component.scss'],
+  standalone: false
 })
 export class CommercialListComponent implements OnInit {
   commercials: any[] = [];

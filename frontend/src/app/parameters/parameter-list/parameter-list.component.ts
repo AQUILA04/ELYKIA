@@ -18,7 +18,8 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-parameter-list',
   templateUrl: './parameter-list.component.html',
-  styleUrls: ['./parameter-list.component.scss']
+  styleUrls: ['./parameter-list.component.scss'],
+  standalone: false
 })
 export class ParameterListComponent implements OnInit {
   parameters: Parameter[] = [];

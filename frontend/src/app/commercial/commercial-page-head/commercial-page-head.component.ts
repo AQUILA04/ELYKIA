@@ -4,7 +4,8 @@ import { Component, Input, ViewEncapsulation } from '@angular/core';
   selector: 'app-commercial-page-head',
   templateUrl: './commercial-page-head.component.html',
   styleUrls: ['../commercial-page.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class CommercialPageHeadComponent {
   @Input() backLink = '/home';

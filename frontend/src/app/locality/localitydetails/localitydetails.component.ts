@@ -8,7 +8,8 @@ import { NgxSpinnerService } from 'ngx-spinner';
 @Component({
   selector: 'app-localitydetails',
   templateUrl: './localitydetails.component.html',
-  styleUrls: ['./localitydetails.component.scss']
+  styleUrls: ['./localitydetails.component.scss'],
+  standalone: false
 })
 export class LocalityDetailsComponent implements OnInit {
   locality: Locality | undefined;

@@ -16,7 +16,8 @@ export interface StockSoldSalesDialogData {
   selector: 'app-stock-sold-sales-dialog',
   templateUrl: './stock-sold-sales-dialog.component.html',
   styleUrls: ['./stock-sold-sales-dialog.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class StockSoldSalesDialogComponent implements OnInit {
   loading = true;

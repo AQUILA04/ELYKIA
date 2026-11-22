@@ -10,7 +10,8 @@ export interface SellModalData {
   selector: 'app-order-sell-modal',
   templateUrl: './order-sell-modal.component.html',
   styleUrls: ['./order-sell-modal.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false
 })
 export class OrderSellModalComponent {
   constructor(

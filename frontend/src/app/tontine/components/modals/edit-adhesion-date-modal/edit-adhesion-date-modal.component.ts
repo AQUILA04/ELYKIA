@@ -7,7 +7,8 @@ import { TontineMember } from '../../../types/tontine.types';
 @Component({
   selector: 'app-edit-adhesion-date-modal',
   templateUrl: './edit-adhesion-date-modal.component.html',
-  styleUrls: ['./edit-adhesion-date-modal.component.scss']
+  styleUrls: ['./edit-adhesion-date-modal.component.scss'],
+  standalone: false
 })
 export class EditAdhesionDateModalComponent {
   form: FormGroup;

@@ -7,6 +7,7 @@ import { AiAdminStats } from '../../models/ai-admin.models';
   selector: 'app-ai-admin-stats',
   templateUrl: './ai-admin-stats.component.html',
   styleUrls: ['./ai-admin-stats.component.scss'],
+  standalone: false
 })
 export class AiAdminStatsComponent implements OnInit {
   stats: AiAdminStats | null = null;

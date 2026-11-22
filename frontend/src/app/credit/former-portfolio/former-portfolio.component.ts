@@ -17,7 +17,8 @@ type Tab = 'tontine' | 'credit' | 'agence';
 @Component({
   selector: 'app-former-portfolio',
   templateUrl: './former-portfolio.component.html',
-  styleUrls: ['./former-portfolio.component.scss']
+  styleUrls: ['./former-portfolio.component.scss'],
+  standalone: false
 })
 export class FormerPortfolioComponent implements OnInit, OnDestroy {
   currentDate = new Date();

@@ -8,7 +8,8 @@ import { UnitPriceVisibilityService } from '../service/unit-price-visibility.ser
  * du type de vente : une vente CASH suit le paramètre des ventes comptant.
  */
 @Directive({
-  selector: '[appIfUnitPrice]'
+  selector: '[appIfUnitPrice]',
+  standalone: false
 })
 export class IfUnitPriceDirective implements OnInit, OnDestroy {
   private sub?: Subscription;

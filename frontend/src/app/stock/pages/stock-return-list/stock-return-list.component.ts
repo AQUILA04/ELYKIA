@@ -40,7 +40,8 @@ interface StockReturnListState {
   selector: 'app-stock-return-list',
   templateUrl: './stock-return-list.component.html',
   styleUrls: ['./stock-return-list.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class StockReturnListComponent implements OnInit, OnDestroy {
   private dateIntervalId?: ReturnType<typeof setInterval>;
@@ -408,7 +409,7 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
       next: ({ detail, items }) => {
         this.selectedReturn = {
           ...detail,
-          items: coerceStockItems(items)
+          items: coerceStockItems<StockReturnItem>(items as StockReturnItem[])
         } as StockReturn;
         this.detailsLoading = false;
       },

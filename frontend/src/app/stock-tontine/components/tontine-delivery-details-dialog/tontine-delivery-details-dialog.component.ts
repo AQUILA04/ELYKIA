@@ -20,7 +20,8 @@ export interface TontineSaleDetail {
 @Component({
   selector: 'app-tontine-delivery-details-dialog',
   templateUrl: './tontine-delivery-details-dialog.component.html',
-  styleUrls: ['./tontine-delivery-details-dialog.component.scss']
+  styleUrls: ['./tontine-delivery-details-dialog.component.scss'],
+  standalone: false
 })
 export class TontineDeliveryDetailsDialogComponent implements OnInit {
   salesDetails: TontineSaleDetail[] = [];

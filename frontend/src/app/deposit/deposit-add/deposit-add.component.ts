@@ -11,7 +11,8 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 @Component({
   selector: 'app-deposit-add',
   templateUrl: './deposit-add.component.html',
-  styleUrls: ['./deposit-add.component.scss']
+  styleUrls: ['./deposit-add.component.scss'],
+  standalone: false
 })
 export class DepositAddComponent implements OnInit {
   depositForm: FormGroup;

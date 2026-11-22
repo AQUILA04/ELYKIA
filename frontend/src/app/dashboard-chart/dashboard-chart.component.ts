@@ -28,7 +28,8 @@ export type ChartOptions = {
 @Component({
   selector: 'app-dashboard-chart',
   templateUrl: './dashboard-chart.component.html',
-  styleUrls: ['./dashboard-chart.component.scss']
+  styleUrls: ['./dashboard-chart.component.scss'],
+  standalone: false
 })
 export class DashboardChartComponent implements OnInit {
   @ViewChild('chart') chart!: ChartComponent;

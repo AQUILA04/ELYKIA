@@ -7,7 +7,8 @@ import { TontineSession } from '../../../types/tontine.types';
 @Component({
   selector: 'app-session-settings-modal',
   templateUrl: './session-settings-modal.component.html',
-  styleUrls: ['./session-settings-modal.component.scss']
+  styleUrls: ['./session-settings-modal.component.scss'],
+  standalone: false
 })
 export class SessionSettingsModalComponent implements OnInit {
   form: FormGroup;

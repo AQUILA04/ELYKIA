@@ -13,7 +13,8 @@ import { Client, ClientService } from 'src/app/client/service/client.service';
       useExisting: forwardRef(() => ClientSelectComponent),
       multi: true
     }
-  ]
+  ],
+  standalone: false
 })
 export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, ControlValueAccessor {
   @Input() commercial: string | null = null;

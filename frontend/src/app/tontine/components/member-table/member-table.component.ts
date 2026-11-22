@@ -7,7 +7,8 @@ import { TontineMember, formatCurrency, formatDate, getDeliveryStatusLabel, getD
 @Component({
   selector: 'app-tontine-member-table',
   templateUrl: './member-table.component.html',
-  styleUrls: ['./member-table.component.scss']
+  styleUrls: ['./member-table.component.scss'],
+  standalone: false
 })
 export class TontineMemberTableComponent implements OnChanges, AfterViewInit {
   @Input() loading: boolean = false;

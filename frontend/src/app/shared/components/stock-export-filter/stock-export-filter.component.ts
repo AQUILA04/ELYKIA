@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { User } from 'src/app/user/service/user.service';
-import * as moment from 'moment';
+import moment from 'moment';
 
 export interface ExportFilter {
     startDate: string;
@@ -18,7 +18,8 @@ const MONTH_NAMES = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Jui
 @Component({
     selector: 'app-stock-export-filter',
     templateUrl: './stock-export-filter.component.html',
-    styleUrls: ['./stock-export-filter.component.scss']
+    styleUrls: ['./stock-export-filter.component.scss'],
+    standalone: false
 })
 export class StockExportFilterComponent implements OnInit {
 

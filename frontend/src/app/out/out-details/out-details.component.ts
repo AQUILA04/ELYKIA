@@ -7,7 +7,8 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 @Component({
   selector: 'app-out-details',
   templateUrl: './out-details.component.html',
-  styleUrls: ['./out-details.component.scss']
+  styleUrls: ['./out-details.component.scss'],
+  standalone: false
 })
 export class OutDetailsComponent implements OnInit {
   credit: any | undefined;

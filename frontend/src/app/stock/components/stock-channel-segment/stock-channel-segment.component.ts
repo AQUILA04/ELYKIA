@@ -5,7 +5,8 @@ import { StockChannelService } from '../../services/stock-channel.service';
 @Component({
   selector: 'app-stock-channel-segment',
   templateUrl: './stock-channel-segment.component.html',
-  styleUrls: ['./stock-channel-segment.component.scss']
+  styleUrls: ['./stock-channel-segment.component.scss'],
+  standalone: false
 })
 export class StockChannelSegmentComponent {
   @Input() channel: StockChannel = 'credit';

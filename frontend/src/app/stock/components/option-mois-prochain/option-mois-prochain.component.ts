@@ -27,7 +27,8 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
   styles: [`
     .gap-2 { gap: 0.5rem; }
     .btn.active { font-weight: bold; border-width: 2px; }
-  `]
+  `],
+  standalone: false
 })
 export class OptionMoisProchainComponent {
   @Input() daysRemaining: number = -1;

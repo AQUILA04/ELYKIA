@@ -3,7 +3,8 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-client-kpi-cards',
   templateUrl: './client-kpi-cards.component.html',
-  styleUrls: ['./client-kpi-cards.component.scss']
+  styleUrls: ['./client-kpi-cards.component.scss'],
+  standalone: false
 })
 export class ClientKpiCardsComponent {
   @Input() clientDetails: any = {};

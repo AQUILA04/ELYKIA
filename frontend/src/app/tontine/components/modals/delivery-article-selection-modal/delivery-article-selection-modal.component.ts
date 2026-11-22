@@ -71,7 +71,8 @@ export function buildStockArticleRows(stockResponse: unknown, reservations: Tont
 @Component({
   selector: 'app-delivery-article-selection-modal',
   templateUrl: './delivery-article-selection-modal.component.html',
-  styleUrls: ['./delivery-article-selection-modal.component.scss']
+  styleUrls: ['./delivery-article-selection-modal.component.scss'],
+  standalone: false
 })
 export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy {
   @ViewChild(MatAutocompleteTrigger) autocompleteTrigger?: MatAutocompleteTrigger;

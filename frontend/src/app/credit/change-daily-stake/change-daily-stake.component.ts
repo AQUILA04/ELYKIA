@@ -7,7 +7,8 @@ import { NgxSpinnerService } from 'ngx-spinner';
 @Component({
   selector: 'app-change-daily-stake',
   templateUrl: './change-daily-stake.component.html',
-  styleUrls: ['./change-daily-stake.component.scss']
+  styleUrls: ['./change-daily-stake.component.scss'],
+  standalone: false
 })
 export class ChangeDailyStakeComponent implements OnInit {
   creditId!: number;

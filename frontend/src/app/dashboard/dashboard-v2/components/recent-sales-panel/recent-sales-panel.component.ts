@@ -3,7 +3,8 @@ import { Component, Input } from '@angular/core';
 @Component({
   selector: 'app-recent-sales-panel',
   templateUrl: './recent-sales-panel.component.html',
-  styleUrls: ['./recent-sales-panel.component.scss']
+  styleUrls: ['./recent-sales-panel.component.scss'],
+  standalone: false
 })
 export class RecentSalesPanelComponent {
   @Input() sales: any[] = [];

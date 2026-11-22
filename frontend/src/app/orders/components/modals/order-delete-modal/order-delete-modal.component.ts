@@ -10,7 +10,8 @@ export interface DeleteModalData {
   selector: 'app-order-delete-modal',
   templateUrl: './order-delete-modal.component.html',
   styleUrls: ['./order-delete-modal.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false
 })
 export class OrderDeleteModalComponent {
   constructor(

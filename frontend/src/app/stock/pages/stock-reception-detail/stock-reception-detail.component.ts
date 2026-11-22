@@ -15,7 +15,8 @@ import { StockReceptionValidateDialogComponent } from '../../components/stock-re
   selector: 'app-stock-reception-detail',
   templateUrl: './stock-reception-detail.component.html',
   styleUrls: ['./stock-reception-detail.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class StockReceptionDetailComponent implements OnInit, OnDestroy {
   reception: StockReception | null = null;

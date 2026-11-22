@@ -5,7 +5,8 @@ import { CreditService } from 'src/app/credit/service/credit.service';
 @Component({
   selector: 'app-client-credit-list',
   templateUrl: './client-credit-list.component.html',
-  styleUrls: ['./client-credit-list.component.scss']
+  styleUrls: ['./client-credit-list.component.scss'],
+  standalone: false
 })
 export class ClientCreditListComponent {
   @Input() credits: any[] = [];

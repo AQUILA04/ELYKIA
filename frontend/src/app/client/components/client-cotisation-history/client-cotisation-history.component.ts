@@ -4,7 +4,8 @@ import { PageEvent } from '@angular/material/paginator';
 @Component({
   selector: 'app-client-cotisation-history',
   templateUrl: './client-cotisation-history.component.html',
-  styleUrls: ['./client-cotisation-history.component.scss']
+  styleUrls: ['./client-cotisation-history.component.scss'],
+  standalone: false
 })
 export class ClientCotisationHistoryComponent {
   @Input() cotisations: any[] = [];

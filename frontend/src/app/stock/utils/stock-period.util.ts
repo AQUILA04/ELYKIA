@@ -1,4 +1,4 @@
-import * as moment from 'moment';
+import moment from 'moment';
 
 export type StockPeriodKey = 'TODAY' | 'YESTERDAY' | 'WEEK' | 'MONTH' | string;
 

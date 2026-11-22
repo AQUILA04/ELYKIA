@@ -6,7 +6,8 @@ import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/cor
     <div *ngIf="showAlert && alerteMessage" class="alert mb-3" [ngClass]="alerteType === 'danger' ? 'alert-danger' : 'alert-warning'">
       {{ alerteMessage }}
     </div>
-  `
+  `,
+  standalone: false
 })
 export class AlerteFinMoisComponent implements OnInit, OnChanges {
   @Input() daysRemaining: number = -1;

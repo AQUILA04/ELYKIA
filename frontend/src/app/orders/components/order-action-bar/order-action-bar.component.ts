@@ -19,7 +19,8 @@ export interface BulkAction {
   selector: 'app-order-action-bar',
   templateUrl: './order-action-bar.component.html',
   styleUrls: ['./order-action-bar.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false
 })
 export class OrderActionBarComponent implements OnChanges {
   @Input() selectedOrders: Order[] = [];

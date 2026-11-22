@@ -15,7 +15,8 @@ import { NgxSpinnerService } from 'ngx-spinner';
 @Component({
   selector: 'app-parameter-edit',
   templateUrl: './parameter-edit.component.html',
-  styleUrls: ['./parameter-edit.component.scss']
+  styleUrls: ['./parameter-edit.component.scss'],
+  standalone: false
 })
 export class ParameterEditComponent implements OnInit {
   form: FormGroup;

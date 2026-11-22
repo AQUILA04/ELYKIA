@@ -12,7 +12,8 @@ import { CommercialService } from '../service/commercial.service';
 @Component({
   selector: 'app-commercial-view',
   templateUrl: './commercial-view.component.html',
-  styleUrls: ['./commercial-view.component.scss']
+  styleUrls: ['./commercial-view.component.scss'],
+  standalone: false
 })
 export class CommercialViewComponent implements OnInit {
   searchTerm: string = '';

@@ -18,7 +18,8 @@ import { CollectorAssignmentPermissions } from 'src/app/shared/constants/collect
   selector: 'app-client-add',
   templateUrl: './client-add.component.html',
   styleUrls: ['./client-add.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class ClientAddComponent implements OnInit {
   clientForm!: FormGroup;

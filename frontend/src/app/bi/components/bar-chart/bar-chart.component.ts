@@ -5,7 +5,8 @@ import { BaseChartDirective } from 'ng2-charts';
 @Component({
   selector: 'app-bar-chart',
   templateUrl: './bar-chart.component.html',
-  styleUrls: ['./bar-chart.component.scss']
+  styleUrls: ['./bar-chart.component.scss'],
+  standalone: false
 })
 export class BarChartComponent implements OnInit {
   @Input() chartData!: ChartData<'bar'>;

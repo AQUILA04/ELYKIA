@@ -40,7 +40,8 @@ interface StockRequestListState {
   selector: 'app-stock-request-list',
   templateUrl: './stock-request-list.component.html',
   styleUrls: ['./stock-request-list.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class StockRequestListComponent implements OnInit, OnDestroy {
   private dateIntervalId?: ReturnType<typeof setInterval>;

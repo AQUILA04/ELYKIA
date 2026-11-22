@@ -23,7 +23,8 @@ import { ClientSelectComponent } from 'src/app/shared/components/client-select/c
   selector: 'app-credit-add',
   templateUrl: './credit-add.component.html',
   styleUrls: ['./credit-add.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class CreditAddComponent implements OnInit, OnDestroy {
   @ViewChild(ArticleSelectorComponent) articleSelector?: ArticleSelectorComponent;

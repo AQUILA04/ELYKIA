@@ -5,7 +5,8 @@ import { OrderStatus, getOrderStatusLabel, getOrderStatusColor } from '../../typ
   selector: 'app-order-status-badge',
   templateUrl: './order-status-badge.component.html',
   styleUrls: ['./order-status-badge.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false
 })
 export class OrderStatusBadgeComponent {
   @Input() status!: OrderStatus;

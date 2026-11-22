@@ -11,7 +11,8 @@ import { UnitPriceVisibilityService } from '../shared/service/unit-price-visibil
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.scss']
+  styleUrls: ['./dashboard.component.scss'],
+  standalone: false
 })
 export class DashboardComponent implements OnInit, OnDestroy {
   dashboardV2Enabled = false;

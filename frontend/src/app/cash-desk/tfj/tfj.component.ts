@@ -19,7 +19,8 @@ interface GroupedData {
 @Component({
   selector: 'app-tfj',
   templateUrl: './tfj.component.html',
-  styleUrls: ['./tfj.component.scss']
+  styleUrls: ['./tfj.component.scss'],
+  standalone: false
 })
 export class TFJComponent implements OnInit {
   @ViewChild('stepper') stepper!: MatStepper;

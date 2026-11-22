@@ -11,7 +11,8 @@ import {AuthService} from "../../auth/service/auth.service"; // Assurez-vous d'i
 @Component({
   selector: 'app-distribution',
   templateUrl: './distribution.component.html',
-  styleUrls: ['./distribution.component.scss']
+  styleUrls: ['./distribution.component.scss'],
+  standalone: false
 })
 export class DistributionComponent implements OnInit, OnDestroy {
   distributionForm!: FormGroup;

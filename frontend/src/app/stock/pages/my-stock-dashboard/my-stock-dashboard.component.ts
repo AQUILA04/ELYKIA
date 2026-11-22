@@ -28,7 +28,8 @@ interface MyStockDashboardState {
 @Component({
   selector: 'app-my-stock-dashboard',
   templateUrl: './my-stock-dashboard.component.html',
-  styleUrls: ['./my-stock-dashboard.component.scss']
+  styleUrls: ['./my-stock-dashboard.component.scss'],
+  standalone: false
 })
 export class MyStockDashboardComponent implements OnInit {
   private readonly STATE_KEY_PREFIX = 'myStockDashboardState';

@@ -15,7 +15,8 @@ import {
 @Component({
   selector: 'app-credit-merge-modal',
   templateUrl: './credit-merge-modal.component.html',
-  styleUrls: ['./credit-merge-modal.component.scss']
+  styleUrls: ['./credit-merge-modal.component.scss'],
+  standalone: false
 })
 export class CreditMergeModalComponent implements OnInit, OnDestroy {
   @Input()

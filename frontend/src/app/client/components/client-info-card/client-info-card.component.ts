@@ -4,7 +4,8 @@ import { SafeUrl } from '@angular/platform-browser';
 @Component({
   selector: 'app-client-info-card',
   templateUrl: './client-info-card.component.html',
-  styleUrls: ['./client-info-card.component.scss']
+  styleUrls: ['./client-info-card.component.scss'],
+  standalone: false
 })
 export class ClientInfoCardComponent implements OnChanges {
   @Input() client: any;

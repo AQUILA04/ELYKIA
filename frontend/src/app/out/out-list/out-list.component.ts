@@ -9,7 +9,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-out-list',
   templateUrl: './out-list.component.html',
-  styleUrls: ['./out-list.component.scss']
+  styleUrls: ['./out-list.component.scss'],
+  standalone: false
 })
 export class OutListComponent implements OnInit {
 

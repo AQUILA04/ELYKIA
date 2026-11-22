@@ -11,7 +11,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-operation-add',
   templateUrl: './operation-add.component.html',
-  styleUrls: ['./operation-add.component.scss']
+  styleUrls: ['./operation-add.component.scss'],
+  standalone: false
 })
 export class OperationAddComponent implements OnInit {
   operationForm: FormGroup;

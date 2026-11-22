@@ -1,7 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'statusBadge'
+  name: 'statusBadge',
+  standalone: false
 })
 export class StatusBadgePipe implements PipeTransform {
   transform(status: string): { label: string; badgeClass: string } {

@@ -5,7 +5,8 @@ import { ClientService } from 'src/app/client/service/client.service';
 @Component({
   selector: 'app-tontine-filter-bar',
   templateUrl: './filter-bar.component.html',
-  styleUrls: ['./filter-bar.component.scss']
+  styleUrls: ['./filter-bar.component.scss'],
+  standalone: false
 })
 export class TontineFilterBarComponent implements OnInit {
   @Input() resultCount = 0;

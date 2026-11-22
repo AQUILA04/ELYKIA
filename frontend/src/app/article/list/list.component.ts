@@ -19,7 +19,8 @@ interface ArticleListState {
   selector: 'app-list',
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class ListComponent implements OnInit, OnDestroy {
   private readonly STATE_KEY = 'articleListState';

@@ -16,7 +16,8 @@ import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature
   selector: 'app-client-details',
   templateUrl: './client-details.component.html',
   styleUrls: ['./client-details.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class ClientDetailsComponent implements OnInit {
   client: Client | undefined;

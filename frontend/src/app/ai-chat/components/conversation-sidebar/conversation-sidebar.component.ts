@@ -5,6 +5,7 @@ import { ConversationSummary } from '../../models/ai-chat.models';
   selector: 'app-conversation-sidebar',
   templateUrl: './conversation-sidebar.component.html',
   styleUrls: ['./conversation-sidebar.component.scss'],
+  standalone: false
 })
 export class ConversationSidebarComponent {
   @Input() conversations: ConversationSummary[] = [];

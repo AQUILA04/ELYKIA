@@ -5,7 +5,8 @@ import { BaseChartDirective } from 'ng2-charts';
 @Component({
   selector: 'app-donut-chart',
   templateUrl: './donut-chart.component.html',
-  styleUrls: ['./donut-chart.component.scss']
+  styleUrls: ['./donut-chart.component.scss'],
+  standalone: false
 })
 export class DonutChartComponent implements OnInit {
   @Input() chartData!: ChartData<'doughnut'>;

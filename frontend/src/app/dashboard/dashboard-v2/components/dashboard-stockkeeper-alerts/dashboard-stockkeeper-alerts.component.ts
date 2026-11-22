@@ -7,7 +7,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-dashboard-stockkeeper-alerts',
   templateUrl: './dashboard-stockkeeper-alerts.component.html',
-  styleUrls: ['./dashboard-stockkeeper-alerts.component.scss']
+  styleUrls: ['./dashboard-stockkeeper-alerts.component.scss'],
+  standalone: false
 })
 export class DashboardStockkeeperAlertsComponent implements OnInit {
   outOfStockArticles: any[] = [];

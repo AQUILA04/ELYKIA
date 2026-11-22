@@ -9,7 +9,8 @@ import { NgxSpinnerService } from 'ngx-spinner';
   selector: 'app-debt-list',
   templateUrl: './debt-list.component.html',
   styleUrls: ['./debt-list.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class DebtListComponent implements OnInit, OnDestroy {
   debts: DebtDocument[] = [];

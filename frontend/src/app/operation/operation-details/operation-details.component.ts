@@ -3,7 +3,8 @@ import { Component, OnInit } from '@angular/core';
 @Component({
   selector: 'app-operation-details',
   templateUrl: './operation-details.component.html',
-  styleUrls: ['./operation-details.component.scss']
+  styleUrls: ['./operation-details.component.scss'],
+  standalone: false
 })
 export class OperationDetailsComponent implements OnInit {
 

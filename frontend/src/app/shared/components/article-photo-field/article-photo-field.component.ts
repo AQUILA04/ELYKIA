@@ -5,7 +5,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-article-photo-field',
   templateUrl: './article-photo-field.component.html',
-  styleUrls: ['./article-photo-field.component.scss']
+  styleUrls: ['./article-photo-field.component.scss'],
+  standalone: false
 })
 export class ArticlePhotoFieldComponent implements OnDestroy {
   @Input() inputId = 'article-photo';

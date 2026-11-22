@@ -9,7 +9,7 @@ import { SharedComponentsModule } from '../shared/components/shared-components.m
 import { BiRoutingModule } from './bi-routing.module';
 
 // Chart.js
-import { NgChartsModule } from 'ng2-charts';
+import { BaseChartDirective } from 'ng2-charts';
 
 // Angular Material Modules (MDC)
 import { MatIconModule } from '@angular/material/icon';
@@ -70,7 +70,7 @@ import { BarChartComponent } from './components/bar-chart/bar-chart.component';
     BiRoutingModule,
     SharedModule,
     SharedComponentsModule,
-    NgChartsModule,
+    BaseChartDirective,
     MatIconModule,
     MatButtonModule,
     MatInputModule,

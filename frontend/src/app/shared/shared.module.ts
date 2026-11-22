@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { HttpClientModule } from '@angular/common/http';
 import { RouterModule } from '@angular/router';
 import { NgxPermissionsModule } from 'ngx-permissions';
 import { SharedComponentsModule } from './components/shared-components.module';
@@ -12,7 +11,6 @@ import { SharedComponentsModule } from './components/shared-components.module';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    HttpClientModule,
     RouterModule,
     NgxPermissionsModule,
     SharedComponentsModule
@@ -21,7 +19,6 @@ import { SharedComponentsModule } from './components/shared-components.module';
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
-    HttpClientModule,
     RouterModule,
     NgxPermissionsModule,
     SharedComponentsModule

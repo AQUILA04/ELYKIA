@@ -13,7 +13,8 @@ import {
 @Component({
   selector: 'app-bi-collections-dashboard',
   templateUrl: './bi-collections-dashboard.component.html',
-  styleUrls: ['./bi-collections-dashboard.component.scss']
+  styleUrls: ['./bi-collections-dashboard.component.scss'],
+  standalone: false
 })
 export class BiCollectionsDashboardComponent implements OnInit {
   loading: boolean = false;

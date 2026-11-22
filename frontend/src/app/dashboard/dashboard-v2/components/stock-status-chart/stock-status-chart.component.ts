@@ -5,7 +5,8 @@ import { DashboardV2StockKpi } from '../../dashboard-v2.service';
 @Component({
   selector: 'app-stock-status-chart',
   templateUrl: './stock-status-chart.component.html',
-  styleUrls: ['./stock-status-chart.component.scss']
+  styleUrls: ['./stock-status-chart.component.scss'],
+  standalone: false
 })
 export class StockStatusChartComponent implements OnChanges {
   @Input() stock!: DashboardV2StockKpi | null;

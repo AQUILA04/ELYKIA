@@ -7,7 +7,8 @@ import { TontineCatchupPreview, TontineMember, TONTINE_CONSTANTS, formatCurrency
 @Component({
   selector: 'app-record-catchup-collection-modal',
   templateUrl: './record-catchup-collection-modal.component.html',
-  styleUrls: ['./record-catchup-collection-modal.component.scss']
+  styleUrls: ['./record-catchup-collection-modal.component.scss'],
+  standalone: false
 })
 export class RecordCatchupCollectionModalComponent implements OnInit {
   form: FormGroup;

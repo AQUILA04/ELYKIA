@@ -9,7 +9,8 @@ import { NgxSpinnerService } from 'ngx-spinner';
   selector: 'app-debt-detail',
   templateUrl: './debt-detail.component.html',
   styleUrls: ['./debt-detail.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class DebtDetailComponent implements OnInit, OnDestroy {
   debt: DebtDocument | null = null;

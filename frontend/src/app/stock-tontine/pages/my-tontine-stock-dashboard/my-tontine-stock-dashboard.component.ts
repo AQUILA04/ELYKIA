@@ -13,7 +13,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-my-tontine-stock-dashboard',
   templateUrl: './my-tontine-stock-dashboard.component.html',
-  styleUrls: ['./my-tontine-stock-dashboard.component.scss']
+  styleUrls: ['./my-tontine-stock-dashboard.component.scss'],
+  standalone: false
 })
 export class MyTontineStockDashboardComponent implements OnInit {
 

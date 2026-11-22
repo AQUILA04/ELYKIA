@@ -10,7 +10,8 @@ import { CreditService } from '../service/credit.service';
 @Component({
   selector: 'app-credit-view',
   templateUrl: './credit-view.component.html',
-  styleUrls: ['./credit-view.component.scss']
+  styleUrls: ['./credit-view.component.scss'],
+  standalone: false
 })
 export class CreditViewComponent implements OnInit {
   creditId: number = 0;

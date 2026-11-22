@@ -13,7 +13,8 @@ export interface ConfirmationData {
   selector: 'app-order-confirmation-modal',
   templateUrl: './order-confirmation-modal.component.html',
   styleUrls: ['./order-confirmation-modal.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false
 })
 export class OrderConfirmationModalComponent {
   constructor(

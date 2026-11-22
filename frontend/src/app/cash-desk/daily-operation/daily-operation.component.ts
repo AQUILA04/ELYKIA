@@ -11,7 +11,8 @@ import { PageEvent } from '@angular/material/paginator';
 @Component({
   selector: 'app-daily-operation',
   templateUrl: './daily-operation.component.html',
-  styleUrls: ['./daily-operation.component.scss']
+  styleUrls: ['./daily-operation.component.scss'],
+  standalone: false
 })
 export class DailyOperationComponent implements OnInit {
   pagedAccounts: any[] = [];

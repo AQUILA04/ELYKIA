@@ -14,7 +14,8 @@ import { CommercialPageBase } from '../commercial-page.base';
   selector: 'app-commercial-staff-form',
   templateUrl: './commercial-staff-form.component.html',
   styleUrls: ['../commercial-page.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class CommercialStaffFormComponent extends CommercialPageBase {
   id: number | null = null;

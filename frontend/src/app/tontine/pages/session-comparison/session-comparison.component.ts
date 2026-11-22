@@ -5,7 +5,8 @@ import { TontineSession, SessionComparison, formatCurrency } from '../../types/t
 @Component({
   selector: 'app-session-comparison',
   templateUrl: './session-comparison.component.html',
-  styleUrls: ['./session-comparison.component.scss']
+  styleUrls: ['./session-comparison.component.scss'],
+  standalone: false
 })
 export class SessionComparisonComponent implements OnInit {
   sessions: TontineSession[] = [];

@@ -7,7 +7,8 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 @Component({
   selector: 'app-history-details',
   templateUrl: './history-details.component.html',
-  styleUrls: ['./history-details.component.scss']
+  styleUrls: ['./history-details.component.scss'],
+  standalone: false
 })
 export class HistoryDetailsComponent implements OnInit {
   credit: any | undefined;

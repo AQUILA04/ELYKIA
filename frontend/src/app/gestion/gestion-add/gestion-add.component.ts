@@ -10,7 +10,8 @@ import { NgxSpinnerService } from 'ngx-spinner';
 @Component({
   selector: 'app-gestion-add',
   templateUrl: './gestion-add.component.html',
-  styleUrls: ['./gestion-add.component.scss']
+  styleUrls: ['./gestion-add.component.scss'],
+  standalone: false
 })
 export class GestionAddComponent implements OnInit {
   agencyForm!: FormGroup;

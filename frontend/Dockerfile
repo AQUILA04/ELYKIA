@@ -1,8 +1,8 @@
 # Stage 1: Build the Angular application
-FROM node:20.19.3 AS build
+FROM node:22-bookworm-slim AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --legacy-peer-deps
+RUN npm ci
 COPY . .
 RUN npm run build -- --configuration production
 

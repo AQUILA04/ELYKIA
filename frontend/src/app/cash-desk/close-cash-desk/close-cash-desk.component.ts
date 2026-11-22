@@ -8,7 +8,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-close-cash-desk',
   templateUrl: './close-cash-desk.component.html',
-  styleUrls: ['./close-cash-desk.component.scss']
+  styleUrls: ['./close-cash-desk.component.scss'],
+  standalone: false
 })
 export class CloseCashDeskComponent implements OnInit {
   isLoading = false;

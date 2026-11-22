@@ -7,7 +7,8 @@ import { UnitPriceVisibilityService } from '../service/unit-price-visibility.ser
  * `*appIfNoUnitPrice="credit.type"` suit la règle du type de vente (CASH : ventes comptant).
  */
 @Directive({
-  selector: '[appIfNoUnitPrice]'
+  selector: '[appIfNoUnitPrice]',
+  standalone: false
 })
 export class IfNoUnitPriceDirective implements OnInit, OnDestroy {
   private sub?: Subscription;

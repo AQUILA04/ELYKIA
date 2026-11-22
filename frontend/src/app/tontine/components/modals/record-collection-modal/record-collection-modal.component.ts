@@ -10,7 +10,8 @@ const CONSTANTS = TONTINE_CONSTANTS;
 @Component({
   selector: 'app-record-collection-modal',
   templateUrl: './record-collection-modal.component.html',
-  styleUrls: ['./record-collection-modal.component.scss']
+  styleUrls: ['./record-collection-modal.component.scss'],
+  standalone: false
 })
 export class RecordCollectionModalComponent implements OnInit {
   form: FormGroup;

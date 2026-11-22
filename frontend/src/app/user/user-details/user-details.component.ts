@@ -14,7 +14,8 @@ import Swal from 'sweetalert2';
   selector: 'app-user-details',
   templateUrl: './user-details.component.html',
   styleUrls: ['./user-details.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class UserDetailsComponent implements OnInit, OnDestroy {
   userId?: number;

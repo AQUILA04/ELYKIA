@@ -5,7 +5,8 @@ import { CommercialStockService } from '../../services/commercial-stock.service'
 @Component({
   selector: 'app-stock-movement-dialog',
   templateUrl: './stock-movement-dialog.component.html',
-  styleUrls: ['./stock-movement-dialog.component.scss']
+  styleUrls: ['./stock-movement-dialog.component.scss'],
+  standalone: false
 })
 export class StockMovementDialogComponent implements OnInit {
   movements: any[] = [];

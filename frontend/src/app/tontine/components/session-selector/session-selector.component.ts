@@ -5,7 +5,8 @@ import { TontineSession } from '../../types/tontine.types';
 @Component({
   selector: 'app-session-selector',
   templateUrl: './session-selector.component.html',
-  styleUrls: ['./session-selector.component.scss']
+  styleUrls: ['./session-selector.component.scss'],
+  standalone: false
 })
 export class SessionSelectorComponent implements OnInit {
   @Output() sessionChange = new EventEmitter<TontineSession>();

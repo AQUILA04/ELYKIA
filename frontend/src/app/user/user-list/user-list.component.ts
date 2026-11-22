@@ -15,7 +15,8 @@ interface UserListState {
   selector: 'app-user-list',
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class UserListComponent implements OnInit, OnDestroy {
   private readonly STATE_KEY = 'userListState';

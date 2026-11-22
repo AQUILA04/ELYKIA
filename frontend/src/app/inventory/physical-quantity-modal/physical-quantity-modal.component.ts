@@ -7,7 +7,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-physical-quantity-modal',
   templateUrl: './physical-quantity-modal.component.html',
-  styleUrls: ['./physical-quantity-modal.component.scss']
+  styleUrls: ['./physical-quantity-modal.component.scss'],
+  standalone: false
 })
 export class PhysicalQuantityModalComponent implements OnInit {
   inventoryItems: InventoryItemDto[] = [];

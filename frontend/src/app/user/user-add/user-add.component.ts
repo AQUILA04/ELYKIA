@@ -8,7 +8,8 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 @Component({
   selector: 'app-user-add',
   templateUrl: './user-add.component.html',
-  styleUrls: ['./user-add.component.scss']
+  styleUrls: ['./user-add.component.scss'],
+  standalone: false
 })
 export class UserAddComponent implements OnInit {
   userForm!: FormGroup;

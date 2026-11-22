@@ -41,7 +41,8 @@ export type EntryPackagingMode = 'UNIT' | 'WHOLESALE' | 'HALF_WHOLESALE';
       useExisting: forwardRef(() => ArticleSelectorComponent),
       multi: true
     }
-  ]
+  ],
+  standalone: false
 })
 export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, ControlValueAccessor, Validator {
   @Input() articles: any[] = [];

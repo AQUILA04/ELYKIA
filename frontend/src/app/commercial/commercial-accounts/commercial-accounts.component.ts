@@ -7,7 +7,8 @@ import { CommercialPageBase } from '../commercial-page.base';
   selector: 'app-commercial-accounts',
   templateUrl: './commercial-accounts.component.html',
   styleUrls: ['../commercial-page.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class CommercialAccountsComponent extends CommercialPageBase {
   accounts: CommercialAccount[] = [];

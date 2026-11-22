@@ -26,7 +26,8 @@ interface EditablePriceState {
 @Component({
   selector: 'app-stock-reception-validate-dialog',
   templateUrl: './stock-reception-validate-dialog.component.html',
-  styleUrls: ['./stock-reception-validate-dialog.component.scss']
+  styleUrls: ['./stock-reception-validate-dialog.component.scss'],
+  standalone: false
 })
 export class StockReceptionValidateDialogComponent implements OnInit {
   items: StockReceptionItem[] = [];

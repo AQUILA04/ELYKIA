@@ -17,7 +17,8 @@ import { TontineStockService } from '../../../stock-tontine/services/tontine-sto
 @Component({
   selector: 'app-stock-return-create',
   templateUrl: './stock-return-create.component.html',
-  styleUrls: ['./stock-return-create.component.scss']
+  styleUrls: ['./stock-return-create.component.scss'],
+  standalone: false
 })
 export class StockReturnCreateComponent implements OnInit {
 

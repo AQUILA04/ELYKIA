@@ -1,7 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  name: 'licenseKeyFormatter'
+  name: 'licenseKeyFormatter',
+  standalone: false
 })
 export class LicenseKeyFormatterPipe implements PipeTransform {
 

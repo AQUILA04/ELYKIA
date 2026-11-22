@@ -19,7 +19,8 @@ export interface SalesDetailsDialogData {
 @Component({
   selector: 'app-sales-details-dialog',
   templateUrl: './sales-details-dialog.component.html',
-  styleUrls: ['./sales-details-dialog.component.scss']
+  styleUrls: ['./sales-details-dialog.component.scss'],
+  standalone: false
 })
 export class SalesDetailsDialogComponent implements OnInit, OnDestroy {
   salesDetails: CreditSaleDetail[] = [];

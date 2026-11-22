@@ -9,7 +9,8 @@ import { ReturnArticlesDto } from './models/return-articles.dto';
 @Component({
   selector: 'app-back2-store',
   templateUrl: './back2-store.component.html',
-  styleUrls: ['./back2-store.component.scss']
+  styleUrls: ['./back2-store.component.scss'],
+  standalone: false
 })
 export class Back2StoreComponent implements OnInit {
 

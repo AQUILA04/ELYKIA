@@ -5,7 +5,8 @@ import { KPICardConfig } from '../../types/order.types';
   selector: 'app-order-kpi-card',
   templateUrl: './order-kpi-card.component.html',
   styleUrls: ['./order-kpi-card.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false
 })
 export class OrderKpiCardComponent implements OnInit {
   @Input() title: string = '';

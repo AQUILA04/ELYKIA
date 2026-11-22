@@ -26,7 +26,8 @@ interface SelectedItem {
 @Component({
   selector: 'app-rattrapage-credit-add',
   templateUrl: './rattrapage-credit-add.component.html',
-  styleUrls: ['./rattrapage-credit-add.component.scss']
+  styleUrls: ['./rattrapage-credit-add.component.scss'],
+  standalone: false
 })
 export class RattrapageCreditAddComponent implements OnInit, OnDestroy {
 

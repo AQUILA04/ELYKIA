@@ -18,7 +18,8 @@ import { formatFcfa } from './utils/operation-message.util';
 @Component({
   selector: 'app-dashboard-v2',
   templateUrl: './dashboard-v2.component.html',
-  styleUrls: ['./dashboard-v2.component.scss']
+  styleUrls: ['./dashboard-v2.component.scss'],
+  standalone: false
 })
 export class DashboardV2Component implements OnInit, OnDestroy {
   currentDate = new Date();

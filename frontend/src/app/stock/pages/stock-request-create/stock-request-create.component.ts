@@ -17,7 +17,8 @@ import { StockTontineRequestService } from '../../../stock-tontine/services/stoc
 @Component({
   selector: 'app-stock-request-create',
   templateUrl: './stock-request-create.component.html',
-  styleUrls: ['./stock-request-create.component.scss']
+  styleUrls: ['./stock-request-create.component.scss'],
+  standalone: false
 })
 export class StockRequestCreateComponent implements OnInit {
 

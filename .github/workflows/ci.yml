@@ -98,6 +98,19 @@ jobs:
       working-directory: .
       run: python .github/scripts/check-frontend-lazy-loading.py
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: '22'
+        cache: npm
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install frontend dependencies
+      run: npm ci
+
+    - name: Run frontend unit tests (Vitest)
+      run: npm run test:ci
+
     - name: Sync user-guide site into frontend
       working-directory: .
       run: |

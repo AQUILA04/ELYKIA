@@ -8,7 +8,8 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 @Component({
   selector: 'app-accountdetails',
   template: '<div class="loading">Redirection…</div>',
-  styles: ['.loading { padding: 48px; text-align: center; color: #6b7a99; }']
+  styles: ['.loading { padding: 48px; text-align: center; color: #6b7a99; }'],
+  standalone: false
 })
 export class AccountdetailsComponent implements OnInit {
   constructor(

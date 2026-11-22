@@ -19,7 +19,8 @@ function passwordMatchValidator(group: AbstractControl): ValidationErrors | null
   selector: 'app-change-password',
   templateUrl: './change-password.component.html',
   styleUrls: ['./change-password.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class ChangePasswordComponent implements OnInit, OnDestroy {
   form!: FormGroup;

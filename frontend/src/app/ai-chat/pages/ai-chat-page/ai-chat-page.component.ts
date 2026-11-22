@@ -13,6 +13,7 @@ import {
   selector: 'app-ai-chat-page',
   templateUrl: './ai-chat-page.component.html',
   styleUrls: ['./ai-chat-page.component.scss'],
+  standalone: false
 })
 export class AiChatPageComponent implements OnInit, OnDestroy {
   conversations: ConversationSummary[] = [];

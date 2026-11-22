@@ -7,7 +7,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-out-pdf-list',
   templateUrl: './out-pdf-list.component.html',
-  styleUrls: ['./out-pdf-list.component.scss']
+  styleUrls: ['./out-pdf-list.component.scss'],
+  standalone: false
 })
 export class OutPdfListComponent {
   pdfFiles: any[] = [];

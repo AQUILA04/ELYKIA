@@ -9,7 +9,8 @@ import {AuthService} from "../auth/service/auth.service";
 @Component({
   selector: 'app-accounting-day',
   templateUrl: './accounting-day.component.html',
-  styleUrls: ['./accounting-day.component.scss']
+  styleUrls: ['./accounting-day.component.scss'],
+  standalone: false
 })
 export class AccountingDayComponent implements OnInit {
   openDate: string = '';

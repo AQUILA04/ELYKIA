@@ -6,7 +6,8 @@ import { TontineAllocationMigrationStatus } from '../../types/tontine-allocation
 @Component({
   selector: 'app-tontine-allocation-migration-banner',
   templateUrl: './tontine-allocation-migration-banner.component.html',
-  styleUrls: ['./tontine-allocation-migration-banner.component.scss']
+  styleUrls: ['./tontine-allocation-migration-banner.component.scss'],
+  standalone: false
 })
 export class TontineAllocationMigrationBannerComponent implements OnInit, OnDestroy {
   @Input() pollIntervalMs = 5000;

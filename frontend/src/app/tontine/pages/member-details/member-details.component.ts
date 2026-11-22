@@ -61,7 +61,8 @@ export interface MonthlyCollectionSummary {
   selector: 'app-member-details',
   templateUrl: './member-details.component.html',
   styleUrls: ['./member-details.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class MemberDetailsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();

@@ -8,7 +8,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-reactivate-license',
   templateUrl: './reactivate-license.component.html',
-  styleUrls: ['./reactivate-license.component.scss']
+  styleUrls: ['./reactivate-license.component.scss'],
+  standalone: false
 })
 export class ReactivateLicenseComponent {
   licenseKey: string = '';

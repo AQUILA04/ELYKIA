@@ -10,7 +10,8 @@ import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 @Component({
   selector: 'app-add-multiple-members-modal',
   templateUrl: './add-multiple-members-modal.component.html',
-  styleUrls: ['./add-multiple-members-modal.component.scss']
+  styleUrls: ['./add-multiple-members-modal.component.scss'],
+  standalone: false
 })
 export class AddMultipleMembersModalComponent implements OnInit {
   agents: any[] = [];

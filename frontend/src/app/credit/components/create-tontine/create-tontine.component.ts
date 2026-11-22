@@ -11,7 +11,8 @@ import { AuthService } from '../../../auth/service/auth.service';
 @Component({
   selector: 'app-create-tontine',
   templateUrl: './create-tontine.component.html',
-  styleUrls: ['./create-tontine.component.scss']
+  styleUrls: ['./create-tontine.component.scss'],
+  standalone: false
 })
 export class CreateTontineComponent implements OnInit, OnDestroy {
 

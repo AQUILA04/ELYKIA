@@ -5,7 +5,8 @@ import { DashboardOverview, KpiCardData, PeriodType } from '../../types/bi.types
 @Component({
   selector: 'app-bi-dashboard',
   templateUrl: './bi-dashboard.component.html',
-  styleUrls: ['./bi-dashboard.component.scss']
+  styleUrls: ['./bi-dashboard.component.scss'],
+  standalone: false
 })
 export class BiDashboardComponent implements OnInit {
   loading: boolean = false;

@@ -10,7 +10,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-open-cash-desk',
   templateUrl: './open-cash-desk.component.html',
-  styleUrls: ['./open-cash-desk.component.scss']
+  styleUrls: ['./open-cash-desk.component.scss'],
+  standalone: false
 })
 export class OpenCashDeskComponent implements OnInit {
   isCashDeskOpen = false;

@@ -7,7 +7,8 @@ import {UserService} from "../../../user/service/user.service";
 @Component({
   selector: 'app-commercial-selector',
   templateUrl: './commercial-selector.component.html',
-  styleUrls: ['./commercial-selector.component.scss']
+  styleUrls: ['./commercial-selector.component.scss'],
+  standalone: false
 })
 export class CommercialSelectorComponent implements OnInit, OnChanges, OnDestroy {
   @Input() initialValue: string | null = null;

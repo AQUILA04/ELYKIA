@@ -33,7 +33,8 @@ import { CollectorAssignmentPermissions } from 'src/app/shared/constants/collect
   selector: 'app-tontine-dashboard',
   templateUrl: './tontine-dashboard.component.html',
   styleUrls: ['./tontine-dashboard.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class TontineDashboardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();

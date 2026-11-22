@@ -10,7 +10,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 @Component({
   selector: 'app-operation-list',
   templateUrl: './operation-list.component.html',
-  styleUrls: ['./operation-list.component.scss']
+  styleUrls: ['./operation-list.component.scss'],
+  standalone: false
 })
 export class OperationListComponent implements OnInit {
   operations: any[] = [];

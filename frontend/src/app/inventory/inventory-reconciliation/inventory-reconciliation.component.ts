@@ -9,7 +9,8 @@ import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature
 @Component({
   selector: 'app-inventory-reconciliation',
   templateUrl: './inventory-reconciliation.component.html',
-  styleUrls: ['./inventory-reconciliation.component.scss']
+  styleUrls: ['./inventory-reconciliation.component.scss'],
+  standalone: false
 })
 export class InventoryReconciliationComponent implements OnInit {
   inventoryId!: number;

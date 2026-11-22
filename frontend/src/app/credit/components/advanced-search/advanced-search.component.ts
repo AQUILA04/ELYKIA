@@ -1,4 +1,3 @@
-import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, EventEmitter, Input, OnChanges, OnDestroy, OnInit, Output, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -16,14 +15,6 @@ import {
   templateUrl: './advanced-search.component.html',
   styleUrls: ['./advanced-search.component.scss'],
   encapsulation: ViewEncapsulation.None,
-  animations: [
-    trigger('slideDown', [
-      state('void', style({ opacity: 0, maxHeight: '0px', overflow: 'hidden' })),
-      state('*', style({ opacity: 1, maxHeight: '600px', overflow: 'visible' })),
-      transition('void => *', animate('250ms ease-out')),
-      transition('* => void', animate('200ms ease-in'))
-    ])
-  ],
   standalone: false
 })
 export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {

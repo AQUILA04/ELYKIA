@@ -23,7 +23,8 @@ interface StockReceptionListState {
   selector: 'app-stock-reception-list',
   templateUrl: './stock-reception-list.component.html',
   styleUrls: ['./stock-reception-list.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class StockReceptionListComponent implements OnInit, OnDestroy {
   private readonly STATE_KEY = 'stockReceptionListState';

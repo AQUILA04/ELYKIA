@@ -4,7 +4,8 @@ import { KpiCardData } from '../../types/bi.types';
 @Component({
   selector: 'app-bi-kpi-card',
   templateUrl: './bi-kpi-card.component.html',
-  styleUrls: ['./bi-kpi-card.component.scss']
+  styleUrls: ['./bi-kpi-card.component.scss'],
+  standalone: false
 })
 export class BiKpiCardComponent {
   @Input() data!: KpiCardData;

@@ -15,7 +15,8 @@ import {
 @Component({
   selector: 'app-bi-sales-dashboard',
   templateUrl: './bi-sales-dashboard.component.html',
-  styleUrls: ['./bi-sales-dashboard.component.scss']
+  styleUrls: ['./bi-sales-dashboard.component.scss'],
+  standalone: false
 })
 export class BiSalesDashboardComponent implements OnInit {
   loading: boolean = false;

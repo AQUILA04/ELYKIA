@@ -15,7 +15,8 @@ import { CommercialPageBase } from '../commercial-page.base';
   selector: 'app-commercial-account-history',
   templateUrl: './commercial-account-history.component.html',
   styleUrls: ['../commercial-page.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class CommercialAccountHistoryComponent extends CommercialPageBase {
   userId = 0;

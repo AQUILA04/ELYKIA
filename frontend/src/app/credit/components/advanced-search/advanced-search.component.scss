@@ -1,1 +1,18 @@
 /* Prefixed by credit-list-page in credit-list.component.scss */
+
+@keyframes advancedSearchSlideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+  }
+  to {
+    opacity: 1;
+    max-height: 600px;
+    overflow: visible;
+  }
+}
+
+.advanced-search-panel {
+  animation: advancedSearchSlideDown 250ms ease-out;
+}

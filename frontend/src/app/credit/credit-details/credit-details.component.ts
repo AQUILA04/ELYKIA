@@ -24,7 +24,8 @@ export interface CreditSourceMonthlyStock {
   selector: 'app-credit-details',
   templateUrl: './credit-details.component.html',
   styleUrls: ['./credit-details.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit {
   credit: any | undefined;

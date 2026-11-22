@@ -26,7 +26,8 @@ interface ReturnSelectedItem {
 @Component({
   selector: 'app-stock-return-historique',
   templateUrl: './stock-return-historique.component.html',
-  styleUrls: ['../rattrapage/rattrapage-credit-add.component.scss'] // Reusing styles from rattrapage
+  styleUrls: ['../rattrapage/rattrapage-credit-add.component.scss'], // Reusing styles from rattrapage
+  standalone: false
 })
 export class StockReturnHistoriqueComponent implements OnInit, OnDestroy {
   currentStep = 1;

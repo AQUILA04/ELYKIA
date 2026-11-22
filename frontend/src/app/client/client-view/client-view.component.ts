@@ -11,7 +11,8 @@ import { CreditService } from 'src/app/credit/service/credit.service';
 @Component({
   selector: 'app-client-view',
   templateUrl: './client-view.component.html',
-  styleUrls: ['./client-view.component.scss']
+  styleUrls: ['./client-view.component.scss'],
+  standalone: false
 })
 export class ClientViewComponent implements OnInit {
   clientId: number = 0;

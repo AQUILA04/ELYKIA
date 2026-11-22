@@ -11,7 +11,8 @@ export interface DashboardKpiCardData {
 @Component({
   selector: 'app-dashboard-kpi-card',
   templateUrl: './dashboard-kpi-card.component.html',
-  styleUrls: ['./dashboard-kpi-card.component.scss']
+  styleUrls: ['./dashboard-kpi-card.component.scss'],
+  standalone: false
 })
 export class DashboardKpiCardComponent {
   @Input() data!: DashboardKpiCardData;

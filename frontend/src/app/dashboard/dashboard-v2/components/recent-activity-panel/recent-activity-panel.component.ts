@@ -5,7 +5,8 @@ import { formatOperationMessage, getOperationIcon } from '../../utils/operation-
 @Component({
   selector: 'app-recent-activity-panel',
   templateUrl: './recent-activity-panel.component.html',
-  styleUrls: ['./recent-activity-panel.component.scss']
+  styleUrls: ['./recent-activity-panel.component.scss'],
+  standalone: false
 })
 export class RecentActivityPanelComponent {
   @Input() operations: DailyOperationLog[] = [];

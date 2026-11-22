@@ -5,7 +5,8 @@ import { ChartTrendPoint } from '../../dashboard-v2.service';
 @Component({
   selector: 'app-sales-evolution-chart',
   templateUrl: './sales-evolution-chart.component.html',
-  styleUrls: ['./sales-evolution-chart.component.scss']
+  styleUrls: ['./sales-evolution-chart.component.scss'],
+  standalone: false
 })
 export class SalesEvolutionChartComponent implements OnChanges {
   @Input() points: ChartTrendPoint[] = [];

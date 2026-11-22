@@ -5,7 +5,8 @@ import { CreditTimelineDto } from '../../types/credit.types';
 @Component({
   selector: 'app-daily-stake-modal',
   templateUrl: './daily-stake-modal.component.html',
-  styleUrls: ['./daily-stake-modal.component.scss']
+  styleUrls: ['./daily-stake-modal.component.scss'],
+  standalone: false
 })
 export class DailyStakeModalComponent implements OnInit, OnChanges {
   @Input() credit: any;

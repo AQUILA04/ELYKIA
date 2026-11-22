@@ -23,7 +23,8 @@ export interface OrderStockRequestModalResult {
   selector: 'app-order-stock-request-modal',
   templateUrl: './order-stock-request-modal.component.html',
   styleUrls: ['./order-stock-request-modal.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  standalone: false
 })
 export class OrderStockRequestModalComponent {
   forNextMonth = false;

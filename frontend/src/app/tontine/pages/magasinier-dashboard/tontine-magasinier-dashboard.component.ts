@@ -22,7 +22,8 @@ import {
 @Component({
   selector: 'app-tontine-magasinier-dashboard',
   templateUrl: './tontine-magasinier-dashboard.component.html',
-  styleUrls: ['./tontine-magasinier-dashboard.component.scss']
+  styleUrls: ['./tontine-magasinier-dashboard.component.scss'],
+  standalone: false
 })
 export class TontineMagasinierDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   displayedColumns: string[] = ['clientName', 'deliveryDate', 'totalAmount', 'commercialUsername', 'status', 'actions'];

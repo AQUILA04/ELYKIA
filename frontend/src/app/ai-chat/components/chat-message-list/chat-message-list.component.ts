@@ -15,6 +15,7 @@ import { ChatMessage } from '../../models/ai-chat.models';
   selector: 'app-chat-message-list',
   templateUrl: './chat-message-list.component.html',
   styleUrls: ['./chat-message-list.component.scss'],
+  standalone: false
 })
 export class ChatMessageListComponent implements OnChanges, AfterViewChecked {
   @Input() messages: ChatMessage[] = [];

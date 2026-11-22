@@ -1,58 +1,42 @@
 ---
-description: OBLIGATOIRE — migration lazy-loading si un domaine frontend eager est modifié (article, credit, client…)
+description: OBLIGATOIRE — Architecture Angular 21 frontend : lazy-loading par route + composants standalone pour tout nouveau domaine/écran
 globs:
-  - frontend/src/app/credit/**
-  - frontend/src/app/client/**
-  - frontend/src/app/locality/**
-  - frontend/src/app/dashboard-chart/**
-  - frontend/src/app/accounting-day/**
-  - frontend/src/app/cash-desk/**
-  - frontend/src/app/inventory/**
-  - frontend/src/app/gestion/**
-  - frontend/src/app/operation/**
-  - frontend/src/app/deposit/**
-  - frontend/src/app/report/**
-  - frontend/src/app/history/**
-  - frontend/src/app/out/**
-  - frontend/src/app/parameters/**
+  - frontend/src/app/**
 alwaysApply: false
 ---
 
-# Frontend — lazy-loading progressif (OBLIGATOIRE)
+# Frontend Angular 21 — Lazy-Loading & Composants Standalone (OBLIGATOIRE)
 
-## Checklist AVANT de coder (ne pas ignorer)
+## État depuis Frontend `3.0.0` (Angular 21)
 
-Si le fichier modifié est sous `frontend/src/app/{domaine}/` :
+**100 % des domaines métier historiques sont désormais lazy-loaded** (`loadChildren` dans `app-routing.module.ts`) :
+`account`, `accounting-day`, `ai-chat`, `article`, `article-type`, `bi`, `carnet-ecart`, `cash-desk`, `client`, `client-registrations`, `commercial`, `credit`, `customer-activity-audit`, `customer-payments`, `dashboard`, `debt`, `deposit`, `expense`, `gestion`, `history`, `inventory`, `locality`, `notifications`, `operation`, `orders`, `out`, `parameters`, `recruitment`, `report`, `security`, `stock`, `tontine`, `user`.
 
-1. **Identifier le domaine** (ex. `article`, `credit`, `client`).
-2. **Vérifier s'il est encore eager** : absence de `{domaine}.module.ts` OU composants encore dans `app.module.ts`.
-3. **Si eager** → la migration lazy-loading **fait partie du scope** de la tâche. Ne pas livrer la feature sans elle.
-4. **Un seul domaine par tâche** — ne pas toucher aux autres dossiers eager.
-5. **Workflow détaillé** : lire `.cursor/skills/frontend-lazy-loading-migration/SKILL.md`.
+Seuls les éléments transverses / socle restent chargés au démarrage : `shared/`, `layout/`, `interceptors/`, `auth/` (login), `license/`, `mobile-money-config/`.
 
-## Domaines encore eager (à migrer quand touchés)
+## Règles Angular 21 pour tout nouveau développement
 
-`locality`, `client`, `dashboard-chart`, `accounting-day`, `cash-desk`, `inventory`, `gestion`, `operation`, `deposit`, `report`, `history`, `out`, `parameters`
-
-## Déjà lazy-loaded (ne pas migrer)
-
-`orders`, `bi`, `ai-chat`, `tontine`, `stock`, `stock-tontine`, `article-type`, `article`, `expense`, `security`, `user`, `credit`, `dashboard`, `commercial`, `account`
-
-## Transverse (ne pas migrer)
-
-`shared/`, `layout/`, `interceptors/`, `core/`, `auth/` (login — laisser eager sauf demande explicite), `bread/`, `license/`
-
-## Actions obligatoires si domaine eager
-
-1. Créer `{domaine}.module.ts` + `{domaine}-routing.module.ts`
-2. Déplacer les `declarations` depuis `app.module.ts`
-3. Remplacer les routes `component:` par `loadChildren` avec préfixe `/{domaine}/...`
-4. Mettre à jour `routerLink`, `router.navigate`, sidebar
-5. `npm run build` dans `frontend/`
-6. CI : `.github/scripts/check-frontend-lazy-loading.py` doit passer
+1. **Lazy-loading obligatoire par route :** ne jamais déclarer un nouvel écran métier dans `AppModule`. Tout nouveau domaine ou page doit être chargé à la demande via `loadChildren` ou `loadComponent` dans `app-routing.module.ts`.
+2. **Standalone par défaut (recommandé en Angular 21) :**
+   - Pour tout **nouveau domaine**, créer `frontend/src/app/{domaine}/{domaine}.routes.ts` (tableau `Routes`) et des composants **standalone** (défaut en Angular 21, pas besoin de `{domaine}.module.ts`).
+   - Exemple dans `app-routing.module.ts` :
+     ```ts
+     {
+       path: 'mon-domaine',
+       loadChildren: () => import('./mon-domaine/mon-domaine.routes').then(m => m.MON_DOMAINE_ROUTES),
+       canActivate: [AuthGuard]
+     }
+     ```
+   - Pour un **domaine existant basé sur NgModule**, on peut soit déclarer le composant dans son module existant (`standalone: false`), soit créer un composant standalone et le charger en `loadComponent` / l'importer dans le module.
+3. **Syntaxe Angular 21 :**
+   - Utiliser le **control flow natif** (`@if`, `@for` avec `track`, `@switch`) — ne plus introduire `*ngIf`, `*ngFor`, `*ngSwitch`.
+   - Privilégier `inject()`, les `signal()`/`computed()` et les animations CSS natives (ne pas réintroduire `@angular/animations`).
+   - Tests unitaires sous **Vitest** (`npm run test:ci` dans `frontend/`, vérifier en CI).
+4. **Conventions d'URLs :** préfixe unique `/{domaine}/{action}` (`list`, `add`, `add/:id`, `details/:id`).
+5. **CI :** `.github/scripts/check-frontend-lazy-loading.py` accepte `{domaine}.routes.ts` (standalone) et `{domaine}.module.ts` (NgModule existant).
 
 ## Anti-patterns
 
-- Livrer une feature dans un domaine eager sans migration
-- Se contenter de « lire le skill » sans exécuter la migration
-- Migrer plusieurs domaines dans une même tâche
+- Ajouter un composant métier dans `AppModule.declarations`
+- Créer un nouveau `NgModule` pour un nouveau domaine alors que standalone + `{domaine}.routes.ts` suffit
+- Réintroduire `@angular/animations`, `HttpClientModule`, `APP_INITIALIZER`, ou `*ngIf`/`*ngFor`

@@ -9,7 +9,8 @@ import { AuthService } from 'src/app/auth/service/auth.service';
 @Component({
   selector: 'app-add-member-modal',
   templateUrl: './add-member-modal.component.html',
-  styleUrls: ['./add-member-modal.component.scss']
+  styleUrls: ['./add-member-modal.component.scss'],
+  standalone: false
 })
 export class AddMemberModalComponent implements OnInit, OnDestroy {
   form: FormGroup;

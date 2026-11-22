@@ -25,7 +25,8 @@ interface ClientListState {
   selector: 'app-client-list',
   templateUrl: './client-list.component.html',
   styleUrls: ['./client-list.component.scss'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
 export class ClientListComponent implements OnInit, OnDestroy {
   private readonly STATE_KEY = 'clientListState';
