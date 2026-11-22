@@ -133,6 +133,9 @@ export class SequentialSyncManager implements ISequentialSyncManager {
       errors: []
     };
 
+    // IDs des membres reçus du serveur, pour purger ensuite les membres obsolètes
+    const receivedMemberIds = new Set<string>();
+
     // Récupérer les totaux non synchronisés pour ajustement
     return from(this.dbService.getUnsyncedCollectionsTotals()).pipe(
       switchMap(unsyncedTotals => {
@@ -186,6 +189,8 @@ export class SequentialSyncManager implements ISequentialSyncManager {
                   if (members.length === 0) {
                     return EMPTY;
                   }
+
+                  members.forEach((m: any) => receivedMemberIds.add(String(m.id)));
 
                   // Mapper les membres avec ajustement des totaux
                   const mappedMembers = members.map((m: any) => {
@@ -271,7 +276,23 @@ export class SequentialSyncManager implements ISequentialSyncManager {
               expand(pageInfo => 
                 pageInfo.hasMore ? fetchPage(pageInfo.currentPage + 1) : EMPTY
               ),
-              reduce(() => result, result)
+              reduce(() => result, result),
+              // Purge des membres obsolètes : seulement si la liste serveur est complète.
+              switchMap(async () => {
+                if (result.errors.length === 0 && result.totalItems > 0 && receivedMemberIds.size === result.totalItems) {
+                  try {
+                    const purged = await this.dbService.purgeStaleSyncedTontineMembers(
+                      sessionId, options.commercialUsername, Array.from(receivedMemberIds)
+                    );
+                    if (purged > 0) {
+                      await this.log.log(`SequentialSyncManager: ${purged} membre(s) obsolète(s) supprimé(s) (absents du serveur)`);
+                    }
+                  } catch (purgeError: any) {
+                    await this.log.log(`SequentialSyncManager: Purge des membres obsolètes ignorée: ${purgeError?.message ?? purgeError}`);
+                  }
+                }
+                return result;
+              })
             );
           })
         );

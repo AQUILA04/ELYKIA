@@ -1,0 +1,22 @@
+<div class="feedback" [ngClass]="'feedback--' + kind" role="alertdialog" [attr.aria-label]="title"
+     data-testid="e2e-feedback-modal" [attr.data-kind]="kind">
+  <div class="feedback__icon" aria-hidden="true">
+    <ion-icon [name]="icon"></ion-icon>
+  </div>
+  <h2 class="feedback__title" data-testid="e2e-feedback-title">{{ title }}</h2>
+  <p class="feedback__message" data-testid="e2e-feedback-message">{{ message }}</p>
+  <ul class="feedback__details" *ngIf="details.length">
+    <li *ngFor="let line of details">{{ line }}</li>
+  </ul>
+  <div class="feedback__actions" [class.feedback__actions--single]="actions.length === 1">
+    <button
+      *ngFor="let action of actions"
+      type="button"
+      class="feedback__btn"
+      [class.feedback__btn--primary]="action.primary"
+      [attr.data-testid]="'e2e-feedback-' + action.role"
+      (click)="close(action.role)">
+      {{ action.text }}
+    </button>
+  </div>
+</div>

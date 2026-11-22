@@ -1,6 +1,7 @@
-import { Component, Input } from '@angular/core';
-import { ModalController, ToastController } from '@ionic/angular';
+import { Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { ModalController } from '@ionic/angular';
 import { PrintableTontineOrder, PrintingService } from '../../../core/services/printing.service';
+import { ReceiptOutputService } from '../../../core/services/receipt-output.service';
 import { getTontineDeliveryStatusLabel } from '../../../core/utils/tontine-delivery-status.util';
 import {
   TontineOrderBalance,
@@ -19,11 +20,14 @@ import {
 })
 export class TontineOrderReceiptModalComponent {
   @Input() data!: PrintableTontineOrder;
+  @ViewChild('receiptContent', { read: ElementRef }) receiptContent?: ElementRef<HTMLElement>;
+
+  printing = false;
 
   constructor(
     private modalCtrl: ModalController,
-    private toastController: ToastController,
-    private printingService: PrintingService
+    private printingService: PrintingService,
+    private receiptOutput: ReceiptOutputService
   ) {}
 
   get statusLabel(): string {
@@ -42,33 +46,33 @@ export class TontineOrderReceiptModalComponent {
     return tontineOrderBalanceLabels(this.data?.status === 'DELIVERED');
   }
 
+  /** Comme les reçus de vente : le reçu est enregistré en PDF dès l'ouverture de l'aperçu. */
+  async ionViewDidEnter(): Promise<void> {
+    await this.receiptOutput.savePdf(this.receiptContent?.nativeElement ?? null, 'commande_tontine', this.reference);
+  }
+
   dismiss() {
-    this.modalCtrl.dismiss();
+    void this.modalCtrl.dismiss();
   }
 
   async print() {
-    if (!this.data) {
+    if (!this.data || this.printing) {
       return;
     }
+    this.printing = true;
     try {
-      await this.printingService.printTontineOrderReceipt(this.data);
-      await this.showToast('Reçu imprimé avec succès !', 'success');
-      await this.modalCtrl.dismiss({ printed: true });
-    } catch (error) {
-      const message = error instanceof Error && error.message
-        ? error.message
-        : 'Impossible d\'imprimer le reçu';
-      await this.showToast(message, 'danger');
+      await this.receiptOutput.printOrSavePdf({
+        print: () => this.printingService.printTontineOrderReceipt(this.data),
+        element: this.receiptContent?.nativeElement ?? null,
+        type: 'commande_tontine',
+        reference: this.reference
+      });
+    } finally {
+      this.printing = false;
     }
   }
 
-  private async showToast(message: string, color: string) {
-    const toast = await this.toastController.create({
-      message,
-      duration: 3000,
-      color,
-      position: 'top'
-    });
-    await toast.present();
+  private get reference(): string {
+    return this.data?.reference || 'commande-tontine';
   }
 }

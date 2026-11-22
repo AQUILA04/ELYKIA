@@ -1,3 +1,62 @@
+ion-header.ion-no-border {
+  --border-width: 0;
+}
+
+/* En-tête bleu du design system : sans ces règles la barre restait blanche et le titre tronqué. */
+.hero-toolbar {
+  --background: transparent;
+  --color: #fff;
+  --border-width: 0;
+  --min-height: 56px;
+}
+
+.hero-toolbar ion-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 17px;
+  text-align: start;
+  padding-inline: 8px;
+
+  .elyk-surtitle {
+    display: block;
+    margin-bottom: 2px;
+  }
+}
+
+.hero-toolbar ion-button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.recap-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 10px;
+  border: 1.5px dashed var(--elyk-navy, #003366);
+  border-radius: 12px;
+  background: var(--elyk-navy-pale, #e8eef6);
+  color: var(--elyk-navy, #003366);
+  font-weight: 700;
+  font-size: 14px;
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.recap-warning--danger {
+  background: #fdecea !important;
+  color: #b3261e !important;
+}
+
+.recap-line-total {
+  white-space: nowrap;
+}
+
 .recap {
   padding: 16px;
   display: flex;

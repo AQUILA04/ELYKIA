@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ConnectivityService } from './connectivity.service';
 import { HybridSyncPreferenceService } from './hybrid-sync-preference.service';
 import { LoggerService } from './logger.service';
+import { toUserErrorMessage } from '../utils/user-error-message.util';
 import {
   OnlineFirstWriteResult,
   OnlineWriteError,
@@ -78,19 +79,7 @@ export class OnlineFirstWriteCoordinator {
     if (error instanceof OnlineWriteError) {
       return error.message;
     }
-    if (error instanceof HttpErrorResponse) {
-      const body = error.error;
-      if (typeof body === 'string' && body.trim()) {
-        return body;
-      }
-      if (body?.message) {
-        return String(body.message);
-      }
-      return error.message || `Erreur HTTP ${error.status}`;
-    }
-    if (error instanceof Error) {
-      return error.message;
-    }
-    return 'Une erreur est survenue lors de l\'enregistrement.';
+    // Message du backend (`Response.message`), jamais le texte technique d'Angular.
+    return toUserErrorMessage(error, 'Une erreur est survenue lors de l\'enregistrement.');
   }
 }

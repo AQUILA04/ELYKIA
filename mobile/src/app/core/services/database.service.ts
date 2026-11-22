@@ -2299,6 +2299,51 @@ export class DatabaseService {
     await this.db.executeSet(set);
   }
 
+  /**
+   * Supprime en local les membres déjà synchronisés que le serveur ne renvoie plus
+   * (ex. client réassigné à un autre commercial). Sans cela, ils restent affichés
+   * comme « Client Inconnu » car leur client n'est plus téléchargé.
+   *
+   * Sécurités : on ne touche jamais aux membres locaux / non synchronisés, ni à ceux
+   * qui ont des cotisations non synchronisées ou une livraison.
+   *
+   * @returns le nombre de membres supprimés
+   */
+  async purgeStaleSyncedTontineMembers(
+    sessionId: string,
+    commercialUsername: string,
+    serverMemberIds: string[]
+  ): Promise<number> {
+    if (!this.db) throw new Error('Database not initialized.');
+    if (!sessionId || !commercialUsername || serverMemberIds.length === 0) return 0;
+
+    const serverIds = new Set(serverMemberIds.map(String));
+    const local = await this.db.query(
+      `SELECT id FROM tontine_members
+       WHERE tontineSessionId = ? AND commercialUsername = ? AND isSync = 1 AND isLocal = 0`,
+      [sessionId, commercialUsername]
+    );
+    const staleIds = (local.values || []).map((r: any) => String(r.id)).filter(id => !serverIds.has(id));
+
+    let deleted = 0;
+    for (const id of staleIds) {
+      const blockers = await this.db.query(
+        `SELECT
+           (SELECT COUNT(*) FROM tontine_collections WHERE tontineMemberId = ? AND isSync = 0) AS unsyncedCollections,
+           (SELECT COUNT(*) FROM tontine_deliveries WHERE tontineMemberId = ?) AS deliveries`,
+        [id, id]
+      );
+      const row = blockers.values?.[0];
+      if ((row?.unsyncedCollections ?? 0) > 0 || (row?.deliveries ?? 0) > 0) continue;
+
+      await this.db.run('DELETE FROM tontine_member_amount_history WHERE tontineMemberId = ?', [id], false);
+      await this.db.run('DELETE FROM tontine_collections WHERE tontineMemberId = ? AND isSync = 1', [id], false);
+      await this.db.run('DELETE FROM tontine_members WHERE id = ? AND isSync = 1 AND isLocal = 0', [id], false);
+      deleted++;
+    }
+    return deleted;
+  }
+
   async getTontineMembers(sessionId: string, commercialUsername: string): Promise<any[]> {
     if (!this.db) throw new Error('Database not initialized.');
 
@@ -2411,6 +2456,8 @@ export class DatabaseService {
     if (!this.db) throw new Error('Database not initialized.');
     deliveries = deliveries.filter(d => hasPersistableTontineDeliveryId(d?.id));
     if (!deliveries.length) return;
+    deliveries = await this.withoutPendingLocalDeliver(deliveries);
+    if (!deliveries.length) return;
 
     const queryDelivery = `
       INSERT OR REPLACE INTO tontine_deliveries(
@@ -2440,6 +2487,13 @@ export class DatabaseService {
       });
 
       if (d.items && d.items.length) {
+        // Les articles du serveur REMPLACENT ceux de la commande : sans cela, les lignes d'une version
+        // précédente (modification, fusion d'une seconde commande, ID locaux) restaient à côté et
+        // « s'ajoutaient » à la commande à la réouverture.
+        set.push({
+          statement: 'DELETE FROM tontine_delivery_items WHERE tontineDeliveryId = ?',
+          values: [d.id]
+        });
         for (const item of d.items) {
           set.push({
             statement: queryItems,
@@ -2453,6 +2507,25 @@ export class DatabaseService {
     }
 
     await this.db.executeSet(set);
+  }
+
+  /**
+   * Une remise faite hors ligne (needsDeliverSync = 1) n'est pas encore sur le serveur : le serveur
+   * renvoie encore la commande en attente. On garde la ligne locale tant que la remise n'est pas envoyée.
+   */
+  private async withoutPendingLocalDeliver(deliveries: any[]): Promise<any[]> {
+    const ids = deliveries.map(d => String(d.id));
+    const placeholders = ids.map(() => '?').join(',');
+    const result = await this.db!.query(
+      `SELECT id FROM tontine_deliveries WHERE needsDeliverSync = 1 AND id IN (${placeholders})`,
+      ids
+    );
+    const pending = new Set((result.values || []).map((row: any) => String(row.id)));
+    if (pending.size === 0) {
+      return deliveries;
+    }
+    return deliveries.filter(d => !pending.has(String(d.id))
+      || String(d.status || '').toUpperCase() === 'DELIVERED');
   }
 
   async getTontineDeliveries(memberId: string, commercialUsername: string): Promise<any[]> {

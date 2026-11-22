@@ -1,5 +1,6 @@
 import { of } from 'rxjs';
 import { MemberDetailPage } from './member-detail.page';
+import { TontineOrderEditOutcomeService } from '../order-edit/tontine-order-edit-outcome.service';
 
 describe('MemberDetailPage delivery menu', () => {
   function create(options?: {
@@ -9,7 +10,19 @@ describe('MemberDetailPage delivery menu', () => {
     deliveryError?: boolean;
     modalResult?: unknown;
     stockQuantity?: number | null;
+    ceiling?: number;
+    replaceError?: unknown;
   }) {
+    const feedback = {
+      error: jasmine.createSpy('error').and.resolveTo('ok'),
+      warning: jasmine.createSpy('warning').and.resolveTo('ok'),
+      success: jasmine.createSpy('success').and.resolveTo('close')
+    };
+    const ceilingService = {
+      forMember: jasmine.createSpy('forMember').and.callFake(async () => ({
+        ceiling: options?.ceiling ?? 1_000_000, projected: options?.ceiling ?? 1_000_000, available: 0
+      }))
+    };
     const modalCtrl = {
       create: jasmine.createSpy('create').and.callFake(async () => ({
         present: () => Promise.resolve(),
@@ -21,10 +34,17 @@ describe('MemberDetailPage delivery menu', () => {
         options?.stockQuantity === null ? null : { id: 's1', availableQuantity: options?.stockQuantity ?? 10 })
     };
     const writeService = {
-      replaceDeliveryItems: jasmine.createSpy('replaceDeliveryItems').and.resolveTo(15000)
+      replaceDeliveryItems: options?.replaceError
+        ? jasmine.createSpy('replaceDeliveryItems').and.rejectWith(options.replaceError)
+        : jasmine.createSpy('replaceDeliveryItems').and.resolveTo(15000)
+    };
+    const loading = {
+      present: jasmine.createSpy('present').and.resolveTo(),
+      dismiss: jasmine.createSpy('dismiss').and.resolveTo(true)
     };
     const loadingCtrl = {
-      create: jasmine.createSpy('create').and.resolveTo({ present: () => Promise.resolve(), dismiss: () => Promise.resolve() })
+      create: jasmine.createSpy('create').and.resolveTo(loading),
+      getTop: jasmine.createSpy('getTop').and.resolveTo(undefined)
     };
     const routeId = options?.routeId ?? 'm2';
     const deliveryRepo = {
@@ -39,6 +59,7 @@ describe('MemberDetailPage delivery menu', () => {
       create: jasmine.createSpy('create').and.resolveTo({ present: () => Promise.resolve() })
     };
     const navCtrl = { back: jasmine.createSpy('back'), navigateForward: jasmine.createSpy('navigateForward') };
+    const orderEditOutcome = new TontineOrderEditOutcomeService();
     const page = new MemberDetailPage(
       {
         snapshot: { paramMap: { get: (key: string) => key === 'id' ? routeId : null } },
@@ -66,10 +87,13 @@ describe('MemberDetailPage delivery menu', () => {
       writeService as any,
       {} as any,
       {} as any,
-      modalCtrl as any
+      modalCtrl as any,
+      feedback as any,
+      ceilingService as any,
+      orderEditOutcome
     );
     (page as any).commercialUsername = 'com1';
-    return { page, deliveryRepo, modalCtrl, stockRepo, writeService, navCtrl };
+    return { page, deliveryRepo, modalCtrl, stockRepo, writeService, navCtrl, feedback, loading, orderEditOutcome };
   }
 
   it('shows Commande de tontine while the session is active and the member has no delivery', async () => {
@@ -124,8 +148,6 @@ describe('MemberDetailPage delivery menu', () => {
     page.sessionStatus = 'CLOSED';
     expect(page.hasPendingDeliveryToMark()).toBeTrue();
     expect(page.canEditPendingOrder()).toBeTrue();
-    page.revisingOrder = true;
-    expect(page.canEditPendingOrder()).toBeFalse();
   });
 
   it('no longer offers Marquer comme livré once the member is delivered', async () => {
@@ -228,6 +250,44 @@ describe('MemberDetailPage delivery menu', () => {
     });
   });
 
+  describe('order revision', () => {
+    const pendingMember = { id: 'm2', clientId: 'c1', deliveryStatus: 'PENDING', availableContribution: 25500 };
+    const pendingOrder = {
+      id: '5', status: 'PENDING', requestDate: '2026-11-21', deliveryDate: '2026-11-21', totalAmount: 15800,
+      items: [{ id: 'i1', articleId: 'a1', quantity: 4, unitPrice: 3200, totalPrice: 12800 }]
+    };
+
+    it('shows the ceiling and hides « Livrée le » for an order not yet delivered', async () => {
+      const { page } = create({ members: [pendingMember], deliveries: [pendingOrder], ceiling: 25500 });
+      await page.loadMemberData();
+
+      expect(page.orderCeiling?.ceiling).toBe(25500);
+      expect(page.isDeliveredOrder()).toBeFalse();
+      expect(page.ceilingExcess()).toBe(0);
+    });
+
+    it('opens the dedicated edit page instead of editing the order in place', async () => {
+      const { page, navCtrl, writeService } = create({ members: [pendingMember], deliveries: [pendingOrder] });
+      await page.loadMemberData();
+
+      page.openOrderEdit();
+
+      expect(navCtrl.navigateForward).toHaveBeenCalledWith(['/tontine/order-edit', 'm2']);
+      expect(writeService.replaceDeliveryItems).not.toHaveBeenCalled();
+    });
+
+    it('shows the order receipt once when coming back from a saved edit', async () => {
+      const { page, orderEditOutcome } = create({ members: [pendingMember], deliveries: [pendingOrder] });
+      const print = spyOn(page, 'printOrderReceipt').and.resolveTo();
+      orderEditOutcome.requestReceipt('m2');
+
+      await page.ionViewWillEnter();
+      await page.ionViewWillEnter();
+
+      expect(print).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('shows the net balance and the amount still to pay under the order', async () => {
     const { page } = create({
       members: [{ id: 'm2', clientId: 'c1', deliveryStatus: 'PENDING', availableContribution: 40000 }],
@@ -240,18 +300,6 @@ describe('MemberDetailPage delivery menu', () => {
     expect(balance?.amountDue).toBe(15000);
     expect(balance?.refundableBalance).toBe(0);
     expect(page.orderBalanceLabels().net).toBe('Solde net cotisé');
-  });
-
-  it('follows the revised total while the order is being edited', async () => {
-    const { page } = create({
-      members: [{ id: 'm2', clientId: 'c1', deliveryStatus: 'PENDING', availableContribution: 40000 }],
-      deliveries: [{ id: 'order', status: 'PENDING', requestDate: '2026-04-01', totalAmount: 55000, items: [{ id: 'i1', quantity: 1, totalPrice: 30000 }] }]
-    });
-    await page.loadMemberData();
-    page.revisingOrder = true;
-
-    expect(page.orderBalance()?.refundableBalance).toBe(10000);
-    expect(page.orderBalance()?.amountDue).toBe(0);
   });
 
   it('does not offer Modifier la commande when the order has no items to edit', async () => {

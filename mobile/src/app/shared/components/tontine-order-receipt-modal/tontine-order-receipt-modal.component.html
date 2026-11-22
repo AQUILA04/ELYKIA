@@ -13,7 +13,7 @@
 </ion-header>
 
 <ion-content class="elyk-content">
-  <div class="receipt-sheet" *ngIf="data">
+  <div class="receipt-sheet" *ngIf="data" #receiptContent>
     <div class="brand-bar" aria-hidden="true"></div>
 
     <header class="receipt-head">
@@ -97,7 +97,7 @@
           </ion-button>
         </ion-col>
         <ion-col size="6">
-          <ion-button expand="block" class="elyk-btn-navy" (click)="print()">
+          <ion-button expand="block" class="elyk-btn-navy" [disabled]="printing" (click)="print()">
             <ion-icon slot="start" name="print-outline"></ion-icon>
             Imprimer
           </ion-button>

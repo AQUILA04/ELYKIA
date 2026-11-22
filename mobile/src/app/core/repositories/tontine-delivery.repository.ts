@@ -278,6 +278,11 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
             });
 
             if (delivery.items && delivery.items.length) {
+                // La liste fournie remplace les articles de la commande (pas d'anciennes lignes résiduelles).
+                set.push({
+                    statement: 'DELETE FROM tontine_delivery_items WHERE tontineDeliveryId = ?',
+                    values: [delivery.id]
+                });
                 for (const item of delivery.items) {
                     set.push({
                         statement: queryItems,

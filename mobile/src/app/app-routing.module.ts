@@ -127,6 +127,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'tontine/order-edit/:memberId',
+    loadChildren: () => import('./features/tontine/pages/order-edit/order-edit.module').then(m => m.OrderEditPageModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'tontine/collection-recording',
     loadChildren: () => import('./features/tontine/pages/collection-recording/collection-recording.module').then(m => m.CollectionRecordingPageModule),
     canActivate: [AuthGuard]
