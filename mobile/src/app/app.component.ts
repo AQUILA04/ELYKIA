@@ -57,11 +57,14 @@ export class AppComponent implements OnInit, OnDestroy {
     private readonly autoSyncSchedulerService: AutoSyncSchedulerService
   ) {
     registerAllIcons();
-    this.initializeApp().then(r => console.log(r));
   }
 
-  async ngOnInit() {
-    this.platform.ready().then(() => {
+  ngOnInit(): void {
+    void this.initializeApp().catch((err) => {
+      console.error('[AppComponent] initializeApp failed:', err);
+    });
+
+    void this.platform.ready().then(() => {
       this.dataInitializationService.scheduleBackup();
       this.setupBackButtonHandler();
 

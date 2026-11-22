@@ -93,7 +93,7 @@ jobs:
       working-directory: .
 
     - name: Install dependencies
-      run: npm ci
+      run: npm ci --ignore-scripts
 
     - name: Run unit tests (Vitest)
       run: npm run test:ci

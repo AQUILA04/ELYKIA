@@ -91,7 +91,7 @@ runs:
       run: |
         set -euo pipefail
         cd mobile
-        npm ci
+        npm ci --ignore-scripts
         # Prefer lockfile-local CLIs. Unpinned `npm install -g @ionic/cli` pulls
         # @ionic/utils-fs → @types/fs-extra → @types/node@* (latest), which can 404
         # when npm publishes a broken/incomplete @types/node version.
