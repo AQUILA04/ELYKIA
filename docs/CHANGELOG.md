@@ -633,6 +633,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.49.1] — 2026-11-22
+
+### Fixed
+
+- **Tontine —** la liste des membres n'affiche plus de « Client Inconnu » pour les membres dont le client a été réassigné à un autre commercial. À la synchronisation des membres, les membres déjà synchronisés que le serveur ne renvoie plus sont retirés de la base locale. Les membres créés localement, non synchronisés, avec une cotisation non synchronisée ou avec une livraison sont conservés. La purge n'a lieu que si toutes les pages de membres ont été reçues sans erreur.
+
 ## Mobile — [2.49.0] — 2026-11-21
 
 ### Fixed
