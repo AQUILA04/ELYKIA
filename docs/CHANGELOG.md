@@ -9,6 +9,14 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (migration frontend Angular 21 — Docker, CI Vitest & règles standalone)
+
+### Changed
+
+- **Docker (`frontend/Dockerfile`) —** passage de `node:20.19.3` à **`node:22-bookworm-slim`** et de `npm install --legacy-peer-deps` à **`npm ci`** strict.
+- **CI/CD (`.github/workflows/ci.yml`, `.github/workflows/e2e.yml`) —** ajout de l'exécution des tests unitaires Vitest (`npm run test:ci`, 111 fichiers / 224 tests) sous Node 22 dans `build-frontend`, passage de `e2e.yml` à Node 22 + `npm ci` strict.
+- **Gouvernance frontend (`.cursor/rules/frontend-lazy-loading-migration.mdc`, `.github/scripts/check-frontend-lazy-loading.py`) —** les 7 derniers domaines eager étant migrés, la règle évolue vers le standard Angular 21 (composants standalone + routes lazy `{domaine}.routes.ts` / `loadComponent`, tout en conservant la compatibilité avec les modules existants `{domaine}.module.ts`).
+
 ## Docs & Infra — 2026-11-21 (déploiement TEST dédié `migration-v4` & CI sélective PR)
 
 ### Added
@@ -196,6 +204,30 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [3.0.0] — 2026-11-21
+
+### Changed
+
+- **Angular 21 LTS (`21.2.26`) & Material/CDK (`21.2.14`) —** migration incrémentale d'Angular `18.2` vers `21.2.26` (`@angular/cli` & `@angular/build` `21.2.30`, TypeScript `5.9.3`, `zone.js ~0.16.0`, `rxjs ~7.8.2`), thème `indigo-pink.css` conservé, `standalone: false` explicite sur l'ensemble des déclarations `NgModule`, bootstrap migré vers `platformBrowser().bootstrapModule(AppModule)` avec `provideZoneChangeDetection({ eventCoalescing: true })`, `provideBrowserGlobalErrorListeners()`, `provideHttpClient(withInterceptorsFromDi())`, `provideAppInitializer` et `DOCUMENT` depuis `@angular/core`.
+- **Builder `@angular/build:application` (esbuild/Vite) —** remplacement du builder Webpack legacy (`@angular-devkit/build-angular:browser`), suppression de `src/polyfills.ts`, sortie préservée dans `dist/optimize-elykia-ui/` pour Nginx/Docker, `browserTarget` → `buildTarget`, imports par défaut `moment` et suppression de `--legacy-peer-deps` (`npm ci` strict).
+- **Dépendances tierces natives Angular 21 —** montée de `@ng-select/ng-select` (`21.8.2`), `ngx-permissions` (`19.0.0`), `ngx-spinner` (`21.1.0`), `ngx-toastr` (`20.0.5`), `ng2-charts` (`10.0.0`, `BaseChartDirective` + `provideCharts(withDefaultRegisterables())`), `ng-apexcharts` (`2.5.0` + `apexcharts` `5.10.3`) et `firebase` (`12.19.0`).
+- **Lazy-loading 100 % des domaines métier —** migration des 7 derniers domaines eager (`locality`, `cash-desk`, `gestion`, `operation`, `deposit`, `out`, `history`) vers `loadChildren` avec URLs normalisées (`/{domaine}/...`), mise à jour de la sidebar, des navigations internes et des tests E2E Playwright.
+- **Control Flow natif Angular —** migration automatique des templates HTML (`*ngIf`/`*ngFor`/`*ngSwitch` → `@if`/`@for`/`@switch`).
+- **Tests unitaires Vitest (`@angular/build:unit-test`) —** remplacement complet de Karma/Jasmine par Vitest `4.1` + `jsdom` (111/111 fichiers, 224/224 tests verts en ~15 s).
+
+### Added
+
+- **`GoogleAnalyticsService` —** service léger natif `gtag.js` + suivi `NavigationEnd` remplaçant `ngx-google-analytics` (bloqué Angular 14), couvert par tests unitaires.
+
+### Removed
+
+- Suppression des paquets inutilisés (`@angular/fire`, `@angular/pwa`, `ngx-pagination`, `@types/chart.js`), de `ngx-google-analytics`, de `@angular/animations` / `BrowserAnimationsModule` (animation `[@slideDown]` de la recherche avancée crédit remplacée par CSS natif), de `@angular/platform-browser-dynamic` et de la chaîne Karma/Jasmine (`karma.conf.js`, `src/test.ts`).
+
+### Fixed
+
+- `ErrorHandlerService.extractErrorMessage` : priorité donnée à `error.error instanceof ErrorEvent` avant `error.error.message`, corrigeant la classification `CLIENT_ERROR` sur erreurs réseau.
+- `RegisterComponent` : ajout du contrôle `confirmPassword` manquant dans le `FormGroup` par rapport au template HTML.
 
 ## Frontend — [2.62.0] — 2026-11-21
 

@@ -5,7 +5,7 @@ Versions lues le 2026-11-21 (branche `migration/architecture-refonte`). En cas d
 | Composant | Version | Fichier | Stack constatée |
 |-----------|---------|---------|-----------------|
 | Backend | 2.9.1 | `backend/pom.xml` (`optimize-elykia-core`) | **Java 25 (LTS)** (+ Project Leyden AOT Cache Docker), **Spring Boot 4.2.0**, **Spring Modulith 2.2.0** (18 modules DDD vérifiés en CI, `core/` supprimé), Spring AI **2.1.0** (`google-genai`), JPA / Hibernate 7.4 (`BootstrapMode.LAZY` en `prod`), Jackson 3, Flyway 12.11 (`spring-boot-starter-flyway`), JJWT 0.13.0, MinIO 9.0.4 + `okhttp-jvm` 5.5.1, MapStruct 1.6.3, Lombok 1.18.48, springdoc 3.2.1 (désactivé en `prod`), iText 9.8.1 / html2pdf 6.3.4 / PDFBox 3.0.8 / POI 5.5.1, Testcontainers 2.0.5, JaCoCo 0.8.16 (seuil lignes global 0,46) |
-| Frontend | 2.62.0 | `frontend/package.json` | Angular **18.2**, Material, ng-select, ngx-permissions, Playwright 1.60, Karma/Jasmine. `npm install --legacy-peer-deps` |
+| Frontend | 3.0.0 | `frontend/package.json` | **Angular 21 LTS (`21.2.26`)**, **Material/CDK `21.2.14`**, builder **`@angular/build:application` (esbuild/Vite)**, TypeScript `5.9.3`, control flow natif (`@if`/`@for`/`@switch`), `ng-select` 21, `ngx-permissions` 19, `ngx-spinner` 21, `ngx-toastr` 20, `ng2-charts` 10, `ng-apexcharts` 2.5, **Vitest 4.1** (`@angular/build:unit-test`), Playwright 1.60. `npm ci` strict (sans `--legacy-peer-deps`) |
 | Mobile | 2.48.0 | `mobile/package.json` (+ `environment.ts` et `environment.prod.ts`) | Angular **20**, Ionic **8**, Capacitor **7.4**, SQLite, NgRx 20 |
 | Espace client | 0.17.4 | `customer-space/package.json` | Angular **20.3**, Ionic **8**, Capacitor **8.4** |
 
@@ -17,13 +17,13 @@ Postgres **15** (image du compose prod). Base locale de dev documentée : `oec` 
 
 ## Lancer en local
 
-Prérequis : Java 25 (branches migration ; Java 17 sur `main` avant fusion), Maven 3.9+, Node 20, PostgreSQL 15. Android SDK seulement pour un binaire mobile. Secrets : variables d’environnement, jamais dans Git (`JWT_SECRET`, mot de passe JDBC, clés MinIO, clés LLM, `NOTIFICATION_HUB_*`). Amorçage des comptes démo seulement si `SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED=true` et `LOCAL_SEED_PASSWORD` ; le profil `prod` le coupe.
+Prérequis : Java 25 (branches migration ; Java 17 sur `main` avant fusion), Maven 3.9+, **Node 22 LTS** (Node 20.19+ minimum pour Angular 21), PostgreSQL 15. Android SDK seulement pour un binaire mobile. Secrets : variables d’environnement, jamais dans Git (`JWT_SECRET`, mot de passe JDBC, clés MinIO, clés LLM, `NOTIFICATION_HUB_*`). Amorçage des comptes démo seulement si `SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED=true` et `LOCAL_SEED_PASSWORD` ; le profil `prod` le coupe.
 
 ```bash
 # API (build autonome, plus aucun install backend-lib requis) — port 8081, health http://localhost:8081/actuator/health
 cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=prod
 
-cd frontend && npm install --legacy-peer-deps && npm start    # http://localhost:4200
+cd frontend && npm ci && npm start                              # http://localhost:4200
 cd mobile && npm install --legacy-peer-deps && npm start      # ionic serve
 cd customer-space && npm install && npm start
 ```

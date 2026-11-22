@@ -14,7 +14,7 @@
 
 ## Points d’attention (pas une liste de bugs ouverts)
 
-- Docs générées en retard sur la stack : `docs/project-overview.md` et `docs/architecture-frontend.md` disent Angular 14 ; le `package.json` est en 18.2. `docs/index.md` omet l’espace client et le site.
+- Docs générées en retard sur la stack : `docs/project-overview.md` et `docs/architecture-frontend.md` disent Angular 14 ; le `package.json` est en Angular 21 LTS (`3.0.0`). `docs/index.md` omet l’espace client et le site.
 - `backend/README.md` est encore un TODO.
 - Préfixes REST `/api` et `/api/v1` coexistent.
 - Parents Spring Boot de `backend-lib/` (3.1.3, 3.4.1, 3.3.0) ne sont pas alignés sur l’API (3.3.0).
