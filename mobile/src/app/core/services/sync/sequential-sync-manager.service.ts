@@ -284,10 +284,10 @@ export class SequentialSyncManager implements ISequentialSyncManager {
                       sessionId, options.commercialUsername, Array.from(receivedMemberIds)
                     );
                     if (purged > 0) {
-                      this.log.log(`SequentialSyncManager: ${purged} membre(s) obsolète(s) supprimé(s) (absents du serveur)`);
+                      await this.log.log(`SequentialSyncManager: ${purged} membre(s) obsolète(s) supprimé(s) (absents du serveur)`);
                     }
                   } catch (purgeError: any) {
-                    this.log.log(`SequentialSyncManager: Purge des membres obsolètes ignorée: ${purgeError?.message ?? purgeError}`);
+                    await this.log.log(`SequentialSyncManager: Purge des membres obsolètes ignorée: ${purgeError?.message ?? purgeError}`);
                   }
                 }
                 return result;
