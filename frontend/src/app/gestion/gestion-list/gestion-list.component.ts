@@ -77,15 +77,15 @@ export class GestionListComponent implements OnInit {
   }
 
   addGestion(): void {
-    this.router.navigate(['/gestion-add']);
+    this.router.navigate(['/gestion/add']);
   }
 
   viewDetails(id: number): void {
-    this.router.navigate(['/gestion-details', id]);
+    this.router.navigate(['/gestion/details', id]);
   }
 
   editGestion(id: number): void {
-    this.router.navigate(['/gestion-add', id]);
+    this.router.navigate(['/gestion/add', id]);
   }
 
   deleteGestion(id: number): void {

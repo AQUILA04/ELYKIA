@@ -122,7 +122,7 @@ export class Back2StoreComponent implements OnInit {
     this.outService.makeBackToStore(dto).subscribe({
       next: () => {
         this.spinner.hide();
-        this.router.navigate(['/history']); // Redirection vers la liste des historiques
+        this.router.navigate(['/history/list']); // Redirection vers la liste des historiques
       },
       error: () => {
         this.spinner.hide();

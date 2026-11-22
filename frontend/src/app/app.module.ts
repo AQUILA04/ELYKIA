@@ -17,62 +17,34 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { LocalityListComponent } from './locality/localitylist/localitylist.component';
-import { LocalityDetailsComponent } from './locality/localitydetails/localitydetails.component';
-import { LocalityAddComponent } from './locality/localityadd/localityadd.component';
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { NgxPermissionsModule } from 'ngx-permissions';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { AuthInterceptor } from './shared/auth.interceptor';
-import { OpenCashDeskComponent } from './cash-desk/open-cash-desk/open-cash-desk.component';
-import { CloseCashDeskComponent } from './cash-desk/close-cash-desk/close-cash-desk.component';
-import { DailyOperationComponent } from './cash-desk/daily-operation/daily-operation.component';
 import { MatStepperModule } from '@angular/material/stepper';
-import { TFJComponent } from './cash-desk/tfj/tfj.component';
 import { MatListModule } from '@angular/material/list';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTableModule } from '@angular/material/table';
-import { BilletageModule } from './cash-desk/billetage/billetage.module';
 import { DashboardChartModule } from './dashboard-chart/dashboard-chart.module';
-// Tontine components removed - now using lazy loaded module
-import { GestionAddComponent } from './gestion/gestion-add/gestion-add.component';
-import { GestionListComponent } from './gestion/gestion-list/gestion-list.component';
-import { GestionDetailsComponent } from './gestion/gestion-details/gestion-details.component';
-import { OperationAddComponent } from './operation/operation-add/operation-add.component';
-import { OperationListComponent } from './operation/operation-list/operation-list.component';
-import { OperationDetailsComponent } from './operation/operation-details/operation-details.component';
-import { DepositAddComponent } from './deposit/deposit-add/deposit-add.component';
-import { DepositListComponent } from './deposit/deposit-list/deposit-list.component';
-import { DepositDetailsComponent } from './deposit/deposit-details/deposit-details.component';
 import { LicenseInterceptorService } from './interceptors/license-interceptor.service';
 import { ReactivateLicenseComponent } from './license/reactivate-license/reactivate-license.component';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
-import { OutListComponent } from './out/out-list/out-list.component';
-import { HistoryComponent } from './history/history.component';
-import { OutDetailsComponent } from './out/out-details/out-details.component';
-import { HistoryDetailsComponent } from './history/history-details/history-details.component';
-import { Back2StoreComponent } from './history/back2-store/back2-store.component';
-import { OutPdfListComponent } from './out/out-pdf-list/out-pdf-list.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { LicenseKeyFormatterPipe } from './shared/pipe/license-key-formatter.pipe'; // Ajustez le chemin si nécessaire
+import { LicenseKeyFormatterPipe } from './shared/pipe/license-key-formatter.pipe';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { NgSelectModule } from '@ng-select/ng-select';
-
-// MODULES MANQUANTS AJOUTÉS ICI
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { OldReleaseListComponent } from './out/old-release-list/old-release-list.component';
-// Tontine module is lazy loaded, no need to import here
 import { SharedComponentsModule } from './shared/components/shared-components.module';
 import { ToastrModule } from 'ngx-toastr';
 import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-money-config-list/mobile-money-config-list.component';
 import { WithdrawalFeeGridComponent } from './mobile-money-config/withdrawal-fee-grid/withdrawal-fee-grid.component';
-import {NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule} from "ngx-google-analytics";
-import {environment} from "../environments/environment";
+import { NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule } from 'ngx-google-analytics';
+import { environment } from '../environments/environment';
 import { FeatureFlagService } from './shared/service/feature-flag.service';
 
 export function initializeApp(featureFlagService: FeatureFlagService) {
@@ -84,33 +56,10 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     AppComponent,
     HeaderComponent,
     SidebarComponent,
-    LocalityListComponent,
-    LocalityDetailsComponent,
-    LocalityAddComponent,
     LoginComponent,
     RegisterComponent,
-    OpenCashDeskComponent,
-    CloseCashDeskComponent,
-    DailyOperationComponent,
-    TFJComponent,
-    GestionAddComponent,
-    GestionListComponent,
-    GestionDetailsComponent,
-    OperationAddComponent,
-    OperationListComponent,
-    OperationDetailsComponent,
-    DepositAddComponent,
-    DepositListComponent,
-    DepositDetailsComponent,
     ReactivateLicenseComponent,
-    OutListComponent,
-    HistoryComponent,
-    OutDetailsComponent,
-    HistoryDetailsComponent,
-    Back2StoreComponent,
-    OutPdfListComponent,
     LicenseKeyFormatterPipe,
-    OldReleaseListComponent,
     MobileMoneyConfigListComponent,
     WithdrawalFeeGridComponent,
   ],
@@ -144,11 +93,9 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     MatButtonToggleModule,
     NgSelectModule,
     MatAutocompleteModule,
-    // Tontine module is lazy loaded, not imported here
     MatDatepickerModule,
     MatNativeDateModule,
     SharedComponentsModule,
-    BilletageModule,
     ToastrModule.forRoot(),
     MatExpansionModule,
     // Initialise GA avec votre ID

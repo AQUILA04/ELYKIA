@@ -99,7 +99,7 @@ export class LocalityAddComponent implements OnInit, OnDestroy {
         this.alertService.showSuccess(
           this.localityId ? 'Localité mise à jour avec succès' : 'Localité ajoutée avec succès'
         );
-        this.router.navigate(['/localitylist']);
+        this.router.navigate(['/locality/list']);
       },
       error: (error) => {
         const errorMessage = error?.error?.message
@@ -111,6 +111,6 @@ export class LocalityAddComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
-    this.router.navigate(['/localitylist']);
+    this.router.navigate(['/locality/list']);
   }
 }

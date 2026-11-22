@@ -50,7 +50,7 @@
         </li>
         <li class="sidebar-item" *ngIf="hasCaisseAccess()">
           <a class="sidebar-link has-arrow" (click)="onCaisseClick()" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/open-cashDesk') }">
+             [ngClass]="{ 'active': isRouteActive('/cash-desk') }">
             <span>
               <mat-icon>point_of_sale</mat-icon>
             </span>
@@ -58,15 +58,15 @@
           </a>
           <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isCaisseOpen }">
             <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_OPEN_CASH_DESK', 'ROLE_CLOSE_CASH_DESK']">
-              <a class="sidebar-link" routerLink="/open-cashDesk"
-                 [ngClass]="{ 'active': isSubRouteActive('/open-cashDesk') }">
+              <a class="sidebar-link" routerLink="/cash-desk/open"
+                 [ngClass]="{ 'active': isSubRouteActive('/cash-desk/open') }">
                 <span class="material-icons">add_box</span>
                 <span class="hide-menu">Ouverture / Fermeture</span>
               </a>
             </li>
             <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="daily-operation"
-                 [ngClass]="{ 'active': isSubRouteActive('/daily-operation') }">
+              <a class="sidebar-link" routerLink="/cash-desk/daily-operation"
+                 [ngClass]="{ 'active': isSubRouteActive('/cash-desk/daily-operation') }">
                 <span class="material-icons">receipt</span>
                 <span class="hide-menu">Opération Journalière</span>
               </a>
@@ -421,9 +421,9 @@
           </a>
           <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isConfigurationOpen }">
             <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_LOCALITY','ROLE_EDIT_LOCALITY']">
-              <a class="sidebar-link" routerLink="/localitylist"
+              <a class="sidebar-link" routerLink="/locality/list"
                  data-testid="e2e-sidebar-localities"
-                 [ngClass]="{ 'active': isSubRouteActive('/localitylist') }">
+                 [ngClass]="{ 'active': isSubRouteActive('/locality') }">
                 <i class="ti ti-map"></i>
                 <span class="hide-menu">Localités</span>
               </a>
@@ -522,8 +522,8 @@
           </a>
         </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_DEPOSIT','ROLE_EDIT_AGENCY_DEPOSIT']">
-          <a class="sidebar-link" routerLink="/gestion-list" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/gestion-list') }">
+          <a class="sidebar-link" routerLink="/gestion/list" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/gestion') }">
             <span>
               <mat-icon>business</mat-icon>
             </span>
@@ -531,8 +531,8 @@
           </a>
         </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_REPORT','ROLE_EDIT_AGENCY_REPORT']">
-          <a class="sidebar-link" routerLink="/operation-list" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/operation-list') }">
+          <a class="sidebar-link" routerLink="/operation/list" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/operation') }">
             <span>
               <mat-icon>event</mat-icon>
             </span>
@@ -540,8 +540,8 @@
           </a>
         </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_AGENCY_DEPOSIT','ROLE_EDIT_AGENCY_DEPOSIT']">
-          <a class="sidebar-link" routerLink="/deposit-list" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/deposit-list') }">
+          <a class="sidebar-link" routerLink="/deposit/list" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/deposit') }">
             <span>
               <mat-icon>savings</mat-icon>
             </span>

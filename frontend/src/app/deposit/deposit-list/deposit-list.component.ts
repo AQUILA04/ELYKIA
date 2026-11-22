@@ -61,15 +61,15 @@ export class DepositListComponent implements OnInit {
   }
 
   addDeposit(): void {
-    this.router.navigate(['/deposit-add']);
+    this.router.navigate(['/deposit/add']);
   }
 
   viewDetails(id: number): void {
-    this.router.navigate(['/deposit-details', id]);
+    this.router.navigate(['/deposit/details', id]);
   }
 
   editDeposit(id: number): void {
-    this.router.navigate(['/deposit-add', id]);
+    this.router.navigate(['/deposit/add', id]);
   }
 
   deleteDeposit(id: number): void {

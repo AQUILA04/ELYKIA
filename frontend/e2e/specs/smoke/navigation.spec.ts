@@ -16,7 +16,7 @@ test.describe('Navigation gestionnaire (ges003)', () => {
   test('accès à la liste des localités via Configuration', async ({ page }) => {
     await page.getByTestId('e2e-sidebar-configuration').click();
     await page.getByTestId('e2e-sidebar-localities').click();
-    await expect(page).toHaveURL(/\/localitylist/);
+    await expect(page).toHaveURL(/\/locality\/list/);
     await expect(page.getByTestId('e2e-locality-list')).toBeVisible();
     await expect(page.getByTestId('e2e-locality-add-btn')).toBeVisible();
   });

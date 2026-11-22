@@ -34,10 +34,10 @@ export class LocalityDetailsComponent implements OnInit {
     });
   }
   onCancel(): void {
-    this.router.navigate(['/localitylist']);
+    this.router.navigate(['/locality/list']);
   }
   navigateToEdit(localityId: number): void {
-    this.router.navigate(['/locality-add', localityId]);
+    this.router.navigate(['/locality/add', localityId]);
   }
 
   loadLocality(localityId: number): void {

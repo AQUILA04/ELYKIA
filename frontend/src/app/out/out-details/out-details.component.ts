@@ -72,6 +72,6 @@ export class OutDetailsComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/out-list']);
+    this.router.navigate(['/out/list']);
   }
 }

@@ -57,7 +57,7 @@ export class OperationAddComponent implements OnInit {
       response => {
         this.spinner.hide();
         this.alertService.showDefaultSucces('Données enregistrées avec succès.');
-        this.router.navigate(['/operation-list']);
+        this.router.navigate(['/operation/list']);
       },
       error => {
         this.spinner.hide();
@@ -67,6 +67,6 @@ export class OperationAddComponent implements OnInit {
     );
   }
   onCancel(): void {
-    this.router.navigate(['/operation-list']);
+    this.router.navigate(['/operation/list']);
   }
 }

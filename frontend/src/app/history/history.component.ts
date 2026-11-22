@@ -1,5 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { OutListComponent } from '../out/out-list/out-list.component';
 import { OutService } from '../out/service/out.service';
 import { NgxPermissionsService } from 'ngx-permissions';
 import { NgxSpinnerService } from 'ngx-spinner';
@@ -68,11 +67,11 @@ export class HistoryComponent implements OnInit {
     this.loadHistory();  
   }
   viewDetails(id: number): void {
-    this.router.navigate(['/history-details', id]);
+    this.router.navigate(['/history/details', id]);
   }
 
   backToStore(id: number): void {
-    this.router.navigate(['/back-store', id]);
+    this.router.navigate(['/history/back-store', id]);
   }
 
   deleteCredit(id: number): void {

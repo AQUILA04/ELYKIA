@@ -36,8 +36,8 @@ export class SidebarComponent implements OnInit {
 
   isRouteActive(route: string): boolean {
     // Gestion spécifique pour le menu Caisse et ses sous-menus
-    if (route === '/open-cashDesk') {
-      return this.activeRoute.startsWith('/open-cashDesk') || this.activeRoute.startsWith('/daily-operation');
+    if (route === '/cash-desk') {
+      return this.activeRoute.startsWith('/cash-desk');
     }
 
     if (route === '/security') {
@@ -65,7 +65,7 @@ export class SidebarComponent implements OnInit {
 
     // Gestion pour le menu Configuration
     if (route === '/configuration') {
-      return this.activeRoute.startsWith('/localitylist') ||
+      return this.activeRoute.startsWith('/locality') ||
              this.activeRoute.startsWith('/article-type') ||
              this.activeRoute.startsWith('/expense/types') ||
              this.activeRoute.startsWith('/parameters') ||
@@ -134,10 +134,10 @@ export class SidebarComponent implements OnInit {
   // Méthode pour détecter les routes qui peuvent entrer en conflit
   private hasConflictingRoute(route: string): boolean {
     const allRoutes = [
-      '/home', '/accounting-day', '/open-cashDesk', '/daily-operation',
-      '/article', '/localitylist', '/credit', '/out-list', '/tontine-list',
-      '/account/list', '/client/list', '/report', '/inventory/list', '/gestion-list',
-      '/operation-list', '/deposit-list', '/user/list', '/commercial/list',
+      '/home', '/accounting-day', '/cash-desk/open', '/cash-desk/daily-operation',
+      '/article', '/locality/list', '/credit', '/out/list', '/tontine',
+      '/account/list', '/client/list', '/report', '/inventory/list', '/gestion/list',
+      '/operation/list', '/deposit/list', '/user/list', '/commercial/list',
       '/article-type', '/expense/types', '/parameters', '/stock'
     ];
 
@@ -146,10 +146,10 @@ export class SidebarComponent implements OnInit {
   }
 
   onCaisseClick() {
-    if (this.activeRoute.startsWith('/open-cashDesk') || this.activeRoute.startsWith('/daily-operation')) {
+    if (this.activeRoute.startsWith('/cash-desk')) {
       this.isCaisseOpen = !this.isCaisseOpen;
     } else {
-      this.router.navigate(['/open-cashDesk']);
+      this.router.navigate(['/cash-desk/open']);
       this.isCaisseOpen = true;
     }
   }
@@ -229,7 +229,7 @@ export class SidebarComponent implements OnInit {
 
   // Gestionnaire de clic pour le menu Configuration
   onConfigurationClick() {
-    const isConfigActive = this.activeRoute.startsWith('/localitylist') ||
+    const isConfigActive = this.activeRoute.startsWith('/locality') ||
                            this.activeRoute.startsWith('/article-type') ||
                            this.activeRoute.startsWith('/expense/types') ||
                            this.activeRoute.startsWith('/parameters');
@@ -258,7 +258,7 @@ export class SidebarComponent implements OnInit {
         this.closeSidebar();
       }
       // Gérer l'état de isCaisseOpen en fonction de la route active
-      if (this.activeRoute.startsWith('/open-cashDesk') || this.activeRoute.startsWith('/daily-operation')) {
+      if (this.activeRoute.startsWith('/cash-desk')) {
         this.isCaisseOpen = true;
       } else {
         this.isCaisseOpen = false;
@@ -305,7 +305,7 @@ export class SidebarComponent implements OnInit {
       this.isAdministrationOpen = this.isAdministrationRoute();
 
       // Gestion de l'état ouvert/fermé pour Configuration
-      if (this.activeRoute.startsWith('/localitylist') ||
+      if (this.activeRoute.startsWith('/locality') ||
           this.activeRoute.startsWith('/article-type') ||
           this.activeRoute.startsWith('/expense/types') ||
           this.activeRoute.startsWith('/parameters')) {

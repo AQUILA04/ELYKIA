@@ -49,7 +49,7 @@ export class DailyOperationComponent implements OnInit {
             this.isCashDeskOpen = false;
             this.spinner.hide();
             alert('La caisse n\'est pas ouverte. Vous allez être redirigé pour l\'ouvrir.');
-            this.router.navigate(['open-cashDesk']);
+            this.router.navigate(['/cash-desk/open']);
           }
         } else {
           alert(response.message);
@@ -79,7 +79,7 @@ export class DailyOperationComponent implements OnInit {
   }
 
   onTFJClick(): void {
-    this.router.navigate(['/tfj']);
+    this.router.navigate(['/cash-desk/tfj']);
   }
 
   loadCredits(): void {

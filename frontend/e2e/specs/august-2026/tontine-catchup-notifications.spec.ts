@@ -73,7 +73,7 @@ test.describe.serial('Tontine catch-up + notifications @p1 @web @august-2026 @re
     await page.getByTestId('e2e-locality-add-btn').click();
     await page.getByTestId('e2e-locality-name').fill(localityName);
     await page.getByTestId('e2e-locality-submit').click();
-    await expect(page).toHaveURL(/\/localitylist/, { timeout: 20_000 });
+    await expect(page).toHaveURL(/\/locality\/list/, { timeout: 20_000 });
     await dismissSwalSuccess(page);
 
     await page.getByTestId('e2e-sidebar-clients').click();

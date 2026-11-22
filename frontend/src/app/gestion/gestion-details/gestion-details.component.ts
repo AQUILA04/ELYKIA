@@ -34,11 +34,11 @@ export class GestionDetailsComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/gestion-list']);  
+    this.router.navigate(['/gestion/list']);  
   }
 
   navigateToEdit(agencyId: number): void {
-    this.router.navigate(['/gestion-add', agencyId]);  
+    this.router.navigate(['/gestion/add', agencyId]);  
   }
 
   loadAgency(agencyId: number): void {

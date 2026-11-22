@@ -87,7 +87,7 @@ export class GestionAddComponent implements OnInit {
             this.spinner.hide();
             this.alertService.showSuccess('Gestion mise à jour avec succès');
             this.isLoading = false;
-            this.router.navigate(['/gestion-list']);
+            this.router.navigate(['/gestion/list']);
           },
           error => {
             this.spinner.hide();
@@ -101,7 +101,7 @@ export class GestionAddComponent implements OnInit {
           response => {
             this.spinner.hide();
             this.alertService.showSuccess('Gestion ajoutée avec succès');
-            this.router.navigate(['/gestion-list']);
+            this.router.navigate(['/gestion/list']);
           },
           error => {
             this.spinner.hide();
@@ -114,6 +114,6 @@ export class GestionAddComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/gestion-list']);
+    this.router.navigate(['/gestion/list']);
   }
 }

@@ -1,31 +1,9 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { LocalityAddComponent } from './locality/localityadd/localityadd.component';
-import { LocalityListComponent } from './locality/localitylist/localitylist.component';
-import { LocalityDetailsComponent } from './locality/localitydetails/localitydetails.component';
 import { LoginComponent } from './auth/login/login.component';
 import { NgxPermissionsGuard } from 'ngx-permissions';
-import { DailyOperationComponent } from './cash-desk/daily-operation/daily-operation.component';
-import { OpenCashDeskComponent } from './cash-desk/open-cash-desk/open-cash-desk.component';
-import { TFJComponent } from './cash-desk/tfj/tfj.component';
-import { BilletageComponent } from './cash-desk/billetage/billetage.component';
 import { DashboardChartComponent } from './dashboard-chart/dashboard-chart.component';
-import { GestionAddComponent } from './gestion/gestion-add/gestion-add.component';
-import { GestionListComponent } from './gestion/gestion-list/gestion-list.component';
-import { GestionDetailsComponent } from './gestion/gestion-details/gestion-details.component';
-import { OperationAddComponent } from './operation/operation-add/operation-add.component';
-import { OperationListComponent } from './operation/operation-list/operation-list.component';
-import { OperationDetailsComponent } from './operation/operation-details/operation-details.component';
-import { DepositAddComponent } from './deposit/deposit-add/deposit-add.component';
-import { DepositListComponent } from './deposit/deposit-list/deposit-list.component';
-import { DepositDetailsComponent } from './deposit/deposit-details/deposit-details.component';
 import { ReactivateLicenseComponent } from './license/reactivate-license/reactivate-license.component';
-import { OutListComponent } from './out/out-list/out-list.component';
-import { HistoryComponent } from './history/history.component';
-import { OutDetailsComponent } from './out/out-details/out-details.component';
-import { Back2StoreComponent } from './history/back2-store/back2-store.component';
-import { OutPdfListComponent } from './out/out-pdf-list/out-pdf-list.component';
-import { OldReleaseListComponent } from "./out/old-release-list/old-release-list.component";
 import { AuthGuard } from "./auth/guards/auth.guard";
 import { AiChatGuard } from './ai-chat/guards/ai-chat.guard';
 import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-money-config-list/mobile-money-config-list.component';
@@ -166,25 +144,10 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
 
-  // Localités
+  // Localités (lazy-loaded)
   {
-    path: 'locality-add/:id',
-    component: LocalityAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'locality-add',
-    component: LocalityAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'localitylist',
-    component: LocalityListComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'localitydetails/:id',
-    component: LocalityDetailsComponent,
+    path: 'locality',
+    loadChildren: () => import('./locality/locality.module').then(m => m.LocalityModule),
     canActivate: [AuthGuard]
   },
 
@@ -223,31 +186,16 @@ const routes: Routes = [
     canActivate: [AuthGuard],
   },
 
-  // Caisse
+  // Caisse (lazy-loaded)
   {
     path: 'accounting-day',
     loadChildren: () => import('./accounting-day/accounting-day.module').then(m => m.AccountingDayModule),
     canActivate: [AuthGuard],
   },
   {
-    path: 'daily-operation',
-    component: DailyOperationComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'open-cashDesk',
-    component: OpenCashDeskComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'billetage',
-    component: BilletageComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'tfj',
-    component: TFJComponent,
-    canActivate: [AuthGuard]
+    path: 'cash-desk',
+    loadChildren: () => import('./cash-desk/cash-desk.module').then(m => m.CashDeskModule),
+    canActivate: [AuthGuard],
   },
 
   // Inventaire (lazy)
@@ -257,108 +205,38 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
 
-  // Gestion
+  // Gestion (lazy-loaded)
   {
-    path: 'gestion-add',
-    component: GestionAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'gestion-add/:id',
-    component: GestionAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'gestion-list',
-    component: GestionListComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'gestion-details/:id',
-    component: GestionDetailsComponent,
+    path: 'gestion',
+    loadChildren: () => import('./gestion/gestion.module').then(m => m.GestionModule),
     canActivate: [AuthGuard]
   },
 
-  // Opérations
+  // Opérations (lazy-loaded)
   {
-    path: 'operation-add',
-    component: OperationAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'operation-add/:id',
-    component: OperationAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'operation-list',
-    component: OperationListComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'operation-details',
-    component: OperationDetailsComponent,
+    path: 'operation',
+    loadChildren: () => import('./operation/operation.module').then(m => m.OperationModule),
     canActivate: [AuthGuard]
   },
 
-  // Dépôts
+  // Dépôts (lazy-loaded)
   {
-    path: 'deposit-add',
-    component: DepositAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'deposit-add/:id',
-    component: DepositAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'deposit-list',
-    component: DepositListComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'deposit-details',
-    component: DepositDetailsComponent,
+    path: 'deposit',
+    loadChildren: () => import('./deposit/deposit.module').then(m => m.DepositModule),
     canActivate: [AuthGuard]
   },
 
-  // Sorties
+  // Sorties (lazy-loaded)
   {
-    path: 'out-list',
-    component: OutListComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'out-details/:id',
-    component: OutDetailsComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'out-pdf-list',
-    component: OutPdfListComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'old-release-list',
-    component: OldReleaseListComponent,
+    path: 'out',
+    loadChildren: () => import('./out/out.module').then(m => m.OutModule),
     canActivate: [AuthGuard]
   },
 
-  // Historique
+  // Historique (lazy-loaded)
   {
     path: 'history',
-    component: HistoryComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'history-details/:id',
-    component: OutDetailsComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'back-store/:id',
-    component: Back2StoreComponent,
+    loadChildren: () => import('./history/history.module').then(m => m.HistoryModule),
     canActivate: [AuthGuard]
   },
 

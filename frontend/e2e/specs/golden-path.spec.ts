@@ -130,7 +130,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await page.getByTestId('e2e-locality-name').fill(localityName);
     await page.getByTestId('e2e-locality-submit').click();
 
-    await expect(page).toHaveURL(/\/localitylist/, { timeout: 20_000 });
+    await expect(page).toHaveURL(/\/locality\/list/, { timeout: 20_000 });
     await dismissSwalSuccess(page);
 
     await page.getByTestId('e2e-locality-search').fill(localityName);

@@ -74,6 +74,6 @@ export class DepositAddComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/operation-list']); 
+    this.router.navigate(['/operation/list']); 
   }
 }

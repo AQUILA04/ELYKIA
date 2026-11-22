@@ -261,7 +261,7 @@ async function createLocality(page: Page, name: string): Promise<void> {
   await page.getByTestId('e2e-locality-add-btn').click();
   await page.getByTestId('e2e-locality-name').fill(name);
   await page.getByTestId('e2e-locality-submit').click();
-  await expect(page).toHaveURL(/\/localitylist/, { timeout: 20_000 });
+  await expect(page).toHaveURL(/\/locality\/list/, { timeout: 20_000 });
   await dismissSwalSuccess(page);
 }
 

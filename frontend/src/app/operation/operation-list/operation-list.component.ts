@@ -79,15 +79,15 @@ export class OperationListComponent implements OnInit {
   }
 
   addOperation(): void {
-    this.router.navigate(['/operation-add']);
+    this.router.navigate(['/operation/add']);
   }
 
   viewDetails(id: number): void {
-    this.router.navigate(['/operation-details', id]);
+    this.router.navigate(['/operation/details', id]);
   }
 
   editOperation(id: number): void {
-    this.router.navigate(['/operation-add', id]);
+    this.router.navigate(['/operation/add', id]);
   }
 
   deleteOperation(id: number): void {

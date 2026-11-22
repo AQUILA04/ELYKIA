@@ -125,17 +125,17 @@ export class LocalityListComponent implements OnInit, OnDestroy {
 
   addLocality(): void {
     this.saveState();
-    this.router.navigate(['/locality-add']);
+    this.router.navigate(['/locality/add']);
   }
 
   viewDetails(localityId: number): void {
     this.saveState();
-    this.router.navigate(['/localitydetails', localityId]);
+    this.router.navigate(['/locality/details', localityId]);
   }
 
   editLocality(localityId: number): void {
     this.saveState();
-    this.router.navigate(['/locality-add', localityId]);
+    this.router.navigate(['/locality/add', localityId]);
   }
 
   private saveState(): void {

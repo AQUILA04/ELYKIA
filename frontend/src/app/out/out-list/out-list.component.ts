@@ -77,7 +77,7 @@ export class OutListComponent implements OnInit {
   }
 
   loadHistory() {
-    this.router.navigate(['/history']);
+    this.router.navigate(['/history/list']);
   }
 
   startCredit(id: number): void {
@@ -115,7 +115,7 @@ export class OutListComponent implements OnInit {
     });
   }
   viewDetails(id: number): void {
-    this.router.navigate(['/out-details', id]);
+    this.router.navigate(['/out/details', id]);
   }
 
  // MÉTHODE À AJOUTER
@@ -187,11 +187,11 @@ export class OutListComponent implements OnInit {
 
   // Remplacer la méthode listPdfFiles par navigateToPdfList
   navigateToPdfList() {
-    this.router.navigate(['/out-pdf-list']);
+    this.router.navigate(['/out/pdf-list']);
   }
 
   navigateToOldReleaseList() {
-    this.router.navigate(['/old-release-list']);
+    this.router.navigate(['/out/old-release-list']);
   }
 
   // Supprimer la méthode listPdfFiles existante

@@ -280,7 +280,7 @@ export class TFJComponent implements OnInit {
   finish(): void {
     this.cashDeskService.closeCashDesk().subscribe(() => {
         this.alertService.showDefaultSucces('La caisse a été fermée avec succès !');
-        this.router.navigate(['/open-cashDesk']);
+        this.router.navigate(['/cash-desk/open']);
       }
     );
   }
