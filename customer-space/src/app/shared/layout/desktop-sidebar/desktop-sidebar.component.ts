@@ -8,6 +8,7 @@ import { CustomerSessionService } from '../../services/customer-session.service'
 import { CustomerNotificationInboxService } from '../../services/customer-notification-inbox.service';
 import { APP_VERSION } from '../../../../environments/app-version';
 import { FeatureFlagService, FeatureFlags } from '../../services/feature-flag.service';
+import { CustomerBrandingService } from '../../services/customer-branding.service';
 
 interface NavItem {
   label: string;
@@ -30,7 +31,9 @@ export class DesktopSidebarComponent implements OnInit, OnDestroy {
   private readonly cartService = inject(CartService);
   private readonly notificationInbox = inject(CustomerNotificationInboxService);
   private readonly featureFlags = inject(FeatureFlagService);
+  readonly branding = inject(CustomerBrandingService);
 
+  brandLogoFailed = false;
   readonly appVersion = APP_VERSION;
   readonly cartCount = signal(0);
   readonly unreadCount = signal(0);

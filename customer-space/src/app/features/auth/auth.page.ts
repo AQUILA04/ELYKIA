@@ -29,6 +29,7 @@ import {
   LegalLinksComponent,
 } from '../../shared/ui';
 import { LayoutService } from '../../shared/layout/layout.service';
+import { CustomerBrandingService } from '../../shared/services/customer-branding.service';
 import { AuthDesktopComponent } from './desktop/auth-desktop.component';
 import { AuthRegisterConsentComponent } from './auth-register-consent.component';
 
@@ -71,9 +72,11 @@ import {
 })
 export class AuthPage implements ViewWillEnter, OnDestroy {
   readonly layout = inject(LayoutService);
+  readonly branding = inject(CustomerBrandingService);
   private readonly journal = inject(UserJournalService);
   private readonly telemetryCtx = inject(TelemetryContextService);
   private readonly deviceAccess = inject(DeviceAccessPromptService);
+  brandLogoFailed = false;
   step: AuthStep = 'phone';
   phone = '';
   maskedName = '';

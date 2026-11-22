@@ -11,6 +11,23 @@
   color: #fff;
 }
 
+.auth-brand__logo-frame {
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 12px;
+  padding: 6px 12px;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.auth-brand__logo-img {
+  max-width: 128px;
+  max-height: 40px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
 .auth-brand__company {
   margin: 0;
   font-family: 'Playfair Display', serif;

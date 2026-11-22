@@ -2,8 +2,18 @@
   <aside class="auth-desktop__hero" aria-hidden="false">
     <img class="auth-desktop__pattern" src="assets/decor/header-ribbons.png" alt="" />
     <div class="auth-desktop__hero-inner">
-      <p class="auth-desktop__company">AMENOUVEVE-YAVEH</p>
-      <h1 class="auth-desktop__brand">Elykia</h1>
+      <div
+        class="auth-desktop__logo-frame"
+        *ngIf="branding.customLogoUrl() && !brandLogoFailed">
+        <img
+          [src]="branding.customLogoUrl()"
+          [alt]="branding.displayName()"
+          class="auth-desktop__logo-img"
+          data-testid="e2e-brand-logo"
+          (error)="brandLogoFailed = true" />
+      </div>
+      <p class="auth-desktop__company" data-testid="e2e-brand-company">{{ branding.displayName() }}</p>
+      <h1 class="auth-desktop__brand" data-testid="e2e-brand-app">{{ branding.shortName() }}</h1>
       <p class="auth-desktop__module">Espace Client</p>
       <ul class="auth-desktop__benefits">
         <li *ngFor="let b of benefits">

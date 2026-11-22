@@ -3,6 +3,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { UserJournalService } from './core/telemetry/user-journal.service';
 import { CustomerSessionService } from './shared/services/customer-session.service';
+import { CustomerBrandingService } from './shared/services/customer-branding.service';
 import { UnitPriceVisibilityService } from './shared/services/unit-price-visibility.service';
 import { LayoutService } from './shared/layout/layout.service';
 import { isE2eMode } from './shared/utils/e2e';
@@ -19,9 +20,11 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly session = inject(CustomerSessionService);
   private readonly journal = inject(UserJournalService);
   readonly layout = inject(LayoutService);
+  readonly branding = inject(CustomerBrandingService);
   private readonly unitPriceVisibility = inject(UnitPriceVisibilityService);
 
   showSplash = true;
+  splashLogoFailed = false;
   readonly showSidebar = signal(false);
 
   private subs = new Subscription();

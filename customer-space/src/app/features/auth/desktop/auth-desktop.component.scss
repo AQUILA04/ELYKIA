@@ -37,6 +37,26 @@
   max-width: 440px;
 }
 
+.auth-desktop__logo-frame {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 14px;
+  padding: 8px 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.auth-desktop__logo-img {
+  max-width: 156px;
+  max-height: 48px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
 .auth-desktop__company {
   margin: 0;
   font-size: 12px;

@@ -15,7 +15,7 @@
     "roles": [
       "admin"
     ],
-    "content": "Entreprise & Charte graphique\n\nL'écran Entreprise & Charte graphique permet à un administrateur (ROLE_ADMIN) de configurer l'identité visuelle de l'entreprise dans laquelle ELYKIA est déployée : raison sociale, coordonnées, logo officiel et palette de couleurs. Cette configuration est totalement indépendante de la gestion des agences et s'applique globalement à l'application web (écran de connexion, menu latéral, en-têtes, boutons, modales, titre de l'onglet et icône du navigateur)."
+    "content": "Entreprise & Charte graphique\n\nL'écran Entreprise & Charte graphique permet à un administrateur (ROLE_ADMIN) de configurer l'identité visuelle de l'entreprise dans laquelle ELYKIA est déployée : raison sociale, coordonnées, logo officiel et palette de couleurs. Cette configuration est totalement indépendante de la gestion des agences et s'applique globalement à l'application d'administration, aux exports PDF (fiches, rapports, reçus) ainsi qu'à l' Espace Client (web & mobile)."
   },
   {
     "id": "admin_company_branding__acc_s",
@@ -33,7 +33,7 @@
     "roles": [
       "admin"
     ],
-    "content": "Entreprise & Charte graphique\nInformations de l'entreprise\n\nDans la carte Informations de l'entreprise , renseignez ou modifiez :\n Nom officiel de l'entreprise (obligatoire) : affiché notamment sur l'écran de connexion.\n Nom court / Onglet navigateur : utilisé comme titre de l'onglet du navigateur et mention de pied de page.\n Slogan / Sous-titre : affiché sous le nom de l'entreprise sur l'écran de connexion.\n Coordonnées : adresse du siège, téléphone, e-mail, site web et identifiant fiscal (NIF / RCCM)."
+    "content": "Entreprise & Charte graphique\nInformations de l'entreprise\n\nDans la carte Informations de l'entreprise , renseignez ou modifiez :\n Nom officiel de l'entreprise (obligatoire) : affiché sur l'écran de connexion, dans les en-têtes/pieds de page PDF et dans l'Espace Client.\n Nom court / Onglet navigateur : utilisé comme titre de l'onglet du navigateur, sur le splash screen et les mentions courtes.\n Slogan / Sous-titre : affiché sous le nom de l'entreprise sur l'écran de connexion.\n Coordonnées : adresse du siège, téléphone, e-mail, site web et identifiant fiscal (NIF / RCCM), repris automatiquement dans les en-têtes de documents PDF."
   },
   {
     "id": "admin_company_branding__charte_graphique_et_couleurs",
@@ -42,7 +42,7 @@
     "roles": [
       "admin"
     ],
-    "content": "Entreprise & Charte graphique\nCharte graphique et couleurs\n\nLa carte Charte graphique & Palette de couleurs permet de personnaliser 6 couleurs clés :\n Couleur primaire : boutons principaux, titres, lien actif du menu et accents majeurs.\n Couleur secondaire : indicateurs informatifs et graphiques.\n Couleur d'accent : badges positifs et mises en valeur.\n Fond du menu latéral et Texte du menu latéral : apparence de la barre de navigation gauche (thème clair ou sombre).\n Fond des pages : teinte générale de l'espace de travail.\nThèmes prédéfinis et aperçu en direct\nCliquez sur l'un des Thèmes prédéfinis ( Elykia Navy , Marine Prestige , Émeraude Corporate , Bordeaux Institutionnel , Indigo & Ardoise ) ou ajustez chaque couleur via le sélecteur ou son code hexadécimal (#RRGGBB).\nUn aperçu en direct s'applique immédiatement sur l'interface ainsi que dans la miniature Aperçu de l'interface sans modifier les données enregistrées.\nCliquez sur Enregistrer pour persister la configuration, ou sur Annuler l'aperçu (ou quittez la page) pour revenir aux couleurs enregistrées.\nLe bouton Charte par défaut réinitialise uniquement les 6 couleurs vers la palette officielle ELYKIA tout en conservant le nom de l'entreprise et le logo."
+    "content": "Entreprise & Charte graphique\nCharte graphique et couleurs\n\nLa carte Charte graphique & Palette de couleurs permet de personnaliser 6 couleurs clés :\n Couleur primaire : boutons principaux, titres, lien actif du menu, bandeaux et pieds de page PDF, et teinte principale de l'Espace Client.\n Couleur secondaire : indicateurs informatifs et graphiques.\n Couleur d'accent : badges positifs, mises en valeur et accents de l'Espace Client.\n Fond du menu latéral et Texte du menu latéral : apparence de la barre de navigation gauche (thème clair ou sombre).\n Fond des pages : teinte générale de l'espace de travail.\nThèmes prédéfinis et aperçu en direct\nCliquez sur l'un des Thèmes prédéfinis ( Elykia Navy , Marine Prestige , Émeraude Corporate , Bordeaux Institutionnel , Indigo & Ardoise ) ou ajustez chaque couleur via le sélecteur ou son code hexadécimal (#RRGGBB).\nUn aperçu en direct s'applique immédiatement sur l'interface ainsi que dans la miniature Aperçu de l'interface sans modifier les données enregistrées.\nCliquez sur Enregistrer pour persister la configuration, ou sur Annuler l'aperçu (ou quittez la page) pour revenir aux couleurs enregistrées.\nLe bouton Charte par défaut réinitialise uniquement les 6 couleurs vers la palette officielle ELYKIA tout en conservant le nom de l'entreprise et le logo."
   },
   {
     "id": "admin_company_branding__logo_de_l_entreprise",
@@ -51,16 +51,16 @@
     "roles": [
       "admin"
     ],
-    "content": "Entreprise & Charte graphique\nLogo de l'entreprise\n\nDans la carte Logo de l'entreprise :\nVérifiez le rendu actuel sur fond clair et sur la couleur du menu latéral.\nCliquez ou glissez-déposez un fichier image au format PNG , JPEG , WEBP ou SVG (taille maximale 2 Mo ). Pour un rendu optimal, privilégiez un PNG transparent ou un SVG propre (les scripts intégrés dans un SVG sont automatiquement refusés).\nLe logo est immédiatement enregistré, affiché dans le menu latéral, sur la page de connexion et en icône d'onglet (favicon).\nPour revenir au logo ELYKIA intégré, cliquez sur Supprimer puis confirmez."
+    "content": "Entreprise & Charte graphique\nLogo de l'entreprise\n\nDans la carte Logo de l'entreprise :\nVérifiez le rendu actuel sur fond clair et sur la couleur du menu latéral.\nCliquez ou glissez-déposez un fichier image au format PNG , JPEG , WEBP ou SVG (taille maximale 2 Mo ). Pour un rendu optimal dans l'interface et dans les exports PDF, privilégiez un PNG transparent ou un SVG propre (les scripts intégrés dans un SVG sont automatiquement refusés ; le format WEBP s'affiche sur le web mais revient au monogramme dans les PDF).\nLe logo est immédiatement enregistré, affiché dans le menu latéral, sur la page de connexion, dans l'Espace Client, en icône d'onglet (favicon) et dans les en-têtes des documents PDF.\nPour revenir au logo ELYKIA intégré, cliquez sur Supprimer puis confirmez."
   },
   {
-    "id": "admin_company_branding__persistance_et_gestion_du_cache",
-    "title": "Entreprise & Charte graphique — Persistance et gestion du cache",
+    "id": "admin_company_branding__propagation_automatique_web_pdf_et_espace_client",
+    "title": "Entreprise & Charte graphique — Propagation automatique (Web, PDF et Espace Client)",
     "path": "/user-guide/admin/company_branding.html",
     "roles": [
       "admin"
     ],
-    "content": "Entreprise & Charte graphique\nPersistance et gestion du cache\n\nChaque enregistrement (informations, couleurs ou logo) incrémente automatiquement le numéro de version du thème (vN) :\nCôté serveur, la configuration est persistée dans PostgreSQL et le cache applicatif est immédiatement invalidé.\nCôté navigateur, la charte est chargée instantanément depuis le cache local (localStorage) pour éviter tout clignotement visuel, revalidée via ETag HTTP, et synchronisée en temps réel entre tous les onglets ouverts.\nLe logo est servi via une URL versionnée immuable (/api/public/company/logo?v=N), garantissant une mise à jour immédiate chez tous les utilisateurs dès qu'un nouveau logo est téléversé."
+    "content": "Entreprise & Charte graphique\nPropagation automatique (Web, PDF et Espace Client)\n\nChaque enregistrement (informations, couleurs ou logo) incrémente automatiquement le numéro de version du thème (vN) :\n Exports PDF : tous les documents générés côté serveur (fiches clients, rapports commerciaux, tableaux de stock, reçus de commande tontine) lisent le profil entreprise mis en cache (Caffeine) pour afficher le nom, l'adresse, le téléphone, le logo et les couleurs de la charte dans l'en-tête, les tableaux et le pied de page n/N.\n Espace Client : l'application charge la charte au démarrage depuis le cache local (localStorage), la revalide via ETag HTTP et applique automatiquement le nom, le logo, le favicon et la palette sur le splash screen, la connexion mobile/desktop et le menu latéral desktop.\n Gestion du cache : invalidation immédiate côté serveur (Caffeine + HTTP ETag), chargement sans clignotement (localStorage), URL de logo versionnée immuable (/api/public/company/logo?v=N) et synchronisation temps réel entre onglets."
   },
   {
     "id": "admin_customer_activity_audit",

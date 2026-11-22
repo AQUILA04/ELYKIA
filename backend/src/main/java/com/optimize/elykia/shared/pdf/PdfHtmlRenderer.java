@@ -21,21 +21,23 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 /**
- * Convertit du HTML Thymeleaf en PDF et tamponne le pied de page (libellé + n/N).
+ * Convertit du HTML Thymeleaf en PDF et tamponne le pied de page (libellé + n/N)
+ * aux couleurs de la charte graphique configurée.
  */
 @Component
 public class PdfHtmlRenderer {
 
     static final DeviceRgb NAVY = new DeviceRgb(0, 51, 102);
     static final DeviceRgb WHITE = new DeviceRgb(255, 255, 255);
-    /** Design system documents : navy #0a2472 sur fond pâle #f2f5fc, filet #e2e8f0. */
+    static final DeviceRgb DARK_TEXT = new DeviceRgb(15, 23, 42);
+    /** Design system documents : fond pâle, filet #e2e8f0, texte secondaire #64748b. */
     static final DeviceRgb DS_NAVY = new DeviceRgb(0x0a, 0x24, 0x72);
     static final DeviceRgb DS_PALE = new DeviceRgb(0xf2, 0xf5, 0xfc);
     static final DeviceRgb DS_BORDER = new DeviceRgb(0xe2, 0xe8, 0xf0);
     static final DeviceRgb DS_MUTED = new DeviceRgb(0x64, 0x74, 0x8b);
     static final float FOOTER_HEIGHT = 28f;
 
-    /** CLASSIC : bande navy pleine (documents historiques). MODERN : bande pâle, texte navy. */
+    /** CLASSIC : bande primaire pleine (documents historiques). MODERN : bande pâle, texte primaire. */
     public enum FooterStyle { CLASSIC, MODERN }
 
     public byte[] htmlToPdf(String html, String footerLabel) {
@@ -59,6 +61,7 @@ public class PdfHtmlRenderer {
 
     private byte[] stampFooter(byte[] rawPdf, String footerLabel, FooterStyle style) throws IOException {
         ByteArrayOutputStream stamped = new ByteArrayOutputStream();
+        PdfBrandProfile brand = PdfDocumentIdentity.current();
         try (PdfDocument pdf = new PdfDocument(
                 new PdfReader(new ByteArrayInputStream(rawPdf)),
                 new PdfWriter(stamped))) {
@@ -66,19 +69,24 @@ public class PdfHtmlRenderer {
             PdfFont fontBold = PdfFontFactory.createFont(StandardFonts.HELVETICA_BOLD);
             int total = pdf.getNumberOfPages();
             for (int i = 1; i <= total; i++) {
-                drawFooter(pdf.getPage(i), font, fontBold, footerLabel, i, total, style);
+                drawFooter(pdf.getPage(i), font, fontBold, footerLabel, i, total, style, brand);
             }
         }
         return stamped.toByteArray();
     }
 
     private void drawFooter(PdfPage page, PdfFont font, PdfFont fontBold,
-                            String footerLabel, int pageNumber, int totalPages, FooterStyle style) {
+                            String footerLabel, int pageNumber, int totalPages,
+                            FooterStyle style, PdfBrandProfile brand) {
         boolean modern = style == FooterStyle.MODERN;
+        DeviceRgb primaryRgb = toDeviceRgb(brand.primaryRgb());
+        DeviceRgb paleRgb = toDeviceRgb(brand.primaryXpaleRgb());
+        DeviceRgb classicText = brand.isPrimaryDark() ? WHITE : DARK_TEXT;
+
         Rectangle box = page.getPageSize();
         PdfCanvas pdfCanvas = new PdfCanvas(page.newContentStreamAfter(), page.getResources(), page.getDocument());
         pdfCanvas.saveState();
-        pdfCanvas.setFillColor(modern ? DS_PALE : NAVY);
+        pdfCanvas.setFillColor(modern ? paleRgb : primaryRgb);
         pdfCanvas.rectangle(box.getLeft(), box.getBottom(), box.getWidth(), FOOTER_HEIGHT);
         pdfCanvas.fill();
         if (modern) {
@@ -97,16 +105,20 @@ public class PdfHtmlRenderer {
                     new Paragraph(footerLabel)
                             .setFont(font)
                             .setFontSize(8)
-                            .setFontColor(modern ? DS_MUTED : WHITE)
+                            .setFontColor(modern ? DS_MUTED : classicText)
                             .setMargin(0),
                     left, y, TextAlignment.LEFT);
             layout.showTextAligned(
                     new Paragraph((modern ? "Page " : "") + pageNumber + "/" + totalPages)
                             .setFont(fontBold)
                             .setFontSize(9)
-                            .setFontColor(modern ? DS_NAVY : WHITE)
+                            .setFontColor(modern ? primaryRgb : classicText)
                             .setMargin(0),
                     right, y, TextAlignment.RIGHT);
         }
+    }
+
+    private static DeviceRgb toDeviceRgb(int[] rgb) {
+        return new DeviceRgb(rgb[0], rgb[1], rgb[2]);
     }
 }

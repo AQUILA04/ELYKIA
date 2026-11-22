@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"/>
     <title th:text="${pdfDocumentTitle}">Reçu de commande</title>
-    <style>
+    <style th:inline="css">
         @page {
             size: A4;
             margin: 12mm 12mm 24mm 12mm;
@@ -26,13 +26,13 @@
         table.brand-bar td {
             height: 8px;
             padding: 0;
-            background-color: #0a2472;
+            background-color: /*[(${pdfPrimaryColor ?: '#0a2472'})]*/ #0a2472;
             font-size: 1px;
             line-height: 1px;
         }
         table.brand-bar td.accent {
             width: 72px;
-            background-color: #4f83e0;
+            background-color: /*[(${pdfSecondaryColor ?: '#4f83e0'})]*/ #4f83e0;
         }
 
         table.head {
@@ -46,23 +46,28 @@
             border: none;
         }
         .logo-cell {
-            width: 48px;
+            width: 56px;
         }
         .logo {
             width: 40px;
             height: 40px;
-            background-color: #0a2472;
+            background-color: /*[(${pdfPrimaryColor ?: '#0a2472'})]*/ #0a2472;
             color: #ffffff;
             font-size: 18px;
             font-weight: bold;
             text-align: center;
             line-height: 40px;
         }
+        .logo-img {
+            max-width: 52px;
+            max-height: 40px;
+            display: block;
+        }
         .brand-name {
             font-size: 14px;
             font-weight: bold;
             letter-spacing: 0.1em;
-            color: #0a2472;
+            color: /*[(${pdfPrimaryColor ?: '#0a2472'})]*/ #0a2472;
             padding-left: 8px;
         }
         .brand-sub {
@@ -84,7 +89,7 @@
         .doc-title {
             font-size: 18px;
             font-weight: bold;
-            color: #0a2472;
+            color: /*[(${pdfPrimaryColor ?: '#0a2472'})]*/ #0a2472;
             margin: 2px 0 6px 0;
         }
         .doc-no {
@@ -220,7 +225,7 @@
             color: #0d1b3e;
         }
         table.totals .grand-label {
-            background-color: #0a2472;
+            background-color: /*[(${pdfPrimaryColor ?: '#0a2472'})]*/ #0a2472;
             color: #ffffff;
             font-size: 9px;
             font-weight: bold;
@@ -229,7 +234,7 @@
             padding: 10px 12px;
         }
         table.totals .grand-value {
-            background-color: #0a2472;
+            background-color: /*[(${pdfPrimaryColor ?: '#0a2472'})]*/ #0a2472;
             color: #ffffff;
             text-align: right;
             font-size: 16px;
@@ -307,13 +312,16 @@
     <table class="head" role="presentation">
         <tr>
             <td class="logo-cell">
-                <div class="logo">E</div>
+                <img th:if="${pdfCompanyLogoDataUri != null}" th:src="${pdfCompanyLogoDataUri}" class="logo-img" alt=""/>
+                <div th:if="${pdfCompanyLogoDataUri == null}" class="logo" th:text="${pdfCompanyInitial ?: 'E'}">E</div>
             </td>
             <td>
                 <div class="brand-name" th:text="${pdfCompanyName}">AMENOUVEVE-YAVEH</div>
                 <div class="brand-sub">
-                    <span th:text="${pdfCompanyAddress}">TOKOIN HÔPITAL</span>
-                    · Tél. <span th:text="${pdfCompanyPhoneDisplay}">96 18 68 22</span>
+                    <span th:if="${pdfCompanyAddress != null and !#strings.isEmpty(pdfCompanyAddress)}"
+                          th:text="${pdfCompanyAddress}">TOKOIN HÔPITAL</span>
+                    <span th:if="${pdfCompanyAddress != null and !#strings.isEmpty(pdfCompanyAddress) and pdfCompanyPhoneDisplay != null and !#strings.isEmpty(pdfCompanyPhoneDisplay)}"> · </span>
+                    <span th:if="${pdfCompanyPhoneDisplay != null and !#strings.isEmpty(pdfCompanyPhoneDisplay)}">Tél. <span th:text="${pdfCompanyPhoneDisplay}">96 18 68 22</span></span>
                 </div>
             </td>
             <td class="doc-side">

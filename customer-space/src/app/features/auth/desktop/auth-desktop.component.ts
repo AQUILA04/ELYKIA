@@ -1,9 +1,10 @@
-import { Component, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { AuthStep, CustomerLocality } from '../../../shared/models/customer-auth.model';
 import { ElykLocalityPickerComponent, ElykOutlinedFieldComponent, LegalLinksComponent } from '../../../shared/ui';
+import { CustomerBrandingService } from '../../../shared/services/customer-branding.service';
 import { AuthRegisterConsentComponent } from '../auth-register-consent.component';
 
 @Component({
@@ -22,6 +23,8 @@ import { AuthRegisterConsentComponent } from '../auth-register-consent.component
   styleUrls: ['./auth-desktop.component.scss'],
 })
 export class AuthDesktopComponent {
+  readonly branding = inject(CustomerBrandingService);
+  brandLogoFailed = false;
   readonly step = input.required<AuthStep>();
   readonly title = input.required<string>();
   readonly subtitle = input.required<string>();

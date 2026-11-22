@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <th:block th:fragment="styles">
-        <style>
+        <style th:inline="css">
             @page {
                 size: A4;
                 margin: 14mm 14mm 24mm 14mm;
@@ -16,10 +16,35 @@
                 padding: 0;
             }
             .pdf-brand {
-                background-color: #003366;
+                background-color: /*[(${pdfPrimaryColor ?: '#003366'})]*/ #003366;
                 color: #ffffff;
-                padding: 14px 16px 12px 16px;
+                padding: 12px 16px 12px 16px;
                 margin: 0 0 12px 0;
+            }
+            table.pdf-brand-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            table.pdf-brand-table td {
+                vertical-align: middle;
+                padding: 0;
+                border: none;
+            }
+            .pdf-brand-logo-cell {
+                width: 64px;
+                padding-right: 12px;
+            }
+            .pdf-brand-logo-box {
+                background-color: #ffffff;
+                border-radius: 6px;
+                padding: 4px 6px;
+                text-align: center;
+            }
+            .pdf-brand-logo-img {
+                max-width: 52px;
+                max-height: 36px;
+                display: block;
+                margin: 0 auto;
             }
             .pdf-brand-name {
                 font-size: 16px;
@@ -30,18 +55,18 @@
             .pdf-brand-meta {
                 font-size: 9px;
                 letter-spacing: 0.04em;
-                color: #c5d4e8;
+                color: #dce6f2;
             }
-            .pdf-brand-sep { padding: 0 8px; color: #7a93b3; }
+            .pdf-brand-sep { padding: 0 8px; color: #9eb4cf; }
             .pdf-doc-title {
-                color: #003366;
+                color: /*[(${pdfPrimaryColor ?: '#003366'})]*/ #003366;
                 font-size: 18px;
                 font-weight: bold;
                 letter-spacing: 0.04em;
                 text-transform: uppercase;
                 margin: 0 0 14px 0;
                 padding: 0 2px 8px 2px;
-                border-bottom: 2px solid #003366;
+                border-bottom: 2px solid /*[(${pdfPrimaryColor ?: '#003366'})]*/ #003366;
             }
             .pdf-meta {
                 width: 100%;
@@ -50,7 +75,7 @@
             }
             .pdf-meta td {
                 border: 1px solid #dde3ec;
-                background-color: #f0f4f9;
+                background-color: /*[(${pdfPrimaryXpaleColor ?: '#f0f4f9'})]*/ #f0f4f9;
                 padding: 8px 10px;
                 vertical-align: top;
                 width: 50%;
@@ -67,7 +92,7 @@
             .pdf-meta-value {
                 font-size: 11px;
                 font-weight: bold;
-                color: #003366;
+                color: /*[(${pdfPrimaryColor ?: '#003366'})]*/ #003366;
             }
             .pdf-kpi {
                 width: 100%;
@@ -92,21 +117,21 @@
             .pdf-kpi .kpi-value {
                 font-size: 16px;
                 font-weight: bold;
-                color: #003366;
+                color: /*[(${pdfPrimaryColor ?: '#003366'})]*/ #003366;
             }
-            .pdf-kpi td.kpi-cyan .kpi-value { color: #0095c8; }
+            .pdf-kpi td.kpi-cyan .kpi-value { color: /*[(${pdfSecondaryColor ?: '#0095c8'})]*/ #0095c8; }
             .pdf-kpi td.kpi-green .kpi-value { color: #1d8a3c; }
             .pdf-kpi td.kpi-orange .kpi-value { color: #c75000; }
             .pdf-section-title {
-                background-color: #e8eef6;
-                color: #003366;
+                background-color: /*[(${pdfPrimaryPaleColor ?: '#e8eef6'})]*/ #e8eef6;
+                color: /*[(${pdfPrimaryColor ?: '#003366'})]*/ #003366;
                 font-size: 10px;
                 font-weight: bold;
                 text-transform: uppercase;
                 letter-spacing: 0.06em;
                 padding: 6px 8px;
                 margin-top: 10px;
-                border-left: 4px solid #003366;
+                border-left: 4px solid /*[(${pdfPrimaryColor ?: '#003366'})]*/ #003366;
             }
             table.data-table {
                 width: 100%;
@@ -115,14 +140,14 @@
                 font-size: 9px;
             }
             table.data-table th {
-                background-color: #003366;
+                background-color: /*[(${pdfPrimaryColor ?: '#003366'})]*/ #003366;
                 color: #ffffff;
                 text-transform: uppercase;
                 font-size: 8px;
                 letter-spacing: 0.05em;
                 padding: 6px 6px;
                 text-align: left;
-                border: 1px solid #003366;
+                border: 1px solid /*[(${pdfPrimaryColor ?: '#003366'})]*/ #003366;
             }
             table.data-table td {
                 border: 1px solid #dde3ec;
@@ -130,14 +155,14 @@
                 vertical-align: middle;
             }
             table.data-table tr:nth-child(even) td {
-                background-color: #f0f4f9;
+                background-color: /*[(${pdfPrimaryXpaleColor ?: '#f0f4f9'})]*/ #f0f4f9;
             }
             table.data-table .num { text-align: center; width: 28px; color: #6b7a99; }
             table.data-table .flag { text-align: center; width: 52px; }
             .badge-yes {
                 display: inline-block;
-                background-color: #e8eef6;
-                color: #003366;
+                background-color: /*[(${pdfPrimaryPaleColor ?: '#e8eef6'})]*/ #e8eef6;
+                color: /*[(${pdfPrimaryColor ?: '#003366'})]*/ #003366;
                 font-weight: bold;
                 font-size: 8px;
                 padding: 1px 6px;
@@ -157,12 +182,25 @@
 <body>
 <div th:fragment="header">
     <div class="pdf-brand">
-        <div class="pdf-brand-name" th:text="${pdfCompanyName}">AMENOUVEVE-YAVEH</div>
-        <div class="pdf-brand-meta">
-            <span th:text="${pdfCompanyAddress}">TOKOIN HÔPITAL</span>
-            <span class="pdf-brand-sep">|</span>
-            <span>Tél. <span th:text="${pdfCompanyPhoneDisplay}">96 18 68 22</span></span>
-        </div>
+        <table role="presentation" class="pdf-brand-table">
+            <tr>
+                <td class="pdf-brand-logo-cell" th:if="${pdfCompanyLogoDataUri != null}">
+                    <div class="pdf-brand-logo-box">
+                        <img class="pdf-brand-logo-img" th:src="${pdfCompanyLogoDataUri}" alt="" />
+                    </div>
+                </td>
+                <td>
+                    <div class="pdf-brand-name" th:text="${pdfCompanyName}">AMENOUVEVE-YAVEH</div>
+                    <div class="pdf-brand-meta">
+                        <span th:if="${pdfCompanyAddress != null and !#strings.isEmpty(pdfCompanyAddress)}"
+                              th:text="${pdfCompanyAddress}">TOKOIN HÔPITAL</span>
+                        <span class="pdf-brand-sep"
+                              th:if="${pdfCompanyAddress != null and !#strings.isEmpty(pdfCompanyAddress) and pdfCompanyPhoneDisplay != null and !#strings.isEmpty(pdfCompanyPhoneDisplay)}">|</span>
+                        <span th:if="${pdfCompanyPhoneDisplay != null and !#strings.isEmpty(pdfCompanyPhoneDisplay)}">Tél. <span th:text="${pdfCompanyPhoneDisplay}">96 18 68 22</span></span>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
     <div class="pdf-doc-title" th:text="${pdfDocumentTitle}">Fiche Client</div>
 </div>

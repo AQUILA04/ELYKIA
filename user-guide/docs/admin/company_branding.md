@@ -1,6 +1,6 @@
 # Entreprise & Charte graphique
 
-L'écran **Entreprise & Charte graphique** permet à un administrateur (`ROLE_ADMIN`) de configurer l'identité visuelle de l'entreprise dans laquelle ELYKIA est déployée : raison sociale, coordonnées, logo officiel et palette de couleurs. Cette configuration est totalement indépendante de la gestion des agences et s'applique globalement à l'application web (écran de connexion, menu latéral, en-têtes, boutons, modales, titre de l'onglet et icône du navigateur).
+L'écran **Entreprise & Charte graphique** permet à un administrateur (`ROLE_ADMIN`) de configurer l'identité visuelle de l'entreprise dans laquelle ELYKIA est déployée : raison sociale, coordonnées, logo officiel et palette de couleurs. Cette configuration est totalement indépendante de la gestion des agences et s'applique globalement à l'application d'administration, aux **exports PDF** (fiches, rapports, reçus) ainsi qu'à l'**Espace Client** (web & mobile).
 
 ## Accès
 
@@ -11,18 +11,18 @@ L'écran **Entreprise & Charte graphique** permet à un administrateur (`ROLE_AD
 
 Dans la carte **Informations de l'entreprise**, renseignez ou modifiez :
 
-- **Nom officiel de l'entreprise** (obligatoire) : affiché notamment sur l'écran de connexion.
-- **Nom court / Onglet navigateur** : utilisé comme titre de l'onglet du navigateur et mention de pied de page.
+- **Nom officiel de l'entreprise** (obligatoire) : affiché sur l'écran de connexion, dans les en-têtes/pieds de page PDF et dans l'Espace Client.
+- **Nom court / Onglet navigateur** : utilisé comme titre de l'onglet du navigateur, sur le splash screen et les mentions courtes.
 - **Slogan / Sous-titre** : affiché sous le nom de l'entreprise sur l'écran de connexion.
-- **Coordonnées** : adresse du siège, téléphone, e-mail, site web et identifiant fiscal (NIF / RCCM).
+- **Coordonnées** : adresse du siège, téléphone, e-mail, site web et identifiant fiscal (NIF / RCCM), repris automatiquement dans les en-têtes de documents PDF.
 
 ## Charte graphique et couleurs
 
 La carte **Charte graphique & Palette de couleurs** permet de personnaliser 6 couleurs clés :
 
-- **Couleur primaire** : boutons principaux, titres, lien actif du menu et accents majeurs.
+- **Couleur primaire** : boutons principaux, titres, lien actif du menu, bandeaux et pieds de page PDF, et teinte principale de l'Espace Client.
 - **Couleur secondaire** : indicateurs informatifs et graphiques.
-- **Couleur d'accent** : badges positifs et mises en valeur.
+- **Couleur d'accent** : badges positifs, mises en valeur et accents de l'Espace Client.
 - **Fond du menu latéral** et **Texte du menu latéral** : apparence de la barre de navigation gauche (thème clair ou sombre).
 - **Fond des pages** : teinte générale de l'espace de travail.
 
@@ -38,14 +38,14 @@ La carte **Charte graphique & Palette de couleurs** permet de personnaliser 6 co
 Dans la carte **Logo de l'entreprise** :
 
 1. Vérifiez le rendu actuel sur fond clair et sur la couleur du menu latéral.
-2. Cliquez ou glissez-déposez un fichier image au format **PNG**, **JPEG**, **WEBP** ou **SVG** (taille maximale **2 Mo**). Pour un rendu optimal, privilégiez un **PNG transparent** ou un **SVG** propre (les scripts intégrés dans un SVG sont automatiquement refusés).
-3. Le logo est immédiatement enregistré, affiché dans le menu latéral, sur la page de connexion et en icône d'onglet (favicon).
+2. Cliquez ou glissez-déposez un fichier image au format **PNG**, **JPEG**, **WEBP** ou **SVG** (taille maximale **2 Mo**). Pour un rendu optimal dans l'interface et dans les exports PDF, privilégiez un **PNG transparent** ou un **SVG** propre (les scripts intégrés dans un SVG sont automatiquement refusés ; le format WEBP s'affiche sur le web mais revient au monogramme dans les PDF).
+3. Le logo est immédiatement enregistré, affiché dans le menu latéral, sur la page de connexion, dans l'Espace Client, en icône d'onglet (favicon) et dans les en-têtes des documents PDF.
 4. Pour revenir au logo ELYKIA intégré, cliquez sur **Supprimer** puis confirmez.
 
-## Persistance et gestion du cache
+## Propagation automatique (Web, PDF et Espace Client)
 
 Chaque enregistrement (informations, couleurs ou logo) incrémente automatiquement le numéro de version du thème (`vN`) :
 
-- Côté serveur, la configuration est persistée dans PostgreSQL et le cache applicatif est immédiatement invalidé.
-- Côté navigateur, la charte est chargée instantanément depuis le cache local (`localStorage`) pour éviter tout clignotement visuel, revalidée via `ETag` HTTP, et synchronisée en temps réel entre tous les onglets ouverts.
-- Le logo est servi via une URL versionnée immuable (`/api/public/company/logo?v=N`), garantissant une mise à jour immédiate chez tous les utilisateurs dès qu'un nouveau logo est téléversé.
+- **Exports PDF :** tous les documents générés côté serveur (fiches clients, rapports commerciaux, tableaux de stock, reçus de commande tontine) lisent le profil entreprise mis en cache (Caffeine) pour afficher le nom, l'adresse, le téléphone, le logo et les couleurs de la charte dans l'en-tête, les tableaux et le pied de page `n/N`.
+- **Espace Client :** l'application charge la charte au démarrage depuis le cache local (`localStorage`), la revalide via `ETag` HTTP et applique automatiquement le nom, le logo, le favicon et la palette sur le splash screen, la connexion mobile/desktop et le menu latéral desktop.
+- **Gestion du cache :** invalidation immédiate côté serveur (Caffeine + HTTP `ETag`), chargement sans clignotement (`localStorage`), URL de logo versionnée immuable (`/api/public/company/logo?v=N`) et synchronisation temps réel entre onglets.

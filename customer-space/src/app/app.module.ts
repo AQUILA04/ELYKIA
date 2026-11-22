@@ -13,6 +13,7 @@ import { HttpTelemetryInterceptor } from './core/interceptors/http-telemetry.int
 import { GlobalErrorHandler } from './core/telemetry/global-error-handler';
 import { UserJournalService } from './core/telemetry/user-journal.service';
 import { FeatureFlagService } from './shared/services/feature-flag.service';
+import { CustomerBrandingService } from './shared/services/customer-branding.service';
 import { DesktopSidebarComponent } from './shared/layout/desktop-sidebar/desktop-sidebar.component';
 
 function initTelemetry(journal: UserJournalService): () => Promise<void> {
@@ -21,6 +22,10 @@ function initTelemetry(journal: UserJournalService): () => Promise<void> {
 
 function initFeatureFlags(featureFlags: FeatureFlagService): () => Promise<void> {
   return () => featureFlags.init();
+}
+
+function initCompanyBranding(branding: CustomerBrandingService): () => Promise<void> {
+  return () => branding.init();
 }
 
 @NgModule({
@@ -48,6 +53,12 @@ function initFeatureFlags(featureFlags: FeatureFlagService): () => Promise<void>
       provide: APP_INITIALIZER,
       useFactory: initFeatureFlags,
       deps: [FeatureFlagService],
+      multi: true,
+    },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initCompanyBranding,
+      deps: [CustomerBrandingService],
       multi: true,
     },
   ],

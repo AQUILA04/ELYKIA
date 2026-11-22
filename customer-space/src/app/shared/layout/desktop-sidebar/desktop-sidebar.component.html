@@ -1,7 +1,17 @@
 <aside class="desktop-sidebar" data-testid="e2e-desktop-sidebar">
   <div class="desktop-sidebar__brand">
-    <p class="desktop-sidebar__company">AMENOUVEVE-YAVEH</p>
-    <p class="desktop-sidebar__app">Elykia</p>
+    <div
+      class="desktop-sidebar__logo-frame"
+      *ngIf="branding.customLogoUrl() && !brandLogoFailed">
+      <img
+        [src]="branding.customLogoUrl()"
+        [alt]="branding.displayName()"
+        class="desktop-sidebar__logo-img"
+        data-testid="e2e-sidebar-brand-logo"
+        (error)="brandLogoFailed = true" />
+    </div>
+    <p class="desktop-sidebar__company" data-testid="e2e-sidebar-brand-company">{{ branding.displayName() }}</p>
+    <p class="desktop-sidebar__app">{{ branding.shortName() }}</p>
     <p class="desktop-sidebar__module">Espace Client</p>
   </div>
 

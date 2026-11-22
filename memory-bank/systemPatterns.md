@@ -40,7 +40,7 @@ Architecture **Spring Modulith `2.2.0`** (point d'entrée `com.optimize.elykia.O
 - `recruitment` (`com.optimize.elykia.recruitment`, `CLOSED`) : domaine recrutement.
 - `ai` (`com.optimize.elykia.ai`, `CLOSED`) : Elykia IA (`schema-catalog.json`, RAG `user-guide-index.json`, LLM via `elykia.ai.provider`).
 - `apprelease` (`com.optimize.elykia.apprelease`, `CLOSED`) : distribution des APK mobile & espace client.
-- `company` (`com.optimize.elykia.company`, `CLOSED`) : profil entreprise et charte graphique globale (singleton `company_profile` indépendant d'`Agency`, logo `BYTEA` ≤ 2 Mo validé + anti-XSS SVG, cache Caffeine `COMPANY_PROFILE`/`COMPANY_LOGO`, endpoints publics `/api/public/company/**` avec `ETag`/`304` + admin `/api/v1/admin/company/**` sous `ROLE_ADMIN`).
+- `company` (`com.optimize.elykia.company`, `CLOSED`) : profil entreprise et charte graphique globale (singleton `company_profile` indépendant d'`Agency`, logo `BYTEA` ≤ 2 Mo validé + anti-XSS SVG, cache Caffeine `COMPANY_PROFILE`/`COMPANY_LOGO`, endpoints publics `/api/public/company/**` avec `ETag`/`304`, admin `/api/v1/admin/company/**` sous `ROLE_ADMIN`, et pont `CompanyPdfBrandProfileProvider` → `shared.pdf.PdfBrandProfileProvider` injectant dynamiquement nom/coordonnées/couleurs/logo dans `PdfDocumentIdentity`, `PdfHtmlRenderer` et les templates Thymeleaf PDF).
 
 - Flyway : `backend/src/main/resources/db/migration/V0xx__*.sql`, `out-of-order: false`, `baseline-on-migrate`, baseline 0. Dernière migration au 2026-11-22 : `V046__company_profile_branding.sql`. Les tests backend tournent en `create-drop` : une migration n'y est pas exécutée, la valider à part sur un Postgres 15.
 - Fichiers : MinIO (photos clients, articles, rapports, APK, recrutement). Clés uniquement par variables d’environnement.
@@ -69,7 +69,7 @@ Règles : écritures métier sur SQLite ; l’API sert au chargement initial et 
 
 ## Espace client
 
-`customer-space/src/app/features/` : auth, dashboard, purchases, catalog, cart, payment, tontines, notifications, account-deletion, privacy. Variantes `desktop/` à côté des écrans téléphone. Firebase sert au Remote Config. Les SMS OTP passent par le backend (Notification Hub), plus par Firebase Phone Auth.
+`customer-space/src/app/features/` : auth, dashboard, purchases, catalog, cart, payment, tontines, notifications, account-deletion, privacy. Variantes `desktop/` à côté des écrans téléphone. Charte graphique dynamique via `CustomerBrandingService` (`APP_INITIALIZER`, cache 3 niveaux `localStorage`/`ETag`/cross-tab, projection sur `--elyk-*` sans altérer la palette wireflow par défaut, logo & nom sur splash, auth mobile/desktop et sidebar desktop). Firebase sert au Remote Config. Les SMS OTP passent par le backend (Notification Hub), plus par Firebase Phone Auth.
 
 ## Données — repères
 

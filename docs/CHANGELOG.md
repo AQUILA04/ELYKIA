@@ -894,6 +894,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [2.11.0] — 2026-11-22
+
+### Added
+
+- **Charte graphique & logo dynamiques sur tous les exports PDF (`shared.pdf` + `company`) —** introduction du snapshot immutable `PdfBrandProfile` et du port SPI `PdfBrandProfileProvider` dans `shared.pdf`, implémenté par `CompanyPdfBrandProfileProvider` (`company`, zéro dépendance circulaire vérifiée par `ModularityTests`, lecture directe depuis le cache Caffeine `CompanyProfileService`).
+- **Injection transparente dans `PdfDocumentIdentity` et `PdfHtmlRenderer` —** tous les exports existants héritent automatiquement du nom d'entreprise, de l'adresse, du téléphone, des couleurs (primaire/secondaire/pâle) et du logo (`data:<mime>;base64,...` pour PNG/JPEG/SVG, repli monogramme pour WebP), y compris dans le tampon de pied de page `CLASSIC` et `MODERN` (`n/N`).
+- **Templates Thymeleaf dynamiques —** mise à jour de `templates/pdf/fragments.html`, `templates/pdf/report-fragments.html` et `templates/tontine-order-receipt.html` via `<style th:inline="css">` et affichage conditionnel du logo personnalisé ; tests de rendu réel iText ajoutés (`CompanyPdfBrandProfileProviderTest`).
+
 ## Backend — [2.10.0] — 2026-11-22
 
 ### Added
@@ -2465,6 +2473,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.18.0] — 2026-11-22
+
+### Added
+
+- **Charte graphique, nom & logo dynamiques (`CustomerBrandingService`, `customer-branding-palette.ts`) —** chargement initial via `APP_INITIALIZER` (`GET /api/public/company/branding`) avec cache 3 niveaux (`localStorage` `elykia_customer_company_branding_v1` anti-FOUC, revalidation HTTP `ETag` / `If-None-Match` → `304 Not Modified`, synchronisation cross-tab `storage`), mise à jour dynamique du `<title>` et du favicon, et projection harmonieuse des couleurs configurées sur les tokens `--elyk-*` et `--ion-color-primary*` (palette wireflow navy/gold conservée à l'identique par défaut).
+- **Écrans raccordés —** splash screen (`AppComponent`), connexion mobile (`AuthPage`), connexion desktop (`AuthDesktopComponent`) et menu latéral desktop (`DesktopSidebarComponent`) affichent le nom de l'entreprise, le nom court et le logo personnalisé avec repli gracieux en cas d'erreur réseau.
+- **Tests automatiques —** tests unitaires Jasmine (`customer-branding-palette.spec.ts`, `customer-branding.service.spec.ts` — 211/211 verts) et spec E2E Playwright (`e2e/specs/branding/company-branding.spec.ts` + mock par défaut dans `customer-auth.ts`).
 
 ## Customer-space — [0.17.4] — 2026-11-20
 

@@ -57,9 +57,21 @@
     [title]="''"
     [showBack]="step !== 'phone'"
     (back)="goBack()">
-    <div class="auth-brand" aria-label="AMENOUVEVE-YAVEH · Elykia · Espace Client">
-      <p class="auth-brand__company">AMENOUVEVE-YAVEH</p>
-      <p class="auth-brand__app">Elykia</p>
+    <div
+      class="auth-brand"
+      [attr.aria-label]="branding.displayName() + ' · ' + branding.shortName() + ' · Espace Client'">
+      <div
+        class="auth-brand__logo-frame"
+        *ngIf="branding.customLogoUrl() && !brandLogoFailed">
+        <img
+          [src]="branding.customLogoUrl()"
+          [alt]="branding.displayName()"
+          class="auth-brand__logo-img"
+          data-testid="e2e-brand-logo"
+          (error)="brandLogoFailed = true" />
+      </div>
+      <p class="auth-brand__company" data-testid="e2e-brand-company">{{ branding.displayName() }}</p>
+      <p class="auth-brand__app" data-testid="e2e-brand-app">{{ branding.shortName() }}</p>
       <p class="auth-brand__module">Espace Client</p>
     </div>
   </app-elyk-decor-header>

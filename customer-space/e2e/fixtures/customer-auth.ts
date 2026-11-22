@@ -93,6 +93,31 @@ export async function mockCustomerApi(page: Page): Promise<void> {
     (window as Window & { __E2E__?: boolean }).__E2E__ = true;
   });
 
+  await page.route('**/api/public/company/branding', async (route) => {
+    await route.fulfill(
+      jsonResponse({
+        companyName: 'AMENOUVEVE-YAVEH',
+        shortName: 'Elykia',
+        tagline: 'Gestion Elykia',
+        address: null,
+        phone: null,
+        email: null,
+        website: null,
+        taxId: null,
+        primaryColor: '#003366',
+        secondaryColor: '#0095c8',
+        accentColor: '#00c2a8',
+        sidebarBgColor: '#ffffff',
+        sidebarTextColor: '#1e293b',
+        backgroundColor: '#f2f4f8',
+        hasLogo: false,
+        logoFilename: null,
+        logoUrl: null,
+        themeVersion: 1,
+      }),
+    );
+  });
+
   await page.route('**/api/customer/**', async (route) => {
     if (await tryFulfillPaymentProofRoute(route)) {
       return;
