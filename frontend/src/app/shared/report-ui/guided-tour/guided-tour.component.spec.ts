@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, flush, tick } from '@angular/core/testing';
-import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
+import { TokenStorageService } from '@shared/service/token-storage.service';
 import { ReportUiModule } from '../report-ui.module';
 import { placePopover } from './guided-tour.component';
 import { GuidedTourService, TourDefinition } from './guided-tour.service';

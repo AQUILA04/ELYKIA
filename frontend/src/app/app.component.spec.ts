@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { NgxPermissionsService } from 'ngx-permissions';
 import { AppComponent } from './app.component';
-import { AuthService } from './auth/service/auth.service';
+import { AuthService } from '@features/auth/service/auth.service';
 import { TokenStorageService } from '@shared/service/token-storage.service';
 import { UnitPriceVisibilityService } from '@shared/service/unit-price-visibility.service';
 

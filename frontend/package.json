@@ -9,6 +9,7 @@
     "test": "ng test",
     "test:ci": "ng test --watch=false",
     "check:lazy-loading": "python ../.github/scripts/check-frontend-lazy-loading.py",
+    "check:architecture": "python ../.github/scripts/check-frontend-architecture.py",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:smoke": "playwright test --project=smoke",

@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter, Router } from '@angular/router';
-import { AuthService } from '../../auth/service/auth.service';
+import { AuthService } from '@features/auth/service/auth.service';
 import { AuthInterceptor } from './auth.interceptor';
 import { AlertService } from '@shared/service/alert.service';
 import { SessionExpiryState } from '@shared/service/session-expiry.state';

@@ -1,5 +1,5 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
+import { TokenStorageService } from '@shared/service/token-storage.service';
 
 /** Une étape : la zone `[data-tour="target"]` est mise en avant ; sans cible, la bulle est centrée. */
 export interface TourStep {

@@ -3,10 +3,10 @@ import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
-import { AuthService } from 'src/app/auth/service/auth.service';
-import { AlertService } from 'src/app/shared/service/alert.service';
-import { SessionExpiryState } from 'src/app/shared/service/session-expiry.state';
-import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
+import { AuthService } from '@features/auth/service/auth.service';
+import { AlertService } from '@shared/service/alert.service';
+import { SessionExpiryState } from '@shared/service/session-expiry.state';
+import { TokenStorageService } from '@shared/service/token-storage.service';
 
 /** Identifiants refusés : le formulaire de connexion affiche l'erreur, sans fermer une session. */
 const PUBLIC_AUTH_URL_MARKERS = [

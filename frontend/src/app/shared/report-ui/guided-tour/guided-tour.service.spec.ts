@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
+import { TokenStorageService } from '@shared/service/token-storage.service';
 import { GuidedTourService, TourDefinition } from './guided-tour.service';
 
 describe('GuidedTourService', () => {

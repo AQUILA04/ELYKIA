@@ -3,20 +3,20 @@ import { NgxPermissionsGuard } from 'ngx-permissions';
 import { MainLayoutComponent } from '@layout/shell/main-layout.component';
 import { FeatureFlagGuard } from '@shared/guards/feature-flag.guard';
 import { FeatureFlags } from '@shared/service/feature-flag.service';
-import { AuthGuard } from './auth/guards/auth.guard';
-import { AiChatGuard } from './ai-chat/guards/ai-chat.guard';
+import { AuthGuard } from '@features/auth/guards/auth.guard';
+import { AiChatGuard } from '@features/ai-chat/guards/ai-chat.guard';
 
 export const APP_ROUTES: Routes = [
   // Routes publiques plein écran (hors shell header/sidebar)
   {
     path: 'login',
     loadComponent: () =>
-      import('./auth/login/login.component').then((m) => m.LoginComponent),
+      import('@features/auth/login/login.component').then((m) => m.LoginComponent),
   },
   {
     path: 'license',
     loadComponent: () =>
-      import('./license/reactivate-license/reactivate-license.component').then(
+      import('@features/license/reactivate-license/reactivate-license.component').then(
         (m) => m.ReactivateLicenseComponent,
       ),
   },
@@ -33,12 +33,12 @@ export const APP_ROUTES: Routes = [
       {
         path: 'home',
         loadChildren: () =>
-          import('./dashboard/dashboard.module').then((m) => m.DashboardModule),
+          import('@features/dashboard/dashboard.module').then((m) => m.DashboardModule),
       },
       {
         path: 'chart',
         loadComponent: () =>
-          import('./dashboard-chart/dashboard-chart.component').then(
+          import('@features/dashboard-chart/dashboard-chart.component').then(
             (m) => m.DashboardChartComponent,
           ),
       },
@@ -47,7 +47,7 @@ export const APP_ROUTES: Routes = [
       {
         path: 'orders',
         loadChildren: () =>
-          import('./orders/orders.module').then((m) => m.OrdersModule),
+          import('@features/orders/orders.module').then((m) => m.OrdersModule),
         canActivate: [NgxPermissionsGuard],
         data: {
           permissions: {
@@ -61,14 +61,14 @@ export const APP_ROUTES: Routes = [
       {
         path: 'customer-payments',
         loadChildren: () =>
-          import('./customer-payments/customer-payments.module').then(
+          import('@features/customer-payments/customer-payments.module').then(
             (m) => m.CustomerPaymentsModule,
           ),
       },
       {
         path: 'client-registrations',
         loadChildren: () =>
-          import('./client-registrations/client-registrations.module').then(
+          import('@features/client-registrations/client-registrations.module').then(
             (m) => m.ClientRegistrationsModule,
           ),
         canActivate: [NgxPermissionsGuard],
@@ -87,7 +87,7 @@ export const APP_ROUTES: Routes = [
       {
         path: 'audit',
         loadChildren: () =>
-          import('./customer-activity-audit/customer-activity-audit.module').then(
+          import('@features/customer-activity-audit/customer-activity-audit.module').then(
             (m) => m.CustomerActivityAuditModule,
           ),
         canActivate: [NgxPermissionsGuard],
@@ -101,7 +101,7 @@ export const APP_ROUTES: Routes = [
       {
         path: 'notifications',
         loadChildren: () =>
-          import('./notifications/notifications.module').then(
+          import('@features/notifications/notifications.module').then(
             (m) => m.NotificationsModule,
           ),
       },
@@ -109,7 +109,7 @@ export const APP_ROUTES: Routes = [
       // BI Dashboard
       {
         path: 'bi',
-        loadChildren: () => import('./bi/bi.module').then((m) => m.BiModule),
+        loadChildren: () => import('@features/bi/bi.module').then((m) => m.BiModule),
         canActivate: [NgxPermissionsGuard],
         data: {
           permissions: {
@@ -123,7 +123,7 @@ export const APP_ROUTES: Routes = [
       {
         path: 'ai-chat',
         loadChildren: () =>
-          import('./ai-chat/ai-chat.module').then((m) => m.AiChatModule),
+          import('@features/ai-chat/ai-chat.module').then((m) => m.AiChatModule),
         canActivate: [NgxPermissionsGuard, AiChatGuard],
         data: {
           permissions: {
@@ -137,7 +137,7 @@ export const APP_ROUTES: Routes = [
       {
         path: 'tontine',
         loadChildren: () =>
-          import('./tontine/tontine.module').then((m) => m.TontineModule),
+          import('@features/tontine/tontine.module').then((m) => m.TontineModule),
         canActivate: [NgxPermissionsGuard],
         data: {
           permissions: {
@@ -156,12 +156,12 @@ export const APP_ROUTES: Routes = [
       {
         path: 'stock',
         loadChildren: () =>
-          import('./stock/stock.module').then((m) => m.StockModule),
+          import('@features/stock/stock.module').then((m) => m.StockModule),
       },
       {
         path: 'stock-tontine',
         loadChildren: () =>
-          import('./stock/stock-legacy-redirect.module').then(
+          import('@features/stock/stock-legacy-redirect.module').then(
             (m) => m.StockLegacyRedirectModule,
           ),
       },
@@ -170,36 +170,36 @@ export const APP_ROUTES: Routes = [
       {
         path: 'article',
         loadChildren: () =>
-          import('./article/article.module').then((m) => m.ArticleModule),
+          import('@features/article/article.module').then((m) => m.ArticleModule),
       },
       {
         path: 'article-type',
         loadChildren: () =>
-          import('./article-type/article-type.module').then(
+          import('@features/article-type/article-type.module').then(
             (m) => m.ArticleTypeModule,
           ),
       },
       {
         path: 'locality',
         loadChildren: () =>
-          import('./locality/locality.module').then((m) => m.LocalityModule),
+          import('@features/locality/locality.module').then((m) => m.LocalityModule),
       },
 
       // Ventes, Crédits, Dettes, Écarts Carnet
       {
         path: 'credit',
         loadChildren: () =>
-          import('./credit/credit.module').then((m) => m.CreditModule),
+          import('@features/credit/credit.module').then((m) => m.CreditModule),
       },
       {
         path: 'debts',
         loadChildren: () =>
-          import('./debt/debt.module').then((m) => m.DebtModule),
+          import('@features/debt/debt.module').then((m) => m.DebtModule),
       },
       {
         path: 'carnet-ecarts',
         loadChildren: () =>
-          import('./carnet-ecart/carnet-ecart.module').then(
+          import('@features/carnet-ecart/carnet-ecart.module').then(
             (m) => m.CarnetEcartModule,
           ),
       },
@@ -208,22 +208,22 @@ export const APP_ROUTES: Routes = [
       {
         path: 'account',
         loadChildren: () =>
-          import('./account/account.module').then((m) => m.AccountModule),
+          import('@features/account/account.module').then((m) => m.AccountModule),
       },
       {
         path: 'client',
         loadChildren: () =>
-          import('./client/client.module').then((m) => m.ClientModule),
+          import('@features/client/client.module').then((m) => m.ClientModule),
       },
       {
         path: 'user',
         loadChildren: () =>
-          import('./user/user.module').then((m) => m.UserModule),
+          import('@features/user/user.module').then((m) => m.UserModule),
       },
       {
         path: 'commercial',
         loadChildren: () =>
-          import('./commercial/commercial.module').then(
+          import('@features/commercial/commercial.module').then(
             (m) => m.CommercialModule,
           ),
       },
@@ -232,65 +232,65 @@ export const APP_ROUTES: Routes = [
       {
         path: 'accounting-day',
         loadChildren: () =>
-          import('./accounting-day/accounting-day.module').then(
+          import('@features/accounting-day/accounting-day.module').then(
             (m) => m.AccountingDayModule,
           ),
       },
       {
         path: 'cash-desk',
         loadChildren: () =>
-          import('./cash-desk/cash-desk.module').then((m) => m.CashDeskModule),
+          import('@features/cash-desk/cash-desk.module').then((m) => m.CashDeskModule),
       },
       {
         path: 'inventory',
         loadChildren: () =>
-          import('./inventory/inventory.module').then((m) => m.InventoryModule),
+          import('@features/inventory/inventory.module').then((m) => m.InventoryModule),
       },
       {
         path: 'gestion',
         loadChildren: () =>
-          import('./gestion/gestion.module').then((m) => m.GestionModule),
+          import('@features/gestion/gestion.module').then((m) => m.GestionModule),
       },
       {
         path: 'operation',
         loadChildren: () =>
-          import('./operation/operation.module').then((m) => m.OperationModule),
+          import('@features/operation/operation.module').then((m) => m.OperationModule),
       },
       {
         path: 'deposit',
         loadChildren: () =>
-          import('./deposit/deposit.module').then((m) => m.DepositModule),
+          import('@features/deposit/deposit.module').then((m) => m.DepositModule),
       },
       {
         path: 'out',
-        loadChildren: () => import('./out/out.module').then((m) => m.OutModule),
+        loadChildren: () => import('@features/out/out.module').then((m) => m.OutModule),
       },
       {
         path: 'history',
         loadChildren: () =>
-          import('./history/history.module').then((m) => m.HistoryModule),
+          import('@features/history/history.module').then((m) => m.HistoryModule),
       },
       {
         path: 'report',
         loadChildren: () =>
-          import('./report/report.module').then((m) => m.ReportModule),
+          import('@features/report/report.module').then((m) => m.ReportModule),
       },
       {
         path: 'expense',
         loadChildren: () =>
-          import('./expense/expense.module').then((m) => m.ExpenseModule),
+          import('@features/expense/expense.module').then((m) => m.ExpenseModule),
       },
 
       // Sécurité, Paramètres & Configuration Mobile Money
       {
         path: 'security',
         loadChildren: () =>
-          import('./security/security.module').then((m) => m.SecurityModule),
+          import('@features/security/security.module').then((m) => m.SecurityModule),
       },
       {
         path: 'parameters',
         loadChildren: () =>
-          import('./parameters/parameters.module').then(
+          import('@features/parameters/parameters.module').then(
             (m) => m.ParametersModule,
           ),
       },
@@ -298,14 +298,14 @@ export const APP_ROUTES: Routes = [
         path: 'configuration/mobile-money/frais-retrait',
         loadComponent: () =>
           import(
-            './mobile-money-config/withdrawal-fee-grid/withdrawal-fee-grid.component'
+            '@features/mobile-money-config/withdrawal-fee-grid/withdrawal-fee-grid.component'
           ).then((m) => m.WithdrawalFeeGridComponent),
       },
       {
         path: 'configuration/mobile-money',
         loadComponent: () =>
           import(
-            './mobile-money-config/mobile-money-config-list/mobile-money-config-list.component'
+            '@features/mobile-money-config/mobile-money-config-list/mobile-money-config-list.component'
           ).then((m) => m.MobileMoneyConfigListComponent),
       },
 
@@ -313,7 +313,7 @@ export const APP_ROUTES: Routes = [
       {
         path: 'recruitment',
         loadChildren: () =>
-          import('./recruitment/recruitment.module').then(
+          import('@features/recruitment/recruitment.module').then(
             (m) => m.RecruitmentModule,
           ),
         canActivate: [NgxPermissionsGuard, FeatureFlagGuard],

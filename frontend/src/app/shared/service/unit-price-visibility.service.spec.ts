@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import { UnitPriceVisibilityService } from './unit-price-visibility.service';
 import { TokenStorageService } from './token-storage.service';
-import { UserService } from 'src/app/user/service/user.service';
+import { UserService } from '@features/user/service/user.service';
 
 describe('UnitPriceVisibilityService', () => {
     let service: UnitPriceVisibilityService;

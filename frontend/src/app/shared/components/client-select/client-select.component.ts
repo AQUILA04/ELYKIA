@@ -2,7 +2,7 @@ import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChang
 import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
-import { Client, ClientService } from 'src/app/client/service/client.service';
+import { Client, ClientService } from '@features/client/service/client.service';
 
 @Component({
   selector: 'app-client-select',

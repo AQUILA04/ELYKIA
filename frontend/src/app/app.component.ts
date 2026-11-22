@@ -7,7 +7,7 @@ import { NgxSonnerToaster } from 'ngx-sonner';
 import { EnvironmentRibbonComponent } from '@shared/components/environment-ribbon/environment-ribbon.component';
 import { TokenStorageService } from '@shared/service/token-storage.service';
 import { UnitPriceVisibilityService } from '@shared/service/unit-price-visibility.service';
-import { AuthService } from './auth/service/auth.service';
+import { AuthService } from '@features/auth/service/auth.service';
 
 @Component({
   selector: 'app-root',

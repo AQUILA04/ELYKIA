@@ -3,18 +3,18 @@ import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { filter } from 'rxjs/operators';
-import { AlertService } from 'src/app/shared/service/alert.service';
+import { AlertService } from '@shared/service/alert.service';
 
 import { NgxPermissionsModule, NgxPermissionsService } from 'ngx-permissions';
-import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { AuthService } from "../../auth/service/auth.service";
-import { LayoutService } from 'src/app/shared/service/layout.service';
-import { UserService } from 'src/app/user/service/user.service';
-import { UserProfilConstant } from 'src/app/shared/constants/user-profil.constant';
-import {UserProfile} from "../../shared/models/user-profile.enum";
-import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
-import { environment } from 'src/environments/environment';
-import { AiPermissions } from 'src/app/shared/constants/ai-permission.constant';
+import { TokenStorageService } from '@shared/service/token-storage.service';
+import { AuthService } from "@features/auth/service/auth.service";
+import { LayoutService } from '@shared/service/layout.service';
+import { UserService } from '@features/user/service/user.service';
+import { UserProfilConstant } from '@shared/constants/user-profil.constant';
+import {UserProfile} from "@shared/models/user-profile.enum";
+import { FeatureFlagService, FeatureFlags } from '@shared/service/feature-flag.service';
+import { environment } from '@env/environment';
+import { AiPermissions } from '@shared/constants/ai-permission.constant';
 
 @Component({
   selector: 'app-sidebar',

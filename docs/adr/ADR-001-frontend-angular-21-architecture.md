@@ -71,12 +71,11 @@ frontend/src/app/
   "@layout/*": ["./src/app/layout/*"],
   "@shared/*": ["./src/app/shared/*"],
   "@features/*": ["./src/app/features/*"],
-  "@env/*": ["./src/environments/*"],
-  "src/*": ["./src/*"]
+  "@env/*": ["./src/environments/*"]
 }
 ```
 
-L'alias historique `"src/*"` est conservé temporairement pour la rétrocompatibilité des imports existants et sera retiré à l'issue du Lot 4.
+L'alias historique `"src/*"` a été **intégralement supprimé** (0 import `src/app/` ou `src/environments/` résiduel, vérifié en CI).
 
 ### 2.3 Règles de dépendances (frontières)
 
@@ -102,14 +101,14 @@ L'alias historique `"src/*"` est conservé temporairement pour la rétrocompatib
 | Lot | Périmètre | Statut |
 |---|---|---|
 | **Lot 1 — Socle & Alias** | Alias `@core/*`, `@layout/*`, `@shared/*`, `@features/*`, `@env/*` dans `tsconfig.json` ; fusion `shared/pipe/` → `shared/pipes/` ; déplacement `bread/` → `layout/breadcrumb/` ; regroupement des intercepteurs HTTP dans `core/http/` (`auth.interceptor.ts`, `license-interceptor.service.ts`). | **Terminé** (`a8b66d6`) |
-| **Lot 2 — Bootstrap Standalone** | Migration `AppModule` → `app.config.ts` + `app.routes.ts` + `bootstrapApplication` ; création `layout/shell/main-layout.component.*` ; conversion standalone des composants shell/socle (`AppComponent`, `HeaderComponent`, `SidebarComponent`, `BreadcrumbComponent`, `EnvironmentRibbonComponent`, `LoginComponent`, `RegisterComponent`, `ReactivateLicenseComponent`, `MobileMoneyConfig*`, `DashboardChartComponent`, `LicenseKeyFormatterPipe`). | **Terminé** |
-| **Lot 3 — Nouvelles features** | Toute nouvelle fonctionnalité est créée directement sous `src/app/features/<domaine>/` en standalone + `<domaine>.routes.ts` + `index.ts`. | Continu |
-| **Lot 4 — Rapatriement progressif** | Migration au fil des évolutions produit (1–2 domaines par PR via `git mv`) des domaines historiques vers `features/` + conversion standalone + remplacement des imports `src/*` par `@core/*` / `@shared/*`. | Progressif |
+| **Lot 2 — Bootstrap Standalone** | Migration `AppModule` → `app.config.ts` + `app.routes.ts` + `bootstrapApplication` ; création `layout/shell/main-layout.component.*` ; conversion standalone des composants shell/socle (`AppComponent`, `HeaderComponent`, `SidebarComponent`, `BreadcrumbComponent`, `EnvironmentRibbonComponent`, `LoginComponent`, `RegisterComponent`, `ReactivateLicenseComponent`, `MobileMoneyConfig*`, `DashboardChartComponent`, `LicenseKeyFormatterPipe`). | **Terminé** (`8286d18`) |
+| **Lot 3 — Garde CI d'architecture** | Script CI `.github/scripts/check-frontend-architecture.py` (câblé dans `ci.yml` et `npm run check:architecture`) imposant les 4 couches strictes, les barrels `index.ts`, l'interdiction des imports `src/*` et des paquets bannis (`sweetalert2`, `@angular/animations`), et les frontières de `core/`. | **Terminé** |
+| **Lot 4 — Rapatriement dans `features/`** | Déplacement via `git mv` des **38 domaines métier** sous `frontend/src/app/features/`, réécriture complète de tous les imports TS/SCSS vers `@core/*`, `@layout/*`, `@shared/*`, `@features/*`, `@env/*`, suppression de l'alias legacy `"src/*"`, et création des 38 barrels `index.ts`. La conversion interne des `NgModule` historiques vers `*.routes.ts` standalone se poursuit opportunément au fil des évolutions produit. | **Terminé** |
 
 ---
 
 ## 4. Conséquences
 
-- **Positives :** onboarding rapide, zéro ambiguïté sur l'emplacement des fichiers, suppression définitive d'`AppModule`, lazy-loading fin par écran (`loadComponent`), réduction du couplage entre domaines et parité conceptuelle avec les modules DDD Spring Modulith du backend.
-- **Compromis :** cohabitation temporaire pendant le Lot 4 entre anciens domaines à la racine de `src/app/` (en `NgModule` lazy-loaded) et nouveaux domaines dans `src/app/features/` (standalone). Cette cohabitation est nativement supportée par Angular 21 (`loadChildren` acceptant aussi bien `NgModule` que `Routes`).
-- **Gouvernance :** vérifiée par `.github/scripts/check-frontend-lazy-loading.py`, `.cursor/hooks/lazy-loading-reminder.py` et `.cursor/rules/frontend-lazy-loading-migration.mdc`.
+- **Positives :** onboarding rapide, racine `src/app/` réduite de 42 dossiers à **4 couches strictes** (`core/`, `layout/`, `shared/`, `features/`), zéro import `src/*`, suppression définitive d'`AppModule`, lazy-loading fin (`loadComponent` / `loadChildren`), réduction du bundle initial (`-35,5 %`) et parité conceptuelle avec les modules DDD Spring Modulith du backend.
+- **Compromis :** les domaines historiques déjà migrés dans `features/` conservent leurs `NgModule` lazy-loaded internes (convertibles écran par écran en standalone sans toucher au routage global).
+- **Gouvernance :** vérifiée automatiquement en CI par `.github/scripts/check-frontend-architecture.py`, `.github/scripts/check-frontend-lazy-loading.py`, `.cursor/hooks/lazy-loading-reminder.py` et `.cursor/rules/frontend-lazy-loading-migration.mdc`.

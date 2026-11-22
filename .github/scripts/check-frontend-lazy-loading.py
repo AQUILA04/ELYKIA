@@ -91,6 +91,9 @@ def get_changed_files() -> list[str]:
 
 def domain_from_path(path: str) -> str | None:
     normalized = path.replace("\\", "/")
+    feature_match = re.match(r"frontend/src/app/features/([^/]+)/", normalized)
+    if feature_match:
+        return feature_match.group(1)
     match = re.match(r"frontend/src/app/([^/]+)/", normalized)
     return match.group(1) if match else None
 
@@ -107,7 +110,7 @@ def is_cross_reference_exempt(domain: str, changed_files: list[str]) -> bool:
     new_lazy_entries = [
         path for path in changed_files
         if re.match(
-            r"frontend/src/app/[^/]+/[^/]+\.(module|routes)\.ts$",
+            r"frontend/src/app/(?:features/)?[^/]+/[^/]+\.(module|routes)\.ts$",
             path.replace("\\", "/"),
         )
     ]

@@ -1,0 +1,337 @@
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CreditService } from '../service/credit.service';
+import { NgxSpinnerService } from 'ngx-spinner';
+import { TokenStorageService } from '@shared/service/token-storage.service';
+import { CreditDistributionDetail } from '../types/credit.types';
+import { ErrorHandlerService } from '@shared/service/error-handler.service';
+import { ErrorHandlingMixin } from '@shared/mixins/error-handling.mixin';
+import { ClientService } from '@features/client/service/client.service';
+import { AlertService } from '@shared/service/alert.service';
+import {UserService} from "@features/user/service/user.service";
+import {UserProfilConstant} from "@shared/constants/user-profil.constant";
+import {UserProfile} from "@shared/models/user-profile.enum";
+import { CreditFieldControlDto } from '../models/credit-field-control.model';
+
+export interface CreditSourceMonthlyStock {
+  id: number;
+  collector: string;
+  month: number;
+  year: number;
+}
+
+@Component({
+  selector: 'app-credit-details',
+  templateUrl: './credit-details.component.html',
+  styleUrls: ['./credit-details.component.scss'],
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
+})
+export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit {
+  credit: any | undefined;
+  isLoading = true;
+  creditId: number | null = null;
+  distributionDetails: CreditDistributionDetail[] = [];
+
+  timelines: any[] = [];
+  collectorHistory: any[] = [];
+  dailyStakeHistory: any[] = [];
+  lateMetrics: any = null;
+  fieldControlLatest: CreditFieldControlDto | null = null;
+
+  packCaption(item: any): string {
+    const count = item.packCount || 1;
+    const label = item.packLabel || 'Pack';
+    const amount = item.lineAmount || item.totalPrice;
+    return `${count} × ${label}${amount ? ' — ' + amount : ''}`;
+  }
+
+  linePriceLabel(item: any): string {
+    if (item.salePackMode && item.salePackMode !== 'UNIT') {
+      return this.packCaption(item);
+    }
+    return `${item.unitPrice ?? 0} FCFA`;
+  }
+
+  showChangeCollectorModal = false;
+  agents: any[] = [];
+  selectedCommercial = '';
+  isRecoveryManager: boolean = false;
+  isCollector: boolean = false;
+  isCarnetBusy = false;
+
+  constructor(
+    private readonly route: ActivatedRoute,
+    private readonly creditService: CreditService,
+    private readonly spinner: NgxSpinnerService,
+    private readonly router: Router,
+    private readonly tokenStorage: TokenStorageService,
+    private readonly clientService: ClientService,
+    private readonly alertService: AlertService,
+    private readonly userService: UserService,
+    errorHandler: ErrorHandlerService
+  ) {
+    super(errorHandler);
+    this.tokenStorage.checkConnectedUser();
+  }
+
+  ngOnInit(): void {
+    this.route.params.subscribe(params => {
+      const creditId = +params['id'];
+      if (creditId) {
+        this.creditId = creditId;
+        this.spinner.show();
+        this.loadAllCreditData(creditId);
+      }
+    });
+    this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
+    this.isCollector = this.userService.hasProfile(UserProfile.PROMOTER);
+  }
+
+  onCancel(): void {
+    this.router.navigate(['/credit/list']);
+  }
+
+  onToggleCarnetVerification(): void {
+    if (!this.credit || this.isCarnetBusy) {
+      return;
+    }
+    if (this.credit.type !== 'CREDIT' || this.credit.status !== 'INPROGRESS') {
+      this.alertService.showWarning('La vérification de carnet n\'est possible que sur un crédit en cours.');
+      return;
+    }
+    const nextVerified = !this.credit.carnetVerified;
+    const title = nextVerified ? 'Vérifier le carnet' : 'Annuler la vérification';
+    const text = nextVerified
+      ? 'Marquer le carnet de cette vente comme vérifié ?'
+      : 'Retirer la vérification de carnet de cette vente ?';
+    void this.alertService.showConfirmation(title, text, nextVerified ? 'Vérifier' : 'Annuler la vérification')
+      .then((confirmed) => {
+        if (!confirmed || !this.credit) {
+          return;
+        }
+        this.isCarnetBusy = true;
+        this.spinner.show();
+        this.creditService.setCarnetVerification(this.credit.id, nextVerified).subscribe({
+          next: (response) => {
+            this.spinner.hide();
+            this.isCarnetBusy = false;
+            if (response.data) {
+              this.credit = { ...this.credit, ...response.data };
+              this.alertService.showSuccess(
+                nextVerified ? 'Carnet marqué comme vérifié' : 'Vérification annulée'
+              );
+            }
+          },
+          error: (error) => {
+            this.spinner.hide();
+            this.isCarnetBusy = false;
+            this.alertService.showError(
+              error?.error?.message || 'Erreur lors de la vérification du carnet'
+            );
+          }
+        });
+      });
+  }
+
+  navigateToEdit(creditId: number | null): void {
+    this.router.navigate(['/credit/add', creditId]);
+  }
+
+  loadAllCreditData(creditId: number): void {
+    this.isLoading = true;
+
+    // Load Credit Data
+    this.creditService.getCreditById(creditId).subscribe({
+      next: (data: any) => {
+        this.credit = data.data;
+        this.computeLateMetrics();
+      },
+      error: (error) => this.handleError(error, 'Erreur de chargement')
+    });
+
+
+    // Load Timelines
+    this.creditService.getEcheancesByCredit(creditId, 0, 1000, 'id,desc').subscribe({
+      next: (response: any) => {
+        if (response.data && response.data.content) {
+          this.timelines = response.data.content;
+        }
+      },
+      error: (error) => this.handleError(error, 'Erreur de chargement des échéances')
+    });
+
+    // Load Collector History
+    this.creditService.getCollectorHistory(creditId).subscribe({
+      next: (response: any) => {
+        if (response.data) {
+          this.collectorHistory = response.data;
+        }
+      },
+      error: (error) => this.handleError(error, 'Erreur de chargement de l\'historique commercial')
+    });
+
+    // Load Daily Stake History
+    this.creditService.getDailyStakeHistory(creditId).subscribe({
+      next: (response: any) => {
+        if (response.data) {
+          this.dailyStakeHistory = response.data;
+        }
+      },
+      error: (error) => this.handleError(error, 'Erreur de chargement de l\'historique des mises')
+    });
+
+    this.creditService.getLatestFieldControl(creditId).subscribe({
+      next: (response: any) => {
+        this.fieldControlLatest = response?.data || null;
+      },
+      error: (error) => {
+        if (error?.status === 404) {
+          this.fieldControlLatest = null;
+          return;
+        }
+        this.handleError(error, 'Erreur de chargement du contrôle terrain');
+      }
+    });
+
+    // Hide spinner once all requests are initiated
+    this.spinner.hide();
+    this.isLoading = false;
+  }
+
+  get clientReliquatAmount(): number {
+    return Number(this.credit?.clientReliquatAmount || this.credit?.client?.reliquatAmount || 0);
+  }
+
+  get effectiveRemainingAmount(): number {
+    const remaining = Number(this.credit?.totalAmountRemaining || 0);
+    return Math.max(0, remaining - this.clientReliquatAmount);
+  }
+
+  private daysBetween(a: Date, b: Date): number {
+    return Math.floor((b.getTime() - a.getTime()) / 86400000);
+  }
+
+  private computeLateMetrics(): void {
+    if (!this.credit || !this.credit.beginDate || !this.credit.expectedEndDate) {
+      return;
+    }
+
+    const beginDate = new Date(this.credit.beginDate);
+    const expectedEndDate = new Date(this.credit.expectedEndDate);
+    const today = new Date();
+
+    const totalDays = this.daysBetween(beginDate, expectedEndDate);
+    const rawElapsed = this.daysBetween(beginDate, today);
+    const elapsed = Math.max(0, Math.min(rawElapsed, totalDays)); // Plafond à date de fin
+
+    const dailyStake = this.credit.dailyStake || 1; // Protect against division by zero
+    const paid = Math.floor((this.credit.totalAmountPaid || 0) / dailyStake);
+    const late = Math.max(0, elapsed - paid);
+
+    this.lateMetrics = {
+      elapsed,
+      paid,
+      late,
+      totalDays
+    };
+  }
+
+  async changeCollector(): Promise<void> {
+    if (this.credit?.status !== 'INPROGRESS') {
+      this.alertService.showWarning('Le statut du crédit doit être EN COURS pour modifier le commercial.');
+      return;
+    }
+
+    this.spinner.show();
+    try {
+      this.agents = (await this.clientService.getAgents().toPromise()) || [];
+      this.spinner.hide();
+
+      if (!this.agents || this.agents.length === 0) {
+        this.alertService.showWarning('Aucun commercial trouvé.');
+        return;
+      }
+
+      this.showChangeCollectorModal = true;
+    } catch (error) {
+      this.spinner.hide();
+      this.handleError(error, 'Erreur lors du chargement des commerciaux');
+    }
+  }
+
+  closeChangeCollectorModal(): void {
+    this.showChangeCollectorModal = false;
+    this.selectedCommercial = '';
+  }
+
+  submitChangeCollector(): void {
+    if (!this.selectedCommercial) return;
+    if (this.selectedCommercial === this.credit?.collector) {
+      this.alertService.showWarning('Le nouveau commercial doit être différent de l\'actuel.');
+      return;
+    }
+
+    this.spinner.show();
+    this.creditService.changeCollector(this.credit.id, this.selectedCommercial).subscribe({
+      next: (res) => {
+        this.spinner.hide();
+        this.closeChangeCollectorModal();
+        this.alertService.showSuccess('Le commercial a été modifié avec succès.');
+        if (this.creditId) {
+          this.loadAllCreditData(this.creditId);
+        }
+      },
+      error: (err) => {
+        this.spinner.hide();
+        this.handleError(err, 'Erreur lors de la modification du commercial');
+      }
+    });
+  }
+
+  getMonthName(monthNumber: number): string {
+    const date = new Date();
+    date.setMonth(monthNumber - 1);
+    return date.toLocaleString('fr-FR', { month: 'long' });
+  }
+
+  openSourceMonthlyStock(stock: CreditSourceMonthlyStock): void {
+    this.router.navigate(['/stock/my-stock'], {
+      queryParams: {
+        collector: stock.collector,
+        year: stock.year,
+        month: stock.month,
+        openSales: 1
+      }
+    });
+  }
+
+  async onCancelRecovery(timeline: any): Promise<void> {
+    if (!timeline?.id) return;
+
+    const confirmed = await this.alertService.showConfirmation(
+      'Annulation de recouvrement',
+      `Êtes-vous sûr de vouloir annuler le recouvrement ${timeline.reference || ''} ? Les montants du crédit et du rapport journalier seront corrigés.`,
+      'Oui, annuler',
+      'Non'
+    );
+    if (!confirmed) return;
+
+    this.spinner.show();
+    this.creditService.cancelRecovery(timeline.id).subscribe({
+      next: () => {
+        this.spinner.hide();
+        this.alertService.showSuccess('Recouvrement annulé avec succès.');
+        if (this.creditId) {
+          this.loadAllCreditData(this.creditId);
+        }
+      },
+      error: (err) => {
+        this.spinner.hide();
+        this.alertService.showError(
+          err?.error?.message || this.getErrorMessage(err) || 'Erreur lors de l\'annulation du recouvrement'
+        );
+      }
+    });
+  }
+}

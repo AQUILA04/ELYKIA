@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { finalize, map, shareReplay } from 'rxjs/operators';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 
 export type ClientPhotoKind = 'PROFIL' | 'CARD';
 export type ClientPhotoSize = 'THUMB' | 'ORIGINAL';

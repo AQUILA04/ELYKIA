@@ -1,8 +1,8 @@
 import { Component, ElementRef, EventEmitter, Input, OnInit, OnChanges, OnDestroy, SimpleChanges, Output } from '@angular/core';
-import { ClientService } from 'src/app/client/service/client.service';
-import { AuthService } from 'src/app/auth/service/auth.service';
+import { ClientService } from '@features/client/service/client.service';
+import { AuthService } from '@features/auth/service/auth.service';
 import {UserProfile} from "../../models/user-profile.enum";
-import {UserService} from "../../../user/service/user.service";
+import {UserService} from "@features/user/service/user.service";
 
 @Component({
   selector: 'app-commercial-selector',

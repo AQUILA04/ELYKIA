@@ -1,0 +1,92 @@
+import { Injectable } from '@angular/core';
+import { BaseHttpService } from '@shared/service/base-http.service';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { CommercialMonthlyStock } from '../models/commercial-stock.model';
+import { SoldValueHistoryEntry } from '../models/sold-value-history.model';
+import { StockLinkedSalesResponse } from '../models/stock-linked-sales.model';
+import { StockTeamOverview, StockToSettle } from '../models/stock-team.model';
+import { TokenStorageService } from '@shared/service/token-storage.service';
+import { ErrorHandlerService } from '@shared/service/error-handler.service';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class CommercialStockService extends BaseHttpService {
+  movementUrl = '/api/v1/stock/movements';
+
+  constructor(
+    protected override http: HttpClient,
+    protected override tokenStorage: TokenStorageService,
+    protected override errorHandler: ErrorHandlerService
+  ) {
+    super(http, tokenStorage, errorHandler);
+    this.movementUrl = this.baseUrl + this.movementUrl;
+    this.baseUrl += '/api/commercial-stocks';
+  }
+
+  getCurrentStock(collector: string): Observable<CommercialMonthlyStock> {
+    return this.http.get<CommercialMonthlyStock>(`${this.baseUrl}/current/${collector}`);
+  }
+
+  getStockByDate(collector: string, year: number, month: number): Observable<CommercialMonthlyStock> {
+    return this.http.get<CommercialMonthlyStock>(`${this.baseUrl}/${collector}/${year}/${month}`);
+  }
+
+  /** Vue équipe d'un mois : une ligne par commercial et les totaux (un commercial ne reçoit que sa ligne). */
+  getTeamOverview(year: number, month: number, collector?: string | null): Observable<StockTeamOverview> {
+    let params = new HttpParams().set('year', year.toString()).set('month', month.toString());
+    if (collector) {
+      params = params.set('collector', collector);
+    }
+    return this.http.get<StockTeamOverview>(`${this.baseUrl}/team-overview`, { params });
+  }
+
+  /** Mois clôturés à régulariser, du plus ancien au plus récent. */
+  getToSettle(collector?: string | null): Observable<StockToSettle[]> {
+    let params = new HttpParams();
+    if (collector) {
+      params = params.set('collector', collector);
+    }
+    return this.http.get<StockToSettle[]>(`${this.baseUrl}/to-settle`, { params });
+  }
+
+  getAvailableItems(collector: string): Observable<any[]> {
+    return this.http.get<any[]>(`${this.baseUrl}/available/${collector}`);
+  }
+
+  getAll(collector: string | null, page: number, size: number, historic: boolean = false): Observable<any> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    if (collector) {
+      params = params.set('collector', collector);
+    }
+    if (historic) {
+      params = params.set('historic', 'true');
+    }
+
+    return this.http.get<any>(`${this.baseUrl}`, { params });
+  }
+
+  getStockMovements(stockItemId: number): Observable<any> {
+    return this.http.get<any>(`${this.movementUrl}/item/${stockItemId}`);
+  }
+
+  getSoldValueHistory(stockItemId: number): Observable<SoldValueHistoryEntry[]> {
+    return this.http.get<SoldValueHistoryEntry[]>(`${this.baseUrl}/items/${stockItemId}/sold-value-history`);
+  }
+
+  getLinkedSales(stockId: number): Observable<StockLinkedSalesResponse> {
+    return this.http.get<StockLinkedSalesResponse>(`${this.baseUrl}/${stockId}/linked-sales`);
+  }
+
+  exportPdf(collector: string, year: number, month: number): Observable<Blob> {
+    const params = new HttpParams()
+      .set('collector', collector)
+      .set('year', year.toString())
+      .set('month', month.toString());
+    return this.http.get(`${this.baseUrl}/export/pdf`, { params, responseType: 'blob' });
+  }
+}

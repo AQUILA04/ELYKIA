@@ -1,6 +1,6 @@
 import { Component, Input, OnDestroy } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { AlertService } from 'src/app/shared/service/alert.service';
+import { AlertService } from '@shared/service/alert.service';
 
 @Component({
   selector: 'app-article-photo-field',

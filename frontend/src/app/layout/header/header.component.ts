@@ -3,22 +3,22 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
-import { AlertService } from 'src/app/shared/service/alert.service';
-import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
-import { AuthService } from "../../auth/service/auth.service";
-import { LayoutService } from 'src/app/shared/service/layout.service';
-import { environment } from 'src/environments/environment';
-import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
-import { AiPermissions } from 'src/app/shared/constants/ai-permission.constant';
+import { AlertService } from '@shared/service/alert.service';
+import { TokenStorageService } from '@shared/service/token-storage.service';
+import { AuthService } from "@features/auth/service/auth.service";
+import { LayoutService } from '@shared/service/layout.service';
+import { environment } from '@env/environment';
+import { FeatureFlagService, FeatureFlags } from '@shared/service/feature-flag.service';
+import { AiPermissions } from '@shared/constants/ai-permission.constant';
 import { NgxPermissionsService } from 'ngx-permissions';
-import { UserService } from 'src/app/user/service/user.service';
-import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { UserService } from '@features/user/service/user.service';
+import { UserProfile } from '@shared/models/user-profile.enum';
 import {
   AppNotificationGroup,
   AppNotificationItem,
   AppNotificationService
-} from 'src/app/shared/service/app-notification.service';
-import { PendingOpsToastService } from 'src/app/shared/service/pending-ops-toast.service';
+} from '@shared/service/app-notification.service';
+import { PendingOpsToastService } from '@shared/service/pending-ops-toast.service';
 import { Subscription, interval } from 'rxjs';
 
 @Component({

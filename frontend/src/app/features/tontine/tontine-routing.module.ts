@@ -1,0 +1,64 @@
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { AuthGuard } from '@features/auth/guards/auth.guard'; // Assuming AuthGuard path
+import { TontineDashboardComponent } from './pages/tontine-dashboard/tontine-dashboard.component';
+import { MemberDetailsComponent } from './pages/member-details/member-details.component';
+import { SessionComparisonComponent } from './pages/session-comparison/session-comparison.component';
+import { TontineMagasinierDashboardComponent } from './pages/magasinier-dashboard/tontine-magasinier-dashboard.component'; // New component
+import { TontineCollecteComponent } from './collecte/tontine-collecte.component';
+import { TontineDeliveryListComponent } from './pages/delivery-list/tontine-delivery-list.component';
+import { TontineCollectionResetComponent } from './pages/tontine-collection-reset/tontine-collection-reset.component';
+import { TontineDeliveryConflictsComponent } from './pages/delivery-conflicts/tontine-delivery-conflicts.component';
+
+const routes: Routes = [
+  {
+    path: '',
+    component: TontineDashboardComponent
+  },
+  {
+    path: 'member/:id',
+    component: MemberDetailsComponent
+  },
+  {
+    path: 'compare',
+    component: SessionComparisonComponent
+  },
+  {
+    path: 'magasinier',
+    component: TontineMagasinierDashboardComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ['ROLE_MAGASINIER'] } // Protect with role guard
+  },
+  {
+    path: 'collectes',
+    component: TontineCollecteComponent
+  },
+  {
+    path: 'livraisons',
+    component: TontineDeliveryListComponent
+  },
+  {
+    path: 'doublons',
+    component: TontineDeliveryConflictsComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ['ROLE_ADMIN', 'ROLE_DEL_TONTINE'] }
+  },
+  {
+    path: 'reset-collectes',
+    component: TontineCollectionResetComponent,
+    canActivate: [AuthGuard],
+    data: {
+      roles: [
+        'ROLE_CONSULT_TONTINE_COLLECTION_RESET',
+        'ROLE_RESET_TONTINE_COLLECTIONS',
+        'ROLE_ADMIN'
+      ]
+    }
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class TontineRoutingModule { }

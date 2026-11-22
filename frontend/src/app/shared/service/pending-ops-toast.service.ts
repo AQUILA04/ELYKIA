@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { ToastrService, ActiveToast } from 'ngx-toastr';
-import { UserService } from 'src/app/user/service/user.service';
-import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { UserService } from '@features/user/service/user.service';
+import { UserProfile } from '@shared/models/user-profile.enum';
 import { AppNotificationService } from './app-notification.service';
 import { TokenStorageService } from './token-storage.service';
 

@@ -94,9 +94,11 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Check eager frontend domains lazy-loading migration
+    - name: Check frontend architecture & lazy-loading boundaries
       working-directory: .
-      run: python .github/scripts/check-frontend-lazy-loading.py
+      run: |
+        python .github/scripts/check-frontend-lazy-loading.py
+        python .github/scripts/check-frontend-architecture.py
 
     - name: Set up Node.js
       uses: actions/setup-node@v6

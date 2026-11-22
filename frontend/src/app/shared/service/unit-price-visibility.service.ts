@@ -2,10 +2,10 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, forkJoin, of, Subscription, interval } from 'rxjs';
 import { catchError, finalize, map, shareReplay, tap } from 'rxjs/operators';
-import { environment } from 'src/environments/environment';
+import { environment } from '@env/environment';
 import { TokenStorageService } from './token-storage.service';
-import { UserService } from 'src/app/user/service/user.service';
-import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { UserService } from '@features/user/service/user.service';
+import { UserProfile } from '@shared/models/user-profile.enum';
 
 /**
  * Deux paramètres règlent le prix unitaire :

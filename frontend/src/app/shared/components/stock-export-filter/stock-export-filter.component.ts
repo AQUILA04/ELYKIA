@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
-import { User } from 'src/app/user/service/user.service';
+import { User } from '@features/user/service/user.service';
 import moment from 'moment';
 
 export interface ExportFilter {
