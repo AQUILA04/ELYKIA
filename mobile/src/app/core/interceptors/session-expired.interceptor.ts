@@ -53,17 +53,35 @@ export class SessionExpiredInterceptor implements HttpInterceptor {
         if (!isRejectedAuthenticatedCall(request.url, error.status)) {
           return throwError(() => error);
         }
-        // Des saisies RM attendent d'être envoyées : jamais de déconnexion automatique.
-        // L'erreur 401 remonte à l'appelant (qui bascule en hors ligne) et l'UI invite à se reconnecter.
-        return from(this.rmPendingQueues.hasPending()).pipe(
-          switchMap(hasPending => {
-            if (hasPending) {
-              this.authService.notifySessionExpiredKeepingData();
-              return throwError(() => error);
+        // Jeton expiré : renouvellement silencieux puis rejeu de la requête (une seule fois).
+        return from(this.authService.refreshAccessToken()).pipe(
+          switchMap(renewed => {
+            if (!renewed) {
+              return this.handleRejected(error);
             }
-            return this.authService.handleUnauthorized() ? NEVER : throwError(() => error);
+            return next.handle(request).pipe(
+              catchError((retryError: unknown) =>
+                retryError instanceof HttpErrorResponse
+                  && isRejectedAuthenticatedCall(request.url, retryError.status)
+                  ? this.handleRejected(retryError)
+                  : throwError(() => retryError))
+            );
           })
         );
+      })
+    );
+  }
+
+  /** Le renouvellement a échoué : on protège d'abord les saisies RM non envoyées. */
+  private handleRejected(error: HttpErrorResponse): Observable<never> {
+    return from(this.rmPendingQueues.hasPending()).pipe(
+      switchMap(hasPending => {
+        if (hasPending) {
+          // Jamais de déconnexion automatique : l'appelant bascule en hors ligne, l'UI invite à se reconnecter.
+          this.authService.notifySessionExpiredKeepingData();
+          return throwError(() => error);
+        }
+        return this.authService.handleUnauthorized() ? NEVER : throwError(() => error);
       })
     );
   }

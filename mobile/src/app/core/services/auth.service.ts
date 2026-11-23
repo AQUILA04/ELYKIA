@@ -30,6 +30,7 @@ export class AuthService {
   private sessionExpiredNotice = false;
   private keptDataNoticeSent = false;
   private readonly keptDataExpiry = new Subject<void>();
+  private refreshInFlight: Promise<boolean> | null = null;
   /** Émis une fois quand un 401 survient alors que des saisies attendent d'être envoyées. */
   readonly sessionExpiredKeptData$ = this.keptDataExpiry.asObservable();
 
@@ -101,6 +102,67 @@ export class AuthService {
     this.keptDataNoticeSent = true;
     void this.log.log('Session refusée (401) : saisies non synchronisées conservées, déconnexion automatique évitée.');
     this.keptDataExpiry.next();
+  }
+
+  /**
+   * Renouvelle silencieusement l'access token avec le refresh token (appel unique même si
+   * plusieurs requêtes reçoivent un 401 en même temps).
+   * @returns true si un nouveau jeton est actif ; false si la session ne peut pas être renouvelée.
+   */
+  refreshAccessToken(): Promise<boolean> {
+    if (!this._isAuthenticated || !this._user?.refreshToken) {
+      return Promise.resolve(false);
+    }
+    this.refreshInFlight ??= this.doRefreshAccessToken().finally(() => {
+      this.refreshInFlight = null;
+    });
+    return this.refreshInFlight;
+  }
+
+  private async doRefreshAccessToken(): Promise<boolean> {
+    const user = this._user;
+    if (!user?.refreshToken) {
+      return false;
+    }
+    try {
+      const request = await this.buildRefreshRequest(user.refreshToken);
+      const response = await firstValueFrom(
+        this.http.post<{ accessToken?: string; refreshToken?: string }>(
+          `${environment.apiUrl}/api/auth/refreshtoken`, request)
+      );
+      if (!response?.accessToken || this._user?.username !== user.username) {
+        return false;
+      }
+      const renewed: User = {
+        ...user,
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken || user.refreshToken,
+      };
+      this._user = renewed;
+      await this.saveUserLocally(renewed);
+      this.keptDataNoticeSent = false;
+      void this.log.log('Session renouvelée silencieusement (refresh token).');
+      return true;
+    } catch (error) {
+      const status = error instanceof HttpErrorResponse ? error.status : 'inconnu';
+      void this.log.log(`Renouvellement de session impossible (statut ${status}).`);
+      return false;
+    }
+  }
+
+  private async buildRefreshRequest(refreshToken: string): Promise<Record<string, string | undefined>> {
+    if (!this.featureFlagService.isFeatureEnabled(FeatureFlags.MobileDeviceRestriction)) {
+      return { refreshToken };
+    }
+    const device = await this.deviceIdentityService.getDeviceIdentity();
+    return {
+      refreshToken,
+      deviceId: device.deviceId,
+      deviceLabel: device.deviceLabel,
+      platform: device.platform,
+      model: device.model,
+      appVersion: device.appVersion,
+    };
   }
 
   /** À lire une fois sur l'écran de connexion, après une déconnexion automatique. */

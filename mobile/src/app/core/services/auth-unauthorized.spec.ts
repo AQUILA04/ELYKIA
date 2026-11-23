@@ -1,3 +1,4 @@
+import { of, throwError } from 'rxjs';
 import { TestBed } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';
 import { provideMockStore, MockStore } from '@ngrx/store/testing';
@@ -17,17 +18,26 @@ import * as AuthActions from '../../store/auth/auth.actions';
 describe('AuthService session expiry', () => {
   let service: AuthService;
   let store: MockStore;
+  let http: { post: jasmine.Spy };
+  let featureFlags: { isFeatureEnabled: jasmine.Spy };
+
+  // Les spies sur Preferences ne tiennent pas toujours (proxy Capacitor) : on isole le stockage web.
+  beforeEach(() => localStorage.clear());
+  afterEach(() => localStorage.clear());
 
   beforeEach(() => {
     spyOn(Preferences, 'get').and.resolveTo({ value: null });
     spyOn(Preferences, 'remove').and.resolveTo();
     spyOn(Preferences, 'set').and.resolveTo();
 
+    http = { post: jasmine.createSpy('post') };
+    featureFlags = { isFeatureEnabled: jasmine.createSpy('isFeatureEnabled').and.returnValue(false) };
+
     TestBed.configureTestingModule({
       providers: [
         AuthService,
         provideMockStore(),
-        { provide: HttpClient, useValue: {} },
+        { provide: HttpClient, useFactory: () => http },
         { provide: DatabaseService, useValue: {} },
         { provide: LoggerService, useValue: { log: () => Promise.resolve() } },
         { provide: HealthCheckService, useValue: {} },
@@ -36,7 +46,7 @@ describe('AuthService session expiry', () => {
         { provide: InitializationValidationService, useValue: {} },
         { provide: DailyConsentStateService, useValue: {} },
         { provide: DeviceIdentityService, useValue: {} },
-        { provide: FeatureFlagService, useValue: {} },
+        { provide: FeatureFlagService, useFactory: () => featureFlags },
       ],
     });
 
@@ -94,5 +104,46 @@ describe('AuthService session expiry', () => {
     service.sessionExpiredKeptData$.subscribe(() => emitted++);
     service.notifySessionExpiredKeepingData();
     expect(emitted).toBe(0);
+  });
+
+  describe('refreshAccessToken', () => {
+    const signIn = () => {
+      (service as unknown as { _user: unknown })._user = {
+        id: '1', username: 'rm', email: '', roles: [], accessToken: 'old', refreshToken: 'r1',
+      };
+      markAuthenticated();
+    };
+
+    it('stores the new access token and keeps the refresh token', async () => {
+      signIn();
+      http.post.and.returnValue(of({ accessToken: 'new', refreshToken: 'r1' }));
+
+      expect(await service.refreshAccessToken()).toBeTrue();
+      expect(service.currentUser?.accessToken).toBe('new');
+    });
+
+    it('shares a single call between concurrent requests', async () => {
+      signIn();
+      http.post.and.returnValue(of({ accessToken: 'new', refreshToken: 'r1' }));
+
+      const results = await Promise.all([service.refreshAccessToken(), service.refreshAccessToken()]);
+
+      expect(results).toEqual([true, true]);
+      expect(http.post).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports failure and leaves the session untouched when the server refuses', async () => {
+      signIn();
+      http.post.and.returnValue(throwError(() => new Error('refused')));
+
+      expect(await service.refreshAccessToken()).toBeFalse();
+      expect(service.currentUser?.accessToken).toBe('old');
+      expect(store.dispatch).not.toHaveBeenCalled();
+    });
+
+    it('does nothing without an open session', async () => {
+      expect(await service.refreshAccessToken()).toBeFalse();
+      expect(http.post).not.toHaveBeenCalled();
+    });
   });
 });

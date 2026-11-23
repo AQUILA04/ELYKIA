@@ -633,6 +633,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.49.4] — 2026-11-24
+
+### Added
+
+- **Session durable pour les RM (plan `plan_sauvegarde_RM.pdf`, Lot 2 / PR A) —** un 401 (jeton de 24 h expiré) ne déconnecte plus : `AuthService.refreshAccessToken()` appelle `/api/auth/refreshtoken` (appel unique partagé, appareil transmis si la restriction est active), met à jour le jeton puis `SessionExpiredInterceptor` rejoue la requête une seule fois. Si le renouvellement échoue, le comportement du Lot 1 reste : aucune déconnexion tant que des saisies attendent d'être envoyées.
+
+### Changed
+
+- **Backend (configuration) —** `jwtRefreshExpirationMs` passe de 24 h à 14 jours (1 209 600 000 ms) en `prod`, `uat` et `formation`, sinon le refresh token expirait en même temps que le jeton. Pas de rotation du refresh token (le serveur renvoie le même).
+
 ## Mobile — [2.49.3] — 2026-11-23
 
 ### Fixed
