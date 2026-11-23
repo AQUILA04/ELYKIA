@@ -15,6 +15,7 @@ import { RmFieldControlQueueService } from '../../core/services/rm/rm-field-cont
 import { RmTontineFieldControlQueueService } from '../../core/services/rm/rm-tontine-field-control-queue.service';
 import { AppUpdateService } from '../../core/services/app-update.service';
 import { DataInitializationService } from '../../core/services/data-initialization.service';
+import { RmRestoreAdvisorService } from '../../core/services/rm/rm-restore-advisor.service';
 import { RmPendingSyncCoordinator } from '../../core/services/rm/rm-pending-sync.coordinator';
 import { RmPendingQueuesService } from '../../core/services/rm/rm-pending-queues.service';
 
@@ -39,7 +40,8 @@ export class AuthEffects {
     private appUpdateService: AppUpdateService,
     private dataInitialization: DataInitializationService,
     private rmPending: RmPendingQueuesService,
-    private rmPendingSync: RmPendingSyncCoordinator
+    private rmPendingSync: RmPendingSyncCoordinator,
+    private rmRestoreAdvisor: RmRestoreAdvisorService
   ) {}
 
   /**
@@ -108,7 +110,14 @@ export class AuthEffects {
           if (canAccessRecoveryManagerMobile(user)) {
             this.log.log('[AuthEffects] loginSuccess$ RECOVERY_MANAGER → /rm/plan');
             // Sauvegarde de démarrage de session RM (filet en cas de perte de la base).
-            this.dataInitialization.backupDatabase().subscribe();
+            // La recherche de saisies à récupérer passe AVANT la sauvegarde : sinon la plus récente
+            // refléterait déjà une base vide.
+            void this.rmRestoreAdvisor.findRecoverableBackup().then(candidate => {
+              this.dataInitialization.backupDatabase().subscribe();
+              if (candidate) {
+                void this.rmRestoreAdvisor.propose(candidate);
+              }
+            });
             // Envoie les saisies gardées sur le téléphone dès que la session est (re)ouverte.
             this.rmPendingSync.onSessionOpened();
             this.router.navigateByUrl('/rm/plan');

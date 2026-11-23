@@ -633,6 +633,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.49.7] — 2026-11-24
+
+### Added
+
+- **Restauration sûre des sauvegardes (plan `plan_sauvegarde_RM.pdf`, Lot 3 / PR D) —** avant toute restauration, la base courante est copiée dans `Documents/elykia/db-prerestore-*.sql` (3 conservées, jamais prises pour une sauvegarde classique). Les saisies RM non envoyées présentes avant la restauration sont replacées après elle (une sauvegarde est forcément plus ancienne que la base courante) ; la restauration restait déjà transactionnelle avec annulation en cas d'échec.
+- **Saisies retrouvées à l'ouverture de session RM —** si les files sont vides alors qu'une des 5 sauvegardes récentes contient des saisies non envoyées, l'application propose de les restaurer (jamais automatiquement). La recherche passe avant l'écriture de la sauvegarde de début de session.
+
 ## Mobile — [2.49.6] — 2026-11-24
 
 ### Fixed
