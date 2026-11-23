@@ -219,6 +219,37 @@ export class TontineService {
     }
 
     /**
+     * Ouverture de la fiche membre : relit le membre et son historique complet sur le serveur quand il répond.
+     * L'historique local peut être partiel (synchro globale incomplète) : le solde affiché doit venir du serveur.
+     * Rien n'est relu si des cotisations locales attendent leur synchronisation (le serveur ne les connaît pas encore).
+     * @returns true si le membre local vient d'être rafraîchi.
+     */
+    async refreshMemberFromServerIfOnline(memberId: string): Promise<boolean> {
+        try {
+            if (!memberId || !/^\d+$/.test(memberId)) {
+                return false;
+            }
+            const hybridEnabled = await this.hybridSyncPreference.isHybridSyncEnabled();
+            if (!hybridEnabled) {
+                return false;
+            }
+            const pending = (await this.collectionRepo.getByMemberId(memberId)).some(c => !c.isSync);
+            if (pending) {
+                return false;
+            }
+            const reachable = await this.connectivityService.checkBackendReachable();
+            if (!reachable) {
+                return false;
+            }
+            await firstValueFrom(this.refreshMemberAfterCollection(memberId));
+            return true;
+        } catch (error) {
+            void this.log.log('TontineService: membre non rafraîchi depuis le serveur: ' + String(error));
+            return false;
+        }
+    }
+
+    /**
      * Fetch active session from API and save to DB
      */
     fetchAndSaveSession(): Observable<any> {

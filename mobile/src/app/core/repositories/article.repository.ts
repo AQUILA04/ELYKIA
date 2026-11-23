@@ -30,6 +30,21 @@ export class ArticleRepository extends BaseRepository<Article, string> {
         return 'ENABLED';
     }
 
+    /**
+     * Mémorise le stock du magasin et l'heure de sa lecture (affichage hors ligne du catalogue).
+     * Colonnes distinctes de `stockQuantity` : `saveAll` n'y touche jamais.
+     */
+    async saveWarehouseStocks(stocks: Array<{ id: string; quantity: number }>, readAt: string): Promise<void> {
+        if (!this.databaseService['db'] || stocks.length === 0) {
+            return;
+        }
+        const set: capSQLiteSet[] = stocks.map(stock => ({
+            statement: 'UPDATE articles SET warehouseStock = ?, warehouseStockAt = ? WHERE id = ?',
+            values: [stock.quantity, readAt, String(stock.id)]
+        }));
+        await this.databaseService.executeSet(set);
+    }
+
     async saveAll(entities: Article[]): Promise<void> {
         if (!this.databaseService['db']) {
             throw new Error('Database not initialized.');

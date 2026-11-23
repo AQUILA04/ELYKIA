@@ -71,7 +71,7 @@
                   <span>{{ member.clientPhone || '-' }}</span>
                   <span>· Hebdomadaire</span>
                 </div>
-                <div class="member-amount elyk-amount elyk-amount--green">{{ member.totalContribution | number:'1.0-0':'fr-FR' }} FCFA</div>
+                <div class="member-amount elyk-amount elyk-amount--green">{{ (member.availableContribution || 0) | number:'1.0-0':'fr-FR' }} FCFA</div>
                 <div class="member-badges">
                   <span class="elyk-badge member-status" [ngClass]="getStatusClass(member)">
                     {{ getStatusLabel(member) }}
@@ -102,7 +102,7 @@
                 <span>{{ member.clientPhone || '-' }}</span>
                 <span>· Hebdomadaire</span>
               </div>
-              <div class="member-amount elyk-amount elyk-amount--green">{{ member.totalContribution | number:'1.0-0':'fr-FR' }} FCFA</div>
+              <div class="member-amount elyk-amount elyk-amount--green">{{ (member.availableContribution || 0) | number:'1.0-0':'fr-FR' }} FCFA</div>
               <div class="member-badges">
                 <span class="elyk-badge member-status" [ngClass]="getStatusClass(member)">
                   {{ getStatusLabel(member) }}

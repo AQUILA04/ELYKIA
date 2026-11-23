@@ -6,6 +6,8 @@ import { TontineStockRepository } from '../../../core/repositories/tontine-stock
 import { ArticleRepository } from '../../../core/repositories/article.repository';
 import { TontineStock } from '../../../models/tontine.model';
 import { Article } from '../../../models/article.model';
+import { OnlineListRefreshService } from '../../../core/services/online-list-refresh.service';
+import { warehouseStockLabel } from '../../../core/utils/warehouse-stock.util';
 import { IfUnitPriceDirective } from '../../directives/if-unit-price.directive';
 
 /** Commande : stock tontine ou catalogue. Livraison : stock tontine du commercial uniquement. */
@@ -24,6 +26,9 @@ export interface TontineArticlePick {
 interface PickerRow extends TontineArticlePick {
   /** Quantité déjà dans la commande en cours d'édition. */
   inOrder: number;
+  /** Stock du magasin (catalogue seulement) ; null hors catalogue. */
+  warehouseStock?: number | null;
+  warehouseStockAt?: string | null;
 }
 
 const PAGE_SIZE = 40;
@@ -53,8 +58,13 @@ export class TontineArticlePickerModalComponent implements OnInit {
   constructor(
     private readonly modalCtrl: ModalController,
     private readonly stockRepo: TontineStockRepository,
-    private readonly articleRepo: ArticleRepository
+    private readonly articleRepo: ArticleRepository,
+    private readonly onlineRefresh: OnlineListRefreshService
   ) {}
+
+  warehouseLabel(row: PickerRow): string {
+    return warehouseStockLabel(row.warehouseStock, row.warehouseStockAt);
+  }
 
   get canUseCatalogue(): boolean {
     return this.mode === 'order';
@@ -98,7 +108,7 @@ export class TontineArticlePickerModalComponent implements OnInit {
     if (this.isBlocked(row)) {
       return;
     }
-    const { inOrder, ...pick } = row;
+    const { inOrder, warehouseStock, warehouseStockAt, ...pick } = row;
     void this.modalCtrl.dismiss(pick, 'pick');
   }
 
@@ -151,6 +161,8 @@ export class TontineArticlePickerModalComponent implements OnInit {
   private async catalogueRows(): Promise<PickerRow[]> {
     let articles: Article[] = [];
     try {
+      // En ligne : le stock magasin est relu sur le serveur ; hors ligne, la dernière valeur lue reste affichée.
+      await this.onlineRefresh.refreshWarehouseStocks();
       const page = await this.articleRepo.searchCatalogueArticles(0, PAGE_SIZE, { searchQuery: this.query });
       articles = page.content;
     } catch (error) {
@@ -165,6 +177,8 @@ export class TontineArticlePickerModalComponent implements OnInit {
         articleName: article.commercialName || article.name || 'Article',
         unitPrice: Number(article.sellingPrice ?? article.creditSalePrice ?? 0) || 0,
         stockAvailable: stock ? stock.availableQuantity ?? 0 : null,
+        warehouseStock: article.warehouseStock ?? null,
+        warehouseStockAt: article.warehouseStockAt ?? null,
         inOrder: this.quantitiesInOrder[id] ?? 0
       };
     });

@@ -645,7 +645,7 @@ export class PrintingService {
           </div>
 
           <div class="row total-row">
-            <span>TOTAL EPARGNE:</span>
+            <span>SOLDE DISPONIBLE:</span>
             <span class="value">${totalToDate.toLocaleString('fr-FR')} FCFA</span>
           </div>
           

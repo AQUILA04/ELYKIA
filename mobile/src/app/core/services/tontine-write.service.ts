@@ -172,19 +172,32 @@ export class TontineWriteService {
     if (online && /^\d+$/.test(persisted.tontineMemberId)) {
       await firstValueFrom(this.tontineService.refreshMemberAfterCollection(persisted.tontineMemberId));
     } else {
-      await this.replayLocalAllocation(persisted.tontineMemberId);
+      await this.replayLocalAllocation(persisted.tontineMemberId, persisted.amount || 0);
     }
 
     return persisted;
   }
 
-  private async replayLocalAllocation(memberId: string): Promise<void> {
+  private async replayLocalAllocation(memberId: string, addedAmount = 0): Promise<void> {
     const member = await this.memberRepository.findById(memberId);
     const session = await this.databaseService.getTontineSession();
     if (!member || !session) {
       return;
     }
     const collections = await this.collectionRepository.getByMemberId(memberId);
+    // L'historique local peut être partiel (synchro incomplète) : le recalculer écraserait le solde connu du serveur.
+    // Dans ce cas, seule la nouvelle cotisation est ajoutée au solde disponible.
+    const localSum = collections.reduce((sum, c) => sum + (c.amount || 0), 0);
+    if (localSum + 0.5 < (member.totalContribution || 0)) {
+      await this.memberRepository.updateDerivedAllocation(memberId, {
+        totalContribution: member.totalContribution || 0,
+        societyShare: member.societyShare ?? 0,
+        availableContribution: (member.availableContribution ?? 0) + addedAmount,
+        validatedMonths: member.validatedMonths ?? 0,
+        currentMonthDays: member.currentMonthDays ?? 0
+      });
+      return;
+    }
     try {
       const status = await this.calculationService.calculateMemberStatus(member, session, collections);
       await this.memberRepository.updateDerivedAllocation(memberId, {
