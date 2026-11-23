@@ -76,4 +76,23 @@ describe('AuthService session expiry', () => {
     expect(service.handleUnauthorized()).toBeTrue();
     expect(store.dispatch).toHaveBeenCalledTimes(1);
   });
+
+  it('announces an expired session once, without logging out, when entries are kept', () => {
+    markAuthenticated();
+    let emitted = 0;
+    service.sessionExpiredKeptData$.subscribe(() => emitted++);
+
+    service.notifySessionExpiredKeepingData();
+    service.notifySessionExpiredKeepingData();
+
+    expect(emitted).toBe(1);
+    expect(store.dispatch).not.toHaveBeenCalled();
+  });
+
+  it('stays silent when nobody is signed in', () => {
+    let emitted = 0;
+    service.sessionExpiredKeptData$.subscribe(() => emitted++);
+    service.notifySessionExpiredKeepingData();
+    expect(emitted).toBe(0);
+  });
 });

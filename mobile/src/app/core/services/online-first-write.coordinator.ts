@@ -67,7 +67,9 @@ export class OnlineFirstWriteCoordinator {
       return error.kind === WriteErrorKind.BUSINESS;
     }
     if (error instanceof HttpErrorResponse) {
-      if (error.status === 0) {
+      // 0 = réseau ; 401 = jeton expiré : ce n'est pas un refus métier, la saisie
+      // doit être enregistrée en local pour être envoyée après ré-authentification.
+      if (error.status === 0 || error.status === 401) {
         return false;
       }
       return error.status >= 400 && error.status < 500;

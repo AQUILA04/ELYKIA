@@ -633,6 +633,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.49.2] — 2026-11-23
+
+### Fixed
+
+- **Chef de recouvrement — perte des contrôles non synchronisés —** une session expirée (jeton de 24 h) provoquait une déconnexion automatique qui vidait les files hors ligne (contrôles crédit et tontine, contacts, clôtures, carnets, affectations) avant toute reconnexion. La purge à la déconnexion ne retire désormais que les opérations déjà envoyées : une saisie non synchronisée n'est jamais supprimée, ni par la déconnexion automatique, ni par le bouton **Déconnexion** de l'onglet Plus, ni lors d'un changement de compte. Le plan et le pack du jour sont conservés tant qu'il reste des saisies à envoyer.
+- **Session expirée (401) avec des saisies en attente —** plus de déconnexion automatique : la session reste ouverte, une fenêtre indique que les saisies sont conservées et propose **Se reconnecter**. Un 401 pendant une saisie en ligne n'est plus traité comme un refus métier : la saisie est enregistrée en local pour être envoyée après reconnexion.
+- **Alerte de déconnexion et de sortie —** les données en attente du chef de recouvrement sont maintenant prises en compte (`hasUnsyncedData`), le bouton **Déconnexion** de l'onglet Plus demande confirmation s'il reste des éléments à envoyer.
+
+### Added
+
+- **Sauvegardes de la base —** une sauvegarde (`Documents/elykia/db-backup-*.sql`) est écrite à l'ouverture de session d'un chef de recouvrement et avant une déconnexion s'il reste des saisies non synchronisées. Seules les 10 plus récentes sont conservées.
+
 ## Mobile — [2.49.1] — 2026-11-22
 
 ### Fixed

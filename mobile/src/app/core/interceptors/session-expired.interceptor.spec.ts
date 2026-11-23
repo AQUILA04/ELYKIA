@@ -1,4 +1,4 @@
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { fakeAsync, flushMicrotasks, TestBed, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 import { TimeoutInterceptor } from './timeout.interceptor';
@@ -7,6 +7,7 @@ import {
   isRejectedAuthenticatedCall,
 } from './session-expired.interceptor';
 import { AuthService } from '../services/auth.service';
+import { RmPendingQueuesService } from '../services/rm/rm-pending-queues.service';
 
 describe('isRejectedAuthenticatedCall', () => {
   it('accepts a business 401', () => {
@@ -31,14 +32,17 @@ describe('isRejectedAuthenticatedCall', () => {
 describe('SessionExpiredInterceptor', () => {
   let client: HttpClient;
   let httpMock: HttpTestingController;
-  let authService: { handleUnauthorized: jasmine.Spy };
+  let authService: { handleUnauthorized: jasmine.Spy; notifySessionExpiredKeepingData: jasmine.Spy };
+  let rmPending: { hasPending: jasmine.Spy };
 
   const statsUrl = '/api/v1/recovery-manager/field-plans/collector-stats';
 
   beforeEach(() => {
     authService = {
       handleUnauthorized: jasmine.createSpy('handleUnauthorized').and.returnValue(true),
+      notifySessionExpiredKeepingData: jasmine.createSpy('notifySessionExpiredKeepingData'),
     };
+    rmPending = { hasPending: jasmine.createSpy('hasPending').and.resolveTo(false) };
 
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
@@ -46,6 +50,7 @@ describe('SessionExpiredInterceptor', () => {
         SessionExpiredInterceptor,
         TimeoutInterceptor,
         { provide: AuthService, useValue: authService },
+        { provide: RmPendingQueuesService, useValue: rmPending },
         { provide: HTTP_INTERCEPTORS, useClass: SessionExpiredInterceptor, multi: true },
         { provide: HTTP_INTERCEPTORS, useClass: TimeoutInterceptor, multi: true },
       ],
@@ -59,6 +64,19 @@ describe('SessionExpiredInterceptor', () => {
     httpMock.verify();
   });
 
+  it('keeps the session and surfaces the 401 when RM entries are still unsynced', fakeAsync(() => {
+    rmPending.hasPending.and.resolveTo(true);
+    let status = 0;
+    client.get(statsUrl).subscribe({ error: (error) => status = error.status });
+
+    httpMock.expectOne(statsUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
+    flushMicrotasks();
+
+    expect(authService.handleUnauthorized).not.toHaveBeenCalled();
+    expect(authService.notifySessionExpiredKeepingData).toHaveBeenCalledTimes(1);
+    expect(status).toBe(401);
+  }));
+
   it('ends the session on a business 401 and does not surface the error', fakeAsync(() => {
     let errored = false;
     const sub = client.get(statsUrl).subscribe({
@@ -68,6 +86,7 @@ describe('SessionExpiredInterceptor', () => {
 
     const req = httpMock.expectOne(statsUrl);
     req.flush({ message: 'Unauthorized' }, { status: 401, statusText: 'Unauthorized' });
+    flushMicrotasks();
     tick(31_000);
 
     expect(authService.handleUnauthorized).toHaveBeenCalledTimes(1);
@@ -75,7 +94,7 @@ describe('SessionExpiredInterceptor', () => {
     sub.unsubscribe();
   }));
 
-  it('propagates a 401 when no session is open', () => {
+  it('propagates a 401 when no session is open', fakeAsync(() => {
     authService.handleUnauthorized.and.returnValue(false);
     let status = 0;
     client.get(statsUrl).subscribe({
@@ -84,8 +103,9 @@ describe('SessionExpiredInterceptor', () => {
 
     const req = httpMock.expectOne(statsUrl);
     req.flush({}, { status: 401, statusText: 'Unauthorized' });
+    flushMicrotasks();
     expect(status).toBe(401);
-  });
+  }));
 
   it('does not end the session on a refused sign-in', () => {
     let status = 0;

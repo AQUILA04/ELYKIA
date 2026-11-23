@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 import { Preferences } from '@capacitor/preferences';
-import { Observable, from, throwError, firstValueFrom } from 'rxjs';
+import { Observable, Subject, from, throwError, firstValueFrom } from 'rxjs';
 import { switchMap, tap, catchError } from 'rxjs/operators';
 import { AuthResponse, User, LoginRequest } from '../../models/auth.model';
 import { environment } from '../../../environments/environment';
@@ -28,6 +28,10 @@ export class AuthService {
   private _isAuthenticated = false;
   private sessionExpiryHandled = false;
   private sessionExpiredNotice = false;
+  private keptDataNoticeSent = false;
+  private readonly keptDataExpiry = new Subject<void>();
+  /** Émis une fois quand un 401 survient alors que des saisies attendent d'être envoyées. */
+  readonly sessionExpiredKeptData$ = this.keptDataExpiry.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -85,6 +89,20 @@ export class AuthService {
     return true;
   }
 
+  /**
+   * 401 alors que des saisies non synchronisées existent : la session locale reste ouverte
+   * (pas de déconnexion automatique), l'appelant continue en hors ligne et l'UI invite
+   * l'utilisateur à se reconnecter. L'événement n'est émis qu'une fois par session.
+   */
+  notifySessionExpiredKeepingData(): void {
+    if (!this._isAuthenticated || this.keptDataNoticeSent) {
+      return;
+    }
+    this.keptDataNoticeSent = true;
+    void this.log.log('Session refusée (401) : saisies non synchronisées conservées, déconnexion automatique évitée.');
+    this.keptDataExpiry.next();
+  }
+
   /** À lire une fois sur l'écran de connexion, après une déconnexion automatique. */
   consumeSessionExpiredNotice(): boolean {
     const pending = this.sessionExpiredNotice;
@@ -95,6 +113,7 @@ export class AuthService {
   private openSession(): void {
     this._isAuthenticated = true;
     this.sessionExpiryHandled = false;
+    this.keptDataNoticeSent = false;
   }
 
   async changePassword(newPassword: string, forced = false, oldPassword?: string): Promise<void> {

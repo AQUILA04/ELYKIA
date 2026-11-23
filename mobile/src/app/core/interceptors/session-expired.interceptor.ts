@@ -6,9 +6,10 @@ import {
   HttpInterceptor,
   HttpRequest,
 } from '@angular/common/http';
-import { NEVER, Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { NEVER, Observable, from, throwError } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import { AuthService } from '../services/auth.service';
+import { RmPendingQueuesService } from '../services/rm/rm-pending-queues.service';
 
 /**
  * Préfixes publics : un 401 y signifie un refus métier (identifiants, sonde,
@@ -36,7 +37,10 @@ export function isRejectedAuthenticatedCall(url: string, status: number): boolea
  */
 @Injectable()
 export class SessionExpiredInterceptor implements HttpInterceptor {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private rmPendingQueues: RmPendingQueuesService
+  ) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     return next.handle(request).pipe(
@@ -46,10 +50,20 @@ export class SessionExpiredInterceptor implements HttpInterceptor {
         }
         // request.url : l'URL d'origine. error.url est réécrite par CapacitorHttp
         // (localhost/_capacitor_http_interceptor_), donc inutilisable pour le filtre.
-        if (isRejectedAuthenticatedCall(request.url, error.status) && this.authService.handleUnauthorized()) {
-          return NEVER;
+        if (!isRejectedAuthenticatedCall(request.url, error.status)) {
+          return throwError(() => error);
         }
-        return throwError(() => error);
+        // Des saisies RM attendent d'être envoyées : jamais de déconnexion automatique.
+        // L'erreur 401 remonte à l'appelant (qui bascule en hors ligne) et l'UI invite à se reconnecter.
+        return from(this.rmPendingQueues.hasPending()).pipe(
+          switchMap(hasPending => {
+            if (hasPending) {
+              this.authService.notifySessionExpiredKeepingData();
+              return throwError(() => error);
+            }
+            return this.authService.handleUnauthorized() ? NEVER : throwError(() => error);
+          })
+        );
       })
     );
   }

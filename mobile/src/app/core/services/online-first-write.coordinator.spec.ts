@@ -63,6 +63,22 @@ describe('OnlineFirstWriteCoordinator', () => {
     expect(saveOnline).not.toHaveBeenCalled();
   });
 
+  it('saves offline when the token has expired (401) instead of dropping the entry', async () => {
+    hybridSyncPreferenceService.isHybridSyncEnabled.and.resolveTo(true);
+    connectivityService.checkBackendReachable.and.resolveTo(true);
+    const saveOffline = jasmine.createSpy('saveOffline').and.resolveTo({ id: 'local-401' });
+
+    const result = await coordinator.executeWrite({
+      entityLabel: 'contrôle',
+      saveOnline: async () => { throw new HttpErrorResponse({ status: 401 }); },
+      saveOffline
+    });
+
+    expect(result.mode).toBe('offline');
+    expect(saveOffline).toHaveBeenCalled();
+    expect(coordinator.isBusinessError(new HttpErrorResponse({ status: 401 }))).toBeFalse();
+  });
+
   it('throws business errors without offline fallback', async () => {
     hybridSyncPreferenceService.isHybridSyncEnabled.and.resolveTo(true);
     connectivityService.checkBackendReachable.and.resolveTo(true);
