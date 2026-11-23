@@ -1814,9 +1814,30 @@ export class DatabaseService {
       });
 
       console.log(`Database backup saved to Documents/${folderPath}/${fileName}`);
+      await this.pruneOldBackups(folderPath);
     } catch (error) {
       console.error('Error saving backup file:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Les sauvegardes sont maintenant écrites au démarrage et avant déconnexion :
+   * on ne garde que les plus récentes pour ne pas saturer le stockage du téléphone.
+   * Ne lève jamais (la sauvegarde elle-même a déjà réussi).
+   */
+  private async pruneOldBackups(folderPath: string, keep = 10): Promise<void> {
+    try {
+      const listing = await Filesystem.readdir({ path: folderPath, directory: Directory.Documents });
+      const backups = listing.files
+        .map(file => (typeof file === 'string' ? file : file.name))
+        .filter(name => /^db-backup-.*\.sql$/.test(name))
+        .sort(); // l'horodatage ISO du nom trie dans l'ordre chronologique
+      for (const name of backups.slice(0, Math.max(0, backups.length - keep))) {
+        await Filesystem.deleteFile({ path: `${folderPath}/${name}`, directory: Directory.Documents });
+      }
+    } catch (error) {
+      console.warn('Backup retention skipped:', error);
     }
   }
 

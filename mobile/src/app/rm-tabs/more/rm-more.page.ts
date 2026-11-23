@@ -238,14 +238,31 @@ export class RmMorePage implements OnInit, OnDestroy {
     });
   }
 
-  logout(): void {
-    void this.scope.clear();
-    void this.closeQueue.clearAll();
-    void this.contactQueue.clearAll();
-    void this.fieldControlQueue.clearAll();
-    void this.tontineFieldControlQueue.clearAll();
-    void this.carnetQueue.clearAll();
-    void this.creditCarnetQueue.clearAll();
+  /**
+   * Ne purge plus rien ici : le nettoyage est fait par AuthEffects, qui conserve toute
+   * opération non synchronisée. Si des saisies attendent, on demande confirmation.
+   */
+  async logout(): Promise<void> {
+    if (this.pendingTotal > 0) {
+      const alert = await this.alertController.create({
+        header: 'Saisies non synchronisées',
+        message: `${this.pendingTotal} élément(s) n'ont pas encore été envoyés. `
+          + "Ils restent sur le téléphone, mais ne partiront qu'après une reconnexion avec du réseau. "
+          + "Synchronisez d'abord si possible.",
+        buttons: [
+          { text: 'Annuler', role: 'cancel' },
+          {
+            text: 'Se déconnecter quand même',
+            role: 'destructive',
+            handler: () => {
+              this.store.dispatch(AuthActions.logout());
+            }
+          }
+        ]
+      });
+      await alert.present();
+      return;
+    }
     this.store.dispatch(AuthActions.logout());
   }
 

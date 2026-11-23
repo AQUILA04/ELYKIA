@@ -3,6 +3,7 @@ import { AlertController, Platform, NavController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import {  selectAuthUser } from './store/auth/auth.selectors';
 import { DataInitializationService } from './core/services/data-initialization.service';
+import { AuthService } from './core/services/auth.service';
 import { filter, take, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { Storage } from '@ionic/storage-angular';
@@ -53,7 +54,8 @@ export class AppComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly featureFlagService: FeatureFlagService,
     private readonly deviceIdentityService: DeviceIdentityService,
-    private readonly autoSyncSchedulerService: AutoSyncSchedulerService
+    private readonly autoSyncSchedulerService: AutoSyncSchedulerService,
+    private readonly authService: AuthService
   ) { this.initializeApp().then(r => console.log(r) ); }
 
   async ngOnInit() {
@@ -80,6 +82,9 @@ export class AppComponent implements OnInit, OnDestroy {
       take(1)
     ).subscribe(async user => {
       this.initState.setUser(user);
+    });
+    this.authService.sessionExpiredKeptData$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      void this.showSessionExpiredKeepingDataAlert();
     });
     this.activityService.startWatching().subscribe(() => {
       this.handleLogoutRequest();
@@ -130,12 +135,32 @@ export class AppComponent implements OnInit, OnDestroy {
     await alert.present();
   }
 
+  /** 401 avec des saisies en attente : rien n'est effacé, on invite à se reconnecter pour les envoyer. */
+  private async showSessionExpiredKeepingDataAlert() {
+    const alert = await this.alertController.create({
+      header: 'Session expirée',
+      message: 'Votre session a expiré, mais vos saisies sont conservées sur le téléphone. '
+        + 'Reconnectez-vous (avec du réseau) pour les envoyer au serveur.',
+      backdropDismiss: false,
+      buttons: [
+        { text: 'Plus tard', role: 'cancel' },
+        {
+          text: 'Se reconnecter',
+          handler: () => {
+            this.store.dispatch(AuthActions.logout());
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
   private async handleLogoutRequest() {
     const hasUnsyncedData = await this.synchronizationService.hasUnsyncedData();
     if (hasUnsyncedData) {
       const alert = await this.alertController.create({
         header: 'Données non synchronisées',
-        message: 'Vous avez des modifications non synchronisées. Si vous vous déconnectez maintenant, elles seront perdues. Voulez-vous vraiment continuer ?',
+        message: 'Vous avez des modifications non synchronisées. Elles restent sur le téléphone mais ne seront pas envoyées tant que vous n\'êtes pas reconnecté avec du réseau. Voulez-vous vraiment vous déconnecter ?',
         buttons: [
           {
             text: 'Annuler',

@@ -89,9 +89,18 @@ export class RmOfflineOpsQueueStore<T extends RmOfflineOpBase> {
     await this.persist(this.opsSubject.value.filter(match));
   }
 
+  /**
+   * Purge la file à la déconnexion, mais ne supprime JAMAIS une opération non
+   * synchronisée (isSync=false) : c'est la saisie terrain, sans copie serveur.
+   * Seules les opérations déjà envoyées sont retirées.
+   */
   async clearAll(): Promise<void> {
     await this.ensureReady();
-    await this.persist([]);
+    const pending = this.opsSubject.value.filter(o => !o.isSync);
+    if (pending.length === this.opsSubject.value.length) {
+      return;
+    }
+    await this.persist(pending);
   }
 
   private async persist(ops: T[]): Promise<void> {

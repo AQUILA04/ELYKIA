@@ -58,6 +58,7 @@ import { ReliquatRepository } from './reliquat.repository';
 import { ReliquatSyncUnit, ReliquatSyncRequest, ReliquatSyncResponse } from '../../models/sync.model';
 import { ClientRepository } from '../repositories/client.repository';
 import { isExistingAccountMessage, presentExistingAccountNotice } from './sync/existing-account-message';
+import { RmPendingQueuesService } from './rm/rm-pending-queues.service';
 
 /**
  * @deprecated Ce service (synchronization.service) est appelé à disparaître sous peu.
@@ -84,7 +85,8 @@ export class SynchronizationService {
     private photoSyncService: PhotoSyncService,
     private store: Store,
     private reliquatRepository: ReliquatRepository,
-    private clientRepository: ClientRepository
+    private clientRepository: ClientRepository,
+    private rmPendingQueues: RmPendingQueuesService
   ) { }
 
   // ==================== MÉTHODES PRINCIPALES ====================
@@ -856,6 +858,12 @@ export class SynchronizationService {
         // En cas d'erreur, on considère qu'il peut y avoir des données à synchroniser par sécurité
         return true;
       }
+    }
+
+    // Files du chef de recouvrement (contrôles, contacts, clôtures, carnets, affectations).
+    // hasPending() suppose « oui » si une file est illisible.
+    if (await this.rmPendingQueues.hasPending()) {
+      return true;
     }
 
     return false; // Aucune donnée non synchronisée trouvée
