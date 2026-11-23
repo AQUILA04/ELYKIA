@@ -21,6 +21,7 @@ import {FirebaseCrashlytics} from "@capacitor-firebase/crashlytics";
 import { FeatureFlagService, FeatureFlags } from './core/services/feature-flag.service';
 import { DeviceIdentityService } from './core/services/device-identity.service';
 import { AutoSyncSchedulerService } from './core/services/auto-sync-scheduler.service';
+import { RmPendingSyncCoordinator } from './core/services/rm/rm-pending-sync.coordinator';
 import { environment } from '../environments/environment';
 import { resolveEnvironmentLabel } from './core/utils/environment-label.util';
 
@@ -55,6 +56,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private readonly featureFlagService: FeatureFlagService,
     private readonly deviceIdentityService: DeviceIdentityService,
     private readonly autoSyncSchedulerService: AutoSyncSchedulerService,
+    private readonly rmPendingSync: RmPendingSyncCoordinator,
     private readonly authService: AuthService
   ) { this.initializeApp().then(r => console.log(r) ); }
 
@@ -197,6 +199,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     await this.autoSyncSchedulerService.init();
+    this.rmPendingSync.init();
   }
 
   /** Aligné sur --ion-color-primary (barre de statut + en-têtes dashboard). */

@@ -633,6 +633,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.49.5] — 2026-11-24
+
+### Added
+
+- **Envoi automatique des saisies RM (plan `plan_sauvegarde_RM.pdf`, Lot 2 / PR B) —** `RmPendingSyncCoordinator` envoie les saisies en attente au retour du réseau, à la reprise de l'application, à l'ouverture de session et avant une déconnexion volontaire. Une seule vague à la fois, les 7 files sont isolées (l'échec de l'une n'arrête pas les autres), nouvelles tentatives à 1 s, 5 s, 15 s puis 1 min, puis arrêt jusqu'au prochain déclencheur. Si la session ne peut plus être renouvelée, l'envoi s'interrompt jusqu'à la reconnexion. Chaque vague est tracée dans les journaux.
+- **Pastille « en attente » —** nombre de saisies non envoyées en permanence sur l'onglet Terrain du RM (`RmPendingQueuesService.pendingCount$`).
+
 ## Mobile — [2.49.4] — 2026-11-24
 
 ### Added
