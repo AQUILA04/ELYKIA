@@ -25,6 +25,10 @@ public class JwtResponse {
   @Setter
   private boolean mustChangePassword;
 
+  @Getter
+  @Setter
+  private Long agencyId;
+
   public JwtResponse(String accessToken, String refreshToken, Long id, String username, String email, List<String> roles, String profil) {
     this.token = accessToken;
     this.refreshToken = refreshToken;
