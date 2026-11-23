@@ -46,7 +46,7 @@ bezkoder:
   app:
     jwtSecret: ${JWT_SECRET}
     jwtExpirationMs: 86400000
-    jwtRefreshExpirationMs: 86400000
+    jwtRefreshExpirationMs: 1209600000
 logging:
   level:
     org:

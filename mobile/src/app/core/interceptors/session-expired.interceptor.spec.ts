@@ -32,7 +32,7 @@ describe('isRejectedAuthenticatedCall', () => {
 describe('SessionExpiredInterceptor', () => {
   let client: HttpClient;
   let httpMock: HttpTestingController;
-  let authService: { handleUnauthorized: jasmine.Spy; notifySessionExpiredKeepingData: jasmine.Spy };
+  let authService: { handleUnauthorized: jasmine.Spy; notifySessionExpiredKeepingData: jasmine.Spy; refreshAccessToken: jasmine.Spy };
   let rmPending: { hasPending: jasmine.Spy };
 
   const statsUrl = '/api/v1/recovery-manager/field-plans/collector-stats';
@@ -41,6 +41,7 @@ describe('SessionExpiredInterceptor', () => {
     authService = {
       handleUnauthorized: jasmine.createSpy('handleUnauthorized').and.returnValue(true),
       notifySessionExpiredKeepingData: jasmine.createSpy('notifySessionExpiredKeepingData'),
+      refreshAccessToken: jasmine.createSpy('refreshAccessToken').and.resolveTo(false),
     };
     rmPending = { hasPending: jasmine.createSpy('hasPending').and.resolveTo(false) };
 
@@ -63,6 +64,36 @@ describe('SessionExpiredInterceptor', () => {
   afterEach(() => {
     httpMock.verify();
   });
+
+  it('renews the token silently and replays the request without ending the session', fakeAsync(() => {
+    authService.refreshAccessToken.and.resolveTo(true);
+    let body: unknown;
+    client.get(statsUrl).subscribe(value => body = value);
+
+    httpMock.expectOne(statsUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
+    flushMicrotasks();
+    httpMock.expectOne(statsUrl).flush({ ok: true });
+
+    expect(body).toEqual({ ok: true });
+    expect(authService.handleUnauthorized).not.toHaveBeenCalled();
+    expect(authService.notifySessionExpiredKeepingData).not.toHaveBeenCalled();
+  }));
+
+  it('falls back to the safe path when the replay is rejected again', fakeAsync(() => {
+    authService.refreshAccessToken.and.resolveTo(true);
+    rmPending.hasPending.and.resolveTo(true);
+    let status = 0;
+    client.get(statsUrl).subscribe({ error: (error) => status = error.status });
+
+    httpMock.expectOne(statsUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
+    flushMicrotasks();
+    httpMock.expectOne(statsUrl).flush({}, { status: 401, statusText: 'Unauthorized' });
+    flushMicrotasks();
+
+    expect(authService.refreshAccessToken).toHaveBeenCalledTimes(1);
+    expect(authService.notifySessionExpiredKeepingData).toHaveBeenCalledTimes(1);
+    expect(status).toBe(401);
+  }));
 
   it('keeps the session and surfaces the 401 when RM entries are still unsynced', fakeAsync(() => {
     rmPending.hasPending.and.resolveTo(true);
