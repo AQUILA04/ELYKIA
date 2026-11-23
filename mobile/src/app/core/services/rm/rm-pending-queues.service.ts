@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { Observable, combineLatest } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { RmCarnetVerificationQueueService } from './rm-carnet-verification-queue.service';
 import { RmCloseQueueService } from './rm-close-queue.service';
 import { RmCollectorAssignQueueService } from './rm-collector-assign-queue.service';
@@ -22,6 +24,19 @@ export class RmPendingQueuesService {
     private readonly creditCarnetQueue: RmCreditCarnetVerificationQueueService,
     private readonly assignQueue: RmCollectorAssignQueueService
   ) {}
+
+  /** Nombre d'opérations en attente, mis à jour en continu (badge). */
+  readonly pendingCount$: Observable<number> = combineLatest([
+    this.closeQueue.ops$,
+    this.contactQueue.ops$,
+    this.fieldControlQueue.ops$,
+    this.tontineFieldControlQueue.ops$,
+    this.carnetQueue.ops$,
+    this.creditCarnetQueue.ops$,
+    this.assignQueue.ops$,
+  ]).pipe(
+    map(lists => lists.reduce((total, ops) => total + ops.filter(op => !op.isSync).length, 0))
+  );
 
   /** Nombre total d'opérations non synchronisées. Lève si une file est illisible. */
   async pendingCount(): Promise<number> {

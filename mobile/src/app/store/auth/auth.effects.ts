@@ -15,6 +15,7 @@ import { RmFieldControlQueueService } from '../../core/services/rm/rm-field-cont
 import { RmTontineFieldControlQueueService } from '../../core/services/rm/rm-tontine-field-control-queue.service';
 import { AppUpdateService } from '../../core/services/app-update.service';
 import { DataInitializationService } from '../../core/services/data-initialization.service';
+import { RmPendingSyncCoordinator } from '../../core/services/rm/rm-pending-sync.coordinator';
 import { RmPendingQueuesService } from '../../core/services/rm/rm-pending-queues.service';
 
 /** Une sauvegarde avant déconnexion ne doit jamais bloquer l'utilisateur plus de 10 s. */
@@ -37,7 +38,8 @@ export class AuthEffects {
     private rmTontineFieldControlQueue: RmTontineFieldControlQueueService,
     private appUpdateService: AppUpdateService,
     private dataInitialization: DataInitializationService,
-    private rmPending: RmPendingQueuesService
+    private rmPending: RmPendingQueuesService,
+    private rmPendingSync: RmPendingSyncCoordinator
   ) {}
 
   /**
@@ -107,6 +109,8 @@ export class AuthEffects {
             this.log.log('[AuthEffects] loginSuccess$ RECOVERY_MANAGER → /rm/plan');
             // Sauvegarde de démarrage de session RM (filet en cas de perte de la base).
             this.dataInitialization.backupDatabase().subscribe();
+            // Envoie les saisies gardées sur le téléphone dès que la session est (re)ouverte.
+            this.rmPendingSync.onSessionOpened();
             this.router.navigateByUrl('/rm/plan');
             return;
           }

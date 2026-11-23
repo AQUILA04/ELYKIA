@@ -1,3 +1,4 @@
+import { RmPendingSyncCoordinator } from '../../core/services/rm/rm-pending-sync.coordinator';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -85,7 +86,8 @@ export class RmMorePage implements OnInit, OnDestroy {
     private readonly cdr: ChangeDetectorRef,
     private readonly syncErrorService: SyncErrorService,
     private readonly syncLogsExport: SyncLogsExportService,
-    private readonly dataInitialization: DataInitializationService
+    private readonly dataInitialization: DataInitializationService,
+    private readonly rmPendingSync: RmPendingSyncCoordinator
   ) {}
 
   ngOnInit(): void {
@@ -243,6 +245,10 @@ export class RmMorePage implements OnInit, OnDestroy {
    * opération non synchronisée. Si des saisies attendent, on demande confirmation.
    */
   async logout(): Promise<void> {
+    if (this.pendingTotal > 0) {
+      // Dernière chance d'envoyer les saisies avant de quitter (sans effet hors ligne).
+      await this.rmPendingSync.syncNow('déconnexion');
+    }
     if (this.pendingTotal > 0) {
       const alert = await this.alertController.create({
         header: 'Saisies non synchronisées',
