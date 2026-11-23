@@ -85,7 +85,7 @@
               <span class="badge" [class.ok]="ctrl.status === 'CONFORME'" [class.ecart]="ctrl.status === 'ECART'"
                     data-testid="e2e-rm-tontine-badge">{{ ctrl.status }}</span>
               <span class="badge ecart" *ngIf="ctrl.status === 'ECART'">Écart {{ formatAmount(ctrl.differenceAmount || 0) }} FCFA</span>
-              <span class="badge warn">Déjà contrôlé</span>
+              <span class="badge warn">Déjà contrôlé</span><span class="badge warn" *ngIf="tontineControlConflict(item)" data-testid="e2e-rm-control-conflict">Plus récent sur le serveur</span>
             </ng-container>
           </div>
           <div class="row-actions">
@@ -148,7 +148,7 @@
                   {{ ctrl.status }}
                 </span>
                 <span class="badge ecart" *ngIf="ctrl.status === 'ECART'">Écart {{ formatAmount(ctrl.differenceAmount || 0) }} FCFA</span>
-                <span class="badge warn">Déjà contrôlé</span>
+                <span class="badge warn">Déjà contrôlé</span><span class="badge warn" *ngIf="tontineControlConflict(item)" data-testid="e2e-rm-control-conflict">Plus récent sur le serveur</span>
               </ng-container>
             </div>
             <div class="row-actions">
@@ -202,7 +202,7 @@
             <span class="badge" [class.ok]="ctrl.status === 'CONFORME'" [class.ecart]="ctrl.status === 'ECART'"
                   data-testid="e2e-rm-field-credit-badge">{{ ctrl.status }}</span>
             <span class="badge ecart" *ngIf="ctrl.status === 'ECART'">Écart {{ formatAmount(ctrl.differenceAmount || 0) }} FCFA</span>
-            <span class="badge warn">Déjà contrôlé</span>
+            <span class="badge warn">Déjà contrôlé</span><span class="badge warn" *ngIf="creditControlConflict(item)" data-testid="e2e-rm-control-conflict">Plus récent sur le serveur</span>
           </ng-container>
         </div>
         <div class="row-actions">

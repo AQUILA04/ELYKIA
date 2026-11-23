@@ -18,6 +18,11 @@ import { memberLacksDailyAmount } from '../../features/rm/tontine-field-control/
 import { RmCarnetVerificationWriteService } from '../../core/services/rm/rm-carnet-verification-write.service';
 import { RmCreditCarnetVerificationWriteService } from '../../core/services/rm/rm-credit-carnet-verification-write.service';
 import { RmDossierSyncBadgeService } from '../../core/services/rm/rm-dossier-sync-badge.service';
+import { RmFieldControlQueueService } from '../../core/services/rm/rm-field-control-queue.service';
+import { RmFieldControlOp } from '../../core/services/rm/rm-field-control.models';
+import { RmTontineFieldControlQueueService } from '../../core/services/rm/rm-tontine-field-control-queue.service';
+import { RmTontineFieldControlOp } from '../../core/services/rm/rm-tontine-field-control.models';
+import { latestPendingControl, mergeRmFieldControl } from './rm-field-local-control.util';
 import { runConfirmedCarnetToggle } from '../../core/services/rm/rm-carnet-confirm.util';
 import { countRmFieldItems, filterRmFieldGroups, RmFieldGroup } from './rm-field-search.util';
 import {
@@ -59,6 +64,10 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   filteredCreditGroups: RmFieldGroup<RmCreditLate>[] = [];
   private packSub?: Subscription;
   private syncSub?: Subscription;
+  private readonly queueSubs: Subscription[] = [];
+  /** Contrôles saisis sur le téléphone et pas encore envoyés, par crédit / par membre. */
+  private pendingCreditControls = new Map<number, RmFieldControlOp>();
+  private pendingTontineControls = new Map<number, RmTontineFieldControlOp>();
   /** Force le rafraîchissement des pastilles Sync / Local. */
   syncStamp = 0;
   private viewActive = false;
@@ -145,7 +154,9 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     private readonly creditCarnetWrite: RmCreditCarnetVerificationWriteService,
     private readonly tontineControlApi: RmTontineFieldControlApiService,
     private readonly syncBadges: RmDossierSyncBadgeService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly fieldControlQueue: RmFieldControlQueueService,
+    private readonly tontineFieldControlQueue: RmTontineFieldControlQueueService
   ) {}
 
   ngOnInit(): void {
@@ -157,12 +168,23 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     this.syncSub = this.syncBadges.changes$.subscribe(() => {
       this.syncStamp++;
     });
+    this.queueSubs.push(
+      this.fieldControlQueue.ops$.subscribe(ops => {
+        this.pendingCreditControls = this.latestPendingById(ops, op => op.creditId);
+        this.syncStamp++;
+      }),
+      this.tontineFieldControlQueue.ops$.subscribe(ops => {
+        this.pendingTontineControls = this.latestPendingById(ops, op => op.tontineMemberId);
+        this.syncStamp++;
+      })
+    );
   }
 
   ngOnDestroy(): void {
     this.liveRequest++;
     this.packSub?.unsubscribe();
     this.syncSub?.unsubscribe();
+    this.queueSubs.forEach(sub => sub.unsubscribe());
     this.clearKeyboardTimer();
   }
 
@@ -459,6 +481,22 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
 
   creditControlFor(item: RmCreditLate): RmPreviousFieldControl | null {
     if (this.onlineMode) {
+      const merged = mergeRmFieldControl(this.pendingCreditControls.get(item.id), {
+        status: item.latestControlStatus,
+        observedAt: item.latestObservedAt
+      });
+      if (merged.source === 'local' && merged.local) {
+        // Contrôle encore sur le téléphone : la liste serveur ne le connaît pas, on l'affiche quand même.
+        const op = merged.local;
+        return {
+          status: op.status,
+          differenceAmount: op.differenceAmount,
+          notebookTotalAmount: op.notebookTotalAmount,
+          note: op.note,
+          ecartDecisionStatus: op.status === 'ECART' ? 'PENDING' : null,
+          modifiable: op.status === 'ECART'
+        };
+      }
       if (!item.latestControlStatus) {
         return null;
       }
@@ -482,6 +520,42 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
       return null;
     }
     return found;
+  }
+
+  /** Un contrôle plus récent existe sur le serveur alors qu'une saisie locale attend encore. */
+  creditControlConflict(item: RmCreditLate): boolean {
+    void this.syncStamp;
+    return this.onlineMode && mergeRmFieldControl(this.pendingCreditControls.get(item.id), {
+      status: item.latestControlStatus,
+      observedAt: item.latestObservedAt
+    }).conflict;
+  }
+
+  tontineControlConflict(member: RmPackTontineMember): boolean {
+    void this.syncStamp;
+    return this.onlineMode && mergeRmFieldControl(this.pendingTontineControls.get(member.id), {
+      status: member.latestControlStatus,
+      observedAt: member.latestObservedAt
+    }).conflict;
+  }
+
+  private latestPendingById<T extends { isSync: boolean; status?: string | null; observedAt?: string | null }>(
+    ops: readonly T[],
+    idOf: (op: T) => number
+  ): Map<number, T> {
+    const byId = new Map<number, T[]>();
+    for (const op of ops) {
+      const id = idOf(op);
+      byId.set(id, [...(byId.get(id) ?? []), op]);
+    }
+    const result = new Map<number, T>();
+    byId.forEach((group, id) => {
+      const latest = latestPendingControl(group);
+      if (latest) {
+        result.set(id, latest);
+      }
+    });
+    return result;
   }
 
   async openFieldControl(item: RmCreditLate): Promise<void> {
@@ -774,6 +848,25 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
 
   controlFor(member: RmPackTontineMember): RmPackTontineFieldControlToday | null {
     if (this.onlineMode) {
+      const merged = mergeRmFieldControl(this.pendingTontineControls.get(member.id), {
+        status: member.latestControlStatus,
+        observedAt: member.latestObservedAt
+      });
+      if (merged.source === 'local' && merged.local) {
+        const op = merged.local;
+        return {
+          tontineMemberId: member.id,
+          reference: op.reference,
+          status: op.status,
+          notebookTotalAmount: op.notebookTotalAmount,
+          systemTotalAmount: op.systemTotalAmount,
+          differenceAmount: op.differenceAmount,
+          note: op.note,
+          observedAt: op.observedAt,
+          ecartDecisionStatus: op.status === 'ECART' ? 'PENDING' : null,
+          modifiable: op.status === 'ECART'
+        };
+      }
       if (!member.latestControlStatus) {
         return null;
       }
