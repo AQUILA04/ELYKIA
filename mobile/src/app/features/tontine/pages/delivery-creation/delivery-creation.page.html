@@ -15,6 +15,20 @@
       </ion-buttons>
     </ion-toolbar>
   </header>
+  <ion-toolbar class="source-bar" *ngIf="canChooseArticleSource">
+  <ion-segment
+    [value]="effectiveArticleSource"
+    (ionChange)="onArticleSourceChange($event)"
+    aria-label="Source des articles"
+    data-testid="e2e-delivery-article-source-toggle">
+    <ion-segment-button value="STOCK">
+      <ion-label>Mon stock tontine</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="CATALOGUE">
+      <ion-label>Catalogue général</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content class="elyk-content">
@@ -69,19 +83,6 @@
     <span *ngIf="!isCatalogueMode && !isSessionClosed">Commande — articles de votre stock tontine (le stock n'est pas touché)</span>
   </div>
 
-  <ion-segment *ngIf="canChooseArticleSource"
-    [value]="effectiveArticleSource"
-    (ionChange)="onArticleSourceChange($event)"
-    aria-label="Source des articles"
-    data-testid="e2e-delivery-article-source-toggle">
-    <ion-segment-button value="STOCK">
-      <ion-label>Mon stock tontine</ion-label>
-    </ion-segment-button>
-    <ion-segment-button value="CATALOGUE">
-      <ion-label>Catalogue général</ion-label>
-    </ion-segment-button>
-  </ion-segment>
-
   <div class="warning-message elyk-card">
     <ion-icon name="warning-outline"></ion-icon>
     <span>Le panier peut aller jusqu'au solde prévisionnel. Pour la remise, le solde réel doit couvrir le panier : utilisez Compléter le solde (sans plafond) ou réduisez les articles.</span>
@@ -108,6 +109,9 @@
         <div class="article-info">
           <div class="article-name">{{ article.commercialName || article.name || 'Article' }}</div>
           <div class="article-price elyk-amount" *appIfUnitPrice="'CASH'">{{ catalogueUnitPrice(article) | number }} FCFA</div>
+          <div class="article-stock" [class.stock-free-none]="article.warehouseStock === 0" data-testid="e2e-delivery-catalogue-warehouse-stock">
+            {{ warehouseLabel(article) }}
+          </div>
           <select *ngIf="offersFor(article.id, catalogueUnitPrice(article)).length > 1"
             [value]="'UNIT:1'"
             (change)="onOfferChange(article.id, article.id, $any($event.target).value, catalogueUnitPrice(article), article.commercialName || article.name || 'Article', 1000000)"

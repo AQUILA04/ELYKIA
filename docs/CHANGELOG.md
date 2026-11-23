@@ -633,6 +633,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.49.3] — 2026-11-23
+
+### Fixed
+
+- **Tontine — solde disponible partout —** la liste des membres, la fiche, la cotisation et le reçu de cotisation affichent le **solde disponible** (`availableContribution`) ; le total cotisé et la « contribution attendue » ne sont plus montrés.
+- **Fiche membre à 0 ou à un montant réduit —** la fiche additionnait seulement les cotisations présentes sur le téléphone (historique parfois partiel). À l'ouverture, le membre et son historique complet sont relus sur le serveur s'il répond (sauf cotisations locales en attente). Hors ligne, une cotisation ajoute son montant au solde connu au lieu de recalculer sur un historique partiel (`replayLocalAllocation`).
+- **Complément de solde à la livraison —** plus de reçu de tontine généré : un message confirme l'enregistrement puis retour au récapitulatif de la livraison avec le solde à jour.
+- **Complément de solde à la livraison —** le montant ne peut plus être inférieur au reste à payer (formulaire et enregistrement).
+- **Commande, catalogue —** le stock magasin s'affiche sur chaque article (page de commande et sélecteur d'article), avec l'heure de sa dernière lecture. En ligne, il est relu sur le serveur ; hors ligne, la dernière valeur lue est conservée (colonnes `articles.warehouseStock` et `warehouseStockAt`, SQLite v40, distinctes de `stockQuantity` qui reste à 0 à l'initialisation). Aucun blocage de la quantité.
+- **Commande —** les choix « Mon stock » / « Catalogue » sont fixés dans l'en-tête (sélecteur d'article et page de commande) : le défilement n'agit plus dessus, et la recherche ne recouvre plus les blocs du dessus.
+
 ## Mobile — [2.49.2] — 2026-11-23
 
 ### Fixed

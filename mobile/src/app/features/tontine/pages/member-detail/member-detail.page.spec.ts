@@ -71,7 +71,7 @@ describe('MemberDetailPage delivery menu', () => {
       {} as any,
       loadingCtrl as any,
       { select: () => of({ id: 'sess', year: 2026 }), dispatch: jasmine.createSpy('dispatch') } as any,
-      { getSession: () => of(null), refreshSessionFromServerIfOnline: () => Promise.resolve() } as any,
+      { getSession: () => of(null), refreshSessionFromServerIfOnline: () => Promise.resolve(), refreshMemberFromServerIfOnline: () => Promise.resolve(false) } as any,
       {
         findAll: jasmine.createSpy('findAll').and.resolveTo(options?.members ?? [{
           id: routeId,

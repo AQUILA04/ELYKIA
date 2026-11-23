@@ -499,6 +499,37 @@ export class OnlineListRefreshService {
     }
   }
 
+  /** Retient le stock magasin renvoyé par le serveur, avec l'heure de lecture. */
+  private async storeWarehouseStocks(serverArticles: any[]): Promise<void> {
+    const stocks = serverArticles
+      .filter((a) => a && a.id !== undefined && a.id !== null && typeof a.stockQuantity === 'number')
+      .map((a) => ({ id: String(a.id), quantity: a.stockQuantity as number }));
+    try {
+      await this.articleRepository.saveWarehouseStocks(stocks, new Date().toISOString());
+    } catch (error) {
+      void this.log.log(`[OnlineListRefresh] stock magasin non enregistré: ${String(error)}`);
+    }
+  }
+
+  /**
+   * Relit le stock magasin de tout le catalogue sur le serveur (hybride actif et serveur joignable).
+   * @returns true si les valeurs viennent d'être rafraîchies.
+   */
+  async refreshWarehouseStocks(): Promise<boolean> {
+    if (!await this.shouldRefreshFromServer()) {
+      return false;
+    }
+    try {
+      const url = `${environment.apiUrl}/api/v1/articles/enabled/all`;
+      const response = await firstValueFrom(this.http.get<ApiResponse<any[]>>(url));
+      await this.storeWarehouseStocks(Array.isArray(response.data) ? response.data : []);
+      return true;
+    } catch (error) {
+      void this.log.log(`[OnlineListRefresh] stock magasin non rafraîchi: ${String(error)}`);
+      return false;
+    }
+  }
+
   /**
    * Hybrid SWR for Catalogue: upsert enabled articles from server, reconcile
    * local ENABLED set so deleted/disabled server articles leave the Catalogue
@@ -561,6 +592,7 @@ export class OnlineListRefreshService {
       if (mapped.length > 0) {
         await this.articleRepository.saveAll(mapped);
       }
+      await this.storeWarehouseStocks(serverArticles);
 
       if (!searchQuery && page === 0) {
         await this.articleRepository.markMissingEnabledAsDisabled(mapped.map((a) => a.id));

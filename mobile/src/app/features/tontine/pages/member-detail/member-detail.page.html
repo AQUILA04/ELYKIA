@@ -60,12 +60,8 @@
           <span class="detail-value elyk-amount">{{ formatCurrency(vm.member.amount) }}</span>
         </div>
         <div class="detail-row">
-          <span class="detail-label">Total cotisé</span>
-          <span class="detail-value elyk-amount elyk-amount--green">{{ formatCurrency(vm.totalCollected) }}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Contribution attendue</span>
-          <span class="detail-value elyk-amount">{{ formatCurrency(vm.member.totalContribution) }}</span>
+          <span class="detail-label">Solde disponible</span>
+          <span class="detail-value elyk-amount elyk-amount--green" data-testid="e2e-tontine-available-balance">{{ formatCurrency(vm.member.availableContribution) }}</span>
         </div>
         <div *ngIf="vm.member.notes" class="notes-section">
           <div class="notes-header">

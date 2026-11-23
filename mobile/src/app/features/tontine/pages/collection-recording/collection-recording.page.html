@@ -36,6 +36,7 @@
         <p *ngIf="selectedMember.clientAddress || selectedMember.clientQuarter">
           {{ selectedMember.clientAddress }}{{ selectedMember.clientQuarter ? ' · ' + selectedMember.clientQuarter : '' }}
         </p>
+        <p class="member-amount elyk-amount">Solde disponible : {{ formatCurrency(selectedMember.availableContribution) }}</p>
         <p class="member-amount elyk-amount">Montant attendu : {{ formatCurrency(selectedMember.amount) }}</p>
       </div>
       <ion-button fill="clear" color="danger" (click)="removeMember()">
@@ -82,7 +83,8 @@
           <div class="error-message"
             *ngIf="collectionForm.get('amount')?.invalid && collectionForm.get('amount')?.touched">
             <ion-icon name="alert-circle-outline"></ion-icon>
-            <span>Le montant est requis et doit être supérieur à 0</span>
+            <span *ngIf="requiredAmount === null">Le montant est requis et doit être supérieur à 0</span>
+            <span *ngIf="requiredAmount !== null">Le montant doit couvrir au moins le reste à payer ({{ formatCurrency(requiredAmount) }})</span>
           </div>
         </ion-card-content>
       </ion-card>

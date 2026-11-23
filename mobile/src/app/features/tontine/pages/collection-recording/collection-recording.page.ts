@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { NavController, AlertController, LoadingController, ModalController } from '@ionic/angular';
+import { NavController, AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Subject, BehaviorSubject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -55,6 +55,8 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
     private session: TontineSession | null = null;
     private commercialUsername: string | null = null;
     loading = false;
+    /** Complément à la livraison : montant minimal = reste à payer (jamais moins). */
+    requiredAmount: number | null = null;
 
     constructor(
         private fb: FormBuilder,
@@ -63,6 +65,7 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
         private alertCtrl: AlertController,
         private loadingCtrl: LoadingController,
         private modalCtrl: ModalController,
+        private toastCtrl: ToastController,
         private store: Store,
         private memberRepo: TontineMemberRepository,
         private collectionRepo: TontineCollectionRepository,
@@ -137,7 +140,13 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
 
                             // If amount is passed (from delivery creation), override the default amount
                             if (preFilledAmount) {
-                                this.collectionForm.patchValue({ amount: parseFloat(preFilledAmount) });
+                                const due = parseFloat(preFilledAmount);
+                                this.collectionForm.patchValue({ amount: due });
+                                if (returnToDelivery && due > 0) {
+                                    this.requiredAmount = due;
+                                    this.collectionForm.get('amount')?.setValidators([Validators.required, Validators.min(due)]);
+                                    this.collectionForm.get('amount')?.updateValueAndValidity();
+                                }
                             }
                         }
                     }
@@ -237,6 +246,9 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
 
         if (this.collectionForm.invalid) {
             this.collectionForm.markAllAsTouched();
+            if (this.requiredAmount !== null) {
+                this.showAlert('Montant insuffisant', `Le montant doit couvrir au moins le reste à payer : ${this.formatCurrency(this.requiredAmount)}.`);
+            }
             return;
         }
 
@@ -334,8 +346,20 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
                 await loading.dismiss();
             }
 
-            const memberCollections = await this.collectionRepo.getByMemberId(this.selectedMember!.id);
-            const totalToDate = memberCollections.reduce((sum, c) => sum + (c.amount || 0), 0);
+            if (savedCollection.isDeliveryCollection) {
+                // Complément à la livraison : pas de reçu, retour au récapitulatif de la livraison en cours.
+                const toast = await this.toastCtrl.create({
+                    message: 'Complément enregistré. Solde mis à jour.',
+                    duration: 2500,
+                    position: 'bottom'
+                });
+                await toast.present();
+                this.navCtrl.back();
+                return;
+            }
+
+            const refreshedMember = await this.memberRepo.findById(this.selectedMember!.id);
+            const availableBalance = refreshedMember?.availableContribution ?? 0;
 
             const receiptData: PrintableTontineCollection = {
                 collection: {
@@ -357,7 +381,7 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
                 commercial: {
                     name: this.commercialUsername || 'Commercial'
                 },
-                totalToDate: totalToDate,
+                totalToDate: availableBalance,
                 isOfflineEstimate: savedCollection.isLocal && !savedCollection.isSync
             };
 

@@ -213,6 +213,8 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         }
 
         try {
+            // Solde et historique viennent du serveur quand il répond : l'historique local peut être partiel.
+            await this.tontineService.refreshMemberFromServerIfOnline(memberId);
             const members = await this.memberRepo.findAll();
             if (token !== this.memberLoadToken) {
                 return;

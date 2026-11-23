@@ -1,3 +1,4 @@
+import { warehouseStockLabel } from 'src/app/core/utils/warehouse-stock.util';
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { FeedbackService } from 'src/app/core/services/feedback.service';
 import { tontineCeilingExceededMessage } from 'src/app/core/utils/tontine-order-ceiling.util';
@@ -420,6 +421,10 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         } else {
             this.loadStocks();
         }
+    }
+
+    warehouseLabel(article: Article): string {
+        return warehouseStockLabel(article.warehouseStock, article.warehouseStockAt);
     }
 
     catalogueUnitPrice(article: Article): number {
