@@ -633,6 +633,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.49.8] — 2026-11-24
+
+### Added
+
+- **Instantané des saisies RM après chaque saisie (plan `plan_sauvegarde_RM.pdf`, Lot 3 / PR F) —** `RmQueueSnapshotService` réécrit `Documents/elykia/rm-queue-snapshot.json` après chaque changement des files (au plus une fois par minute, la dernière modification est toujours écrite). Il contient uniquement les saisies non envoyées et disparaît dès que tout a été envoyé pendant la session. Aucun plugin natif : les plugins d'arrière-plan examinés n'accèdent pas à la base SQLite de l'application.
+- **Récupération —** à l'ouverture de session RM, si les files sont vides alors que l'instantané existe, l'application propose de les restaurer (jamais automatiquement). L'instantané est consulté avant les sauvegardes complètes, car il est plus récent.
+
 ## Mobile — [2.49.7] — 2026-11-24
 
 ### Added
