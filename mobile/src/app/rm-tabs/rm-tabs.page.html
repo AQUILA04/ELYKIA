@@ -9,6 +9,7 @@
       <ion-tab-button tab="field" href="/rm/field" data-testid="e2e-rm-tab-field">
         <ion-icon aria-hidden="true" name="navigate-outline"></ion-icon>
         <ion-label>Terrain</ion-label>
+        <ion-badge *ngIf="(pendingCount$ | async) as pending" color="warning" data-testid="e2e-rm-pending-badge">{{ pending }}</ion-badge>
       </ion-tab-button>
 
       <ion-tab-button tab="clients" href="/rm/clients" data-testid="e2e-rm-tab-clients">
