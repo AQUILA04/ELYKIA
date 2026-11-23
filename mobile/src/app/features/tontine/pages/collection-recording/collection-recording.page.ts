@@ -247,7 +247,7 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
         if (this.collectionForm.invalid) {
             this.collectionForm.markAllAsTouched();
             if (this.requiredAmount !== null) {
-                this.showAlert('Montant insuffisant', `Le montant doit couvrir au moins le reste à payer : ${this.formatCurrency(this.requiredAmount)}.`);
+                await this.showAlert('Montant insuffisant', `Le montant doit couvrir au moins le reste à payer : ${this.formatCurrency(this.requiredAmount)}.`);
             }
             return;
         }
