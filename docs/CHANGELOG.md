@@ -633,6 +633,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.49.6] — 2026-11-24
+
+### Fixed
+
+- **Terrain RM : les contrôles en attente restent visibles après reconnexion (plan `plan_sauvegarde_RM.pdf`, Lot 2 / PR C) —** en mode en ligne, la liste serveur ne connaît pas encore les contrôles crédit et tontine encore en file : le RM les croyait perdus et les refaisait. `mergeRmFieldControl` fusionne désormais liste serveur et file locale : sans contrôle serveur, ou si le contrôle local est plus récent, le statut local est affiché (avec la pastille « Local ») ; si le serveur a un contrôle plus récent, il est conservé et la pastille « Plus récent sur le serveur » signale le conflit (la saisie locale reste en file).
+
 ## Mobile — [2.49.5] — 2026-11-24
 
 ### Added
