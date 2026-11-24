@@ -8,7 +8,25 @@ import { DateFilter, buildDateFilterClause } from '../models/date-filter.model';
 export interface TontineMemberRepositoryFilters extends RepositoryViewFilters {
     deliveryStatus?: string;
     status?: string;
+    /** Écarte les membres déjà livrés (vues « Tous », « Actifs », « À faire »). */
+    excludeDelivered?: boolean;
 }
+
+/** Membre livré : statut du membre, ou une livraison locale/serveur DELIVERED (livraison hors ligne non synchronisée). */
+const MEMBER_DELIVERED_SQL = `(
+    UPPER(TRIM(COALESCE(tm.deliveryStatus, ''))) = 'DELIVERED'
+    OR EXISTS (
+        SELECT 1 FROM tontine_deliveries dd
+        WHERE dd.tontineMemberId = tm.id AND UPPER(TRIM(COALESCE(dd.status, ''))) = 'DELIVERED'
+    )
+)`;
+
+/** Date de la dernière livraison effectuée du membre (la plus récente d'abord dans la vue « Livrés »). */
+const LAST_DELIVERY_DATE_SQL = `(
+    SELECT MAX(COALESCE(NULLIF(dl.deliveryDate, ''), NULLIF(dl.requestDate, '')))
+    FROM tontine_deliveries dl
+    WHERE dl.tontineMemberId = tm.id AND UPPER(TRIM(COALESCE(dl.status, ''))) = 'DELIVERED'
+)`;
 
 /**
  * Extended pagination methods for TontineMemberRepository
@@ -55,7 +73,8 @@ export class TontineMemberRepositoryExtensions {
 
         return this.queryMemberViewsPage({
             sessionJoin: '',
-            whereClause, params, page, size
+            whereClause, params, page, size,
+            deliveredFirst: this.isDeliveredView(filters)
         });
     }
 
@@ -94,7 +113,8 @@ export class TontineMemberRepositoryExtensions {
 
         return this.queryMemberViewsPage({
             sessionJoin: 'JOIN tontine_sessions ts ON tm.tontineSessionId = ts.id',
-            whereClause, params, page, size
+            whereClause, params, page, size,
+            deliveredFirst: this.isDeliveredView(filters)
         });
     }
 
@@ -328,8 +348,13 @@ export class TontineMemberRepositoryExtensions {
         params: any[];
         page: number;
         size: number;
+        deliveredFirst?: boolean;
     }): Promise<Page<TontineMemberView>> {
         const { sessionJoin, whereClause, params, page, size } = opts;
+        // « Livrés » : dernier livré en tête ; les autres vues restent triées par nom.
+        const orderBy = opts.deliveredFirst
+            ? `${LAST_DELIVERY_DATE_SQL} DESC, c.fullName ASC`
+            : 'c.fullName ASC';
         const offset = page * size;
         const today = new Date().toISOString().split('T')[0];
         const db = this.tontineMemberRepository['getDatabaseService']();
@@ -351,6 +376,9 @@ export class TontineMemberRepositoryExtensions {
                 c.fullName as clientName,
                 c.phone as clientPhone,
                 c.quarter as clientQuarter,
+                c.profilPhoto as clientProfilPhoto,
+                c.profilPhotoThumbUrl as clientProfilPhotoThumbUrl,
+                c.profilPhotoUrl as clientProfilPhotoUrl,
                 CASE
                     WHEN tc.id IS NOT NULL THEN 1
                     ELSE 0
@@ -367,7 +395,7 @@ export class TontineMemberRepositoryExtensions {
             LEFT JOIN clients c ON tm.clientId = c.id
             LEFT JOIN tontine_collections tc ON tm.id = tc.tontineMemberId AND substr(tc.collectionDate, 1, 10) = ?
             WHERE ${whereClause}
-            ORDER BY c.fullName ASC
+            ORDER BY ${orderBy}
             LIMIT ${size} OFFSET ${offset}
         `;
         const dataResult = await db.query(dataSql, [today, ...params]);
@@ -385,10 +413,20 @@ export class TontineMemberRepositoryExtensions {
         return { content, totalElements, totalPages, page, size };
     }
 
+    private isDeliveredView(filters?: TontineMemberRepositoryFilters): boolean {
+        return String(filters?.deliveryStatus || '').toUpperCase() === 'DELIVERED';
+    }
+
     private applyFilters(whereConditions: string[], params: any[], filters?: any) {
-        if (filters?.deliveryStatus) {
+        if (String(filters?.deliveryStatus || '').toUpperCase() === 'DELIVERED') {
+            whereConditions.push(MEMBER_DELIVERED_SQL);
+        } else if (filters?.deliveryStatus) {
             whereConditions.push('tm.deliveryStatus = ?');
             params.push(filters.deliveryStatus);
+        }
+
+        if (filters?.excludeDelivered) {
+            whereConditions.push(`NOT ${MEMBER_DELIVERED_SQL}`);
         }
 
         // Status Filter Logic

@@ -38,6 +38,10 @@ export interface TontineMember {
 export interface TontineMemberView extends TontineMember {
     clientPhone: string;
     clientQuarter?: string;
+    /** Photos de profil du client (chemins locaux ou marqueurs MinIO). */
+    clientProfilPhoto?: string | null;
+    clientProfilPhotoThumbUrl?: string | null;
+    clientProfilPhotoUrl?: string | null;
     hasPaidToday?: boolean;
     /** Une commande ou une remise est enregistrée sur ce téléphone pour le membre. */
     hasOrder?: boolean;

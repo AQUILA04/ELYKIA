@@ -145,39 +145,41 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
     loadFirstPage(sessionId: string, search: string, status: string) {
         console.log('Dashboard: Loading First Page', { sessionId, search, status });
 
-        // Map UI status to API filters
-        // UI: 'all', 'active' (status), 'pending' (delivery), 'todo' (!hasPaidToday)
-        const filters: any = {};
+        this.store.dispatch(loadFirstPageTontineMembers({
+            sessionId,
+            filters: this.buildFilters(search, status)
+        }));
+    }
 
+    /**
+     * UI : 'all', 'active', 'todo' (pas encore cotisé aujourd'hui) excluent les membres déjà livrés ;
+     * 'delivered' n'affiche que les livrés, le dernier livré en tête (filtre appliqué aussi côté serveur).
+     */
+    private buildFilters(search: string, status: string): any {
+        const filters: any = {};
         if (search) filters.searchQuery = search;
 
+        if (status === 'delivered') {
+            filters.deliveryStatus = 'DELIVERED';
+            return filters;
+        }
+        filters.excludeDelivered = true;
         if (status === 'todo') {
             filters.status = 'todo'; // Handled by Repository Extension
         } else if (status === 'active') {
-            // In UI 'active' usually means member status ACTIVE.
-            // But existing code checked `member.status === 'ACTIVE'`.
             filters.status = 'ACTIVE';
-        } else if (status === 'pending') {
-            filters.deliveryStatus = 'PENDING';
         }
-
-        this.store.dispatch(loadFirstPageTontineMembers({
-            sessionId,
-            filters
-        }));
+        return filters;
     }
 
     loadMoreMembers(event: any) {
         if (this.sessionId) {
             const search = this.searchTerm$.value;
             const status = this.statusFilter$.value;
-            const filters: any = {}; // Reconstruct filters logic similar to above
-            if (search) filters.searchQuery = search;
-            if (status === 'todo') filters.status = 'todo';
-            else if (status === 'active') filters.status = 'ACTIVE';
-            else if (status === 'pending') filters.deliveryStatus = 'PENDING';
-
-            this.store.dispatch(loadNextPageTontineMembers({ sessionId: this.sessionId, filters }));
+            this.store.dispatch(loadNextPageTontineMembers({
+                sessionId: this.sessionId,
+                filters: this.buildFilters(search, status)
+            }));
         }
 
         // Listen to loading state to complete the infinite scroll

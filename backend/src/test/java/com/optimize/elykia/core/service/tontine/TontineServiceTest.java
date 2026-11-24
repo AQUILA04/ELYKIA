@@ -804,7 +804,7 @@ class TontineServiceTest {
         when(tontineMemberRepository.findMembersDto(
                 eq(year), eq(null), eq(null), eq(null),
                 eq(com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE),
-                any()))
+                eq(false), any()))
                 .thenReturn(new PageImpl<>(List.of()));
 
         service.getMembers(user, null, null, null, null, "CUSTOMER_SPACE", PageRequest.of(0, 20));
@@ -812,7 +812,40 @@ class TontineServiceTest {
         verify(tontineMemberRepository).findMembersDto(
                 eq(year), eq(null), eq(null), eq(null),
                 eq(com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE),
-                any());
+                eq(false), any());
+    }
+
+    @Test
+    void getMembers_excludeDelivered_isPassedToRepository() {
+        int year = LocalDate.now().getYear();
+        User user = mock(User.class);
+        when(user.is(any())).thenReturn(false);
+        when(tontineMemberRepository.findMembersDto(eq(year), eq(null), eq(null), eq(null), eq(null), eq(true), any()))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        service.getMembers(user, null, null, null, null, null, true, PageRequest.of(0, 20));
+
+        verify(tontineMemberRepository).findMembersDto(eq(year), eq(null), eq(null), eq(null), eq(null), eq(true), any());
+    }
+
+    @Test
+    void getMembers_deliveredStatus_sortsLatestDeliveryFirstAndIgnoresExclusion() {
+        int year = LocalDate.now().getYear();
+        User user = mock(User.class);
+        when(user.is(any())).thenReturn(false);
+        org.mockito.ArgumentCaptor<org.springframework.data.domain.Pageable> captor =
+                org.mockito.ArgumentCaptor.forClass(org.springframework.data.domain.Pageable.class);
+        when(tontineMemberRepository.findMembersDto(eq(year), eq(null),
+                eq(TontineMemberDeliveryStatus.DELIVERED), eq(null), eq(null), eq(false), any()))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        service.getMembers(user, null, "DELIVERED", null, null, null, true, PageRequest.of(0, 20));
+
+        verify(tontineMemberRepository).findMembersDto(eq(year), eq(null),
+                eq(TontineMemberDeliveryStatus.DELIVERED), eq(null), eq(null), eq(false), captor.capture());
+        org.springframework.data.domain.Sort.Order order = captor.getValue().getSort().getOrderFor("delivery.deliveryDate");
+        assertNotNull(order);
+        assertEquals(org.springframework.data.domain.Sort.Direction.DESC, order.getDirection());
     }
 
     @Test
@@ -824,7 +857,7 @@ class TontineServiceTest {
                 null, null, null, null, null, null, null, null, null, null, null, null);
         com.optimize.elykia.core.dto.TontineDeliveryRespDto real = new com.optimize.elykia.core.dto.TontineDeliveryRespDto(
                 7L, null, null, null, 21000.0, null, "COM005", "LIV-1", null, null, null, null);
-        when(tontineMemberRepository.findMembersDto(eq(year), eq(null), eq(null), eq(null), eq(null), any()))
+        when(tontineMemberRepository.findMembersDto(eq(year), eq(null), eq(null), eq(null), eq(null), eq(false), any()))
                 .thenReturn(new PageImpl<>(List.of(memberRespWithDelivery(1L, phantom), memberRespWithDelivery(2L, real))));
 
         List<TontineMemberRespDto> content =
