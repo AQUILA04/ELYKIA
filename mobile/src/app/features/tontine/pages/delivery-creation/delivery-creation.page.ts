@@ -71,6 +71,9 @@ interface DeliveryViewModel {
     isExactBudget: boolean;
 }
 
+/** Plafond technique d'unités commandables depuis le catalogue (pas de stock tontine requis). */
+const CATALOGUE_MAX_UNITS = 1000000;
+
 interface CartLineDetails {
     price: number;
     name: string;
@@ -125,6 +128,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     private cart = new Map<string, number>();
     private cartDetails = new Map<string, CartLineDetails>();
     offersByArticle = new Map<string, Array<{ mode: string; label: string; unitsPerPack: number; salePrice: number }>>();
+    /** Offre (unité / pack) choisie par ligne de panier : `mode:unitsPerPack`. */
+    private offerSelection = new Map<string, string>();
     /** Évite de vider le panier si on recharge la même source (ex. patch e2e du statut). */
     private lastCatalogueMode: boolean | null = null;
 
@@ -297,6 +302,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         if (this.lastCatalogueMode !== nextCatalogueMode) {
             this.cart.clear();
             this.cartDetails.clear();
+            this.offerSelection.clear();
             this.updateBudgetCalculations();
             this.lastCatalogueMode = nextCatalogueMode;
         }
@@ -437,11 +443,11 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
 
     increaseCatalogueQuantity(article: Article) {
         this.ensureOffers(String(article.id), this.catalogueUnitPrice(article));
-        const offer = this.selectedOffer(String(article.id), this.catalogueUnitPrice(article));
+        const offer = this.selectedOffer(String(article.id), article.id, this.catalogueUnitPrice(article));
         this.bumpCartQuantity(article.id, {
             price: offer.salePrice || this.catalogueUnitPrice(article),
             name: article.commercialName || article.name || 'Article',
-            maxQty: Number.MAX_SAFE_INTEGER,
+            maxQty: Math.floor(CATALOGUE_MAX_UNITS / (offer.unitsPerPack || 1)),
             articleId: article.id,
             salePackMode: offer.mode,
             unitsPerPack: offer.unitsPerPack,
@@ -455,7 +461,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
 
     increaseQuantity(stock: TontineStock) {
         this.ensureOffers(String(stock.articleId), stock.unitPrice);
-        const offer = this.selectedOffer(String(stock.articleId), stock.unitPrice);
+        const offer = this.selectedOffer(String(stock.articleId), stock.id, stock.unitPrice);
         const units = offer.unitsPerPack || 1;
         this.bumpCartQuantity(stock.id, {
             price: offer.salePrice || stock.unitPrice,
@@ -474,30 +480,57 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         return this.offersByArticle.get(articleId) || [];
     }
 
+    /** Valeur `mode:unitsPerPack` de l'offre active pour une ligne (défaut : première offre, l'unité). */
+    selectedOfferValue(cartKey: string, articleId: string, fallbackPrice: number): string {
+        const offer = this.selectedOffer(articleId, cartKey, fallbackPrice);
+        return `${offer.mode}:${offer.unitsPerPack}`;
+    }
+
+    offerValue(offer: { mode: string; unitsPerPack: number }): string {
+        return `${offer.mode}:${offer.unitsPerPack}`;
+    }
+
+    /**
+     * Change l'offre d'une ligne. Si la ligne est déjà dans le panier, son prix, son conditionnement
+     * et sa quantité maximale sont recalculés : le panier reflète toujours l'offre choisie.
+     */
     onOfferChange(articleId: string, cartKey: string, raw: string, fallbackPrice: number, name: string, maxQty: number, stockId?: string): void {
-        const [mode, unitsRaw] = String(raw).split(':');
-        const units = Number(unitsRaw) || 1;
-        const offer = (this.offersByArticle.get(articleId) || []).find(item => `${item.mode}:${item.unitsPerPack}` === raw);
-        this.cartDetails.set(cartKey, {
-            price: offer?.salePrice || fallbackPrice,
-            name,
-            maxQty: Math.floor(maxQty / units),
-            articleId,
-            stockId,
-            salePackMode: mode || 'UNIT',
-            unitsPerPack: units,
-            packLabel: offer?.label
-        });
+        const offer = (this.offersByArticle.get(articleId) || []).find(item => this.offerValue(item) === raw);
+        if (!offer) {
+            return;
+        }
+        this.offerSelection.set(cartKey, raw);
+        const units = offer.unitsPerPack || 1;
+        const maxPacks = Math.floor(maxQty / units);
         const qty = this.getQuantity(cartKey);
-        if (qty > Math.floor(maxQty / units)) {
-            this.cart.set(cartKey, Math.max(0, Math.floor(maxQty / units)));
+        if (qty > 0) {
+            this.cartDetails.set(cartKey, {
+                price: offer.salePrice || fallbackPrice,
+                name,
+                maxQty: maxPacks,
+                articleId,
+                stockId,
+                salePackMode: offer.mode || 'UNIT',
+                unitsPerPack: units,
+                packLabel: offer.label
+            });
+            if (qty > maxPacks) {
+                if (maxPacks > 0) {
+                    this.cart.set(cartKey, maxPacks);
+                } else {
+                    this.cart.delete(cartKey);
+                    this.cartDetails.delete(cartKey);
+                }
+            }
         }
         this.updateBudgetCalculations();
     }
 
-    private selectedOffer(articleId: string, fallbackPrice: number) {
+    private selectedOffer(articleId: string, cartKey: string, fallbackPrice: number) {
         const offers = this.offersByArticle.get(articleId);
-        return offers?.[0] || { mode: 'UNIT', label: 'Unité', unitsPerPack: 1, salePrice: fallbackPrice };
+        const chosen = this.offerSelection.get(cartKey);
+        const match = chosen ? offers?.find(item => this.offerValue(item) === chosen) : undefined;
+        return match || offers?.[0] || { mode: 'UNIT', label: 'Unité', unitsPerPack: 1, salePrice: fallbackPrice };
     }
 
     private ensureOffers(articleId: string, fallbackPrice: number): void {

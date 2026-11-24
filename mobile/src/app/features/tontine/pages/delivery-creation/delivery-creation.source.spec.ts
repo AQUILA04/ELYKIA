@@ -44,4 +44,56 @@ describe('DeliveryCreationPage article source and reservation', () => {
     expect(instance.freeFor({ articleId: '12', availableQuantity: 5 } as any)).toBe(0);
     expect(instance.reservedFor({ articleId: '13', availableQuantity: 5 } as any)).toBe(0);
   });
+
+  describe('pack selection', () => {
+    function cartPage(): DeliveryCreationPage {
+      const instance = page('ACTIVE');
+      (instance as any).cart = new Map();
+      (instance as any).cartDetails = new Map();
+      (instance as any).offerSelection = new Map();
+      (instance as any).vm = { projectedBudget: 100000, usedBudget: 0, remainingBudget: 0, selectedCount: 0 };
+      instance.offersByArticle = new Map([
+        ['7', [
+          { mode: 'UNIT', label: 'Unité', unitsPerPack: 1, salePrice: 200 },
+          { mode: 'PACK', label: 'Gros', unitsPerPack: 18, salePrice: 3300 }
+        ]]
+      ]);
+      return instance;
+    }
+    const article = { id: '7', name: 'Bella', sellingPrice: 200 } as any;
+
+    it('adds the selected pack, not the unit, to the cart', () => {
+      const instance = cartPage();
+      instance.onOfferChange('7', '7', 'PACK:18', 200, 'Bella', 1000000);
+
+      instance.increaseCatalogueQuantity(article);
+
+      expect(instance.vm.usedBudget).toBe(3300);
+      expect(instance.cartLines[0].offer).toBe('Gros');
+      expect(instance.cartLines[0].unitPrice).toBe(3300);
+    });
+
+    it('re-prices a line already in the cart when the offer changes', () => {
+      const instance = cartPage();
+      instance.increaseCatalogueQuantity(article);
+      expect(instance.vm.usedBudget).toBe(200);
+
+      instance.onOfferChange('7', '7', 'PACK:18', 200, 'Bella', 1000000);
+
+      expect(instance.vm.usedBudget).toBe(3300);
+      expect(instance.selectedOfferValue('7', '7', 200)).toBe('PACK:18');
+    });
+
+    it('caps the pack quantity to the stock available in packs', () => {
+      const instance = cartPage();
+      instance.onOfferChange('7', 's1', 'PACK:18', 200, 'Bella', 40, 's1');
+      const stock = { id: 's1', articleId: '7', unitPrice: 200, availableQuantity: 40, articleName: 'Bella' } as any;
+
+      instance.increaseQuantity(stock);
+      instance.increaseQuantity(stock);
+      instance.increaseQuantity(stock);
+
+      expect(instance.getQuantity('s1')).toBe(2);
+    });
+  });
 });
