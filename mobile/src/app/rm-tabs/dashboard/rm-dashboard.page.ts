@@ -2,6 +2,9 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { ConnectivityService } from '../../core/services/connectivity.service';
+import { RmFieldListApiService } from '../../core/services/rm/rm-field-list-api.service';
+import { filterRmLateCredits } from './rm-dashboard-search.util';
 import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmCloseQueueService } from '../../core/services/rm/rm-close-queue.service';
 import { RmMonthlyRecoveryRateService } from '../../core/services/rm/rm-monthly-recovery-rate.service';
@@ -16,6 +19,8 @@ import {
 import { RmDossierSyncBadgeService } from '../../core/services/rm/rm-dossier-sync-badge.service';
 import { RmCloseSheetComponent } from '../../features/rm/close/rm-close-sheet.component';
 import { RmFieldControlSheetComponent } from '../../features/rm/field-control/rm-field-control-sheet.component';
+
+const PAGE_SIZE = 30;
 
 @Component({
   selector: 'app-rm-dashboard',
@@ -37,6 +42,14 @@ export class RmDashboardPage implements OnInit, OnDestroy {
   selectedMonth = new Date().getMonth() + 1;
   carnetBusy = false;
   syncStamp = 0;
+  query = '';
+  /** Résultats serveur (en ligne, avec un terme saisi) ; null = on affiche le pack local. */
+  serverResults: RmCreditLate[] | null = null;
+  serverTotal = 0;
+  searchLoading = false;
+  loadingMore = false;
+  private serverNextPage = 0;
+  private searchRequest = 0;
   private controlByCredit = new Map<number, {
     status?: string;
     differenceAmount?: number;
@@ -56,7 +69,9 @@ export class RmDashboardPage implements OnInit, OnDestroy {
     private readonly alertCtrl: AlertController,
     private readonly toastCtrl: ToastController,
     private readonly router: Router,
-    private readonly syncBadges: RmDossierSyncBadgeService
+    private readonly syncBadges: RmDossierSyncBadgeService,
+    private readonly connectivity: ConnectivityService,
+    private readonly fieldListApi: RmFieldListApiService
   ) {}
 
   ngOnInit(): void {
@@ -110,6 +125,47 @@ export class RmDashboardPage implements OnInit, OnDestroy {
   setCommercialFilter(username: string): void {
     this.filterCommercial = username;
     this.rebuild();
+  }
+
+  get searching(): boolean {
+    return !!this.query.trim();
+  }
+
+  get hasMoreServer(): boolean {
+    return !!this.serverResults && this.serverNextPage * PAGE_SIZE < this.serverTotal;
+  }
+
+  onSearchInput(): void {
+    void this.runSearch();
+  }
+
+  async loadMore(event: Event): Promise<void> {
+    const target = event.target as HTMLIonInfiniteScrollElement | null;
+    try {
+      if (!this.hasMoreServer || this.loadingMore || this.searchLoading) {
+        return;
+      }
+      this.loadingMore = true;
+      const requestId = this.searchRequest;
+      const page = await this.fieldListApi.pageLateCredits(this.query.trim(), this.serverNextPage);
+      if (requestId !== this.searchRequest) {
+        return;
+      }
+      this.serverResults = (this.serverResults ?? []).concat(page.content || []);
+      this.serverTotal = page.totalElements;
+      this.serverNextPage += 1;
+      this.rebuild();
+    } catch {
+      const toast = await this.toastCtrl.create({
+        message: 'Impossible de charger la suite',
+        duration: 2500,
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      this.loadingMore = false;
+      await target?.complete();
+    }
   }
 
   shiftMonth(delta: number): void {
@@ -213,8 +269,52 @@ export class RmDashboardPage implements OnInit, OnDestroy {
     await this.monthlyRecovery.load(this.selectedYear, this.selectedMonth);
   }
 
+  private async runSearch(): Promise<void> {
+    const requestId = ++this.searchRequest;
+    const term = this.query.trim();
+    this.serverResults = null;
+    this.serverTotal = 0;
+    this.serverNextPage = 0;
+    // Filtre local immédiat ; le serveur le remplace s'il répond.
+    this.rebuild();
+    if (!term) {
+      this.searchLoading = false;
+      return;
+    }
+    this.searchLoading = true;
+    try {
+      const reachable = await this.connectivity.checkBackendReachable().catch(() => false);
+      if (!reachable || requestId !== this.searchRequest) {
+        return;
+      }
+      const page = await this.fieldListApi.pageLateCredits(term, 0);
+      if (requestId !== this.searchRequest) {
+        return;
+      }
+      this.serverResults = page.content || [];
+      this.serverTotal = page.totalElements;
+      this.serverNextPage = 1;
+    } catch {
+      this.serverResults = null;
+    } finally {
+      if (requestId === this.searchRequest) {
+        this.searchLoading = false;
+        this.rebuild();
+      }
+    }
+  }
+
   private filteredLates(): RmCreditLate[] {
-    const items = this.pack?.lateCredits ?? [];
+    let items: RmCreditLate[];
+    if (this.serverResults) {
+      // Le serveur ignore le plan du jour : on ne garde que les commerciaux du plan.
+      const scope = this.plan?.commercialUsernames;
+      items = scope?.length
+        ? this.serverResults.filter(i => scope.includes(i.collector ?? ''))
+        : this.serverResults;
+    } else {
+      items = filterRmLateCredits(this.pack?.lateCredits ?? [], this.query);
+    }
     if (!this.filterCommercial) {
       return items;
     }

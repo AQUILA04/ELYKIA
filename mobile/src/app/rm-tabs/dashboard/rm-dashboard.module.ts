@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RmDashboardPageRoutingModule } from './rm-dashboard-routing.module';
 import { RmDashboardPage } from './rm-dashboard.page';
@@ -10,6 +11,7 @@ import { RmSessionBarModule } from '../../features/rm/session-bar/rm-session-bar
 @NgModule({
   imports: [
     CommonModule,
+    FormsModule,
     IonicModule,
     RmDashboardPageRoutingModule,
     RmCloseSheetModule,
