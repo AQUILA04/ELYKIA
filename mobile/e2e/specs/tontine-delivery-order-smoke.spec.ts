@@ -133,8 +133,16 @@ async function goToTontineDashboard(page: Page): Promise<void> {
   await expect(page.getByTestId('e2e-tontine-dashboard-title')).toBeVisible({ timeout: 15_000 });
 }
 
-async function openMemberByName(page: Page, name: RegExp): Promise<void> {
+async function openMemberByName(
+  page: Page,
+  name: RegExp,
+  opts: { delivered?: boolean } = {}
+): Promise<void> {
   await goToTontineDashboard(page);
+  if (opts.delivered) {
+    // Les membres déjà livrés ne figurent plus dans « À faire » / « Tous » : ils sont sous « Livrés ».
+    await page.locator('ion-chip.elyk-chip').filter({ hasText: /^\s*Livrés\s*$/ }).click();
+  }
   const card = page.locator('.member-card').filter({ hasText: name }).first();
   await expect(card).toBeVisible({ timeout: 60_000 });
   await card.click();
@@ -237,7 +245,7 @@ test.describe('Tontine delivery order vs direct @smoke', () => {
     await expect(receipt).toBeHidden({ timeout: 15_000 });
     await expect(page).toHaveURL(/\/tontine\/dashboard|\/tabs\/dashboard/, { timeout: 30_000 });
 
-    await openMemberByName(page, /BOBO DIOUF/i);
+    await openMemberByName(page, /BOBO DIOUF/i, { delivered: true });
     await expect(page.getByTestId('e2e-tontine-member-delivery-status')).toContainText(/Livr/i, {
       timeout: 20_000,
     });
