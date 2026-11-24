@@ -88,6 +88,15 @@
     <span>Le panier peut aller jusqu'au solde prévisionnel. Pour la remise, le solde réel doit couvrir le panier : utilisez Compléter le solde (sans plafond) ou réduisez les articles.</span>
   </div>
 
+  <div class="planned-date-section" *ngIf="orderPossible" data-testid="e2e-delivery-planned-date-section">
+    <app-planned-date-field
+      label="Livraison prévue"
+      hint="Facultatif · commande"
+      [value]="plannedDeliveryDate"
+      (valueChange)="onPlannedDateChange($event)">
+    </app-planned-date-field>
+  </div>
+
   <div class="elyk-search-overlap search-section">
     <ion-searchbar class="elyk-searchbar" placeholder="Rechercher un article..." [debounce]="500" (ionInput)="onSearch($event)" mode="md">
     </ion-searchbar>

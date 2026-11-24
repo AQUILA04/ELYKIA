@@ -333,7 +333,12 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         );
     }
 
-    async replaceItems(deliveryId: string, items: TontineDeliveryItem[], totalAmount: number): Promise<void> {
+    async replaceItems(
+        deliveryId: string,
+        items: TontineDeliveryItem[],
+        totalAmount: number,
+        planned?: { plannedDeliveryDate: string | null }
+    ): Promise<void> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
         await this.databaseService.execute('DELETE FROM tontine_delivery_items WHERE tontineDeliveryId = ?', [deliveryId]);
         for (const item of items) {
@@ -359,6 +364,12 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
             'UPDATE tontine_deliveries SET totalAmount = ? WHERE id = ?',
             [totalAmount, deliveryId]
         );
+        if (planned) {
+            await this.databaseService.execute(
+                'UPDATE tontine_deliveries SET plannedDeliveryDate = ? WHERE id = ?',
+                [planned.plannedDeliveryDate, deliveryId]
+            );
+        }
     }
 
     async getItems(deliveryId: string): Promise<any[]> {

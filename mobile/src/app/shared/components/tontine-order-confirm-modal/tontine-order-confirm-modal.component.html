@@ -1,0 +1,21 @@
+<div class="confirm-sheet" data-testid="e2e-tontine-order-confirm">
+  <div class="confirm-icon" aria-hidden="true"><ion-icon name="document-text-outline"></ion-icon></div>
+  <h2>Confirmer la commande</h2>
+  <p class="confirm-total">Total <strong class="elyk-amount">{{ total | number:'1.0-0':'fr-FR' }} FCFA</strong></p>
+  <p class="confirm-text">Les articles ne sont pas encore remis : la commande sera livrée plus tard.</p>
+
+  <app-planned-date-field
+    label="Livraison prévue"
+    hint="Facultatif"
+    [value]="plannedDeliveryDate"
+    (valueChange)="plannedDeliveryDate = $event">
+  </app-planned-date-field>
+
+  <div class="confirm-actions">
+    <ion-button fill="outline" class="elyk-btn-outline" (click)="cancel()" data-testid="e2e-tontine-order-confirm-cancel">Annuler</ion-button>
+    <ion-button class="elyk-btn-navy" (click)="confirm()" data-testid="e2e-tontine-order-confirm-ok">
+      <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+      Confirmer
+    </ion-button>
+  </div>
+</div>

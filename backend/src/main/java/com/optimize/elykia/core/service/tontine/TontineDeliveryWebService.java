@@ -22,6 +22,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -38,6 +39,11 @@ public class TontineDeliveryWebService {
 
     public Page<TontineDeliveryListDto> getDeliveriesForWeb(LocalDateTime dateFrom, LocalDateTime dateTo,
             String commercial, String search, Pageable pageable) {
+        return getDeliveriesForWeb(dateFrom, dateTo, null, null, commercial, search, pageable);
+    }
+
+    public Page<TontineDeliveryListDto> getDeliveriesForWeb(LocalDateTime dateFrom, LocalDateTime dateTo,
+            LocalDate plannedFrom, LocalDate plannedTo, String commercial, String search, Pageable pageable) {
         log.info("Fetching Tontine Deliveries between {} and {} for commercial: {}, search: {}",
                 dateFrom, dateTo, commercial != null ? commercial : "ALL", search);
 
@@ -45,6 +51,8 @@ public class TontineDeliveryWebService {
                         resolveCommercialFilter(commercial),
                         dateFrom,
                         dateTo,
+                        plannedFrom,
+                        plannedTo,
                         normalizeSearch(search),
                         pageable)
                 .map(this::mapToListDto);
@@ -52,6 +60,11 @@ public class TontineDeliveryWebService {
 
     public Page<TontineDeliveryListDto> elasticsearch(String keyword, LocalDateTime dateFrom, LocalDateTime dateTo,
             String commercial, Pageable pageable) {
+        return elasticsearch(keyword, dateFrom, dateTo, null, null, commercial, pageable);
+    }
+
+    public Page<TontineDeliveryListDto> elasticsearch(String keyword, LocalDateTime dateFrom, LocalDateTime dateTo,
+            LocalDate plannedFrom, LocalDate plannedTo, String commercial, Pageable pageable) {
         log.info("Elasticsearch Tontine Deliveries keyword: {}, commercial: {}", keyword, commercial);
 
         return deliveryRepository.elasticsearch(
@@ -59,18 +72,30 @@ public class TontineDeliveryWebService {
                         resolveCommercialFilter(commercial),
                         dateFrom,
                         dateTo,
+                        plannedFrom,
+                        plannedTo,
                         pageable)
                 .map(this::mapToListDto);
     }
 
     public long countPending(LocalDateTime dateFrom, LocalDateTime dateTo, String commercial, String search) {
+        return countPending(dateFrom, dateTo, null, null, commercial, search);
+    }
+
+    public long countPending(LocalDateTime dateFrom, LocalDateTime dateTo, LocalDate plannedFrom, LocalDate plannedTo,
+            String commercial, String search) {
         return countByStatus(TontineMemberDeliveryStatus.PENDING,
-                buildFilterSpec(commercial, dateFrom, dateTo, search));
+                buildFilterSpec(commercial, dateFrom, dateTo, plannedFrom, plannedTo, search));
     }
 
     public List<TontineDelivery> findPending(LocalDateTime dateFrom, LocalDateTime dateTo, String commercial,
             String search) {
-        Specification<TontineDelivery> spec = buildFilterSpec(commercial, dateFrom, dateTo, search)
+        return findPending(dateFrom, dateTo, null, null, commercial, search);
+    }
+
+    public List<TontineDelivery> findPending(LocalDateTime dateFrom, LocalDateTime dateTo, LocalDate plannedFrom,
+            LocalDate plannedTo, String commercial, String search) {
+        Specification<TontineDelivery> spec = buildFilterSpec(commercial, dateFrom, dateTo, plannedFrom, plannedTo, search)
                 .and((root, query, cb) -> cb.equal(
                         root.get("tontineMember").get("deliveryStatus"),
                         TontineMemberDeliveryStatus.PENDING));
@@ -79,10 +104,15 @@ public class TontineDeliveryWebService {
 
     public TontineDeliveryKpiDto getKpiSummary(LocalDateTime dateFrom, LocalDateTime dateTo, String commercial,
             String search) {
+        return getKpiSummary(dateFrom, dateTo, null, null, commercial, search);
+    }
+
+    public TontineDeliveryKpiDto getKpiSummary(LocalDateTime dateFrom, LocalDateTime dateTo, LocalDate plannedFrom,
+            LocalDate plannedTo, String commercial, String search) {
         log.info("Fetching Tontine Delivery KPIs between {} and {} for commercial: {}, search: {}",
                 dateFrom, dateTo, commercial != null ? commercial : "ALL", search);
 
-        Specification<TontineDelivery> baseSpec = buildFilterSpec(commercial, dateFrom, dateTo, search);
+        Specification<TontineDelivery> baseSpec = buildFilterSpec(commercial, dateFrom, dateTo, plannedFrom, plannedTo, search);
 
         long totalCount = deliveryRepository.count(baseSpec);
         double totalAmount = sumField("totalAmount", baseSpec);
@@ -102,11 +132,13 @@ public class TontineDeliveryWebService {
     }
 
     private Specification<TontineDelivery> buildFilterSpec(String commercial, LocalDateTime dateFrom,
-            LocalDateTime dateTo, String search) {
+            LocalDateTime dateTo, LocalDate plannedFrom, LocalDate plannedTo, String search) {
         return deliveryRepository.getFilterCriteria(
                 resolveCommercialFilter(commercial),
                 dateFrom,
                 dateTo,
+                plannedFrom,
+                plannedTo,
                 normalizeSearch(search));
     }
 
@@ -169,4 +201,4 @@ public class TontineDeliveryWebService {
                 .build();
     }
 }
-
+

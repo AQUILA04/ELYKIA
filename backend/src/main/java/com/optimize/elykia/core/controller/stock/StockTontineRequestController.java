@@ -57,10 +57,12 @@ public class StockTontineRequestController {
     public ResponseEntity<PendingOrderStockPreviewDto> previewPendingDeliveries(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedTo,
             @RequestParam(required = false) String commercial,
             @RequestParam(required = false) String search) {
         return ResponseEntity.ok(deliveryStockRequestService.previewPending(
-                startOf(dateFrom), endOf(dateTo), commercial, search));
+                startOf(dateFrom), endOf(dateTo), plannedFrom, plannedTo, commercial, search));
     }
 
     @PostMapping("/from-pending-deliveries")
@@ -68,10 +70,12 @@ public class StockTontineRequestController {
     public ResponseEntity<List<StockTontineRequest>> createFromPendingDeliveries(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedTo,
             @RequestParam(required = false) String commercial,
             @RequestParam(required = false) String search) {
         return ResponseEntity.ok(deliveryStockRequestService.createFromPending(
-                startOf(dateFrom), endOf(dateTo), commercial, search));
+                startOf(dateFrom), endOf(dateTo), plannedFrom, plannedTo, commercial, search));
     }
 
     @PutMapping("/{id}/validate")

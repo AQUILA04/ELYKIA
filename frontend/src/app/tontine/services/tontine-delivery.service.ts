@@ -13,6 +13,12 @@ import {
 import { TontineDeliveryListItem } from '../models/tontine-delivery-list.model';
 import { TontineDeliveryConflict, TontineDeliveryConflictOutcome } from '../models/tontine-delivery-conflict.model';
 
+/** Bornes de la date de livraison prévue (AAAA-MM-JJ), toutes deux facultatives. */
+export interface PlannedDateRange {
+  from?: string | null;
+  to?: string | null;
+}
+
 export interface TontineReceiptLine {
   designation: string;
   quantity: string;
@@ -138,12 +144,11 @@ export class TontineDeliveryService {
     search?: string,
     page: number = 0,
     size: number = 10,
-    sort: string = 'deliveryDate,desc'
+    sort: string = 'deliveryDate,desc',
+    planned?: PlannedDateRange
   ): Observable<ApiResponse<PaginatedResponse<TontineDeliveryListItem>>> {
     const headers = this.getHeaders();
-    let params = new HttpParams()
-      .set('dateFrom', dateFrom)
-      .set('dateTo', dateTo)
+    let params = this.periodParams(dateFrom, dateTo, planned)
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sort', sort);
@@ -188,12 +193,11 @@ export class TontineDeliveryService {
     dateFrom: string,
     dateTo: string,
     commercial?: string | null,
-    search?: string
+    search?: string,
+    planned?: PlannedDateRange
   ): Observable<ApiResponse<any>> {
     const headers = this.getHeaders();
-    let params = new HttpParams()
-      .set('dateFrom', dateFrom)
-      .set('dateTo', dateTo);
+    let params = this.periodParams(dateFrom, dateTo, planned);
 
     if (commercial) {
       params = params.set('commercial', commercial);
@@ -213,12 +217,11 @@ export class TontineDeliveryService {
     commercial?: string | null,
     page: number = 0,
     size: number = 10,
-    sort: string = 'deliveryDate,desc'
+    sort: string = 'deliveryDate,desc',
+    planned?: PlannedDateRange
   ): Observable<ApiResponse<PaginatedResponse<TontineDeliveryListItem>>> {
     const headers = this.getHeaders();
-    let params = new HttpParams()
-      .set('dateFrom', dateFrom)
-      .set('dateTo', dateTo)
+    let params = this.periodParams(dateFrom, dateTo, planned)
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sort', sort);
@@ -238,11 +241,12 @@ export class TontineDeliveryService {
     dateFrom: string,
     dateTo: string,
     commercial?: string | null,
-    search?: string
+    search?: string,
+    planned?: PlannedDateRange
   ): Observable<ApiResponse<{ count: number }>> {
     return this.http.get<ApiResponse<{ count: number }>>(
       `${this.apiUrl}/pending-count`,
-      { headers: this.getHeaders(), params: this.filterParams(dateFrom, dateTo, commercial, search) }
+      { headers: this.getHeaders(), params: this.filterParams(dateFrom, dateTo, commercial, search, planned) }
     ).pipe(catchError(this.handleError));
   }
 
@@ -258,12 +262,13 @@ export class TontineDeliveryService {
     dateFrom: string,
     dateTo: string,
     commercial?: string | null,
-    search?: string
+    search?: string,
+    planned?: PlannedDateRange
   ): Observable<ApiResponse<{ count: number }>> {
     return this.http.post<ApiResponse<{ count: number }>>(
       `${this.apiUrl}/validate-pending`,
       {},
-      { headers: this.getHeaders(), params: this.filterParams(dateFrom, dateTo, commercial, search) }
+      { headers: this.getHeaders(), params: this.filterParams(dateFrom, dateTo, commercial, search, planned) }
     ).pipe(catchError(this.handleError));
   }
 
@@ -271,14 +276,36 @@ export class TontineDeliveryService {
     dateFrom: string,
     dateTo: string,
     commercial?: string | null,
-    search?: string
+    search?: string,
+    planned?: PlannedDateRange
   ): HttpParams {
-    let params = new HttpParams().set('dateFrom', dateFrom).set('dateTo', dateTo);
+    let params = this.periodParams(dateFrom, dateTo, planned);
     if (commercial) {
       params = params.set('commercial', commercial);
     }
     if (search) {
       params = params.set('search', search);
+    }
+    return params;
+  }
+
+  /**
+   * Période de livraison + bornes de date prévue. Un filtre de date prévue remplace la période
+   * (le composant envoie alors des dates vides) : on n'envoie jamais de borne vide.
+   */
+  private periodParams(dateFrom: string, dateTo: string, planned?: PlannedDateRange): HttpParams {
+    let params = new HttpParams();
+    if (dateFrom) {
+      params = params.set('dateFrom', dateFrom);
+    }
+    if (dateTo) {
+      params = params.set('dateTo', dateTo);
+    }
+    if (planned?.from) {
+      params = params.set('plannedFrom', planned.from);
+    }
+    if (planned?.to) {
+      params = params.set('plannedTo', planned.to);
     }
     return params;
   }

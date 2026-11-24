@@ -42,7 +42,11 @@ import { TontineDeliveryReceiptModalComponent } from 'src/app/shared/components/
 import { PrintableTontineDelivery } from 'src/app/core/services/printing.service';
 import { DailyConsentGuardService } from 'src/app/features/daily-consent/daily-consent-guard.service';
 import { DailyConsentStateService } from 'src/app/core/daily-consent/daily-consent-state.service';
-import { normalizePlannedDate, todayIsoDate } from 'src/app/core/utils/tontine-planned-date.util';
+import { normalizePlannedDate } from 'src/app/core/utils/tontine-planned-date.util';
+import {
+    TontineOrderConfirmModalComponent,
+    TontineOrderConfirmResult
+} from 'src/app/shared/components/tontine-order-confirm-modal/tontine-order-confirm-modal.component';
 import { generateTontineAuthenticityCode, generateTontineDeliveryReference } from 'src/app/core/utils/tontine-delivery-reference.util';
 import { TontineOrderReceiptModalComponent } from 'src/app/shared/components/tontine-order-receipt-modal/tontine-order-receipt-modal.component';
 import { PrintableTontineOrder } from 'src/app/core/services/printing.service';
@@ -760,8 +764,13 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         await alert.present();
     }
 
-    /** Date de livraison prévue choisie à la confirmation d'une commande (AAAA-MM-JJ). */
+    /** Date de livraison prévue d'une commande (AAAA-MM-JJ), choisie sur la page ou à la confirmation. */
     plannedDeliveryDate: string | null = null;
+
+    /** Le champ date n'a de sens que tant qu'une commande est possible (session non terminée). */
+    get orderPossible(): boolean {
+        return canCreateTontineOrder(this.vm.session?.status);
+    }
 
     private async confirmAndProcess(mode: TontineDeliveryCreationMode): Promise<void> {
         const isOrder = mode === 'ORDER';
@@ -774,27 +783,46 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             return;
         }
 
+        if (isOrder) {
+            // Commande : fenêtre de confirmation avec la date de livraison prévue (facultative),
+            // préremplie avec celle déjà choisie sur la page.
+            const modal = await this.modalCtrl.create({
+                component: TontineOrderConfirmModalComponent,
+                componentProps: { total: this.vm.usedBudget, plannedDeliveryDate: this.plannedDeliveryDate },
+                initialBreakpoint: 0.75,
+                breakpoints: [0, 0.75, 1],
+                handle: false
+            });
+            await modal.present();
+            const { data, role } = await modal.onDidDismiss<TontineOrderConfirmResult>();
+            if (role !== 'confirm') {
+                return;
+            }
+            this.plannedDeliveryDate = normalizePlannedDate(data?.plannedDeliveryDate);
+            void this.processDelivery(mode);
+            return;
+        }
+
         const alert = await this.alertCtrl.create({
-            header: isOrder ? 'Confirmer la commande' : 'Confirmer la livraison',
-            message: isOrder
-                ? `Total: ${this.vm.usedBudget.toLocaleString('fr-FR')} FCFA\n\nEnregistrer comme commande (articles non encore remis) ?\nDate de livraison prévue (facultatif) :`
-                : `Total: ${this.vm.usedBudget.toLocaleString('fr-FR')} FCFA\nRestant: ${this.vm.remainingBudget.toLocaleString('fr-FR')} FCFA\n\nConfirmez-vous la livraison directe ?`,
-            // Commande : date de livraison prévue, facultative, à partir d'aujourd'hui.
-            inputs: isOrder
-                ? [{ name: 'plannedDeliveryDate', type: 'date', min: todayIsoDate(), attributes: { 'data-testid': 'e2e-tontine-planned-date' } }]
-                : [],
+            header: 'Confirmer la livraison',
+            message: `Total: ${this.vm.usedBudget.toLocaleString('fr-FR')} FCFA\nRestant: ${this.vm.remainingBudget.toLocaleString('fr-FR')} FCFA\n\nConfirmez-vous la livraison directe ?`,
             buttons: [
                 { text: 'Annuler', role: 'cancel' },
                 {
                     text: 'Confirmer',
-                    handler: (data?: { plannedDeliveryDate?: string }) => {
-                        this.plannedDeliveryDate = isOrder ? normalizePlannedDate(data?.plannedDeliveryDate) : null;
+                    handler: () => {
+                        this.plannedDeliveryDate = null;
                         void this.processDelivery(mode);
                     }
                 }
             ]
         });
         await alert.present();
+    }
+
+    /** Date choisie sur le formulaire (champ de la page), conservée jusqu'à l'enregistrement. */
+    onPlannedDateChange(value: string | null): void {
+        this.plannedDeliveryDate = normalizePlannedDate(value);
     }
 
     /**

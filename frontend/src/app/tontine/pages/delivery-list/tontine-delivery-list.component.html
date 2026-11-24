@@ -117,6 +117,20 @@
         Réinitialiser tout
       </button>
 
+      <div class="filter-group filter-group-planned-range" data-testid="e2e-tontine-planned-filter">
+        <span class="toolbar-label">Livraison prévue</span>
+        <div class="date-inputs">
+          <input type="date" lang="fr-FR" class="search-input" [(ngModel)]="plannedFrom"
+                 (ngModelChange)="onPlannedFilterChange()" aria-label="Livraison prévue à partir du"
+                 data-testid="e2e-tontine-planned-from">
+          <span class="date-sep">au</span>
+          <input type="date" lang="fr-FR" class="search-input" [(ngModel)]="plannedTo" [min]="plannedFrom"
+                 (ngModelChange)="onPlannedFilterChange()" aria-label="Livraison prévue jusqu'au"
+                 data-testid="e2e-tontine-planned-to">
+          <button type="button" class="btn-clear" *ngIf="plannedFilterActive" (click)="clearPlannedFilter()">Effacer</button>
+        </div>
+      </div>
+
       <div class="filter-group filter-group-planned">
         <label class="toolbar-label" for="planned-pdf-date">Membres à livrer le</label>
         <div class="date-inputs">

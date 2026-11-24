@@ -43,6 +43,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -508,6 +509,13 @@ public class TontineDeliveryService {
 
     @Transactional
     public TontineDeliveryDto replaceItems(Long deliveryId, List<DeliveryItemDto> itemDtos) {
+        return replaceItems(deliveryId, itemDtos, false, null);
+    }
+
+    /** Remplace les articles ; la date de livraison prévue n'est touchée que si {@code updatePlannedDate}. */
+    @Transactional
+    public TontineDeliveryDto replaceItems(Long deliveryId, List<DeliveryItemDto> itemDtos,
+                                           boolean updatePlannedDate, LocalDate plannedDeliveryDate) {
         TontineDelivery delivery = deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Livraison non trouvée"));
         TontineMember member = delivery.getTontineMember();
@@ -532,6 +540,9 @@ public class TontineDeliveryService {
         items.forEach(delivery::addItem);
         delivery.setTotalAmount(totalAmount);
         delivery.setRemainingBalance(Math.max(0.0, availableOf(member) - totalAmount));
+        if (updatePlannedDate) {
+            delivery.setPlannedDeliveryDate(plannedDeliveryDate);
+        }
         return mapToDto(deliveryRepository.save(delivery));
     }
 

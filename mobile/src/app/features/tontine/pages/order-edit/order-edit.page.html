@@ -52,6 +52,17 @@
         </button>
       </section>
 
+      <section class="edit-card" data-testid="e2e-tontine-order-planned-date">
+        <h3>Livraison</h3>
+        <app-planned-date-field
+          label="Livraison prévue"
+          hint="Facultatif"
+          [disabled]="notSynced"
+          [value]="plannedDate"
+          (valueChange)="onPlannedDateChange($event)">
+        </app-planned-date-field>
+      </section>
+
       <section class="edit-card edit-summary" data-testid="e2e-tontine-order-ceiling">
         <div class="summary-row summary-row--total">
           <span>Total de la commande</span>

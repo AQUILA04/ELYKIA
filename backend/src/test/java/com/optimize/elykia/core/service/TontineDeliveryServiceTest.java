@@ -710,4 +710,34 @@ class TontineDeliveryServiceTest {
         assertThrows(CustomValidationException.class,
                 () -> tontineDeliveryService.replaceItems(10L, List.of(aboveProjected)));
     }
+
+    @Test
+    void replaceItems_updatesPlannedDateOnlyWhenAsked() {
+        mockSession.setStatus(TontineSessionStatus.CLOSED);
+        mockMember.setAvailableContribution(20_000.0);
+        when(projectedBalanceCalculator.project(any())).thenReturn(30_000d);
+        TontineDelivery delivery = new TontineDelivery();
+        delivery.setId(11L);
+        delivery.setTontineMember(mockMember);
+        delivery.setItems(new ArrayList<>());
+        delivery.setPlannedDeliveryDate(java.time.LocalDate.of(2026, 12, 1));
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
+        when(deliveryRepository.findById(11L)).thenReturn(Optional.of(delivery));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        when(deliveryRepository.save(any(TontineDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        DeliveryItemDto item = new DeliveryItemDto();
+        item.setArticleId(1L);
+        item.setQuantity(1);
+        item.setUnitPrice(10_000.0);
+
+        // Appel sans date (ancien mobile) : la date existante reste.
+        tontineDeliveryService.replaceItems(11L, List.of(item));
+        assertEquals(java.time.LocalDate.of(2026, 12, 1), delivery.getPlannedDeliveryDate());
+
+        tontineDeliveryService.replaceItems(11L, List.of(item), true, java.time.LocalDate.of(2026, 12, 15));
+        assertEquals(java.time.LocalDate.of(2026, 12, 15), delivery.getPlannedDeliveryDate());
+
+        tontineDeliveryService.replaceItems(11L, List.of(item), true, null);
+        org.junit.jupiter.api.Assertions.assertNull(delivery.getPlannedDeliveryDate());
+    }
 }

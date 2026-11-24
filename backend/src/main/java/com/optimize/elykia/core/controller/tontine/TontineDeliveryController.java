@@ -89,9 +89,11 @@ public class TontineDeliveryController {
     public ResponseEntity<Response> countPending(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedTo,
             @RequestParam(required = false) String commercial,
             @RequestParam(required = false) String search) {
-        long count = deliveryWebService.countPending(startOf(dateFrom), endOf(dateTo), commercial, search);
+        long count = deliveryWebService.countPending(startOf(dateFrom), endOf(dateTo), plannedFrom, plannedTo, commercial, search);
         return new ResponseEntity<>(ResponseUtil.successResponse(new BulkCountResult((int) count)), HttpStatus.OK);
     }
 
@@ -109,9 +111,11 @@ public class TontineDeliveryController {
     public ResponseEntity<Response> validatePending(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedTo,
             @RequestParam(required = false) String commercial,
             @RequestParam(required = false) String search) {
-        List<Long> ids = deliveryWebService.findPending(startOf(dateFrom), endOf(dateTo), commercial, search)
+        List<Long> ids = deliveryWebService.findPending(startOf(dateFrom), endOf(dateTo), plannedFrom, plannedTo, commercial, search)
                 .stream()
                 .map(delivery -> delivery.getId())
                 .toList();
@@ -148,7 +152,8 @@ public class TontineDeliveryController {
     public ResponseEntity<Response> replaceItems(
             @PathVariable Long deliveryId,
             @RequestBody @Valid UpdateDeliveryItemsDto dto) {
-        TontineDeliveryDto delivery = deliveryService.replaceItems(deliveryId, dto.getItems());
+        TontineDeliveryDto delivery = deliveryService.replaceItems(
+                deliveryId, dto.getItems(), dto.isUpdatePlannedDate(), dto.getPlannedDeliveryDate());
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(delivery, "Commande mise à jour"),
                 HttpStatus.OK);
@@ -208,6 +213,8 @@ public class TontineDeliveryController {
     public ResponseEntity<Response> getDeliveries(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedTo,
             @RequestParam(required = false) String commercial,
             @RequestParam(required = false) String search,
             Pageable pageable) {
@@ -216,7 +223,7 @@ public class TontineDeliveryController {
 
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(
-                        deliveryWebService.getDeliveriesForWeb(startDateTime, endDateTime, commercial, search, pageable)),
+                        deliveryWebService.getDeliveriesForWeb(startDateTime, endDateTime, plannedFrom, plannedTo, commercial, search, pageable)),
                 HttpStatus.OK);
     }
 
@@ -226,6 +233,8 @@ public class TontineDeliveryController {
     public ResponseEntity<Response> getDeliveryKpiSummary(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedTo,
             @RequestParam(required = false) String commercial,
             @RequestParam(required = false) String search) {
         LocalDateTime startDateTime = dateFrom != null ? dateFrom.atStartOfDay() : null;
@@ -233,7 +242,7 @@ public class TontineDeliveryController {
 
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(
-                        deliveryWebService.getKpiSummary(startDateTime, endDateTime, commercial, search)),
+                        deliveryWebService.getKpiSummary(startDateTime, endDateTime, plannedFrom, plannedTo, commercial, search)),
                 HttpStatus.OK);
     }
 
@@ -243,6 +252,8 @@ public class TontineDeliveryController {
             @RequestBody ElasticSearchWrapper wrapper,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate plannedTo,
             @RequestParam(required = false) String commercial,
             Pageable pageable) {
         LocalDateTime startDateTime = dateFrom != null ? dateFrom.atStartOfDay() : null;
@@ -250,7 +261,7 @@ public class TontineDeliveryController {
 
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(deliveryWebService.elasticsearch(
-                        wrapper.getKeyword(), startDateTime, endDateTime, commercial, pageable)),
+                        wrapper.getKeyword(), startDateTime, endDateTime, plannedFrom, plannedTo, commercial, pageable)),
                 HttpStatus.OK);
     }
 
