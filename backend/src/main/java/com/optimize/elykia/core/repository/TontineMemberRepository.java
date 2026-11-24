@@ -247,6 +247,8 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
         AND (:deliveryStatus IS NULL OR tm.deliveryStatus = :deliveryStatus)
         AND (:carnetVerified IS NULL OR tm.carnetVerified = :carnetVerified)
         AND (:registrationSource IS NULL OR tm.registrationSource = :registrationSource)
+        AND (:excludeDelivered = false OR tm.deliveryStatus IS NULL
+             OR tm.deliveryStatus <> com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus.DELIVERED)
         """)
         Page<TontineMemberRespDto> findMembersDto(
                 @Param("year") Integer year,
@@ -254,6 +256,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 @Param("deliveryStatus") TontineMemberDeliveryStatus deliveryStatus,
                 @Param("carnetVerified") Boolean carnetVerified,
                 @Param("registrationSource") TontineMemberRegistrationSource registrationSource,
+                @Param("excludeDelivered") boolean excludeDelivered,
                 Pageable pageable);
 
 
@@ -312,6 +315,8 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
         AND (:deliveryStatus IS NULL OR tm.deliveryStatus = :deliveryStatus)
         AND (:carnetVerified IS NULL OR tm.carnetVerified = :carnetVerified)
         AND (:registrationSource IS NULL OR tm.registrationSource = :registrationSource)
+        AND (:excludeDelivered = false OR tm.deliveryStatus IS NULL
+             OR tm.deliveryStatus <> com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus.DELIVERED)
         """)
         Page<TontineMemberRespDto> findMembersDtoWithSearch(
                 @Param("year") Integer year,
@@ -320,6 +325,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 @Param("deliveryStatus") TontineMemberDeliveryStatus deliveryStatus,
                 @Param("carnetVerified") Boolean carnetVerified,
                 @Param("registrationSource") TontineMemberRegistrationSource registrationSource,
+                @Param("excludeDelivered") boolean excludeDelivered,
                 Pageable pageable);
 
         @Query("""

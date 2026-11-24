@@ -1191,6 +1191,18 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
     public Page<TontineMemberRespDto> getMembers(User currentUser, String search, String deliveryStatus, String commercial,
                                                  Boolean carnetVerified, String registrationSource, Pageable pageable) {
+        return getMembers(currentUser, search, deliveryStatus, commercial, carnetVerified, registrationSource,
+                false, pageable);
+    }
+
+    /**
+     * @param excludeDelivered quand vrai, les membres déjà livrés sont écartés côté base (liste mobile « Tous »).
+     *                         Si le filtre de statut demande explicitement DELIVERED, les livrés les plus récents
+     *                         sont renvoyés en premier.
+     */
+    public Page<TontineMemberRespDto> getMembers(User currentUser, String search, String deliveryStatus, String commercial,
+                                                 Boolean carnetVerified, String registrationSource,
+                                                 boolean excludeDelivered, Pageable pageable) {
         int currentYear = LocalDate.now().getYear();
 
 
@@ -1219,15 +1231,23 @@ public class TontineService extends GenericService<TontineMember, Long> {
             }
         }
 
+        boolean excludeFilter = excludeDelivered && statusFilter != TontineMemberDeliveryStatus.DELIVERED;
+        if (statusFilter == TontineMemberDeliveryStatus.DELIVERED && pageable != null && pageable.getSort().isUnsorted()) {
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(),
+                    org.springframework.data.domain.Sort.by(
+                            org.springframework.data.domain.Sort.Order.desc("delivery.deliveryDate").nullsLast(),
+                            org.springframework.data.domain.Sort.Order.desc("id")));
+        }
+
         // Clean up search string
         String searchFilter = StringUtils.hasText(search) ? search : null;
         Page<TontineMemberRespDto> memberRespDtos= null;
         if (Objects.isNull(searchFilter)) {
             memberRespDtos= getRepository().findMembersDto(currentYear, commercialFilter, statusFilter, carnetVerified,
-                    registrationSourceFilter, pageable);
+                    registrationSourceFilter, excludeFilter, pageable);
         } else {
             memberRespDtos = getRepository().findMembersDtoWithSearch(currentYear, commercialFilter, searchFilter,
-                    statusFilter, carnetVerified, registrationSourceFilter, pageable);
+                    statusFilter, carnetVerified, registrationSourceFilter, excludeFilter, pageable);
         }
         if (memberRespDtos != null) {
             memberRespDtos = memberRespDtos.map(TontineMemberRespDto::withoutPhantomDelivery);

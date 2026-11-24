@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile & Backend — 2026-11-24 (photo des membres tontine, filtre « Livrés »)
+
+### Added
+
+- **Mobile → Tontine → liste et fiche membre — photo de profil du client →** la photo (miniature locale, donc disponible hors ligne) remplace l'initiale ; un clic ouvre l'aperçu agrandi sans ouvrir la fiche. Initiales conservées sans photo.
+- **Mobile → Tontine → filtre rapide « Livrés » →** remplace « En attente » : uniquement les membres déjà livrés, le dernier livré en tête.
+- **Backend → `GET /api/v1/tontines/members` →** paramètre `excludeDelivered` appliqué en base ; avec `deliveryStatus=DELIVERED`, tri par date de livraison décroissante.
+
+### Changed
+
+- **Mobile → Tontine → « Tous », « Actifs », « À faire » →** n'incluent plus les membres déjà livrés (hors ligne et en ligne ; en ligne, le filtre est appliqué par le serveur).
+
 ## Frontend & Backend — 2026-11-24 (filtre par date de livraison prévue)
 
 ### Added

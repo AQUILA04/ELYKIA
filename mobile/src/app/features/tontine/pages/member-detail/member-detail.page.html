@@ -27,9 +27,10 @@
 
   <div *ngIf="!vm.loading && vm.member" class="content-wrapper">
     <div class="member-header-card elyk-card">
-      <div class="elyk-avatar member-avatar-lg">
-        <span>{{ getClientDisplayName().substring(0, 2).toUpperCase() }}</span>
-      </div>
+      <app-client-avatar class="member-avatar-lg" [size]="88" [initialsCount]="2"
+        [name]="getClientDisplayName()" [clientId]="vm.client?.id"
+        [profilPhoto]="vm.client?.profilPhoto" [profilPhotoThumbUrl]="vm.client?.profilPhotoThumbUrl"
+        [profilPhotoUrl]="vm.client?.profilPhotoUrl"></app-client-avatar>
       <span
         class="elyk-badge status-badge"
         [ngClass]="'status-' + memberStatusColor()"

@@ -228,7 +228,7 @@ export class OnlineListRefreshService {
       const searchParam = filters?.searchQuery ? `&search=${encodeURIComponent(filters.searchQuery)}` : '';
       const statusParam = filters?.deliveryStatus
         ? `&deliveryStatus=${encodeURIComponent(filters.deliveryStatus)}`
-        : '';
+        : filters?.excludeDelivered ? '&excludeDelivered=true' : '';
       const url =
         `${environment.apiUrl}/api/v1/tontines/members?page=${page}&size=${size}` +
         `&commercial=${encodeURIComponent(commercialUsername)}${searchParam}${statusParam}`;

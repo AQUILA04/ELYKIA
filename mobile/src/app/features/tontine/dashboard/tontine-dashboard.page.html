@@ -47,7 +47,7 @@
     <div class="elyk-chip-row sticky-filters">
       <ion-chip class="elyk-chip" [class.on]="(statusFilter$ | async) === 'all'" (click)="filterByStatus('all')">Tous</ion-chip>
       <ion-chip class="elyk-chip" [class.on]="(statusFilter$ | async) === 'active'" (click)="filterByStatus('active')">Actifs</ion-chip>
-      <ion-chip class="elyk-chip" [class.on]="(statusFilter$ | async) === 'pending'" (click)="filterByStatus('pending')">En attente</ion-chip>
+      <ion-chip class="elyk-chip" [class.on]="(statusFilter$ | async) === 'delivered'" (click)="filterByStatus('delivered')">Livrés</ion-chip>
       <ion-chip class="elyk-chip" [class.on]="(statusFilter$ | async) === 'todo'" (click)="filterByStatus('todo')">À faire</ion-chip>
     </div>
 
@@ -64,7 +64,9 @@
             <p class="elyk-quarter-title">{{ group.quarter }}</p>
             <div class="member-card elyk-client-card" *ngFor="let member of group.members"
               (click)="viewMemberDetails(member.id)">
-              <div class="elyk-avatar">{{ (member.clientName || '?').charAt(0) }}</div>
+              <app-client-avatar [name]="member.clientName" [clientId]="member.clientId"
+                [profilPhoto]="member.clientProfilPhoto" [profilPhotoThumbUrl]="member.clientProfilPhotoThumbUrl"
+                [profilPhotoUrl]="member.clientProfilPhotoUrl"></app-client-avatar>
               <div class="member-info">
                 <div class="member-name">{{ member.clientName || 'Client Inconnu' }}</div>
                 <div class="member-details">
@@ -95,7 +97,9 @@
           </div>
 
           <div class="member-card elyk-client-card" *ngFor="let member of members" (click)="viewMemberDetails(member.id)">
-            <div class="elyk-avatar">{{ (member.clientName || '?').charAt(0) }}</div>
+            <app-client-avatar [name]="member.clientName" [clientId]="member.clientId"
+                [profilPhoto]="member.clientProfilPhoto" [profilPhotoThumbUrl]="member.clientProfilPhotoThumbUrl"
+                [profilPhotoUrl]="member.clientProfilPhotoUrl"></app-client-avatar>
             <div class="member-info">
               <div class="member-name">{{ member.clientName || 'Client Inconnu' }}</div>
               <div class="member-details">

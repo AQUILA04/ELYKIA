@@ -206,6 +206,11 @@ Le module **Tontine** permet aux clientes de mettre de l'argent de côté chaque
   * Sous les compteurs, touchez la pastille **À faire**.
   * Vos membres sont automatiquement classées par quartier, et seules celles **qui n'ont pas encore cotisé aujourd'hui** sont affichées. Vous avancez rue par rue sans jamais oublier personne !
 
+* **Les filtres rapides de la liste** :
+  * **Tous**, **Actifs** et **À faire** n'affichent plus les membres **déjà livrées** : votre liste ne contient que les membres à suivre.
+  * **Livrés** affiche uniquement les membres déjà livrées, la dernière livraison en haut de la liste.
+* **La photo de la cliente** : la photo de profil apparaît à la place de l'initiale, dans la liste comme sur la fiche de la membre. Touchez la photo pour l'agrandir ; si la cliente n'a pas de photo, l'initiale reste affichée.
+
 ### B. Inscrire une nouvelle membre à la tontine pas à pas
 1. **Ouvrez le formulaire** : dans l'écran Tontine, touchez le bouton rond jaune avec un plus (**+**) en bas à droite.
 2. **Choisissez la cliente** :

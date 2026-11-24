@@ -119,11 +119,12 @@ public class TontineController {
             @RequestParam(required = false) String commercial,
             @RequestParam(required = false) String deliveryStatus,
             @RequestParam(required = false) Boolean carnetVerified,
-            @RequestParam(required = false) String registrationSource) {
+            @RequestParam(required = false) String registrationSource,
+            @RequestParam(required = false, defaultValue = "false") boolean excludeDelivered) {
         User user = tontineService.getUserService().getCurrentUser();
         return new ResponseEntity<>(ResponseUtil.successResponse(
                 tontineService.getMembers(user, search, deliveryStatus, commercial, carnetVerified,
-                        registrationSource, pageable)), HttpStatus.OK);
+                        registrationSource, excludeDelivered, pageable)), HttpStatus.OK);
     }
 
     @GetMapping("/members/history")
