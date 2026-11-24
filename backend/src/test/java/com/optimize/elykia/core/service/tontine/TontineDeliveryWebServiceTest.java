@@ -46,7 +46,7 @@ class TontineDeliveryWebServiceTest {
         TontineDelivery delivery = delivery();
         Pageable pageable = PageRequest.of(0, 20);
         when(userService.getCurrentUser()).thenReturn(currentUser);
-        when(deliveryRepository.findWithFilters("collector.a", DATE_FROM, DATE_TO, "Marie", pageable))
+        when(deliveryRepository.findWithFilters("collector.a", DATE_FROM, DATE_TO, null, null, "Marie", pageable))
                 .thenReturn(new PageImpl<>(List.of(delivery), pageable, 1));
 
         // When
@@ -68,7 +68,7 @@ class TontineDeliveryWebServiceTest {
         assertEquals("collector.a", dto.getCommercialUsername());
         assertEquals(TontineMemberDeliveryStatus.VALIDATED, dto.getDeliveryStatus());
         assertEquals(0, dto.getItemCount());
-        verify(deliveryRepository).findWithFilters("collector.a", DATE_FROM, DATE_TO, "Marie", pageable);
+        verify(deliveryRepository).findWithFilters("collector.a", DATE_FROM, DATE_TO, null, null, "Marie", pageable);
     }
 
     @Test
@@ -78,7 +78,7 @@ class TontineDeliveryWebServiceTest {
         TontineDelivery delivery = delivery();
         Pageable pageable = PageRequest.of(0, 10);
         when(userService.getCurrentUser()).thenReturn(currentPromoter);
-        when(deliveryRepository.elasticsearch("client", "promoter.a", DATE_FROM, DATE_TO, pageable))
+        when(deliveryRepository.elasticsearch("client", "promoter.a", DATE_FROM, DATE_TO, null, null, pageable))
                 .thenReturn(new PageImpl<>(List.of(delivery), pageable, 1));
 
         // When
@@ -87,7 +87,7 @@ class TontineDeliveryWebServiceTest {
 
         // Then
         assertEquals(1, result.getTotalElements());
-        verify(deliveryRepository).elasticsearch("client", "promoter.a", DATE_FROM, DATE_TO, pageable);
+        verify(deliveryRepository).elasticsearch("client", "promoter.a", DATE_FROM, DATE_TO, null, null, pageable);
     }
 
     private User user(boolean promoter, String username) {

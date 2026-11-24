@@ -91,7 +91,10 @@ async function chooseDeliveryMode(page: Page, mode: 'DIRECT' | 'ORDER'): Promise
   await page.getByRole('button', { name: label, exact: true }).click();
 
   const confirmHeader = mode === 'DIRECT' ? /Confirmer la livraison/i : /Confirmer la commande/i;
-  const alert = page.locator('ion-alert').filter({ hasText: confirmHeader });
+  // Livraison directe : alerte Ionic ; commande : fenêtre de confirmation avec la date prévue (facultative).
+  const alert = mode === 'DIRECT'
+    ? page.locator('ion-alert').filter({ hasText: confirmHeader })
+    : page.getByTestId('e2e-tontine-order-confirm');
   await expect(alert).toBeVisible({ timeout: 10_000 });
   await page.getByRole('button', { name: 'Confirmer', exact: true }).click();
   await expect(alert).toBeHidden({ timeout: 15_000 });
