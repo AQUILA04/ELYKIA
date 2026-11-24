@@ -29,6 +29,8 @@ interface DeliveryListState {
   activePeriod: string;
   customDateStart: string;
   customDateEnd: string;
+  plannedFrom?: string;
+  plannedTo?: string;
 }
 
 @Component({
@@ -64,6 +66,27 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
   activePeriod = 'month';
   customDateRange = { start: '', end: '' };
   today = new Date().toISOString().split('T')[0];
+
+  /** Filtre « livraison prévue » : quand il est actif, il remplace la période. */
+  plannedFrom = '';
+  plannedTo = '';
+
+  get plannedFilterActive(): boolean {
+    return !!(this.plannedFrom || this.plannedTo);
+  }
+
+  /** Période envoyée au serveur : vide tant qu'une date prévue est filtrée. */
+  private get periodFrom(): string {
+    return this.plannedFilterActive ? '' : this.dateFrom;
+  }
+
+  private get periodTo(): string {
+    return this.plannedFilterActive ? '' : this.dateTo;
+  }
+
+  private get plannedRange(): { from: string; to: string } {
+    return { from: this.plannedFrom, to: this.plannedTo };
+  }
 
   currentDate = new Date();
   lastUpdate = new Date();
@@ -123,7 +146,7 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
         return;
       }
       const commercial = this.getEffectiveCommercial();
-      this.deliveryService.getDeliveryKpis(this.dateFrom, this.dateTo, commercial, this.searchTerm || undefined)
+      this.deliveryService.getDeliveryKpis(this.periodFrom, this.periodTo, commercial, this.searchTerm || undefined, this.plannedRange)
         .subscribe({
           next: (res) => {
             if (res.statusCode === 200 && res.data) {
@@ -143,19 +166,23 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
     const request$ = this.searchTerm.trim()
       ? this.deliveryService.elasticSearchDeliveries(
           this.searchTerm.trim(),
-          this.dateFrom,
-          this.dateTo,
+          this.periodFrom,
+          this.periodTo,
           commercial,
           this.currentPage,
-          this.pageSize
+          this.pageSize,
+          'deliveryDate,desc',
+          this.plannedRange
         )
       : this.deliveryService.getDeliveries(
-          this.dateFrom,
-          this.dateTo,
+          this.periodFrom,
+          this.periodTo,
           commercial,
           undefined,
           this.currentPage,
-          this.pageSize
+          this.pageSize,
+          'deliveryDate,desc',
+          this.plannedRange
         );
 
     request$.subscribe({
@@ -204,6 +231,8 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
       this.selectedCommercial = null;
     }
     this.currentPage = 0;
+    this.plannedFrom = '';
+    this.plannedTo = '';
     this.selectPeriod('month');
   }
 
@@ -249,6 +278,26 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
       this.saveState();
       this.loadData();
     }
+  }
+
+  /** Filtre par date de livraison prévue (bornes incluses ; une seule borne suffit). */
+  onPlannedFilterChange(): void {
+    if (this.plannedFrom && this.plannedTo && this.plannedFrom > this.plannedTo) {
+      this.plannedTo = this.plannedFrom;
+    }
+    if (this.plannedFrom) {
+      this.plannedPdfDate = this.plannedFrom;
+    }
+    this.clearSelection();
+    this.currentPage = 0;
+    this.saveState();
+    this.loadData();
+  }
+
+  clearPlannedFilter(): void {
+    this.plannedFrom = '';
+    this.plannedTo = '';
+    this.onPlannedFilterChange();
   }
 
   viewMember(memberId: number): void {
@@ -464,7 +513,7 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
       }
       this.actionBusy = true;
       const filters = this.currentFilters();
-      this.deliveryService.validatePending(filters.dateFrom, filters.dateTo, filters.commercial, filters.search)
+      this.deliveryService.validatePending(filters.dateFrom, filters.dateTo, filters.commercial, filters.search, this.plannedRange)
         .subscribe({
           next: (response) => this.afterBulk(response?.data?.count ?? 0, 'validée'),
           error: (err) => this.failBulk(err)
@@ -547,7 +596,7 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
 
   private loadPendingCount(): void {
     const filters = this.currentFilters();
-    this.deliveryService.countPending(filters.dateFrom, filters.dateTo, filters.commercial, filters.search)
+    this.deliveryService.countPending(filters.dateFrom, filters.dateTo, filters.commercial, filters.search, this.plannedRange)
       .subscribe({
         next: (response) => {
           this.pendingCount = response?.data?.count ?? 0;
@@ -558,10 +607,15 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
       });
   }
 
-  private currentFilters(): { dateFrom: string; dateTo: string; commercial?: string | null; search?: string } {
+  private currentFilters(): {
+    dateFrom: string; dateTo: string; plannedFrom?: string; plannedTo?: string;
+    commercial?: string | null; search?: string;
+  } {
     return {
-      dateFrom: this.dateFrom,
-      dateTo: this.dateTo,
+      dateFrom: this.periodFrom,
+      dateTo: this.periodTo,
+      plannedFrom: this.plannedFrom || undefined,
+      plannedTo: this.plannedTo || undefined,
       commercial: this.getEffectiveCommercial(),
       search: this.searchTerm.trim() || undefined
     };
@@ -577,7 +631,9 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
       dateTo: this.dateTo,
       activePeriod: this.activePeriod,
       customDateStart: this.customDateRange.start,
-      customDateEnd: this.customDateRange.end
+      customDateEnd: this.customDateRange.end,
+      plannedFrom: this.plannedFrom,
+      plannedTo: this.plannedTo
     };
     sessionStorage.setItem(this.STATE_KEY, JSON.stringify(state));
   }
@@ -598,6 +654,8 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
       this.dateFrom = state.dateFrom ?? '';
       this.dateTo = state.dateTo ?? '';
       this.activePeriod = state.activePeriod ?? 'month';
+      this.plannedFrom = state.plannedFrom ?? '';
+      this.plannedTo = state.plannedTo ?? '';
       if (this.activePeriod === 'custom') {
         this.customDateRange = {
           start: state.customDateStart || state.dateFrom || '',

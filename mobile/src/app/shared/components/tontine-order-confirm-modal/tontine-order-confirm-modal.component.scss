@@ -1,0 +1,57 @@
+.confirm-sheet {
+  padding: 22px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: center;
+  background: #fff;
+}
+
+.confirm-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: var(--elyk-navy-pale);
+  color: var(--elyk-navy);
+  font-size: 28px;
+}
+
+h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--elyk-navy);
+}
+
+.confirm-total {
+  margin: 0;
+  color: var(--elyk-muted);
+  font-size: 14px;
+
+  strong {
+    color: var(--elyk-navy);
+    font-size: 17px;
+    margin-inline-start: 6px;
+  }
+}
+
+.confirm-text {
+  margin: 0;
+  color: var(--elyk-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+app-planned-date-field {
+  text-align: start;
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  margin-top: 4px;
+}

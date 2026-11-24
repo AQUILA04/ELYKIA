@@ -1,0 +1,43 @@
+<div class="pdf-card" [class.pdf-card--filled]="!!current" [class.pdf-card--disabled]="disabled">
+  <button type="button" class="pdf-main" (click)="openPicker()" [disabled]="disabled"
+          [attr.data-testid]="testId" [attr.aria-label]="label + (current ? ' : ' + display : ' : choisir une date')">
+    <span class="pdf-icon" aria-hidden="true"><ion-icon name="calendar-outline"></ion-icon></span>
+    <span class="pdf-text">
+      <span class="pdf-label">{{ label }} <em *ngIf="hint">· {{ hint }}</em></span>
+      <strong class="pdf-value" [class.pdf-value--empty]="!current">{{ current ? display : 'Choisir une date' }}</strong>
+      <span class="pdf-past" *ngIf="isPast">Date déjà passée</span>
+    </span>
+    <ion-icon *ngIf="!current" class="pdf-chevron" name="chevron-forward" aria-hidden="true"></ion-icon>
+  </button>
+  <button *ngIf="current && !disabled" type="button" class="pdf-clear" (click)="clear($event)"
+          aria-label="Effacer la date" [attr.data-testid]="testId + '-clear'">
+    <ion-icon name="close-circle" aria-hidden="true"></ion-icon>
+  </button>
+</div>
+
+<ion-modal class="pdf-modal" [isOpen]="open" (didDismiss)="closePicker()">
+  <ng-template>
+    <div class="pdf-sheet" [attr.data-testid]="testId + '-calendar'">
+      <div class="pdf-sheet-head">
+        <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+        <span>{{ label }}</span>
+      </div>
+      <ion-datetime
+        presentation="date"
+        locale="fr-FR"
+        [firstDayOfWeek]="1"
+        [min]="min"
+        [value]="current"
+        [showDefaultButtons]="true"
+        doneText="Valider"
+        cancelText="Annuler"
+        (ionChange)="onPicked($event)"
+        (ionCancel)="closePicker()">
+      </ion-datetime>
+      <button *ngIf="current" type="button" class="pdf-sheet-clear" (click)="clear()">
+        <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+        Effacer la date
+      </button>
+    </div>
+  </ng-template>
+</ion-modal>

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,12 +58,22 @@ public class TontineDeliveryStockRequestService {
 
     public PendingOrderStockPreviewDto previewPending(LocalDateTime dateFrom, LocalDateTime dateTo,
             String commercial, String search) {
-        return previewOf(toPreviewGroups(loadEligiblePending(dateFrom, dateTo, commercial, search)));
+        return previewPending(dateFrom, dateTo, null, null, commercial, search);
+    }
+
+    public PendingOrderStockPreviewDto previewPending(LocalDateTime dateFrom, LocalDateTime dateTo,
+            LocalDate plannedFrom, LocalDate plannedTo, String commercial, String search) {
+        return previewOf(toPreviewGroups(loadEligiblePending(dateFrom, dateTo, plannedFrom, plannedTo, commercial, search)));
     }
 
     public List<StockTontineRequest> createFromPending(LocalDateTime dateFrom, LocalDateTime dateTo,
             String commercial, String search) {
-        List<TontineDelivery> deliveries = loadEligiblePending(dateFrom, dateTo, commercial, search);
+        return createFromPending(dateFrom, dateTo, null, null, commercial, search);
+    }
+
+    public List<StockTontineRequest> createFromPending(LocalDateTime dateFrom, LocalDateTime dateTo,
+            LocalDate plannedFrom, LocalDate plannedTo, String commercial, String search) {
+        List<TontineDelivery> deliveries = loadEligiblePending(dateFrom, dateTo, plannedFrom, plannedTo, commercial, search);
         if (deliveries.isEmpty()) {
             throw new CustomValidationException(
                     "Aucune livraison en attente éligible pour une demande de stock.");
@@ -92,9 +103,9 @@ public class TontineDeliveryStockRequestService {
     }
 
     private List<TontineDelivery> loadEligiblePending(LocalDateTime dateFrom, LocalDateTime dateTo,
-            String commercial, String search) {
+            LocalDate plannedFrom, LocalDate plannedTo, String commercial, String search) {
         assertCanRequestStock(userService.getCurrentUser());
-        List<Long> ids = deliveryWebService.findPending(dateFrom, dateTo, commercial, search).stream()
+        List<Long> ids = deliveryWebService.findPending(dateFrom, dateTo, plannedFrom, plannedTo, commercial, search).stream()
                 .map(TontineDelivery::getId)
                 .toList();
         if (ids.isEmpty()) {

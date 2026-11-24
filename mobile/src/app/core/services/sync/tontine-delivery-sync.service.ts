@@ -126,13 +126,16 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
      */
     async postReplaceItems(
         serverDeliveryId: string,
-        items: TontineDeliveryItem[]
+        items: TontineDeliveryItem[],
+        options?: { plannedDeliveryDate: string | null }
     ): Promise<TontineDeliverySyncResponse> {
         const headers = this.getAuthHeaders();
         const response = await firstValueFrom(
             this.http.put<ApiResponse<TontineDeliverySyncResponse>>(
                 `${this.baseUrl}/api/v1/tontines/deliveries/${serverDeliveryId}/items`,
                 {
+                    // Date envoyée seulement si elle a changé : un ancien envoi ne l'efface jamais.
+                    ...(options ? { updatePlannedDate: true, plannedDeliveryDate: options.plannedDeliveryDate } : {}),
                     items: items.map(item => ({
                         articleId: Number.parseInt(item.articleId, 10),
                         quantity: item.quantity,

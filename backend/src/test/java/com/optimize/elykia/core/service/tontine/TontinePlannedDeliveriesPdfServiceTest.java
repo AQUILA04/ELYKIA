@@ -84,6 +84,11 @@ class TontinePlannedDeliveriesPdfServiceTest {
         assertTrue(due.isHasAmountDue());
         assertEquals(List.of("2 × Riz 25 kg"), due.getItems());
         assertEquals("En attente", due.getStatusLabel());
+        assertEquals("90000000", due.getClientPhone());
+        assertEquals("Bè", due.getClientQuarter());
+        assertEquals("Rue 12", due.getClientAddress());
+        // Solde net = solde disponible du membre (40 000 FCFA), pas le montant de la commande (55 000).
+        assertEquals(java.text.NumberFormat.getNumberInstance(java.util.Locale.FRANCE).format(40_000), due.getNetContribution());
         assertEquals("Validée", doc.getRows().get(2).getStatusLabel());
         assertFalse(doc.getRows().get(2).isHasAmountDue());
     }
@@ -162,6 +167,7 @@ class TontinePlannedDeliveriesPdfServiceTest {
         client.setFirstname("Ama");
         client.setQuarter(quarter);
         client.setPhone("90000000");
+        client.setAddress("Rue 12");
         TontineMember member = new TontineMember();
         member.setClient(client);
         member.setDeliveryStatus(status);

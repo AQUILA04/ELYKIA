@@ -47,8 +47,8 @@
 
     <table class="data" th:if="${not #lists.isEmpty(doc.rows)}">
         <colgroup>
-            <col style="width: 4%"/><col style="width: 20%"/><col style="width: 12%"/><col style="width: 26%"/>
-            <col style="width: 11%"/><col style="width: 11%"/><col style="width: 9%"/><col style="width: 7%"/>
+            <col style="width: 4%"/><col style="width: 24%"/><col style="width: 11%"/><col style="width: 22%"/>
+            <col style="width: 11%"/><col style="width: 12%"/><col style="width: 9%"/><col style="width: 7%"/>
         </colgroup>
         <thead>
         <tr>
@@ -57,7 +57,7 @@
             <th>Commande</th>
             <th>Articles</th>
             <th class="r">Montant</th>
-            <th class="r">Solde net</th>
+            <th class="r">Solde net disponible</th>
             <th class="r">Reste à payer</th>
             <th class="c last">Remis</th>
         </tr>
@@ -67,7 +67,9 @@
             <td class="c muted" th:text="${row.index}">1</td>
             <td>
                 <div class="strong" th:text="${row.clientName}">KOFFI Ama</div>
-                <div class="small muted" th:text="${row.clientContact}">90 00 00 00 · Tokoin</div>
+                <div class="small" th:if="${row.clientPhone != ''}" th:text="'Tél. ' + ${row.clientPhone}">Tél. 90 00 00 00</div>
+                <div class="small" th:if="${row.clientQuarter != ''}" th:text="'Quartier : ' + ${row.clientQuarter}">Quartier : Tokoin</div>
+                <div class="small" th:if="${row.clientAddress != ''}" th:text="'Adresse : ' + ${row.clientAddress}">Adresse : Rue 12</div>
                 <div class="small muted" th:if="${doc.allCommercials}" th:text="${row.commercial}">COM005</div>
             </td>
             <td>

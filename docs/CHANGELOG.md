@@ -9,6 +9,22 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend & Backend — 2026-11-24 (filtre par date de livraison prévue)
+
+### Added
+
+- **Tontine → Livraisons — filtre « Livraison prévue » du … au … →** les paramètres `plannedFrom` / `plannedTo` (bornes incluses) s'appliquent à la liste, aux KPI, à la recherche, au compte et à la validation des commandes en attente, et à la demande de stock groupée, pour que les actions en masse visent exactement les lignes affichées. Le filtre remplace la période tant qu'il est actif ; le champ « Membres à livrer le » reprend la date de début.
+
+### Changed
+
+- **PDF « Membres à livrer » →** chaque membre affiche téléphone, quartier et adresse sur des lignes séparées, et la colonne « Solde net disponible » (solde cotisé du membre, distinct du montant de la commande).
+
+## Mobile & Backend — 2026-11-24 (date de livraison prévue visible)
+
+### Added
+
+- **Tontine — sélecteur de date de livraison prévue →** carte cliquable avec icône calendrier et calendrier en français (jamais avant aujourd'hui, date effaçable), présente sur la page de création, dans la fenêtre « Confirmer la commande » (qui remplace l'alerte où le champ passait inaperçu) et sur « Modifier la commande ». API `PUT /deliveries/{id}/items` : champs `updatePlannedDate` et `plannedDeliveryDate` ; sans `updatePlannedDate`, la date existante reste intacte (anciens mobiles).
+
 ## Docs & Infra — 2026-11-21 (cache Gradle et miroir Maven Central)
 
 ### Fixed

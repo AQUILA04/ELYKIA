@@ -88,7 +88,9 @@ public class TontinePlannedDeliveriesPdfService {
             rows.add(TontinePlannedDeliveriesPdfDto.Row.builder()
                     .index(index++)
                     .clientName(clientName(member.getClient()))
-                    .clientContact(contact(member.getClient()))
+                    .clientPhone(text(member.getClient() != null ? member.getClient().getPhone() : null))
+                    .clientQuarter(text(member.getClient() != null ? member.getClient().getQuarter() : null))
+                    .clientAddress(text(member.getClient() != null ? member.getClient().getAddress() : null))
                     .commercial(text(delivery.getCommercialUsername()))
                     .reference(text(delivery.getReference()))
                     .statusLabel(validated ? "Validée" : "En attente")
@@ -150,17 +152,6 @@ public class TontinePlannedDeliveriesPdfService {
                 .reduce((a, b) -> a + " " + b)
                 .orElse("");
         return name.isEmpty() ? "—" : name;
-    }
-
-    private static String contact(Client client) {
-        if (client == null) {
-            return "";
-        }
-        return Stream.of(client.getPhone(), client.getQuarter(), client.getAddress())
-                .filter(StringUtils::hasText)
-                .map(String::trim)
-                .reduce((a, b) -> a + " · " + b)
-                .orElse("");
     }
 
     private static String text(String value) {

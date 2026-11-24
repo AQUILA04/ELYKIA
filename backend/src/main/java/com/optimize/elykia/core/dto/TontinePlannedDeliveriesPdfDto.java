@@ -24,7 +24,9 @@ public class TontinePlannedDeliveriesPdfDto {
     public static class Row {
         private int index;
         private String clientName;
-        private String clientContact;
+        private String clientPhone;
+        private String clientQuarter;
+        private String clientAddress;
         private String commercial;
         private String reference;
         private String statusLabel;

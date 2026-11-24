@@ -5,6 +5,9 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 export interface TontineDeliveryStockFilter {
   dateFrom?: string;
   dateTo?: string;
+  /** Bornes de la date de livraison prévue (AAAA-MM-JJ). */
+  plannedFrom?: string;
+  plannedTo?: string;
   commercial?: string | null;
   search?: string | null;
 }
@@ -74,6 +77,12 @@ export class StockTontineRequestService extends BaseHttpService {
     }
     if (filter.dateTo) {
       params = params.set('dateTo', filter.dateTo);
+    }
+    if (filter.plannedFrom) {
+      params = params.set('plannedFrom', filter.plannedFrom);
+    }
+    if (filter.plannedTo) {
+      params = params.set('plannedTo', filter.plannedTo);
     }
     if (filter.commercial) {
       params = params.set('commercial', filter.commercial);

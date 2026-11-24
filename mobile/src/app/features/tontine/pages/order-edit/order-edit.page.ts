@@ -36,6 +36,7 @@ import {
   computeTontineOrderBalance,
   tontineOrderBalanceLabels
 } from 'src/app/core/utils/tontine-order-balance.util';
+import { normalizePlannedDate } from 'src/app/core/utils/tontine-planned-date.util';
 import { isNetworkError } from 'src/app/core/utils/user-error-message.util';
 import {
   TontineArticlePick,
@@ -68,6 +69,10 @@ export class OrderEditPage implements OnInit {
   notSynced = false;
   /** Commande introuvable ou déjà livrée : rien à modifier. */
   unavailableReason: string | null = null;
+
+  /** Date de livraison prévue (AAAA-MM-JJ), modifiable tant que la commande n'est pas livrée. */
+  plannedDate: string | null = null;
+  private originalPlannedDate: string | null = null;
 
   private memberId: string | null = null;
   private commercialUsername = '';
@@ -111,8 +116,16 @@ export class OrderEditPage implements OnInit {
     return this.ceiling ? tontineCeilingExcess(this.total, this.ceiling.ceiling) : 0;
   }
 
+  get dateChanged(): boolean {
+    return this.plannedDate !== this.originalPlannedDate;
+  }
+
   get changed(): boolean {
-    return this.signature(this.lines) !== this.originalSignature;
+    return this.signature(this.lines) !== this.originalSignature || this.dateChanged;
+  }
+
+  onPlannedDateChange(value: string | null): void {
+    this.plannedDate = normalizePlannedDate(value);
   }
 
   get canSave(): boolean {
@@ -188,7 +201,11 @@ export class OrderEditPage implements OnInit {
     await loading.present();
     let saved: number;
     try {
-      saved = await this.tontineWriteService.replaceDeliveryItems(this.delivery, this.lines);
+      saved = await this.tontineWriteService.replaceDeliveryItems(
+        this.delivery,
+        this.lines,
+        this.dateChanged ? { plannedDeliveryDate: this.plannedDate } : undefined
+      );
     } catch (error: unknown) {
       await loading.dismiss();
       this.saving = false;
@@ -202,6 +219,7 @@ export class OrderEditPage implements OnInit {
     await loading.dismiss();
     this.saving = false;
     this.originalSignature = this.signature(this.lines);
+    this.originalPlannedDate = this.plannedDate;
     const role = await this.feedback.success(`Nouveau total : ${formatFcfa(saved)}.`, {
       title: 'Commande mise à jour',
       actions: [
@@ -262,6 +280,8 @@ export class OrderEditPage implements OnInit {
         return;
       }
       this.originalSignature = this.signature(this.lines);
+      this.plannedDate = normalizePlannedDate(this.delivery.plannedDeliveryDate);
+      this.originalPlannedDate = this.plannedDate;
       this.notSynced = !(await this.hasServerId(this.delivery));
 
       const collections = await this.collectionRepo.getByMemberId(this.member.id);

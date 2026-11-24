@@ -377,7 +377,11 @@ export class TontineWriteService {
    * Le serveur refuse si le total dépasse le prévisionnel ; le solde réel
    * n'est contrôlé qu'à la remise.
    */
-  async replaceDeliveryItems(delivery: TontineDelivery, items: TontineDeliveryItem[]): Promise<number> {
+  async replaceDeliveryItems(
+    delivery: TontineDelivery,
+    items: TontineDeliveryItem[],
+    options?: { plannedDeliveryDate: string | null }
+  ): Promise<number> {
     const serverId = /^\d+$/.test(delivery.id)
       ? delivery.id
       : await this.deliveryRepository.getServerId(delivery.id, 'tontine-delivery');
@@ -388,12 +392,12 @@ export class TontineWriteService {
     if (kept.length === 0) {
       throw new Error('La commande doit contenir au moins un article.');
     }
-    const response = await this.deliverySyncService.postReplaceItems(serverId, kept);
+    const response = await this.deliverySyncService.postReplaceItems(serverId, kept, options);
     const total = response.totalAmount ?? kept.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
     await this.deliveryRepository.replaceItems(delivery.id, kept.map(item => ({
       ...item,
       tontineDeliveryId: delivery.id
-    })), total);
+    })), total, options ? { plannedDeliveryDate: options.plannedDeliveryDate } : undefined);
     return total;
   }
 }

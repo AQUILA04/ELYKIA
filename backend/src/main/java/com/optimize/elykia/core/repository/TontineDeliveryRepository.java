@@ -86,16 +86,32 @@ public interface TontineDeliveryRepository extends JpaRepository<TontineDelivery
 
     default Page<TontineDelivery> findWithFilters(String commercial, LocalDateTime dateFrom, LocalDateTime dateTo,
             String search, Pageable pageable) {
-        return findAll(getFilterCriteria(commercial, dateFrom, dateTo, search), pageable);
+        return findWithFilters(commercial, dateFrom, dateTo, null, null, search, pageable);
+    }
+
+    default Page<TontineDelivery> findWithFilters(String commercial, LocalDateTime dateFrom, LocalDateTime dateTo,
+            java.time.LocalDate plannedFrom, java.time.LocalDate plannedTo, String search, Pageable pageable) {
+        return findAll(getFilterCriteria(commercial, dateFrom, dateTo, plannedFrom, plannedTo, search), pageable);
     }
 
     default Page<TontineDelivery> elasticsearch(String keyword, String commercial, LocalDateTime dateFrom,
             LocalDateTime dateTo, Pageable pageable) {
-        return findAll(getFilterCriteria(commercial, dateFrom, dateTo, keyword), pageable);
+        return elasticsearch(keyword, commercial, dateFrom, dateTo, null, null, pageable);
+    }
+
+    default Page<TontineDelivery> elasticsearch(String keyword, String commercial, LocalDateTime dateFrom,
+            LocalDateTime dateTo, java.time.LocalDate plannedFrom, java.time.LocalDate plannedTo, Pageable pageable) {
+        return findAll(getFilterCriteria(commercial, dateFrom, dateTo, plannedFrom, plannedTo, keyword), pageable);
     }
 
     default Specification<TontineDelivery> getFilterCriteria(String commercial, LocalDateTime dateFrom,
             LocalDateTime dateTo, String search) {
+        return getFilterCriteria(commercial, dateFrom, dateTo, null, null, search);
+    }
+
+    /** Filtres de la liste ; {@code plannedFrom} / {@code plannedTo} bornent la date de livraison prévue (inclus). */
+    default Specification<TontineDelivery> getFilterCriteria(String commercial, LocalDateTime dateFrom,
+            LocalDateTime dateTo, java.time.LocalDate plannedFrom, java.time.LocalDate plannedTo, String search) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
@@ -111,6 +127,12 @@ public interface TontineDeliveryRepository extends JpaRepository<TontineDelivery
             }
             if (dateTo != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.get("deliveryDate"), dateTo));
+            }
+            if (plannedFrom != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.<java.time.LocalDate>get("plannedDeliveryDate"), plannedFrom));
+            }
+            if (plannedTo != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.<java.time.LocalDate>get("plannedDeliveryDate"), plannedTo));
             }
 
             if (StringUtils.hasText(search)) {

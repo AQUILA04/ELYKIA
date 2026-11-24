@@ -62,6 +62,28 @@ describe('OrderEditPage', () => {
     expect(page.canSave).toBeTrue();
   });
 
+  it('lets the planned date be changed alone and sends it with the save', async () => {
+    const { page, writeService } = create();
+    await page.ngOnInit();
+    expect(page.plannedDate).toBeNull();
+    expect(page.canSave).toBeFalse();
+
+    page.onPlannedDateChange('2026-12-15');
+    expect(page.canSave).toBeTrue();
+    await page.save();
+
+    expect(writeService.replaceDeliveryItems.calls.mostRecent().args[2]).toEqual({ plannedDeliveryDate: '2026-12-15' });
+  });
+
+  it('does not send the date when only the articles changed', async () => {
+    const { page, writeService } = create();
+    await page.ngOnInit();
+    page.change(page.lines[0], 1);
+    await page.save();
+
+    expect(writeService.replaceDeliveryItems.calls.mostRecent().args[2]).toBeUndefined();
+  });
+
   it('blocks a total above the ceiling and never calls the server', async () => {
     const { page, writeService, feedback } = create({ ceiling: 25500 });
     await page.ngOnInit();

@@ -1,0 +1,163 @@
+:host {
+  display: block;
+}
+
+.pdf-card {
+  display: flex;
+  align-items: stretch;
+  background: #fff;
+  border: 1.5px dashed var(--elyk-border);
+  border-radius: 16px;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+
+  &--filled {
+    border-style: solid;
+    border-color: var(--elyk-navy);
+    box-shadow: 0 6px 18px rgba(0, 51, 102, 0.08);
+  }
+
+  &--disabled {
+    opacity: 0.55;
+  }
+}
+
+.pdf-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: transparent;
+  border: 0;
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+  min-height: 60px;
+}
+
+.pdf-icon {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--elyk-navy-pale);
+  color: var(--elyk-navy);
+  font-size: 22px;
+}
+
+.pdf-card--filled .pdf-icon {
+  background: var(--elyk-navy);
+  color: #fff;
+}
+
+.pdf-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pdf-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--elyk-muted);
+
+  em {
+    font-style: normal;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+  }
+}
+
+.pdf-value {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--elyk-navy);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &--empty {
+    font-weight: 600;
+    color: var(--elyk-muted);
+  }
+}
+
+.pdf-past {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--elyk-orange);
+}
+
+.pdf-chevron {
+  color: var(--elyk-muted);
+  font-size: 18px;
+}
+
+.pdf-clear {
+  flex: 0 0 auto;
+  width: 48px;
+  background: transparent;
+  border: 0;
+  color: var(--elyk-muted);
+  font-size: 24px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.pdf-modal {
+  --width: min(92vw, 360px);
+  --height: auto;
+  --border-radius: 20px;
+  --backdrop-opacity: 0.4;
+}
+
+.pdf-sheet {
+  background: #fff;
+  padding-bottom: 8px;
+}
+
+.pdf-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 18px 4px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--elyk-navy);
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+ion-datetime {
+  --background: #fff;
+  --ion-color-primary: var(--elyk-navy);
+  width: 100%;
+}
+
+.pdf-sheet-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: calc(100% - 32px);
+  margin: 0 16px 8px;
+  padding: 10px;
+  border: 1px solid var(--elyk-border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--elyk-orange);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
