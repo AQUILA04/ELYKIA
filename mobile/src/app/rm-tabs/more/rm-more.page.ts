@@ -35,6 +35,8 @@ import { DataInitializationService } from '../../core/services/data-initializati
 import { environment } from 'src/environments/environment';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { SyncErrorService } from '../../core/services/sync-error.service';
+import { LoggerService } from '../../core/services/logger.service';
+import { AuthService } from '../../core/services/auth.service';
 import { SyncLogsExportService } from '../../core/services/sync-logs-export.service';
 
 @Component({
@@ -87,7 +89,9 @@ export class RmMorePage implements OnInit, OnDestroy {
     private readonly syncErrorService: SyncErrorService,
     private readonly syncLogsExport: SyncLogsExportService,
     private readonly dataInitialization: DataInitializationService,
-    private readonly rmPendingSync: RmPendingSyncCoordinator
+    private readonly rmPendingSync: RmPendingSyncCoordinator,
+    private readonly logger: LoggerService,
+    private readonly auth: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -220,6 +224,14 @@ export class RmMorePage implements OnInit, OnDestroy {
 
   async changePlan(): Promise<void> {
     await this.router.navigate(['/rm/plan'], { queryParams: { change: '1' } });
+  }
+
+  async exportLogs(): Promise<void> {
+    const path = await this.logger.exportLogs(this.auth.currentUser?.username ?? null);
+    await this.toast(
+      path ? `Journal enregistré : Documents/${path}` : "Le journal n'a pas pu être exporté.",
+      path ? 'success' : 'danger'
+    );
   }
 
   async backupDatabase(): Promise<void> {

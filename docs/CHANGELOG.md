@@ -633,6 +633,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.49.9] — 2026-11-24
+
+### Added
+
+- **Journal de l'application : rotation, utilisateur, export (plan `plan_sauvegarde_RM.pdf`, Lot 3 / PR E) —** `app_logs.txt` est tourné à 1 Mo (3 fichiers conservés : `app_logs.txt`, `.1`, `.2`) au lieu de grossir sans limite. Chaque ligne porte désormais l'utilisateur connecté. Nouvel écran Plus RM « Exporter le journal » : les fichiers conservés sont réunis dans `Documents/elykia/journal-<utilisateur>-<date>.txt`, à transmettre au support.
+
 ## Mobile — [2.49.8] — 2026-11-24
 
 ### Added

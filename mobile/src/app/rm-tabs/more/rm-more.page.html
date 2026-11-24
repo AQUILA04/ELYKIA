@@ -64,6 +64,13 @@
           <p>Enregistrer une copie du plan, du pack et des opérations encore sur le téléphone</p>
         </ion-label>
       </ion-item>
+      <ion-item button detail (click)="exportLogs()" data-testid="e2e-rm-more-export-logs">
+        <ion-icon name="document-text-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h3>Exporter le journal</h3>
+          <p>Enregistrer le journal de l'application à transmettre au support</p>
+        </ion-label>
+      </ion-item>
       <ion-item>
         <ion-icon name="information-circle-outline" slot="start"></ion-icon>
         <ion-label>Version {{ appVersion }}</ion-label>

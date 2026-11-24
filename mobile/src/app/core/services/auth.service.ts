@@ -24,7 +24,16 @@ import { DEVICE_NOT_AUTHORIZED_CODE } from '../interceptors/device-auth.intercep
   providedIn: 'root'
 })
 export class AuthService {
-  private _user: User | null = null;
+  private _userValue: User | null = null;
+
+  /** Tient aussi le journal à jour : chaque ligne de log porte l'utilisateur courant. */
+  private get _user(): User | null {
+    return this._userValue;
+  }
+  private set _user(user: User | null) {
+    this._userValue = user;
+    LoggerService.setCurrentUsername(user?.username ?? null);
+  }
   private _isAuthenticated = false;
   private sessionExpiryHandled = false;
   private sessionExpiredNotice = false;
