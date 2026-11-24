@@ -1,3 +1,4 @@
+import { planRmOpsReinjection, RmOfflineOpRow } from './rm/rm-restore.util';
 import { Injectable } from '@angular/core';
 import { CapacitorSQLite, SQLiteConnection, SQLiteDBConnection, capSQLiteSet } from '@capacitor-community/sqlite';
 import { Account } from 'src/app/models/account.model';
@@ -2635,6 +2636,11 @@ export class DatabaseService {
       monitor.startMonitoring(statements.length);
       console.log(`📊 Parsed ${statements.length} SQL statements`);
 
+      // Filet de sécurité : la sauvegarde est plus ancienne que la base courante. On garde donc une copie
+      // de la base actuelle et on retient les saisies RM non envoyées pour les replacer après restauration.
+      const unsyncedRmOps = await this.captureUnsyncedRmOps();
+      await this.snapshotBeforeRestore();
+
       // Phase 2: Execute in transaction with monitoring
       await transactionManager.beginTransaction();
 
@@ -2660,6 +2666,8 @@ export class DatabaseService {
           await transactionManager.rollbackTransaction();
           throw new RestoreException('CRITICAL', '', 'Integrity check failed: ' + integrityCheck.summary);
         }
+
+        await this.reinjectUnsyncedRmOps(unsyncedRmOps);
 
         const duration = Date.now() - startTime;
         const result = monitor.generateReport();
@@ -2703,6 +2711,96 @@ export class DatabaseService {
       } catch (pragmaError) {
         console.warn('⚠️ Failed to re-enable foreign keys after restore:', pragmaError);
       }
+    }
+  }
+
+  /** Saisies RM non envoyées de la base courante (illisible = on n'en retient aucune, sans bloquer). */
+  private async captureUnsyncedRmOps(): Promise<RmOfflineOpRow[]> {
+    try {
+      const result = await this.db!.query(
+        'SELECT queue_key, local_id, payload, is_sync, sync_error_id FROM rm_offline_ops WHERE is_sync = 0'
+      );
+      return planRmOpsReinjection((result.values ?? []) as RmOfflineOpRow[]);
+    } catch (error) {
+      console.warn('Capture des saisies RM avant restauration impossible:', error);
+      return [];
+    }
+  }
+
+  /** Replace les saisies non envoyées capturées avant la restauration (la version courante l'emporte). */
+  private async reinjectUnsyncedRmOps(rows: RmOfflineOpRow[]): Promise<void> {
+    if (!rows.length) {
+      return;
+    }
+    try {
+      for (const row of rows) {
+        await this.db!.run(
+          'DELETE FROM rm_offline_ops WHERE queue_key = ? AND local_id = ?',
+          [row.queue_key, row.local_id]
+        );
+        await this.db!.run(
+          `INSERT INTO rm_offline_ops (queue_key, local_id, payload, is_sync, sync_error_id, position)
+           VALUES (?, ?, ?, 0, ?, (SELECT COALESCE(MAX(position), -1) + 1 FROM rm_offline_ops WHERE queue_key = ?))`,
+          [row.queue_key, row.local_id, row.payload, row.sync_error_id ?? null, row.queue_key]
+        );
+      }
+      console.log(`${rows.length} saisie(s) RM non envoyée(s) conservée(s) après restauration`);
+    } catch (error) {
+      console.error('Réinjection des saisies RM après restauration impossible:', error);
+    }
+  }
+
+  /** Copie de la base courante avant d'écraser quoi que ce soit (db-prerestore-*, 3 conservées). */
+  private async snapshotBeforeRestore(): Promise<void> {
+    try {
+      const data = await this.exportDatabase();
+      const folderPath = 'elykia';
+      await Filesystem.mkdir({ path: folderPath, directory: Directory.Documents, recursive: true })
+        .catch(() => undefined);
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      await Filesystem.writeFile({
+        path: `${folderPath}/db-prerestore-${stamp}.sql`,
+        data,
+        directory: Directory.Documents,
+        encoding: Encoding.UTF8
+      });
+      const listing = await Filesystem.readdir({ path: folderPath, directory: Directory.Documents });
+      const old = listing.files
+        .map(file => (typeof file === 'string' ? file : file.name))
+        .filter(name => /^db-prerestore-.*\.sql$/.test(name))
+        .sort();
+      for (const name of old.slice(0, Math.max(0, old.length - 3))) {
+        await Filesystem.deleteFile({ path: `${folderPath}/${name}`, directory: Directory.Documents });
+      }
+    } catch (error) {
+      console.warn('Copie de sécurité avant restauration impossible:', error);
+    }
+  }
+
+  /** Sauvegardes db-backup-* les plus récentes d'abord (chemins relatifs à Documents). */
+  async listBackupFiles(limit = 5): Promise<string[]> {
+    try {
+      const folderPath = 'elykia';
+      const result = await Filesystem.readdir({ path: folderPath, directory: Directory.Documents });
+      return result.files
+        .map(file => (typeof file === 'string' ? file : file.name))
+        .filter(name => name.startsWith('db-backup-') && name.endsWith('.sql'))
+        .sort((a, b) => b.localeCompare(a))
+        .slice(0, limit)
+        .map(name => `${folderPath}/${name}`);
+    } catch (error) {
+      console.error('Error listing backup files:', error);
+      return [];
+    }
+  }
+
+  /** Contenu d'une sauvegarde (null si illisible). */
+  async readBackupFile(path: string): Promise<string | null> {
+    try {
+      const result = await Filesystem.readFile({ path, directory: Directory.Documents, encoding: Encoding.UTF8 });
+      return typeof result.data === 'string' ? result.data : null;
+    } catch {
+      return null;
     }
   }
 
