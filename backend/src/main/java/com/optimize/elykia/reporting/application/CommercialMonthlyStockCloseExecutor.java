@@ -1,5 +1,6 @@
 package com.optimize.elykia.reporting.application;
 
+import com.optimize.elykia.commercialstock.api.CommercialStockReportingFacade;
 import com.optimize.elykia.sale.application.CommercialMonthlyStockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,13 @@ public class CommercialMonthlyStockCloseExecutor {
     @Autowired
     private CommercialMonthlyStockCloseExecutor self;
 
+    private CommercialStockReportingFacade commercialStockReportingFacade;
+
+    @Autowired(required = false)
+    public void setCommercialStockReportingFacade(CommercialStockReportingFacade commercialStockReportingFacade) {
+        this.commercialStockReportingFacade = commercialStockReportingFacade;
+    }
+
     /**
      * Clôture les stocks du mois rapporté. Le traitement tourne le 1er du mois suivant :
      * utiliser la date du jour clôturerait le mois qui commence au lieu de celui qui se termine.
@@ -33,6 +41,13 @@ public class CommercialMonthlyStockCloseExecutor {
                     .forEach(username -> self.closeSafely(username, year, month));
         } catch (Exception exception) {
             log.warn("Impossible de clôturer certains stocks mensuels {}/{}: {}", month, year, exception.getMessage());
+        }
+        if (commercialStockReportingFacade != null) {
+            try {
+                commercialStockReportingFacade.computeMonthlySnapshots(year, month);
+            } catch (Exception exception) {
+                log.warn("Impossible de calculer les arrêtés mensuels continus {}/{}: {}", month, year, exception.getMessage());
+            }
         }
     }
 

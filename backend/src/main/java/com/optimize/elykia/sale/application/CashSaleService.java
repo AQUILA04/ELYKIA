@@ -7,6 +7,7 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.inventory.application.ArticlesService;
 import com.optimize.elykia.inventory.domain.Articles;
+import com.optimize.elykia.finance.api.CashSalesRegisterPort;
 import com.optimize.elykia.sale.api.WarehouseCashSalePricingPort;
 import com.optimize.elykia.sale.domain.CommercialMonthlyStock;
 import com.optimize.elykia.sale.domain.CommercialMonthlyStockCashSalePricing;
@@ -37,6 +38,7 @@ import java.util.Optional;
  * création avec réservation magasin, clôture à la livraison, annulation avant livraison et rejet de modification.
  */
 @Service
+@lombok.extern.slf4j.Slf4j
 @Transactional
 public class CashSaleService {
 
@@ -53,6 +55,12 @@ public class CashSaleService {
     private final Optional<BusinessMetricsPublisher> metricsPublisher;
     private final StockRequestService stockRequestService;
     private final CreditTimelineService creditTimelineService;
+    private CashSalesRegisterPort cashSalesRegisterPort;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setCashSalesRegisterPort(CashSalesRegisterPort cashSalesRegisterPort) {
+        this.cashSalesRegisterPort = cashSalesRegisterPort;
+    }
 
     public CashSaleService(
             CreditRepository creditRepository,
@@ -126,6 +134,7 @@ public class CashSaleService {
         reserveWarehouseForCashSale(credit);
         stockRequestService.createValidatedCashSaleRequest(credit);
         recordInitialRecovery(credit);
+        recordCashRegisterReceipt(credit, client);
         return CreditRespDto.fromCredit(credit);
     }
 
@@ -162,6 +171,33 @@ public class CashSaleService {
         credit.setRemainingDaysCount(0);
         credit.setEffectiveEndDate(null);
         creditRepository.saveAndFlush(credit);
+        recordCashRegisterReversal(credit);
+    }
+
+    private void recordCashRegisterReceipt(Credit credit, Client client) {
+        if (cashSalesRegisterPort == null || credit.getTotalAmount() == null) {
+            return;
+        }
+        try {
+            String clientName = client != null ? client.getFullName() : null;
+            cashSalesRegisterPort.recordCashSaleReceipt(credit.getId(), credit.getReference(), credit.getTotalAmount(),
+                    credit.getClientId(), clientName, credit.getCollector(), null, LocalDate.now());
+        } catch (RuntimeException ex) {
+            log.warn("Écriture caisse vente comptant en échec pour {} : {}", credit.getReference(), ex.getMessage());
+        }
+    }
+
+    private void recordCashRegisterReversal(Credit credit) {
+        if (cashSalesRegisterPort == null || credit.getTotalAmount() == null) {
+            return;
+        }
+        try {
+            String clientName = credit.getClient() != null ? credit.getClient().getFullName() : null;
+            cashSalesRegisterPort.recordCashSaleReversal(credit.getId(), credit.getReference(), credit.getTotalAmount(),
+                    credit.getClientId(), clientName, credit.getCollector(), null, LocalDate.now());
+        } catch (RuntimeException ex) {
+            log.warn("Extourne caisse vente comptant en échec pour {} : {}", credit.getReference(), ex.getMessage());
+        }
     }
 
     private void attachClient(Credit credit, Client client) {

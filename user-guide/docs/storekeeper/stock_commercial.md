@@ -95,7 +95,7 @@ La remise au membre se fait ensuite dans le menu **Tontines**, sur la fiche du m
 ### B. Retour
 1. Ouvrez **Stock Commercial > Retours** et cliquez sur **Tontine**.
 2. Examinez la ligne au statut **En attente**.
-3. Après inspection des emballages, cliquez sur **« Réceptionner »** pour réintégrer les articles au stock tontine.
+3. Après inspection des emballages, cliquez sur **« Réceptionner »** pour déduire les articles de la dotation tontine du commercial et réintégrer automatiquement les quantités et le lot FIFO dans le stock du magasin central.
 
 Le suivi des quantités annuelles se fait dans **Stock Commercial > Stock**, sélecteur **Tontine**.
 

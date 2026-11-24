@@ -211,6 +211,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [3.2.0] — 2026-11-24
+
+### Added
+
+- **Stock commercial continu (`@features/stock`) —** méthodes et modèles v2 dans `CommercialStockService` (`/api/v2/commercial-stocks/positions`, `/reports/period`, `/reports/team-overview`, `/movements`, `/transfers`, `/realign-prices`). Nouvel onglet **« Couches FIFO »** dans le panneau latéral d'article (`StockArticlePanelComponent`) affichant le stock continu en main, le coût d'achat FIFO moyen immuable, le détail de chaque couche ouverte, et les actions gestionnaire **« Réaligner prix de vente »** (coût FIFO intact) et **« Transférer vers stock Tontine »**.
+- **Paramètres (`@features/parameters`) —** sélecteur dédié pour `CREDIT_SALE_PRICE_SOURCE` (`LAYER_FIFO` | `CATALOG`).
+- **Caisse dédiée « Ventes comptant » & Rapport journalier (`@features/report`) —** profil `UserProfile.CASHIER` (`ROLE_CASHIER`), service `DailyReportService` raccordé à `/api/daily-commercial-reports/cash-register-summary` et `/api/v1/cash-sales-register/{open,close}`, et nouvel onglet **« Caisse ventes comptant »** dans `DailyReportComponent` (KPIs encaissements / annulations / net caisse / sessions, ouverture avec fond de caisse, clôture avec billetage et écart, journal des opérations d'agence).
+
 ## Frontend — [3.1.0] — 2026-11-22
 
 ### Added
@@ -638,6 +646,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [3.0.1] — 2026-11-24
+
+### Added
+
+- **Stock commercial continu (`CommercialStockService`) —** ajout de `fetchContinuousPositionsFromApi(username, activityType)` sur `/api/v2/commercial-stocks/positions` filtré par `commercialUsername`, tout en conservant l'architecture local-first SQLite (`commercial_stock_items`, `StockSnapshotRepository`) et la synchronisation `/api/commercial-stocks/available/{username}` intactes.
+
 ## Mobile — [3.0.0] — 2026-11-22
 
 ### Changed
@@ -939,6 +953,45 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [2.13.0] — 2026-11-24
+
+### Added
+
+- **Stock commercial continu — Phases 3 & 4 (`.cursor/plans/commercial_stock_ddd_refactoring.plan.md`) :**
+  - **Double écriture après commit (`LegacyStockShadowSync` + `LegacyStockMovementEvent`) —** `sale.CommercialStockMovementService` et `tontine.TontineStockService` publient chaque entrée, vente crédit, livraison tontine, retour et annulation de vente vers `commercialstock` (`@TransactionalEventListener(AFTER_COMMIT)`, transaction `REQUIRES_NEW` isolée pour ne jamais bloquer le flux métier). Les ventes comptant (`CASH_SALE`) continuent d'alimenter le rapport journalier existant sans polluer le ledger continu.
+  - **Dettes marchandise & Réalignement auto des prix —** `DebtService.createMerchandiseDebt` / `cancelDebt` répercutent `DEBT_WRITE_OFF` / `DEBT_REVERSAL` sur le stock continu ; `ArticlePriceChangedListener` réévalue en place le `effectiveSalePrice` des couches ouvertes (`CREDIT` et `TONTINE`) sans modifier `unitPurchaseCost`.
+  - **Moteur de reporting périodique (`CommercialStockReportingService` / `CommercialStockReportingFacade`) —** reconstruction exacte `opening + in - sold - returned + transferNet - debt + adjustmentNet == closing` sur toute plage `[startDate, endDate]` par `accounting_date`, vue équipe unifiée, et génération des arrêtés mensuels (`computeMonthlySnapshots`, raccordé à `CommercialMonthlyStockCloseExecutor` avec marquage `restated_at` en cas de régularisation antidatée).
+  - **API REST v2 (`CommercialStockController`, `/api/v2/commercial-stocks`) —** `GET /positions`, `GET /movements`, `GET /reports/period`, `GET /reports/team-overview`, `POST /transfers` (`CREDIT ↔ TONTINE`), `POST /realign-prices`.
+- **Caisse dédiée « Ventes comptant » & Rôle `CASHIER` — Phase 7 :**
+  - **Migration Flyway `V049__cash_sales_register_and_cashier_role.sql` + `CashRegisterPermissionsInit` —** création du profil `CASHIER` (`UserProfilConstant.CASHIER`), des permissions `ROLE_CASH_REGISTER_SALE` (accordée par défaut à `CASHIER`, `SECRETARY`, `GESTIONNAIRE`, `ADMIN`, `SUPER_ADMIN`) et `ROLE_CASH_REGISTER_MANAGE` (accordée par défaut à `CASHIER`, `GESTIONNAIRE`, `ADMIN`, `SUPER_ADMIN`), et des tables `cash_sales_register_session` et `cash_sales_register_entry`.
+  - **Domaine & Service (`CashSalesRegisterService` / `CashSalesRegisterPort` / `CashSalesRegisterController`) —** gestion autonome des sessions de caisse (indépendante de `AccountingDay` : ouverture avec fond de caisse, encaissements auto depuis `CashSaleService.createCashSale`, extournes auto depuis `CashSaleService.cancelPendingCashSale`, clôture avec montant compté et calcul d'écart), endpoints `/api/v1/cash-sales-register/{current,open,close,report}` et `/api/daily-commercial-reports/cash-register-summary` pour le rapport journalier.
+  - **Catalogue IA (`schema-catalog.json`) & Guide utilisateur + Index RAG (`user-guide-index.json`, 348 chunks) —** documentés et régénérés.
+
+## Backend — [2.12.1] — 2026-11-22
+
+### Added
+
+- **Migration Flyway `V048__backfill_commercial_stock_from_legacy.sql` — Phase 2 du stock commercial continu.** Reprise idempotente (garde `LEGACY_MIGRATION`) des soldes courants : CREDIT depuis `commercial_monthly_stock_item.quantity_remaining > 0` (une couche FIFO par mois, la mise en dette remettant déjà le reste à 0), TONTINE depuis `tontine_stock` / `tontine_stock_layer` (couche unique au solde disponible si les couches sont incohérentes), caches de position recalculés, écriture d'ouverture `STOCK_IN` par position. Tables legacy jamais modifiées (archives). Vérifiée sur PostgreSQL (jeu de données seed, réconciliation `quantité position = Σ couches` à 0 écart, rejeu sans effet).
+
+## Backend — [2.12.0] — 2026-11-22
+
+### Added
+
+- **Nouveau module Spring Modulith `commercialstock` (20e, `CLOSED`, interface `api`) — Phase 1 de la refonte « stock commercial continu » (`.cursor/plans/commercial_stock_ddd_refactoring.plan.md`).** Positions continues `(commercial, article, activité CREDIT|TONTINE)` composées de couches FIFO à **coût d'achat immuable** et prix de vente effectif réalignable, ledger append-only `commercial_stock_ledger_entry` (dates `accounting_date`/`occurred_at`, drapeau antidaté), traçabilité `commercial_stock_layer_consumption` pour restaurations exactes, snapshots `commercial_stock_period_snapshot`. `CommercialStockFacade` : entrée, consommation FIFO (vente/livraison/retour/dette), restauration idempotente (annulation de vente, extourne de dette), transfert interne CREDIT↔TONTINE sans impact magasin, réalignement des prix sans toucher au coût d'achat, garde-fou de solde non négatif pour les régularisations antidatées. Politiques `sealed` `CreditStockPolicy`/`TontineStockPolicy`.
+- **Migration Flyway `V047__commercial_stock_continuous_model.sql` —** tables additives (aucune table historique modifiée ; la table legacy `commercial_stock_movement` est conservée, le nouveau ledger s'appelle `commercial_stock_ledger_entry`).
+- **Paramètre `CREDIT_SALE_PRICE_SOURCE` (`LAYER_FIFO` par défaut | `CATALOG`) —** source du prix des ventes à crédit sur stock continu.
+- **Catalogue IA (`schema-catalog.json`) —** 5 nouvelles tables `commercial_stock_*` et règle métier de conservation par période.
+
+### Notes
+
+- Aucun comportement existant n'est modifié (les modules `sale`/`tontine` seront raccordés en Phase 3).
+
+## Backend — [2.11.3] — 2026-11-22
+
+### Fixed
+
+- **Tontine (`StockTontineReturnService`) —** la validation d'un retour de stock tontine (`validate()` et création directe par magasinier/gestionnaire/admin) réintègre désormais le stock magasin (lot FIFO au coût d'achat, `StockMovement` `RETURN`, `Articles.makeEntry`), comme le retour crédit. Auparavant seul le chemin de réalignement de prix le faisait. Test unitaire ajouté. Phase 0 du plan `.cursor/plans/commercial_stock_ddd_refactoring.plan.md` ; audit de réconciliation des retours passés à prévoir.
 
 ## Backend — [2.11.2] — 2026-11-22
 

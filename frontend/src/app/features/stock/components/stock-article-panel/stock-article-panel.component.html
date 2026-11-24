@@ -27,6 +27,8 @@
           (click)="select('sales')" data-testid="e2e-stock-article-tab-sales">Ventes ({{ sales.length }})</button>
           <button type="button" role="tab" class="side-tab" [class.side-tab--on]="tab === 'valuation'" [attr.aria-selected]="tab === 'valuation'"
           (click)="select('valuation')" data-testid="e2e-stock-article-tab-valuation">Valorisation</button>
+          <button type="button" role="tab" class="side-tab" [class.side-tab--on]="tab === 'continuous'" [attr.aria-selected]="tab === 'continuous'"
+          (click)="select('continuous')" data-testid="e2e-stock-article-tab-continuous">Couches FIFO ({{ continuousPosition?.layers?.length || 0 }})</button>
         </div>
       </header>
 
@@ -129,6 +131,48 @@
                 <div class="empty-title">Pas d'historique de valorisation.</div>
                 <div class="empty-sub">Les ventes enregistrées avant le suivi des valorisations n'apparaissent pas ici.</div>
               </div>
+            }
+          }
+          @if (tab === 'continuous') {
+            @if (continuousPosition; as pos) {
+              <div class="side-kpis side-kpis--2">
+                <div class="flow-box"><span class="kpi-label">Stock continu en main</span><span class="flow-val num">{{ pos.quantityOnHand }}</span></div>
+                <div class="flow-box" *appIfUnitPrice><span class="kpi-label">Coût FIFO moyen (immuable)</span><span class="flow-val num">{{ (pos.weightedAvgPurchaseCost || 0) | fcfa:'bare' }}</span></div>
+              </div>
+              @if (pos.layers.length) {
+                <table class="data-table side-table">
+                  <thead><tr><th scope="col">Couche</th><th scope="col" class="r">Qté restante</th>
+                  <th scope="col" class="r" *appIfUnitPrice>Coût d'achat FIFO</th><th scope="col" class="r" *appIfUnitPrice>Prix de vente actif</th></tr></thead>
+                  <tbody>
+                    @for (layer of pos.layers; track layer.layerId) {
+                      <tr>
+                        <td class="num">#{{ layer.layerId }}</td>
+                        <td class="r num strong">{{ layer.quantityRemaining }}</td>
+                        <td class="r num" *appIfUnitPrice>{{ layer.unitPurchaseCost | fcfa:'bare' }}</td>
+                        <td class="r num" *appIfUnitPrice>{{ layer.effectiveSalePrice != null ? (layer.effectiveSalePrice | fcfa:'bare') : '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              }
+              <div class="side-kpis side-kpis--2" style="margin-top:12px">
+                <div class="flow-box">
+                  <span class="kpi-label">Réaligner prix de vente (coût FIFO intact)</span>
+                  <div style="display:flex;gap:6px;margin-top:6px">
+                    <input type="number" class="form-control" [(ngModel)]="newSalePrice" min="0" placeholder="Nouveau prix" data-testid="e2e-stock-realign-price-input">
+                    <button type="button" class="btn-ghost" (click)="realignPrice()" [disabled]="busyAction" data-testid="e2e-stock-realign-price-btn">Appliquer</button>
+                  </div>
+                </div>
+                <div class="flow-box">
+                  <span class="kpi-label">Transférer vers stock Tontine</span>
+                  <div style="display:flex;gap:6px;margin-top:6px">
+                    <input type="number" class="form-control" [(ngModel)]="transferQty" min="1" [max]="pos.quantityOnHand" data-testid="e2e-stock-transfer-qty-input">
+                    <button type="button" class="btn-ghost" (click)="transferToTontine()" [disabled]="busyAction || !pos.quantityOnHand" data-testid="e2e-stock-transfer-btn">Transférer</button>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <div class="empty-state"><div class="empty-title">Aucune couche FIFO continue ouverte pour cet article.</div></div>
             }
           }
         }

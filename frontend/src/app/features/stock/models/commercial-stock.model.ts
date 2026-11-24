@@ -36,3 +36,76 @@ export interface CommercialMonthlyStock {
   items: CommercialMonthlyStockItem[];
   recoverySummary?: StockRecoverySummary;
 }
+
+export type StockActivityType = 'CREDIT' | 'TONTINE';
+
+export interface ContinuousStockLayerView {
+  layerId: number;
+  quantityRemaining: number;
+  unitPurchaseCost: number;
+  effectiveSalePrice?: number;
+}
+
+export interface ContinuousStockPositionView {
+  positionId: number;
+  collector: string;
+  articleId: number;
+  activityType: StockActivityType;
+  quantityOnHand: number;
+  weightedAvgPurchaseCost?: number;
+  currentSaleUnitPrice?: number;
+  layers: ContinuousStockLayerView[];
+}
+
+export interface ContinuousStockPeriodRowView {
+  collector: string;
+  articleId: number;
+  activityType: StockActivityType;
+  openingQuantity: number;
+  inQuantity: number;
+  soldQuantity: number;
+  returnedQuantity: number;
+  transferNetQuantity: number;
+  debtQuantity: number;
+  adjustmentNetQuantity: number;
+  closingQuantity: number;
+  soldValue: number;
+  purchaseCostOfSold: number;
+  realizedMargin: number;
+  hasBackdatedMovements: boolean;
+}
+
+export interface ContinuousStockTeamRowView {
+  collector: string;
+  activityType: StockActivityType;
+  openingQuantity: number;
+  inQuantity: number;
+  soldQuantity: number;
+  returnedQuantity: number;
+  transferNetQuantity: number;
+  debtQuantity: number;
+  closingQuantity: number;
+  soldValue: number;
+  realizedMargin: number;
+}
+
+export interface ContinuousStockMovementView {
+  id: number;
+  collector: string;
+  articleId: number;
+  activityType: StockActivityType;
+  movementType: string;
+  deltaQuantity: number;
+  quantityBefore: number;
+  quantityAfter: number;
+  unitPurchaseCost?: number;
+  unitSalePrice?: number;
+  marginAmount?: number;
+  referenceType?: string;
+  referenceId?: number;
+  referenceCode?: string;
+  accountingDate: string;
+  occurredAt: string;
+  backdated: boolean;
+  performedBy?: string;
+}

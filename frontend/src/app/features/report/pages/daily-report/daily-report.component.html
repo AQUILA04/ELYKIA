@@ -960,6 +960,62 @@
 </div>
 }
 
+<!-- PANEL: Caisse ventes comptant (agence) -->
+@if (activeTab === 'cashRegister' && !isPromoter) {
+  <div class="report-panel" role="tabpanel" data-testid="e2e-daily-report-cash-register-panel">
+    <div class="kpi-strip mb-3" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px">
+      <div class="card p-3"><span class="text-muted small">Encaissements ventes comptant</span><strong class="h5 mb-0">{{ (cashRegisterSummary?.totalReceipts || 0) | number:'1.0-0' }} FCFA ({{ cashRegisterSummary?.receiptsCount || 0 }})</strong></div>
+      <div class="card p-3"><span class="text-muted small">Annulations / Extournes</span><strong class="h5 mb-0">{{ (cashRegisterSummary?.totalReversals || 0) | number:'1.0-0' }} FCFA ({{ cashRegisterSummary?.reversalsCount || 0 }})</strong></div>
+      <div class="card p-3"><span class="text-muted small">Net encaissé caisse</span><strong class="h5 mb-0">{{ (cashRegisterSummary?.netSalesAmount || 0) | number:'1.0-0' }} FCFA</strong></div>
+      <div class="card p-3"><span class="text-muted small">Sessions (ouvertes)</span><strong class="h5 mb-0">{{ cashRegisterSummary?.sessionsCount || 0 }} ({{ cashRegisterSummary?.openSessionsCount || 0 }})</strong></div>
+    </div>
+
+    @if (isCashier || isManager || isAdmin) {
+      <div class="card p-3 mb-3">
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+          <div>
+            <label class="small text-muted">Fond de caisse ouverture</label>
+            <input type="number" class="form-control" [(ngModel)]="cashRegisterOpeningFloat" min="0" data-testid="e2e-cash-register-opening-float">
+          </div>
+          <button type="button" class="btn btn-primary" (click)="openCashRegister()" [disabled]="cashRegisterBusy || (cashRegisterSummary?.openSessionsCount || 0) > 0" data-testid="e2e-cash-register-open-btn">Ouvrir la caisse</button>
+          <div>
+            <label class="small text-muted">Montant compté clôture</label>
+            <input type="number" class="form-control" [(ngModel)]="cashRegisterCountedClosing" min="0" data-testid="e2e-cash-register-counted-closing">
+          </div>
+          <div>
+            <label class="small text-muted">Notes clôture</label>
+            <input type="text" class="form-control" [(ngModel)]="cashRegisterClosingNotes" placeholder="Observation / billetage">
+          </div>
+          <button type="button" class="btn btn-secondary" (click)="closeCashRegister()" [disabled]="cashRegisterBusy || !(cashRegisterSummary?.openSessionsCount)" data-testid="e2e-cash-register-close-btn">Clôturer la session</button>
+        </div>
+      </div>
+    }
+
+    <div class="card p-3">
+      <h3 class="h6 mb-2">Opérations de caisse (ventes comptant en agence)</h3>
+      @if (cashRegisterSummary?.entries?.length) {
+        <table class="table table-sm">
+          <thead><tr><th>Date</th><th>Nature</th><th>Réf. vente</th><th>Client</th><th>Opérateur</th><th class="text-end">Montant</th></tr></thead>
+          <tbody>
+            @for (e of cashRegisterSummary!.entries; track e.id) {
+              <tr>
+                <td>{{ e.occurredAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ e.entryType === 'RECEIPT' ? 'Encaissement' : 'Annulation' }}</td>
+                <td>{{ e.saleReference || '—' }}</td>
+                <td>{{ e.clientName || '—' }}</td>
+                <td>{{ e.performedBy }}</td>
+                <td class="text-end">{{ e.signedAmount | number:'1.0-0' }} FCFA</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <p class="text-muted mb-0">Aucune opération de caisse ventes comptant sur cette période.</p>
+      }
+    </div>
+  </div>
+}
+
 <!-- PANEL: Remise au gestionnaire -->
 @if (activeTab === 'remittance' && canViewFinancialKpis && (isManager || isSecretary)) {
   <div class="report-panel" role="tabpanel">

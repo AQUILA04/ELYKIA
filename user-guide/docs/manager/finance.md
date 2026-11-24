@@ -140,3 +140,17 @@ Le bas de page conserve le journal exhaustif de toutes les remises passées :
 * **Statut** : Badge coloré **En attente** (jaune) ou **Réceptionnée** (vert).
 * **Traçabilité** : Nom de la personne ayant soumis la remise et nom du gestionnaire ayant accusé réception avec horodatage.
 * **Déploiement accordéon (petite flèche)** : Permet d'ouvrir le détail de tous les versements individuels inclus dans la remise pour un contrôle pièce par pièce.
+
+
+---
+
+## 5. Caisse dédiée « Ventes comptant » (Rapport journalier)
+
+Les ventes au comptant réalisées en agence sont tracées dans une caisse dédiée, visible directement dans le rapport journalier :
+
+1. Ouvrez **Rapports > Rapport Journalier**, choisissez la période puis cliquez sur l'onglet **« Caisse ventes comptant »**.
+2. Les cartes en haut affichent : **Encaissements ventes comptant**, **Annulations / Extournes**, **Net encaissé caisse** et **Sessions (ouvertes)**.
+3. **Qui peut vendre en caisse** : le **Caissier**, la **Secrétaire**, le **Gestionnaire** et les **Administrateurs**. Chaque vente comptant enregistrée alimente automatiquement la session de caisse ouverte ; toute annulation de vente comptant inscrit une écriture d'annulation.
+4. **Ouverture et clôture de session** (réservées au Caissier, au Gestionnaire et aux Administrateurs) :
+   * Saisissez le **Fond de caisse ouverture** puis cliquez sur **« Ouvrir la caisse »**.
+   * En fin de journée, saisissez le **Montant compté clôture** et les éventuelles **Notes clôture**, puis cliquez sur **« Clôturer la session »**. L'écart entre le solde attendu et le montant compté est calculé automatiquement.

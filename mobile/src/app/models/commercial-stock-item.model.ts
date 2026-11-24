@@ -26,3 +26,15 @@ export interface CommercialStockItemDto {
   month?: number;
   year?: number;
 }
+
+export type StockActivityType = 'CREDIT' | 'TONTINE';
+
+export interface ContinuousStockPositionDto {
+  positionId: number;
+  collector: string;
+  articleId: number;
+  activityType: StockActivityType;
+  quantityOnHand: number;
+  weightedAvgPurchaseCost?: number;
+  currentSaleUnitPrice?: number;
+}

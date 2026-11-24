@@ -2110,6 +2110,540 @@
       "relations": [
         { "column": "promoter_id", "refTable": "promoter", "refColumn": "id" }
       ]
+    },
+    {
+      "name": "commercial_stock_position",
+      "description": "Stock continu confié à un commercial pour un article et une activité (CREDIT ou TONTINE). Remplace progressivement les stocks mensuels/annuels.",
+      "synonyms": [
+        "position stock commercial",
+        "stock en main",
+        "stock continu"
+      ],
+      "rowLevelFilter": "collector",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "collector",
+          "type": "varchar",
+          "synonyms": [
+            "commercial"
+          ]
+        },
+        {
+          "name": "article_id",
+          "type": "bigint",
+          "description": "FK articles"
+        },
+        {
+          "name": "activity_type",
+          "type": "varchar",
+          "description": "CREDIT ou TONTINE"
+        },
+        {
+          "name": "quantity_on_hand",
+          "type": "integer",
+          "description": "Quantité détenue = somme des couches ouvertes, jamais négative"
+        },
+        {
+          "name": "weighted_avg_purchase_cost",
+          "type": "double",
+          "description": "Coût d'achat moyen pondéré des couches ouvertes"
+        },
+        {
+          "name": "current_sale_unit_price",
+          "type": "double",
+          "description": "Prix de vente unitaire courant de référence"
+        }
+      ],
+      "relations": [
+        {
+          "column": "article_id",
+          "refTable": "articles",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "commercial_stock_layer",
+      "description": "Couche FIFO d'une position de stock commercial : coût d'achat immuable, prix de vente effectif réalignable",
+      "synonyms": [
+        "couche stock commercial",
+        "lot commercial"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "position_id",
+          "type": "bigint",
+          "description": "FK commercial_stock_position"
+        },
+        {
+          "name": "quantity_initial",
+          "type": "integer"
+        },
+        {
+          "name": "quantity_remaining",
+          "type": "integer"
+        },
+        {
+          "name": "unit_purchase_cost",
+          "type": "double",
+          "description": "Coût d'achat unitaire du lot FIFO magasin (jamais modifié)"
+        },
+        {
+          "name": "initial_sale_price",
+          "type": "double",
+          "description": "Prix de vente figé à la sortie magasin"
+        },
+        {
+          "name": "effective_sale_price",
+          "type": "double",
+          "description": "Prix de vente actif (réalignable)"
+        },
+        {
+          "name": "source_type",
+          "type": "varchar"
+        },
+        {
+          "name": "acquired_at",
+          "type": "timestamp",
+          "description": "Ordre FIFO"
+        }
+      ],
+      "relations": [
+        {
+          "column": "position_id",
+          "refTable": "commercial_stock_position",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "commercial_stock_ledger_entry",
+      "description": "Ledger immuable des mouvements de stock commercial (entrées, ventes crédit, livraisons tontine, retours, annulations, dettes, transferts, réévaluations de prix)",
+      "synonyms": [
+        "mouvement stock commercial",
+        "journal stock commercial"
+      ],
+      "rowLevelFilter": "collector",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "position_id",
+          "type": "bigint",
+          "description": "FK commercial_stock_position"
+        },
+        {
+          "name": "collector",
+          "type": "varchar",
+          "synonyms": [
+            "commercial"
+          ]
+        },
+        {
+          "name": "article_id",
+          "type": "bigint"
+        },
+        {
+          "name": "activity_type",
+          "type": "varchar",
+          "description": "CREDIT ou TONTINE"
+        },
+        {
+          "name": "movement_type",
+          "type": "varchar",
+          "description": "STOCK_IN, CREDIT_SALE, TONTINE_DELIVERY, RETURN, SALE_CANCELLATION, DEBT_WRITE_OFF, DEBT_REVERSAL, ACTIVITY_TRANSFER_OUT, ACTIVITY_TRANSFER_IN, PRICE_REVALUATION, ADJUSTMENT"
+        },
+        {
+          "name": "delta_quantity",
+          "type": "integer",
+          "description": "Signé : + entrée, − sortie, 0 réévaluation"
+        },
+        {
+          "name": "quantity_before",
+          "type": "integer"
+        },
+        {
+          "name": "quantity_after",
+          "type": "integer"
+        },
+        {
+          "name": "unit_purchase_cost",
+          "type": "double",
+          "description": "Coût d'achat FIFO consommé"
+        },
+        {
+          "name": "unit_sale_price",
+          "type": "double"
+        },
+        {
+          "name": "total_sale_value",
+          "type": "double"
+        },
+        {
+          "name": "total_purchase_value",
+          "type": "double"
+        },
+        {
+          "name": "margin_amount",
+          "type": "double",
+          "description": "total_sale_value - total_purchase_value"
+        },
+        {
+          "name": "reference_type",
+          "type": "varchar"
+        },
+        {
+          "name": "reference_id",
+          "type": "bigint"
+        },
+        {
+          "name": "accounting_date",
+          "type": "date",
+          "description": "Date comptable de rattachement à la période (rapports par période)"
+        },
+        {
+          "name": "occurred_at",
+          "type": "timestamp",
+          "description": "Date de saisie réelle (GMT)"
+        },
+        {
+          "name": "backdated",
+          "type": "boolean",
+          "description": "Régularisation antidatée d'une vente non saisie"
+        },
+        {
+          "name": "performed_by",
+          "type": "varchar"
+        }
+      ],
+      "relations": [
+        {
+          "column": "position_id",
+          "refTable": "commercial_stock_position",
+          "refColumn": "id"
+        },
+        {
+          "column": "article_id",
+          "refTable": "articles",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "commercial_stock_layer_consumption",
+      "description": "Quelle quantité de quelle couche FIFO a été consommée par quel mouvement du ledger (restaurations exactes)",
+      "synonyms": [],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "movement_id",
+          "type": "bigint",
+          "description": "FK commercial_stock_ledger_entry"
+        },
+        {
+          "name": "layer_id",
+          "type": "bigint",
+          "description": "FK commercial_stock_layer"
+        },
+        {
+          "name": "quantity",
+          "type": "integer"
+        },
+        {
+          "name": "unit_purchase_cost",
+          "type": "double"
+        },
+        {
+          "name": "unit_sale_price",
+          "type": "double"
+        }
+      ],
+      "relations": [
+        {
+          "column": "movement_id",
+          "refTable": "commercial_stock_ledger_entry",
+          "refColumn": "id"
+        },
+        {
+          "column": "layer_id",
+          "refTable": "commercial_stock_layer",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "commercial_stock_period_snapshot",
+      "description": "Arrêté périodique (mois ou session tontine) du stock commercial : ouverture, flux, clôture et valorisation",
+      "synonyms": [
+        "arrêté stock commercial",
+        "rapport mensuel stock"
+      ],
+      "rowLevelFilter": "collector",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "collector",
+          "type": "varchar",
+          "synonyms": [
+            "commercial"
+          ]
+        },
+        {
+          "name": "article_id",
+          "type": "bigint"
+        },
+        {
+          "name": "activity_type",
+          "type": "varchar"
+        },
+        {
+          "name": "period_grain",
+          "type": "varchar",
+          "description": "MONTH, TONTINE_SESSION ou CUSTOM"
+        },
+        {
+          "name": "period_year",
+          "type": "integer"
+        },
+        {
+          "name": "period_month",
+          "type": "integer"
+        },
+        {
+          "name": "period_start",
+          "type": "date"
+        },
+        {
+          "name": "period_end",
+          "type": "date"
+        },
+        {
+          "name": "opening_quantity",
+          "type": "integer"
+        },
+        {
+          "name": "in_quantity",
+          "type": "integer"
+        },
+        {
+          "name": "sold_quantity",
+          "type": "integer"
+        },
+        {
+          "name": "returned_quantity",
+          "type": "integer"
+        },
+        {
+          "name": "transfer_net_quantity",
+          "type": "integer"
+        },
+        {
+          "name": "debt_quantity",
+          "type": "integer"
+        },
+        {
+          "name": "adjustment_net_quantity",
+          "type": "integer"
+        },
+        {
+          "name": "closing_quantity",
+          "type": "integer"
+        },
+        {
+          "name": "sold_value",
+          "type": "double"
+        },
+        {
+          "name": "purchase_cost_of_sold",
+          "type": "double"
+        },
+        {
+          "name": "realized_margin",
+          "type": "double"
+        },
+        {
+          "name": "restated_at",
+          "type": "timestamp",
+          "description": "Renseigné si une régularisation antidatée a recalculé l'arrêté"
+        }
+      ],
+      "relations": [
+        {
+          "column": "article_id",
+          "refTable": "articles",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "cash_sales_register_session",
+      "description": "Session autonome de la caisse dédiée aux ventes au comptant en agence (ouverture, fond de caisse, total encaissements, annulations, billetage de clôture, écart)",
+      "synonyms": [
+        "session caisse ventes comptant",
+        "caisse agence"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "session_date",
+          "type": "date"
+        },
+        {
+          "name": "cashier_username",
+          "type": "varchar"
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "description": "OPEN ou CLOSED"
+        },
+        {
+          "name": "opening_float",
+          "type": "double",
+          "description": "Fond de caisse d'ouverture"
+        },
+        {
+          "name": "total_receipts",
+          "type": "double",
+          "description": "Cumul des ventes comptant encaissées"
+        },
+        {
+          "name": "total_reversals",
+          "type": "double",
+          "description": "Cumul des annulations"
+        },
+        {
+          "name": "receipts_count",
+          "type": "integer"
+        },
+        {
+          "name": "reversals_count",
+          "type": "integer"
+        },
+        {
+          "name": "expected_closing",
+          "type": "double",
+          "description": "opening_float + total_receipts - total_reversals"
+        },
+        {
+          "name": "counted_closing",
+          "type": "double"
+        },
+        {
+          "name": "discrepancy",
+          "type": "double",
+          "description": "counted_closing - expected_closing"
+        },
+        {
+          "name": "opened_at",
+          "type": "timestamp"
+        },
+        {
+          "name": "closed_at",
+          "type": "timestamp"
+        },
+        {
+          "name": "closed_by",
+          "type": "varchar"
+        }
+      ]
+    },
+    {
+      "name": "cash_sales_register_entry",
+      "description": "Écriture immuable du journal de la caisse ventes comptant (RECEIPT encaissement ou REVERSAL annulation)",
+      "synonyms": [
+        "opération caisse vente comptant",
+        "encaissement caisse"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "session_id",
+          "type": "bigint",
+          "description": "FK cash_sales_register_session"
+        },
+        {
+          "name": "entry_type",
+          "type": "varchar",
+          "description": "RECEIPT ou REVERSAL"
+        },
+        {
+          "name": "amount",
+          "type": "double"
+        },
+        {
+          "name": "signed_amount",
+          "type": "double",
+          "description": "+amount pour RECEIPT, -amount pour REVERSAL"
+        },
+        {
+          "name": "sale_id",
+          "type": "bigint",
+          "description": "FK credit (vente comptant)"
+        },
+        {
+          "name": "sale_reference",
+          "type": "varchar"
+        },
+        {
+          "name": "client_id",
+          "type": "bigint"
+        },
+        {
+          "name": "client_name",
+          "type": "varchar"
+        },
+        {
+          "name": "collector",
+          "type": "varchar"
+        },
+        {
+          "name": "performed_by",
+          "type": "varchar"
+        },
+        {
+          "name": "accounting_date",
+          "type": "date"
+        },
+        {
+          "name": "occurred_at",
+          "type": "timestamp"
+        }
+      ],
+      "relations": [
+        {
+          "column": "session_id",
+          "refTable": "cash_sales_register_session",
+          "refColumn": "id"
+        },
+        {
+          "column": "sale_id",
+          "refTable": "credit",
+          "refColumn": "id"
+        }
+      ]
     }
   ],
   "views": [
@@ -2134,6 +2668,7 @@
     "Pour filtrer stock commercial d'un user PROMOTER : utiliser collector ou commercial_username selon la table",
     "Qui utilisait un compte commercial à une date : commercial_account_assignment joint à promoter. user_id identifie le compte ; le username COM des ventes reste collector ou commercial_username.",
     "Toujours filtrer visibility = 'ENABLED' si la colonne existe",
-    "Toute requête SQL générée qui doit afficher le nom d'un article doit le formater sous l'alias commercialName en concaténant ses attributs (ex: CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name) AS commercialName)."
+    "Toute requête SQL générée qui doit afficher le nom d'un article doit le formater sous l'alias commercialName en concaténant ses attributs (ex: CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name) AS commercialName).",
+    "Stock commercial continu (tables commercial_stock_*) : équation de conservation sur une période [D1,D2] = ouverture + entrées + transferts entrants + annulations − ventes/livraisons − retours − transferts sortants − dettes ± ajustements = clôture. Les mouvements se rattachent aux périodes par accounting_date (et non occurred_at). Le coût d'achat (unit_purchase_cost) est immuable ; seul le prix de vente effectif peut être réaligné. Les tables commercial_monthly_stock*, tontine_stock* et l'ancien commercial_stock_movement restent des archives."
   ]
 }

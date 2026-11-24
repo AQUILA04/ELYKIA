@@ -138,4 +138,9 @@ public class UserPermissionConstant {
     /** Annuaire du personnel commercial et historique d'affectation des comptes COM. */
     public static final String MANAGE_COMMERCIAL_STAFF = "ROLE_MANAGE_COMMERCIAL_STAFF";
 
+
+    /** Encaissement d'une vente comptant en caisse (CASHIER, SECRETARY, GESTIONNAIRE, ADMIN, SUPER_ADMIN par défaut). */
+    public static final String CASH_REGISTER_SALE = "ROLE_CASH_REGISTER_SALE";
+    /** Ouverture et clôture d'une session de caisse ventes comptant (CASHIER, GESTIONNAIRE, ADMIN, SUPER_ADMIN par défaut). */
+    public static final String CASH_REGISTER_MANAGE = "ROLE_CASH_REGISTER_MANAGE";
 }

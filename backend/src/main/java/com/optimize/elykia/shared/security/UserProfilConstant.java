@@ -11,6 +11,7 @@ public class UserProfilConstant {
     public static final String MAGASINIER = "STOREKEEPER";
     public static final String SECRETARY = "SECRETARY";
     public static final String GESTIONNAIRE = "GESTIONNAIRE";
+    public static final String CASHIER = "CASHIER";
     public static final String SU_DEF_PASS = "Africa";
     public static final String MANAGER_DEF_PASS = "Abcd1234";
 }

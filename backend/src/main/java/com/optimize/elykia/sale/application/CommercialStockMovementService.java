@@ -1,15 +1,21 @@
 package com.optimize.elykia.sale.application;
 
+import com.optimize.elykia.commercialstock.api.CommercialStockReferenceType;
+import com.optimize.elykia.commercialstock.api.LegacyStockMovementEvent;
+import com.optimize.elykia.commercialstock.api.StockActivityType;
 import com.optimize.elykia.sale.domain.CommercialMonthlyStockItem;
 import com.optimize.elykia.sale.domain.CommercialStockMovement;
 import com.optimize.elykia.sale.domain.CommercialStockMovementType;
 import com.optimize.elykia.sale.infrastructure.persistence.CommercialMonthlyStockItemRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CommercialStockMovementRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +26,12 @@ public class CommercialStockMovementService {
 
     private final CommercialStockMovementRepository repository;
     private final CommercialMonthlyStockItemRepository stockItemRepository;
+    private ApplicationEventPublisher eventPublisher;
+
+    @Autowired(required = false)
+    public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
 
     public CommercialStockMovementService(
             CommercialStockMovementRepository repository,
@@ -94,6 +106,8 @@ public class CommercialStockMovementService {
 
             CommercialStockMovement saved = repository.save(movement);
             log.debug("Stock movement recorded successfully: type={}, stockItemId={}", movementType, stockItemId);
+            publishShadowEvent(movementType, collector, articleId, quantityMoved, unitPurchasePrice, unitSalePrice,
+                    creditId, creditReference, stockReturnId, sourceId);
             return saved;
         } catch (Exception e) {
             log.error("Failed to record stock movement for stockItemId {}: {}", stockItemId, e.getMessage());
@@ -111,5 +125,38 @@ public class CommercialStockMovementService {
 
     public List<CommercialStockMovement> getByCollectorAndType(String collector, CommercialStockMovementType type) {
         return repository.findByCollectorAndMovementTypeOrderByOperationDateDesc(collector, type);
+    }
+
+    /** Double écriture vers le ledger continu `commercialstock` (traité après commit, sans effet sur ce flux). */
+    private void publishShadowEvent(CommercialStockMovementType movementType, String collector, Long articleId,
+                                    Integer quantityMoved, Double unitPurchasePrice, Double unitSalePrice,
+                                    Long creditId, String creditReference, Long stockReturnId, Long sourceId) {
+        if (eventPublisher == null || quantityMoved == null || articleId == null) {
+            return;
+        }
+        int quantity = Math.abs(quantityMoved);
+        LegacyStockMovementEvent event = switch (movementType) {
+            case STOCK_IN -> shadow(LegacyStockMovementEvent.Kind.STOCK_IN, collector, articleId, quantity,
+                    unitPurchasePrice, unitSalePrice, CommercialStockReferenceType.STOCK_REQUEST,
+                    sourceId != null ? sourceId : stockReturnId, null);
+            case CREDIT_SALE -> shadow(LegacyStockMovementEvent.Kind.SALE, collector, articleId, quantity,
+                    unitPurchasePrice, unitSalePrice, CommercialStockReferenceType.CREDIT, creditId, creditReference);
+            case RETURN -> shadow(LegacyStockMovementEvent.Kind.RETURN, collector, articleId, quantity,
+                    unitPurchasePrice, unitSalePrice, CommercialStockReferenceType.STOCK_RETURN, stockReturnId, null);
+            case SALE_CANCELLATION -> shadow(LegacyStockMovementEvent.Kind.SALE_CANCELLATION, collector, articleId,
+                    quantity, unitPurchasePrice, unitSalePrice, CommercialStockReferenceType.CREDIT, creditId,
+                    creditReference);
+            case CASH_SALE, ADJUSTMENT -> null; // la vente comptant et les ajustements n'alimentent pas le ledger continu
+        };
+        if (event != null) {
+            eventPublisher.publishEvent(event);
+        }
+    }
+
+    private static LegacyStockMovementEvent shadow(LegacyStockMovementEvent.Kind kind, String collector, Long articleId,
+                                                   int quantity, Double purchase, Double sale,
+                                                   CommercialStockReferenceType refType, Long refId, String refCode) {
+        return new LegacyStockMovementEvent(kind, StockActivityType.CREDIT, collector, articleId, quantity, purchase,
+                sale, refType, refId, refCode, null, LocalDate.now(), null);
     }
 }

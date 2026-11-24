@@ -188,3 +188,16 @@ Cet écran présente les annulations de ventes déjà effectuées et leurs pièc
 6. Cliquez sur **Télécharger** pour récupérer le bordereau d'annulation d'une vente ou le rapport de synthèse de l'opération.
 
 <!-- CAPTURE À INSÉRER : historique des annulations de ventes et fenêtre de détail avec les pièces d'audit -->
+
+
+---
+
+## 7. Stock commercial continu, couches FIFO et réalignement de prix
+
+Le stock confié à chaque commercial est suivi en continu par activité (**Crédit** et **Tontine**), avec report naturel d'un mois sur l'autre :
+
+1. Dans **Stock Commercial > Stock**, ouvrez la fiche d'un commercial puis cliquez sur un article pour ouvrir le panneau de détail.
+2. L'onglet **Couches FIFO** affiche le stock continu en main et chaque couche ouverte avec son **Coût d'achat FIFO** (qui ne change jamais) et son **Prix de vente actif**.
+3. **Réaligner le prix de vente** : saisissez le nouveau prix et cliquez sur **« Appliquer »**. Le prix de vente des unités déjà sorties s'aligne sur le nouveau tarif sans retour magasin et sans modifier le coût d'achat.
+4. **Transférer vers le stock Tontine** : saisissez la quantité et cliquez sur **« Transférer »** pour déplacer des unités du stock Crédit du commercial vers sa poche Tontine, sans mouvement au magasin.
+5. Dans **Administration > Paramètres**, le paramètre **`CREDIT_SALE_PRICE_SOURCE`** permet de choisir entre **Prix figé sur la couche FIFO (réalignable)** et **Prix catalogue courant au moment de la vente**.

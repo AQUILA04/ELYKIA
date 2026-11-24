@@ -4,4 +4,5 @@ export class UserProfilConstant {
   public static readonly PROMOTER = 'ROLE_PROMOTER';
   public static readonly STOREKEEPER = 'ROLE_STOREKEEPER';
   public static readonly CLIENT = 'ROLE_CLIENT';
+  public static readonly CASHIER = 'ROLE_CASHIER';
 }

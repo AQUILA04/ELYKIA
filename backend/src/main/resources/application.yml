@@ -513,6 +513,10 @@ app:
         key: TONTINE_ORDER_AUTO_VALIDATION
         value: false
         description: "Commandes tontine. Activé : toute commande créée (web ou mobile) passe directement au statut Validée. Désactivé : elle reste En attente jusqu'à la validation par le gestionnaire (sauf saisie par un gestionnaire)."
+      init-data[15]:
+        key: CREDIT_SALE_PRICE_SOURCE
+        value: LAYER_FIFO
+        description: "Ventes à crédit sur stock commercial continu. LAYER_FIFO : le prix de vente est celui porté par la couche FIFO (figé à la sortie magasin ou au dernier réalignement). CATALOG : la vente applique le prix catalogue courant. Le coût d'achat de la couche FIFO n'est jamais modifié."
 
 loki:
   url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}

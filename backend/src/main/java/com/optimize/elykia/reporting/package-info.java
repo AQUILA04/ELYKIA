@@ -13,7 +13,8 @@
                 "sale",
                 "tontine",
                 "carnet",
-                "customer :: api"
+                "customer :: api",
+                "commercialstock :: api"
         }
 )
 package com.optimize.elykia.reporting;

@@ -8,6 +8,12 @@ export const MOBILE_DEVICE_RESTRICTION_PARAMETER_KEY = 'ENABLED_MOBILE_DEVICE_RE
 export const TONTINE_SOCIETY_SHARE_VERSION_KEY = 'TONTINE_SOCIETY_SHARE_VERSION';
 export const TONTINE_SOCIETY_SHARE_VERSION_OPTIONS = ['V1', 'V2'] as const;
 
+export const CREDIT_SALE_PRICE_SOURCE_KEY = 'CREDIT_SALE_PRICE_SOURCE';
+export const CREDIT_SALE_PRICE_SOURCE_OPTIONS = [
+  { value: 'LAYER_FIFO', label: 'Prix figé sur la couche FIFO (réalignable)' },
+  { value: 'CATALOG', label: 'Prix catalogue courant au moment de la vente' },
+] as const;
+
 export const CUSTOMER_PAYMENT_COLLECTION_MODE_KEY = 'CUSTOMER_PAYMENT_COLLECTION_MODE';
 export const CUSTOMER_PAYMENT_COLLECTION_MODE_OPTIONS = [
   { value: 'MANUAL', label: 'Déclaration manuelle' },

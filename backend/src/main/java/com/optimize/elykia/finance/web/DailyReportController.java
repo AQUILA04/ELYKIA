@@ -6,7 +6,9 @@ import com.optimize.elykia.finance.web.dto.CommercialReportSummaryDto;
 import com.optimize.elykia.finance.web.dto.TeamYearlySummaryDto;
 import com.optimize.elykia.finance.domain.DailyCommercialReport;
 import com.optimize.elykia.finance.infrastructure.persistence.DailyCommercialReportRepository;
+import com.optimize.elykia.finance.application.CashSalesRegisterService;
 import com.optimize.elykia.finance.application.CashSurplusReallocationService;
+import com.optimize.elykia.finance.web.dto.CashSalesRegisterSummaryDto;
 import com.optimize.elykia.finance.application.CommercialCockpitService;
 import com.optimize.elykia.finance.application.CommercialReportMonthlyService;
 import com.optimize.elykia.finance.application.DailyReportPdfService;
@@ -44,6 +46,7 @@ public class DailyReportController {
     private final CommercialReportMonthlyService commercialReportMonthlyService;
     private final CashSurplusReallocationService cashSurplusReallocationService;
     private final CommercialCockpitService commercialCockpitService;
+    private final CashSalesRegisterService cashSalesRegisterService;
 
     @GetMapping
     @Operation(summary = "Get daily report for a specific commercial and date")
@@ -155,6 +158,15 @@ public class DailyReportController {
                         "attachment; filename=rapport_journalier_" + commercialUsername + "_" + startDate + "_" + endDate + ".pdf")
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(pdfBytes);
+    }
+
+    @GetMapping("/cash-register-summary")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
+    @Operation(summary = "Synthèse des opérations de la caisse dédiée Ventes comptant sur la période du rapport journalier")
+    public ResponseEntity<CashSalesRegisterSummaryDto> getCashRegisterSummary(
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(cashSalesRegisterService.getReport(startDate, endDate));
     }
 
     private String resolveCommercialUsername(String collector) {

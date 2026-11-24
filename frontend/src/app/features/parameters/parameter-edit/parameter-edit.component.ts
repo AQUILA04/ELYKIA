@@ -2,6 +2,8 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {
+  CREDIT_SALE_PRICE_SOURCE_KEY,
+  CREDIT_SALE_PRICE_SOURCE_OPTIONS,
   CUSTOMER_PAYMENT_COLLECTION_MODE_KEY,
   CUSTOMER_PAYMENT_COLLECTION_MODE_OPTIONS,
   ParameterService,
@@ -25,8 +27,10 @@ export class ParameterEditComponent implements OnInit {
   isBooleanValue = false;
   isSocietyShareVersion = false;
   isCollectionMode = false;
+  isCreditSalePriceSource = false;
   readonly societyShareVersionOptions = TONTINE_SOCIETY_SHARE_VERSION_OPTIONS;
   readonly collectionModeOptions = CUSTOMER_PAYMENT_COLLECTION_MODE_OPTIONS;
+  readonly creditSalePriceSourceOptions = CREDIT_SALE_PRICE_SOURCE_OPTIONS;
 
   constructor(
     private fb: FormBuilder,
@@ -64,6 +68,7 @@ export class ParameterEditComponent implements OnInit {
   private refreshValueEditor(key: string | null | undefined, value: string | null | undefined): void {
     this.isSocietyShareVersion = key === TONTINE_SOCIETY_SHARE_VERSION_KEY;
     this.isCollectionMode = key === CUSTOMER_PAYMENT_COLLECTION_MODE_KEY;
+    this.isCreditSalePriceSource = key === CREDIT_SALE_PRICE_SOURCE_KEY;
     if (this.isSocietyShareVersion) {
       this.isBooleanValue = false;
       const normalized = (value || '').toString().trim().toUpperCase();
@@ -80,6 +85,16 @@ export class ParameterEditComponent implements OnInit {
       const normalized = (value || '').toString().trim().toUpperCase();
       const known = this.collectionModeOptions.some((option) => option.value === normalized);
       const nextValue = known ? normalized : 'MANUAL';
+      if (this.form.get('value')?.value !== nextValue) {
+        this.form.patchValue({ value: nextValue }, { emitEvent: false });
+      }
+      return;
+    }
+    if (this.isCreditSalePriceSource) {
+      this.isBooleanValue = false;
+      const normalized = (value || '').toString().trim().toUpperCase();
+      const known = this.creditSalePriceSourceOptions.some((option) => option.value === normalized);
+      const nextValue = known ? normalized : 'LAYER_FIFO';
       if (this.form.get('value')?.value !== nextValue) {
         this.form.patchValue({ value: nextValue }, { emitEvent: false });
       }

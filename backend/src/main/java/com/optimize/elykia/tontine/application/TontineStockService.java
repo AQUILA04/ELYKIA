@@ -4,6 +4,9 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.commercialstock.api.CommercialStockReferenceType;
+import com.optimize.elykia.commercialstock.api.LegacyStockMovementEvent;
+import com.optimize.elykia.commercialstock.api.StockActivityType;
 import com.optimize.elykia.sale.domain.CreditArticles;
 import com.optimize.elykia.tontine.domain.StockTontineRequest;
 import com.optimize.elykia.tontine.domain.StockTontineReturn;
@@ -13,6 +16,8 @@ import com.optimize.elykia.sale.domain.StockOperation;
 import com.optimize.elykia.tontine.domain.TontineStockMovementType;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineStockRepository;
 import com.optimize.elykia.shared.security.UserProfilConstant;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,6 +35,22 @@ import java.util.Objects;
 public class TontineStockService extends GenericService<TontineStock, Long> {
     private final UserService userService;
     private final TontineStockMovementService tontineStockMovementService;
+    private ApplicationEventPublisher eventPublisher;
+
+    @Autowired(required = false)
+    public void setEventPublisher(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+
+    /** Double écriture vers le ledger continu `commercialstock` (traité après commit, sans effet sur ce flux). */
+    private void publishShadow(LegacyStockMovementEvent.Kind kind, String collector, Long articleId, int quantity,
+                               Double purchaseCost, Double salePrice, CommercialStockReferenceType refType,
+                               Long refId, String refCode) {
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new LegacyStockMovementEvent(kind, StockActivityType.TONTINE, collector,
+                    articleId, quantity, purchaseCost, salePrice, refType, refId, refCode, null, LocalDate.now(), null));
+        }
+    }
 
     protected TontineStockService(TontineStockRepository repository,
                                   UserService userService,
@@ -91,6 +112,9 @@ public class TontineStockService extends GenericService<TontineStock, Long> {
                     null,
                     tontineDeliveryId,
                     tontineDeliveryReference);
+            publishShadow(LegacyStockMovementEvent.Kind.SALE, commercial, saved.getArticleId(),
+                    creditArticle.getQuantity(), null, null, CommercialStockReferenceType.CREDIT, creditId,
+                    creditReference);
         });
     }
 
@@ -171,6 +195,9 @@ public class TontineStockService extends GenericService<TontineStock, Long> {
                     null,
                     null,
                     null);
+            publishShadow(LegacyStockMovementEvent.Kind.STOCK_IN, request.getCollector(), saved.getArticleId(),
+                    item.getQuantity(), item.getPurchasePrice(), item.getUnitPrice(),
+                    CommercialStockReferenceType.STOCK_REQUEST, request.getId(), request.getReference());
         });
     }
 
@@ -202,6 +229,9 @@ public class TontineStockService extends GenericService<TontineStock, Long> {
                     null,
                     returnRequest.getId(),
                     null,
+                    null);
+            publishShadow(LegacyStockMovementEvent.Kind.RETURN, returnRequest.getCollector(), saved.getArticleId(),
+                    item.getQuantity(), null, null, CommercialStockReferenceType.STOCK_RETURN, returnRequest.getId(),
                     null);
         });
     }

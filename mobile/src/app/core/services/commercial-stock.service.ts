@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { map, switchMap, tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
-import { CommercialStockItemDto, CommercialStockItem } from '../../models/commercial-stock-item.model';
+import { CommercialStockItemDto, CommercialStockItem, ContinuousStockPositionDto, StockActivityType } from '../../models/commercial-stock-item.model';
 import { CommercialStockRepository } from '../repositories/commercial-stock.repository';
 import { StockSnapshotRepository } from '../repositories/stock-snapshot.repository';
 import { LoggerService } from './logger.service';
@@ -13,6 +13,7 @@ import { LoggerService } from './logger.service';
 })
 export class CommercialStockService {
   private apiUrl = `${environment.apiUrl}/api/commercial-stocks`;
+  private v2ApiUrl = `${environment.apiUrl}/api/v2/commercial-stocks`;
 
   constructor(
     private http: HttpClient,
@@ -75,5 +76,12 @@ export class CommercialStockService {
 
   getAvailableStock(username: string): Observable<CommercialStockItem[]> {
     return from(this.repository.getAvailableStock(username));
+  }
+
+  /** Consultation des positions continues (/api/v2/commercial-stocks/positions) filtrée par commercialUsername. */
+  fetchContinuousPositionsFromApi(username: string, activityType: StockActivityType = 'CREDIT'): Observable<ContinuousStockPositionDto[]> {
+    return this.http.get<ContinuousStockPositionDto[]>(`${this.v2ApiUrl}/positions`, {
+      params: { collector: username, activityType, onlyPositive: 'true' }
+    });
   }
 }

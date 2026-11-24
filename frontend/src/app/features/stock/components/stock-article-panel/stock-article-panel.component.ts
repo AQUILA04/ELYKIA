@@ -2,12 +2,13 @@ import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input
 import { Subscription, forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { CreditService } from '@features/credit/service/credit.service';
-import { CommercialMonthlyStockItem } from '../../models/commercial-stock.model';
+import { CommercialMonthlyStockItem, ContinuousStockPositionView } from '../../models/commercial-stock.model';
+import { AlertService } from '@shared/service/alert.service';
 import { CreditSaleDetail, SoldValueHistoryEntry } from '../../models/sold-value-history.model';
 import { CommercialStockService } from '../../services/commercial-stock.service';
 import { articleLabel } from '../../utils/stock-team.util';
 
-export type ArticleTab = 'movements' | 'sales' | 'valuation';
+export type ArticleTab = 'movements' | 'sales' | 'valuation' | 'continuous';
 
 export interface ArticleMovement {
   movementType: string;
@@ -65,11 +66,17 @@ export class StockArticlePanelComponent implements OnChanges, AfterViewInit, OnD
   valuations: ArticleSaleRow[] = [];
   valuationTotal = 0;
 
+  continuousPosition: ContinuousStockPositionView | null = null;
+  newSalePrice: number | null = null;
+  transferQty = 1;
+  busyAction = false;
+
   private sub?: Subscription;
 
   constructor(
     private stockService: CommercialStockService,
-    private creditService: CreditService
+    private creditService: CreditService,
+    private alertService: AlertService
   ) { }
 
   get title(): string {
@@ -127,6 +134,34 @@ export class StockArticlePanelComponent implements OnChanges, AfterViewInit, OnD
     return null;
   }
 
+  realignPrice(): void {
+    const artId = this.item?.article?.id;
+    if (!artId || this.newSalePrice == null || this.newSalePrice < 0 || this.busyAction) return;
+    this.busyAction = true;
+    this.stockService.realignSalePrices({ articleId: artId, activityType: 'CREDIT', collector: this.collector, newSalePrice: Number(this.newSalePrice) }).subscribe({
+      next: (res) => {
+        this.busyAction = false;
+        this.alertService.toastSuccess(`Prix de vente réaligné (${res.revaluedQuantity} unité(s), coût d'achat FIFO inchangé)`, 'Stock continu');
+        this.load();
+      },
+      error: () => { this.busyAction = false; this.alertService.toastError('Échec du réalignement de prix', 'Stock continu'); }
+    });
+  }
+
+  transferToTontine(): void {
+    const artId = this.item?.article?.id;
+    if (!artId || !this.collector || this.transferQty <= 0 || this.busyAction) return;
+    this.busyAction = true;
+    this.stockService.transferBetweenActivities({ collector: this.collector, articleId: artId, from: 'CREDIT', to: 'TONTINE', quantity: Number(this.transferQty) }).subscribe({
+      next: () => {
+        this.busyAction = false;
+        this.alertService.toastSuccess(`Transfert de ${this.transferQty} unité(s) vers le stock Tontine effectué`, 'Stock continu');
+        this.load();
+      },
+      error: () => { this.busyAction = false; this.alertService.toastError('Stock continu insuffisant ou transfert refusé', 'Stock continu'); }
+    });
+  }
+
   private load(): void {
     const id = this.item?.id;
     this.sub?.unsubscribe();
@@ -142,9 +177,15 @@ export class StockArticlePanelComponent implements OnChanges, AfterViewInit, OnD
         map(resp => (resp?.data ?? []) as CreditSaleDetail[]),
         catchError(() => of([] as CreditSaleDetail[]))
       ),
-      history: this.stockService.getSoldValueHistory(id).pipe(catchError(() => of([] as SoldValueHistoryEntry[])))
+      history: this.stockService.getSoldValueHistory(id).pipe(catchError(() => of([] as SoldValueHistoryEntry[]))),
+      positions: this.collector
+        ? this.stockService.getContinuousPositions(this.collector, 'CREDIT', false).pipe(catchError(() => of([] as ContinuousStockPositionView[])))
+        : of([] as ContinuousStockPositionView[])
     }).subscribe({
-      next: ({ movements, details, history }) => {
+      next: ({ movements, details, history, positions }) => {
+        const artId = this.item?.article?.id;
+        this.continuousPosition = (positions ?? []).find(p => p.articleId === artId) ?? null;
+        this.newSalePrice = this.continuousPosition?.currentSaleUnitPrice ?? this.item?.weightedAverageUnitPrice ?? null;
         this.movements = [...movements].sort((a, b) => time(b.operationDate) - time(a.operationDate));
         this.buildSales(details, history ?? []);
         this.loading = false;

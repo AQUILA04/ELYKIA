@@ -92,10 +92,15 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
 
             entity.getItems().forEach(item -> item.setStockTontineReturn(entity));
 
+            if (isStoreKeeper) {
+                assertWarehouseStockMutable();
+            }
+
             StockTontineReturn saved = super.create(entity);
 
             if (isStoreKeeper) {
                 processValidationLogic(saved);
+                reintegrateToWarehouse(saved, currentUser.getUsername(), "Retour tontine ");
             }
 
             return saved;
@@ -135,7 +140,7 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
         processValidationLogic(saved);
 
         if (reintegrateToWarehouse) {
-            reintegrateToWarehouse(saved, actingUsername);
+            reintegrateToWarehouse(saved, actingUsername, "Réalignement prix — retour tontine ");
         }
         return saved;
     }
@@ -146,7 +151,10 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
             throw new CustomValidationException("Seuls les retours au statut CREATED peuvent être validés.");
         }
 
+        assertWarehouseStockMutable();
         processValidationLogic(returnRequest);
+        String validator = userService.getCurrentUser().getUsername();
+        reintegrateToWarehouse(returnRequest, validator, "Retour tontine ");
 
         returnRequest.setStatus(StockReturnStatus.RECEIVED);
         returnRequest.setReceivedDate(LocalDate.now());
@@ -214,7 +222,7 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
                 totalArticles));
     }
 
-    private void reintegrateToWarehouse(StockTontineReturn stockReturn, String actingUsername) {
+    private void reintegrateToWarehouse(StockTontineReturn stockReturn, String actingUsername, String reasonPrefix) {
         stockValuationFacade.lockAndIsFifoEnabled();
 
         for (StockTontineReturnItem item : stockReturn.getItems()) {
@@ -233,7 +241,7 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
                     article,
                     MovementType.RETURN,
                     item.getQuantity(),
-                    "Réalignement prix — retour tontine " + stockReturn.getId(),
+                    reasonPrefix + stockReturn.getId(),
                     actingUsername,
                     null,
                     returnUnitCost,

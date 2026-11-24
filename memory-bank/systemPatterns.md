@@ -8,7 +8,7 @@ Schémas d’intégration (partiellement périmés sur les versions Angular) : `
 
 | Dossier | Rôle |
 |---------|------|
-| `backend/` | Monolithe modulaire Spring Boot 4 / Spring Modulith `optimize-elykia-core` (1 seul JAR ; 19 modules : `entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `finance`, `sale`, `tontine`, `carnet`, `customer`, `bi`, `reporting`, `bootstrap`, `recruitment`, `ai`, `apprelease`, `company`) |
+| `backend/` | Monolithe modulaire Spring Boot 4 / Spring Modulith `optimize-elykia-core` (1 seul JAR ; 20 modules : `entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `finance`, `sale`, `tontine`, `carnet`, `customer`, `bi`, `reporting`, `bootstrap`, `recruitment`, `ai`, `apprelease`, `company`, `commercialstock`) |
 | `frontend/` | Admin web Angular |
 | `mobile/` | App terrain Ionic / Capacitor (commercial + chef de recouvrement) |
 | `customer-space/` | Espace client Ionic / Capacitor (`com.optimize.elykia.customer`) |
@@ -20,7 +20,7 @@ Schémas d’intégration (partiellement périmés sur les versions Angular) : `
 
 ## Backend
 
-Architecture **Spring Modulith `2.2.0`** (point d'entrée `com.optimize.elykia.OptimizeElykiaCoreApplication` avec `@Modulithic(additionalPackages = "com.optimize.common")`, **19 modules** vérifiés en CI par `ModularityTests`, dossier historique `core/` intégralement retiré) :
+Architecture **Spring Modulith `2.2.0`** (point d'entrée `com.optimize.elykia.OptimizeElykiaCoreApplication` avec `@Modulithic(additionalPackages = "com.optimize.common")`, **20 modules** vérifiés en CI par `ModularityTests`, dossier historique `core/` intégralement retiré) :
 
 - `entities` (`com.optimize.common.entities`, `OPEN`, feuille pure sans dépendance sortante) : `BaseEntity`, `GenericService`, exceptions, i18n (`CommonEntitiesI18nConfig`).
 - `securities` (`com.optimize.common.securities`, `OPEN`, dépend uniquement de `entities`) : sécurité JWT, permissions `ROLE_*`, profils nommés, licences, paramètres applicatifs. Pas de session serveur pour l'UI.

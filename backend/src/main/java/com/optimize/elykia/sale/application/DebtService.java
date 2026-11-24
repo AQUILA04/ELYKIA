@@ -1,5 +1,11 @@
 package com.optimize.elykia.sale.application;
 
+import com.optimize.elykia.commercialstock.api.CommercialSalePriceSource;
+import com.optimize.elykia.commercialstock.api.CommercialStockFacade;
+import com.optimize.elykia.commercialstock.api.CommercialStockMovementType;
+import com.optimize.elykia.commercialstock.api.CommercialStockReferenceType;
+import com.optimize.elykia.commercialstock.api.ConsumeStockCommand;
+import com.optimize.elykia.commercialstock.api.StockActivityType;
 import com.optimize.elykia.sale.domain.DebtAllocation;
 import com.optimize.elykia.sale.domain.DebtDocument;
 import com.optimize.elykia.sale.domain.DebtHolderProfile;
@@ -59,6 +65,12 @@ public class DebtService {
     private final DailyCommercialReportRepository dailyCommercialReportRepository;
     private final CreditRepository creditRepository;
     private final UserService userService;
+    private CommercialStockFacade commercialStockFacade;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setCommercialStockFacade(CommercialStockFacade commercialStockFacade) {
+        this.commercialStockFacade = commercialStockFacade;
+    }
 
     public DebtDocumentDto getById(Long id) {
         DebtDocument document = debtDocumentRepository.findByIdWithLines(id)
@@ -189,6 +201,7 @@ public class DebtService {
         document.refreshRemainingAndStatus();
         commercialMonthlyStockRepository.save(stock);
         DebtDocument saved = debtDocumentRepository.save(document);
+        recordContinuousDebtWriteOff(saved, stock.getCollector());
         log.info("[DebtService] Dette marchandise créée ref={} stockId={} amount={}",
                 saved.getReference(), stock.getId(), saved.getGrossAmount());
         return DebtMapper.toDto(saved);
@@ -208,6 +221,7 @@ public class DebtService {
 
         if (document.getDebtType() == DebtType.MERCHANDISE) {
             reverseMerchandiseDebt(document);
+            reverseContinuousDebtWriteOff(document);
         } else if (document.getDebtType() == DebtType.INVENTORY_SHORTAGE) {
             throw new CustomValidationException(
                     "Annulez la dette magasinier depuis la réconciliation d'inventaire.");
@@ -675,6 +689,48 @@ public class DebtService {
             item.updateRemaining();
         }
         commercialMonthlyStockRepository.save(stock);
+    }
+
+    private void recordContinuousDebtWriteOff(DebtDocument document, String collector) {
+        if (commercialStockFacade == null) {
+            return;
+        }
+        String actor = currentUsername();
+        for (DebtLine line : document.getLines()) {
+            if (line.getArticle() == null || line.getQuantity() == null || line.getQuantity() <= 0) {
+                continue;
+            }
+            try {
+                commercialStockFacade.consume(new ConsumeStockCommand(collector, line.getArticle().getId(),
+                        StockActivityType.CREDIT, CommercialStockMovementType.DEBT_WRITE_OFF, line.getQuantity(),
+                        CommercialSalePriceSource.LAYER_FIFO, line.getUnitPrice(),
+                        CommercialStockReferenceType.DEBT_DOCUMENT, document.getId(), document.getReference(),
+                        null, LocalDate.now(), null, actor));
+            } catch (RuntimeException drift) {
+                log.warn("Mise en dette non répercutée sur le stock continu ({} art={}) : {}", collector,
+                        line.getArticle().getId(), drift.getMessage());
+            }
+        }
+    }
+
+    private void reverseContinuousDebtWriteOff(DebtDocument document) {
+        if (commercialStockFacade == null) {
+            return;
+        }
+        String actor = currentUsername();
+        for (DebtLine line : document.getLines()) {
+            if (line.getArticle() == null || line.getQuantity() == null || line.getQuantity() <= 0) {
+                continue;
+            }
+            try {
+                commercialStockFacade.restoreByReference(document.getHolderUsername(), line.getArticle().getId(),
+                        StockActivityType.CREDIT, CommercialStockReferenceType.DEBT_DOCUMENT, document.getId(),
+                        CommercialStockMovementType.DEBT_REVERSAL, line.getQuantity(), LocalDate.now(), actor);
+            } catch (RuntimeException drift) {
+                log.warn("Extourne de dette non répercutée sur le stock continu ({} art={}) : {}", document.getHolderUsername(),
+                        line.getArticle().getId(), drift.getMessage());
+            }
+        }
     }
 
     private DebtDocument resolveSurplusForOffset(Long surplusDebtId, String holder) {

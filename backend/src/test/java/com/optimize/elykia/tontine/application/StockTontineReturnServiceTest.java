@@ -113,4 +113,45 @@ class StockTontineReturnServiceTest {
         verify(tontineStockService, never()).processStockReturn(returnRequest);
         verify(repository, never()).saveAndFlush(returnRequest);
     }
+
+    @Test
+    void validate_reintegratesWarehouseStockAndFifoLot() {
+        // Given
+        com.optimize.elykia.inventory.domain.Articles article = new com.optimize.elykia.inventory.domain.Articles();
+        article.setId(7L);
+        article.setPurchasePrice(100.0);
+        article.setSellingPrice(150.0);
+        article.setStockQuantity(10);
+        com.optimize.elykia.tontine.domain.StockTontineReturnItem item = new com.optimize.elykia.tontine.domain.StockTontineReturnItem();
+        item.setArticle(article);
+        item.setQuantity(3);
+        StockTontineReturn returnRequest = new StockTontineReturn();
+        returnRequest.setId(15L);
+        returnRequest.setCollector("collector.a");
+        returnRequest.setStatus(StockReturnStatus.CREATED);
+        returnRequest.addItem(item);
+        when(repository.findByIdForUpdate(15L)).thenReturn(Optional.of(returnRequest));
+        com.optimize.common.securities.models.User user = org.mockito.Mockito.mock(com.optimize.common.securities.models.User.class);
+        when(user.getUsername()).thenReturn("store.keeper");
+        when(userService.getCurrentUser()).thenReturn(user);
+        when(articlesService.getById(7L)).thenReturn(article);
+        when(repository.saveAndFlush(org.mockito.ArgumentMatchers.any())).thenAnswer(inv -> inv.getArgument(0));
+
+        // When
+        service.validate(15L);
+
+        // Then
+        verify(tontineStockService).processStockReturn(returnRequest);
+        verify(stockValuationFacade).registerEntry(
+                org.mockito.ArgumentMatchers.eq(article), org.mockito.ArgumentMatchers.eq(3),
+                org.mockito.ArgumentMatchers.eq(100.0), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.any());
+        verify(stockMovementService).recordMovement(
+                org.mockito.ArgumentMatchers.eq(article), org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.eq(3), org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.eq("store.keeper"), org.mockito.ArgumentMatchers.isNull(),
+                org.mockito.ArgumentMatchers.eq(100.0), org.mockito.ArgumentMatchers.any());
+        verify(articlesService).update(article);
+        assertEquals(13, article.getStockQuantity());
+    }
 }

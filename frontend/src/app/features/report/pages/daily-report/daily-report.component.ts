@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DailyReportService } from '../../service/daily-report.service';
+import { CashSalesRegisterSummaryDto, DailyReportService } from '../../service/daily-report.service';
 import { DailyCommercialReport, creditToDeposit, tontineToDeposit, newBalanceToDeposit, remainingCredit, remainingTontine, remainingNewBalance, totalRemainingToDeposit } from '../../models/daily-commercial-report.model';
 import { SurplusReallocation } from '../../models/surplus-reallocation.model';
 import { CommercialYearlySummary } from '../../models/commercial-yearly-summary.model';
@@ -67,10 +67,16 @@ export class DailyReportComponent implements OnInit {
     isManager = false;
     isSecretary = false;
     isAdmin = false;
+    isCashier = false;
     canViewFinancialKpis = false;
     showMargins = false; // Toggle for margin visibility
     isDownloading = false;
-    activeTab: 'overview' | 'journal' | 'recovery' | 'deposits' | 'remittance' = 'overview';
+    activeTab: 'overview' | 'journal' | 'recovery' | 'deposits' | 'remittance' | 'cashRegister' = 'overview';
+    cashRegisterSummary: CashSalesRegisterSummaryDto | null = null;
+    cashRegisterOpeningFloat = 0;
+    cashRegisterCountedClosing: number | null = null;
+    cashRegisterClosingNotes = '';
+    cashRegisterBusy = false;
 
     // Operations Log
     operations: DailyOperationLog[] = [];
@@ -148,6 +154,7 @@ export class DailyReportComponent implements OnInit {
         this.isAdmin = this.userService.hasProfile(UserProfile.ADMIN)
             || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
         this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
+        this.isCashier = this.userService.hasProfile(UserProfile.CASHIER);
 
         const roles = this.tokenStorage.getUser()?.roles;
         this.canViewFinancialKpis = Array.isArray(roles)
@@ -276,12 +283,49 @@ export class DailyReportComponent implements OnInit {
         });
     }
 
+    loadCashRegisterSummary(startStr?: string, endStr?: string): void {
+        const s = startStr ?? (this.datePipe.transform(this.range.value.start, 'yyyy-MM-dd') || '');
+        const e = endStr ?? (this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd') || '');
+        if (!s || !e) return;
+        this.dailyReportService.getCashRegisterSummary(s, e).pipe(catchError(() => of(null))).subscribe(summary => {
+            this.cashRegisterSummary = summary;
+        });
+    }
+
+    openCashRegister(): void {
+        if (this.cashRegisterBusy) return;
+        this.cashRegisterBusy = true;
+        this.dailyReportService.openCashRegisterSession(Number(this.cashRegisterOpeningFloat || 0)).subscribe({
+            next: () => {
+                this.cashRegisterBusy = false;
+                this.alertService.toastSuccess('Session de caisse ventes comptant ouverte', 'Caisse');
+                this.loadCashRegisterSummary();
+            },
+            error: () => { this.cashRegisterBusy = false; this.alertService.toastError('Impossible d\'ouvrir la caisse', 'Caisse'); }
+        });
+    }
+
+    closeCashRegister(): void {
+        if (this.cashRegisterBusy) return;
+        this.cashRegisterBusy = true;
+        const counted = this.cashRegisterCountedClosing != null ? Number(this.cashRegisterCountedClosing) : undefined;
+        this.dailyReportService.closeCashRegisterSession(counted, this.cashRegisterClosingNotes || undefined).subscribe({
+            next: () => {
+                this.cashRegisterBusy = false;
+                this.alertService.toastSuccess('Session de caisse ventes comptant clôturée', 'Caisse');
+                this.loadCashRegisterSummary();
+            },
+            error: () => { this.cashRegisterBusy = false; this.alertService.toastError('Impossible de clôturer la caisse', 'Caisse'); }
+        });
+    }
+
     private fetchReports() {
         this.isLoading = true;
         const startStr = this.datePipe.transform(this.range.value.start, 'yyyy-MM-dd') || '';
         const endStr = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd') || '';
         const collector = this.selectedAgent || undefined;
         this.loadCashSynthesis(startStr, endStr);
+        this.loadCashRegisterSummary(startStr, endStr);
 
         this.dailyReportService.getReports(startStr, endStr, collector).subscribe({
             next: (data) => {

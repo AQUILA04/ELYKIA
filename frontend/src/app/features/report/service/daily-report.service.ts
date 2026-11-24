@@ -7,11 +7,64 @@ import { CommercialYearlySummary } from '../models/commercial-yearly-summary.mod
 import { RemainingAtClientsPage } from '../models/remaining-at-clients.model';
 import { CommercialTontineYearlySummary } from '../models/commercial-tontine-yearly-summary.model';
 
+export interface CashSalesRegisterEntryDto {
+    id: number;
+    sessionId: number;
+    entryType: 'RECEIPT' | 'REVERSAL';
+    amount: number;
+    signedAmount: number;
+    saleId?: number;
+    saleReference?: string;
+    clientId?: number;
+    clientName?: string;
+    collector?: string;
+    performedBy: string;
+    accountingDate: string;
+    occurredAt: string;
+    notes?: string;
+}
+
+export interface CashSalesRegisterSessionDto {
+    id: number;
+    sessionDate: string;
+    cashierUsername: string;
+    status: 'OPEN' | 'CLOSED';
+    openingFloat: number;
+    totalReceipts: number;
+    totalReversals: number;
+    receiptsCount: number;
+    reversalsCount: number;
+    expectedClosing: number;
+    countedClosing?: number;
+    discrepancy?: number;
+    closingNotes?: string;
+    openedAt: string;
+    closedAt?: string;
+    closedBy?: string;
+}
+
+export interface CashSalesRegisterSummaryDto {
+    startDate: string;
+    endDate: string;
+    sessionsCount: number;
+    openSessionsCount: number;
+    receiptsCount: number;
+    reversalsCount: number;
+    totalOpeningFloat: number;
+    totalReceipts: number;
+    totalReversals: number;
+    netSalesAmount: number;
+    totalDiscrepancy: number;
+    sessions: CashSalesRegisterSessionDto[];
+    entries: CashSalesRegisterEntryDto[];
+}
+
 @Injectable({
     providedIn: 'root'
 })
 export class DailyReportService {
     private apiUrl = `${environment.apiUrl}/api/daily-commercial-reports`;
+    private registerUrl = `${environment.apiUrl}/api/v1/cash-sales-register`;
 
     constructor(private http: HttpClient) { }
 
@@ -83,5 +136,18 @@ export class DailyReportService {
             params,
             responseType: 'blob'
         });
+    }
+
+    getCashRegisterSummary(startDate: string, endDate: string): Observable<CashSalesRegisterSummaryDto> {
+        const params = new HttpParams().set('startDate', startDate).set('endDate', endDate);
+        return this.http.get<CashSalesRegisterSummaryDto>(`${this.apiUrl}/cash-register-summary`, { params });
+    }
+
+    openCashRegisterSession(openingFloat: number): Observable<CashSalesRegisterSessionDto> {
+        return this.http.post<CashSalesRegisterSessionDto>(`${this.registerUrl}/open`, { openingFloat });
+    }
+
+    closeCashRegisterSession(countedClosing?: number, closingNotes?: string): Observable<CashSalesRegisterSessionDto> {
+        return this.http.post<CashSalesRegisterSessionDto>(`${this.registerUrl}/close`, { countedClosing, closingNotes });
     }
 }
