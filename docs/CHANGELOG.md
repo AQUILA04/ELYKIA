@@ -633,6 +633,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.49.11] — 2026-11-24
+
+### Changed
+
+- **Livraison tontine —** sélecteur d'offre (Unité / Pack) sous forme de boutons avec prix visible à la place de la liste native ; cartes articles, compteur de quantité en pilule et récapitulatif du pied de page remaniés pour un rendu plus sobre, dans le design system existant.
+
+### Fixed
+
+- **Livraison tontine —** le pack choisi (ex. « Gros — 3 300 FCFA ») est maintenant pris en compte dans le panier : l'offre était ignorée et l'unité était toujours ajoutée. Le changement d'offre sur une ligne déjà au panier recalcule prix et total, et les quantités maximales (stock et catalogue) sont calculées en nombre de packs.
+
 ## Mobile — [2.49.10] — 2026-11-24
 
 ### Added
