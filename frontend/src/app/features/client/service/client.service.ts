@@ -19,7 +19,12 @@ export interface Client {
   contactPersonPhone: string;
   contactPersonAddress: string;
   collector: string;
+  commercialUsername?: string;
+  creditCommercialUsername?: string;
   tontineCollector?: string;
+  tontineCommercialUsername?: string;
+  agencyCommercialUsername?: string;
+  recoveryCommercialUsername?: string;
   occupation: string;
   quarter: string;
   creditInProgress?: boolean;
@@ -57,7 +62,12 @@ export interface NewClientData {
   contactPersonPhone: string;
   contactPersonAddress: string;
   collector: string;
-  tontineCollector?: string; // Ajout du champ tontineCollector
+  commercialUsername?: string;
+  creditCommercialUsername?: string;
+  tontineCollector?: string;
+  tontineCommercialUsername?: string;
+  agencyCommercialUsername?: string;
+  recoveryCommercialUsername?: string; // Ajout du champ tontineCollector
   occupation: string;
   quarter: string;
   creditInProgress?: boolean;
@@ -94,6 +104,57 @@ export interface AdhesionSubmission {
   status: string;
   createdAt?: string;
   rejectionReason?: string;
+}
+
+export type PortfolioActivityType = 'CREDIT' | 'TONTINE' | 'AGENCY' | 'RECOVERY';
+export type CommercialAssignmentStatus = 'ACTIVE' | 'INACTIVE';
+export type BulkPortfolioOperationMode = 'HANDOVER_RELAY' | 'ADD_CO_COMMERCIAL' | 'DEACTIVATE_COMMERCIAL' | 'REACTIVATE_COMMERCIAL';
+
+export interface ClientCommercialAssignmentDto {
+  id: number;
+  clientId: number;
+  commercialUsername: string;
+  activityType: PortfolioActivityType;
+  status: CommercialAssignmentStatus;
+  primary: boolean;
+  assignedAt: string;
+  lastActivatedAt: string;
+  deactivatedAt?: string;
+  updatedBy?: string;
+  statusReason?: string;
+}
+
+export interface ClientCommercialAssignmentHistoryDto {
+  id: number;
+  assignmentId?: number;
+  clientId: number;
+  commercialUsername: string;
+  activityType: PortfolioActivityType;
+  eventType: string;
+  previousStatus?: CommercialAssignmentStatus;
+  newStatus: CommercialAssignmentStatus;
+  wasPrimary: boolean;
+  primary: boolean;
+  replacedByCommercialUsername?: string;
+  reason?: string;
+  performedBy: string;
+  occurredAt: string;
+}
+
+export interface BulkPortfolioOperationRequest {
+  mode: BulkPortfolioOperationMode;
+  activityTypes: PortfolioActivityType[];
+  sourceCommercialUsername?: string;
+  targetCommercialUsername?: string;
+  clientIds?: number[];
+  quarter?: string;
+  transferInProgressCredits: boolean;
+  reason?: string;
+}
+
+export interface BulkPortfolioPreviewDto {
+  impactedClientsCount: number;
+  impactedAssignmentsCount: number;
 }
 
 export interface ApiResponse<T> {
@@ -327,5 +388,37 @@ export class ClientService {
   }): Observable<ApiResponse<boolean>> {
     const headers = this.getHeader();
     return this.http.post<ApiResponse<boolean>>(`${this.apiUrl}/bulk-assign-collectors`, dto, { headers });
+  }
+
+  getClientCommercialAssignments(clientId: number): Observable<ClientCommercialAssignmentDto[]> {
+    const headers = this.getHeader();
+    return this.http.get<ClientCommercialAssignmentDto[]>(`${this.apiUrl}/${clientId}/commercial-assignments`, { headers });
+  }
+
+  getClientCommercialAssignmentHistory(clientId: number, activityType?: PortfolioActivityType): Observable<ClientCommercialAssignmentHistoryDto[]> {
+    const headers = this.getHeader();
+    let params = new HttpParams();
+    if (activityType) params = params.set('activityType', activityType);
+    return this.http.get<ClientCommercialAssignmentHistoryDto[]>(`${this.apiUrl}/${clientId}/commercial-assignments/history`, { headers, params });
+  }
+
+  assignClientCommercial(clientId: number, payload: { commercialUsername: string; activityType: PortfolioActivityType; primary: boolean; handoverFromExisting: boolean; reason?: string }): Observable<ClientCommercialAssignmentDto> {
+    const headers = this.getHeader();
+    return this.http.post<ClientCommercialAssignmentDto>(`${this.apiUrl}/${clientId}/commercial-assignments`, payload, { headers });
+  }
+
+  changeClientCommercialStatus(clientId: number, assignmentId: number, payload: { status: CommercialAssignmentStatus; primary?: boolean; reason?: string }): Observable<ClientCommercialAssignmentDto> {
+    const headers = this.getHeader();
+    return this.http.patch<ClientCommercialAssignmentDto>(`${this.apiUrl}/${clientId}/commercial-assignments/${assignmentId}/status`, payload, { headers });
+  }
+
+  previewBulkPortfolioOperation(payload: BulkPortfolioOperationRequest): Observable<BulkPortfolioPreviewDto> {
+    const headers = this.getHeader();
+    return this.http.post<BulkPortfolioPreviewDto>(`${this.apiUrl}/commercial-assignments/bulk-preview`, payload, { headers });
+  }
+
+  executeBulkPortfolioOperation(payload: BulkPortfolioOperationRequest): Observable<BulkPortfolioPreviewDto> {
+    const headers = this.getHeader();
+    return this.http.post<BulkPortfolioPreviewDto>(`${this.apiUrl}/commercial-assignments/bulk-execute`, payload, { headers });
   }
 }

@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { ClientService, Client, ClientKpis } from '../service/client.service';
+import { BulkPortfolioOperationMode, BulkPortfolioOperationRequest, BulkPortfolioPreviewDto, ClientService, Client, ClientKpis, PortfolioActivityType } from '../service/client.service';
 import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { TokenStorageService } from '@shared/service/token-storage.service';
@@ -58,6 +58,15 @@ export class ClientListComponent implements OnInit, OnDestroy {
   selectedCreditCollector = '';
   selectedTontineCollector = '';
   transferInProgressCredits = false;
+
+  showBulkPortfolioModal = false;
+  bulkMode: BulkPortfolioOperationMode = 'HANDOVER_RELAY';
+  bulkActivityScope: 'BOTH' | 'CREDIT' | 'TONTINE' = 'BOTH';
+  bulkSourceCommercial = '';
+  bulkTargetCommercial = '';
+  bulkQuarter = '';
+  bulkReason = '';
+  bulkPreview: BulkPortfolioPreviewDto | null = null;
 
   constructor(
     private clientService: ClientService,
@@ -298,6 +307,62 @@ export class ClientListComponent implements OnInit, OnDestroy {
 
   isSelected(clientId: number): boolean {
     return this.selectedClients.has(clientId);
+  }
+
+  openBulkPortfolioModal(): void {
+    this.loadCollectors();
+    this.bulkSourceCommercial = this.selectedCommercial || '';
+    this.bulkPreview = null;
+    this.showBulkPortfolioModal = true;
+  }
+
+  closeBulkPortfolioModal(): void {
+    this.showBulkPortfolioModal = false;
+    this.bulkPreview = null;
+  }
+
+  private buildBulkPortfolioPayload(): BulkPortfolioOperationRequest {
+    const activityTypes: PortfolioActivityType[] = this.bulkActivityScope === 'BOTH'
+      ? ['CREDIT', 'TONTINE']
+      : [this.bulkActivityScope];
+    return {
+      mode: this.bulkMode,
+      activityTypes,
+      sourceCommercialUsername: this.bulkSourceCommercial || undefined,
+      targetCommercialUsername: this.bulkTargetCommercial || undefined,
+      clientIds: this.selectedClients.size > 0 ? Array.from(this.selectedClients) : undefined,
+      quarter: this.bulkQuarter || undefined,
+      transferInProgressCredits: this.transferInProgressCredits,
+      reason: this.bulkReason || undefined
+    };
+  }
+
+  previewBulkPortfolio(): void {
+    this.clientService.previewBulkPortfolioOperation(this.buildBulkPortfolioPayload()).subscribe({
+      next: (preview) => { this.bulkPreview = preview; },
+      error: (err) => { this.alertService.showError(err?.error?.message || 'Aperçu impossible'); }
+    });
+  }
+
+  confirmBulkPortfolio(): void {
+    this.spinner.show();
+    this.clientService.executeBulkPortfolioOperation(this.buildBulkPortfolioPayload()).subscribe({
+      next: (res) => {
+        this.spinner.hide();
+        this.alertService.showSuccess(
+          `Opération de portefeuille exécutée sur ${res.impactedClientsCount} client(s) (${res.impactedAssignmentsCount} affectation(s)).`
+        );
+        this.closeBulkPortfolioModal();
+        this.selectedClients.clear();
+        this.isAllSelected = false;
+        this.loadClient();
+        this.loadClientKpis();
+      },
+      error: (err) => {
+        this.spinner.hide();
+        this.alertService.showError(err?.error?.message || 'Erreur lors de l\'opération de portefeuille en masse.');
+      }
+    });
   }
 
   openBulkAssignCollectorModal(): void {

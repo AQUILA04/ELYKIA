@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class SalesAnalyticsDaily {
     
     @Id
@@ -28,8 +27,28 @@ public class SalesAnalyticsDaily {
     @Column(name = "sale_date", nullable = false)
     private LocalDate saleDate = LocalDate.now();
     
+    /** @deprecated Utiliser {@link #commercialUsername}. */
+    @Deprecated(since = "2.14.0", forRemoval = true)
     @Column(name = "collector")
     private String collector;
+
+    @Column(name = "commercial_username")
+    private String commercialUsername;
+
+    public void setCommercialUsername(String commercialUsername) {
+        this.commercialUsername = commercialUsername;
+        this.collector = commercialUsername;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setCollector(String collector) {
+        this.collector = collector;
+        this.commercialUsername = collector;
+    }
+
+    public String getCommercialUsername() {
+        return commercialUsername != null ? commercialUsername : collector;
+    }
     
     @Column(name = "client_type", length = 50)
     private String clientType;

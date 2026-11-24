@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ClientService, Client, AdhesionSubmission, ClientAdhesion } from '../service/client.service';
+import { ClientService, Client, AdhesionSubmission, ClientAdhesion, ClientCommercialAssignmentDto, ClientCommercialAssignmentHistoryDto, PortfolioActivityType } from '../service/client.service';
 import { TokenStorageService } from '@shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
@@ -46,6 +46,15 @@ export class ClientDetailsComponent implements OnInit {
   adhesionLoading = false;
   topUpAmounts: Record<string, number> = {};
 
+  commercialAssignments: ClientCommercialAssignmentDto[] = [];
+  commercialHistory: ClientCommercialAssignmentHistoryDto[] = [];
+  availableCommercials: any[] = [];
+  newAssignmentCommercial = '';
+  newAssignmentActivity: PortfolioActivityType = 'CREDIT';
+  newAssignmentHandover = true;
+  newAssignmentReason = '';
+  portfolioBusy = false;
+
   constructor(
     private route: ActivatedRoute,
     private clientService: ClientService,
@@ -78,6 +87,70 @@ export class ClientDetailsComponent implements OnInit {
     this.loadClientDetails(this.clientId);
     this.loadCredits(this.clientId);
     this.loadCotisations(this.clientId);
+    this.loadCommercialPortfolio(this.clientId);
+  }
+
+  loadCommercialPortfolio(clientId: number): void {
+    this.clientService.getClientCommercialAssignments(clientId).subscribe({
+      next: (rows) => { this.commercialAssignments = rows || []; },
+      error: () => { this.commercialAssignments = []; }
+    });
+    this.clientService.getClientCommercialAssignmentHistory(clientId).subscribe({
+      next: (rows) => { this.commercialHistory = rows || []; },
+      error: () => { this.commercialHistory = []; }
+    });
+    if (this.availableCommercials.length === 0) {
+      this.clientService.getAgents().subscribe({
+        next: (agents) => { this.availableCommercials = agents || []; },
+        error: () => { this.availableCommercials = []; }
+      });
+    }
+  }
+
+  submitCommercialAssignment(): void {
+    if (!this.newAssignmentCommercial || this.portfolioBusy) return;
+    this.portfolioBusy = true;
+    this.clientService.assignClientCommercial(this.clientId, {
+      commercialUsername: this.newAssignmentCommercial,
+      activityType: this.newAssignmentActivity,
+      primary: this.newAssignmentHandover,
+      handoverFromExisting: this.newAssignmentHandover,
+      reason: this.newAssignmentReason || undefined
+    }).subscribe({
+      next: () => {
+        this.portfolioBusy = false;
+        this.newAssignmentReason = '';
+        this.alertService.toastSuccess('Affectation commerciale enregistrée', 'Portefeuille');
+        this.loadClient(this.clientId);
+        this.loadCommercialPortfolio(this.clientId);
+      },
+      error: () => {
+        this.portfolioBusy = false;
+        this.alertService.toastError('Impossible de mettre à jour l\'affectation commerciale', 'Portefeuille');
+      }
+    });
+  }
+
+  toggleAssignmentStatus(a: ClientCommercialAssignmentDto): void {
+    if (this.portfolioBusy) return;
+    const nextStatus = a.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    this.portfolioBusy = true;
+    this.clientService.changeClientCommercialStatus(this.clientId, a.id, {
+      status: nextStatus,
+      primary: nextStatus === 'ACTIVE' ? a.primary : false,
+      reason: nextStatus === 'INACTIVE' ? 'Mis en consultation seule' : 'Réactivé pour nouvelles opérations'
+    }).subscribe({
+      next: () => {
+        this.portfolioBusy = false;
+        this.alertService.toastSuccess(nextStatus === 'ACTIVE' ? 'Commercial réactivé' : 'Commercial passé en consultation seule (inactif)', 'Portefeuille');
+        this.loadClient(this.clientId);
+        this.loadCommercialPortfolio(this.clientId);
+      },
+      error: () => {
+        this.portfolioBusy = false;
+        this.alertService.toastError('Échec du changement de statut', 'Portefeuille');
+      }
+    });
   }
 
   loadClient(clientId: number): void {

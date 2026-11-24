@@ -23,4 +23,7 @@ public record CommercialStockMovementView(
         LocalDateTime occurredAt,
         boolean backdated,
         String performedBy) {
+    public String commercialUsername() {
+        return collector;
+    }
 }

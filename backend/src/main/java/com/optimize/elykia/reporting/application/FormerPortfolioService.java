@@ -7,7 +7,10 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.client.api.CommercialPortfolioAccessPort;
+import com.optimize.elykia.client.api.PortfolioActivityType;
 import com.optimize.elykia.client.enumeration.ClientCollectorType;
+import com.optimize.elykia.tontine.application.TontineMemberRelayService;
 import com.optimize.elykia.client.repository.ClientCollectorHistoryRepository;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.reporting.web.dto.FormerAgencyClientDto;
@@ -71,6 +74,18 @@ public class FormerPortfolioService {
     private final com.optimize.elykia.reporting.infrastructure.persistence.FormerPortfolioCreditQueryRepository formerCreditQueryRepository;
     private final com.optimize.elykia.reporting.infrastructure.persistence.FormerPortfolioTimelineQueryRepository formerTimelineQueryRepository;
     private final CreditCollectorHistoryRepository creditCollectorHistoryRepository;
+    private CommercialPortfolioAccessPort portfolioAccessPort;
+    private TontineMemberRelayService tontineMemberRelayService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setPortfolioAccessPort(CommercialPortfolioAccessPort portfolioAccessPort) {
+        this.portfolioAccessPort = portfolioAccessPort;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setTontineMemberRelayService(TontineMemberRelayService tontineMemberRelayService) {
+        this.tontineMemberRelayService = tontineMemberRelayService;
+    }
 
     public Page<FormerTontineMemberDto> listFormerTontineMembers(Pageable pageable) {
         return listFormerTontineMembers(pageable, null);
@@ -193,7 +208,12 @@ public class FormerPortfolioService {
     private FormerPortfolioAccess.Level decideTontine(User user, TontineMember member) {
         boolean promoterOnly = CollectorAudienceSecurity.isPromoterOnly(user);
         String collector = member.getClient() == null ? null : member.getClient().getTontineCollector();
-        boolean current = CollectorAudienceSecurity.matchesTontineCollector(user, collector);
+        boolean current = CollectorAudienceSecurity.matchesTontineCollector(user, collector)
+                || (user != null && tontineMemberRelayService != null
+                && tontineMemberRelayService.canCommercialOperateOnMember(user.getUsername(), member))
+                || (user != null && portfolioAccessPort != null && member.getClient() != null
+                && portfolioAccessPort.isCommercialActiveOnClient(user.getUsername(), member.getClient().getId(),
+                        PortfolioActivityType.TONTINE));
         boolean former = false;
         if (promoterOnly && !current && user != null && StringUtils.hasText(user.getUsername())) {
             String commercial = user.getUsername();
@@ -215,7 +235,10 @@ public class FormerPortfolioService {
         String holder = cash
                 ? (credit.getClient() == null ? null : credit.getClient().getAgencyCollector())
                 : credit.getCollector();
-        boolean current = CollectorAudienceSecurity.matchesCreditCollector(user, holder);
+        boolean current = CollectorAudienceSecurity.matchesCreditCollector(user, holder)
+                || (!cash && user != null && portfolioAccessPort != null && credit.getClient() != null
+                && portfolioAccessPort.isCommercialActiveOnClient(user.getUsername(), credit.getClient().getId(),
+                        PortfolioActivityType.CREDIT));
         boolean former = false;
         if (promoterOnly && !current && user != null && StringUtils.hasText(user.getUsername())) {
             String commercial = user.getUsername();

@@ -66,7 +66,12 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
     private CreditStatus status;
     @PositiveOrZero
     private Integer remainingDaysCount;
+    /** @deprecated Utiliser {@link #commercialUsername}. */
+    @Deprecated(since = "2.14.0", forRemoval = true)
     private String collector;
+
+    @Column(name = "commercial_username")
+    private String commercialUsername;
     @Enumerated(EnumType.STRING)
     private OperationType type;
     @Column(columnDefinition = "boolean default false")
@@ -86,7 +91,42 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
     @Column(columnDefinition = "boolean default false")
     private Boolean releasePrinted;
     private String oldReference;
+    /** @deprecated Utiliser {@link #agencyCommercialUsername}. */
+    @Deprecated(since = "2.14.0", forRemoval = true)
     private String agencyCommercial;
+
+    @Column(name = "agency_commercial_username")
+    private String agencyCommercialUsername;
+
+    public void setCommercialUsername(String commercialUsername) {
+        this.commercialUsername = commercialUsername;
+        this.collector = commercialUsername;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setCollector(String collector) {
+        this.collector = collector;
+        this.commercialUsername = collector;
+    }
+
+    public String getCommercialUsername() {
+        return commercialUsername != null ? commercialUsername : collector;
+    }
+
+    public void setAgencyCommercialUsername(String agencyCommercialUsername) {
+        this.agencyCommercialUsername = agencyCommercialUsername;
+        this.agencyCommercial = agencyCommercialUsername;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setAgencyCommercial(String agencyCommercial) {
+        this.agencyCommercial = agencyCommercial;
+        this.agencyCommercialUsername = agencyCommercial;
+    }
+
+    public String getAgencyCommercialUsername() {
+        return agencyCommercialUsername != null ? agencyCommercialUsername : agencyCommercial;
+    }
 
     @Column(name = "operation_consent_code")
     private String operationConsentCode;

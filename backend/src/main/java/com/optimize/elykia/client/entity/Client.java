@@ -68,7 +68,96 @@ public class Client extends Auditable<String> {
     private String cardPhotoThumbUrl;
     private String tontineCollector;
     private String agencyCollector;
+    /** @deprecated Utiliser {@link #recoveryCommercialUsername}. */
+    @Deprecated(since = "2.14.0", forRemoval = true)
     private String recoveryCollector;
+
+    @Column(name = "commercial_username")
+    private String commercialUsername;
+
+    @Column(name = "credit_commercial_username")
+    private String creditCommercialUsername;
+
+    @Column(name = "tontine_commercial_username")
+    private String tontineCommercialUsername;
+
+    @Column(name = "agency_commercial_username")
+    private String agencyCommercialUsername;
+
+    @Column(name = "recovery_commercial_username")
+    private String recoveryCommercialUsername;
+
+    public void setCommercialUsername(String commercialUsername) {
+        this.commercialUsername = commercialUsername;
+        this.creditCommercialUsername = commercialUsername;
+        this.collector = commercialUsername;
+    }
+
+    public String getCommercialUsername() {
+        return commercialUsername != null ? commercialUsername : (creditCommercialUsername != null ? creditCommercialUsername : collector);
+    }
+
+    public void setCreditCommercialUsername(String creditCommercialUsername) {
+        this.creditCommercialUsername = creditCommercialUsername;
+        this.commercialUsername = creditCommercialUsername;
+        this.collector = creditCommercialUsername;
+    }
+
+    public String getCreditCommercialUsername() {
+        return creditCommercialUsername != null ? creditCommercialUsername : (commercialUsername != null ? commercialUsername : collector);
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setCollector(String collector) {
+        this.collector = collector;
+        this.commercialUsername = collector;
+        this.creditCommercialUsername = collector;
+    }
+
+    public void setTontineCommercialUsername(String tontineCommercialUsername) {
+        this.tontineCommercialUsername = tontineCommercialUsername;
+        this.tontineCollector = tontineCommercialUsername;
+    }
+
+    public String getTontineCommercialUsername() {
+        return tontineCommercialUsername != null ? tontineCommercialUsername : tontineCollector;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setTontineCollector(String tontineCollector) {
+        this.tontineCollector = tontineCollector;
+        this.tontineCommercialUsername = tontineCollector;
+    }
+
+    public void setAgencyCommercialUsername(String agencyCommercialUsername) {
+        this.agencyCommercialUsername = agencyCommercialUsername;
+        this.agencyCollector = agencyCommercialUsername;
+    }
+
+    public String getAgencyCommercialUsername() {
+        return agencyCommercialUsername != null ? agencyCommercialUsername : agencyCollector;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setAgencyCollector(String agencyCollector) {
+        this.agencyCollector = agencyCollector;
+        this.agencyCommercialUsername = agencyCollector;
+    }
+
+    public void setRecoveryCommercialUsername(String recoveryCommercialUsername) {
+        this.recoveryCommercialUsername = recoveryCommercialUsername;
+        this.recoveryCollector = recoveryCommercialUsername;
+    }
+
+    public String getRecoveryCommercialUsername() {
+        return recoveryCommercialUsername != null ? recoveryCommercialUsername : recoveryCollector;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setRecoveryCollector(String recoveryCollector) {
+        this.recoveryCollector = recoveryCollector;
+        this.recoveryCommercialUsername = recoveryCollector;
+    }
     @Column(columnDefinition = "boolean default false")
     private boolean isTontineMember;
     @Column(columnDefinition = "boolean default false")

@@ -22,7 +22,9 @@ import com.optimize.elykia.tontine.application.TontineMemberCarnetVerificationSe
 import com.optimize.elykia.tontine.application.TontineMemberFieldControlService;
 import com.optimize.elykia.tontine.application.TontineMemberContributionService;
 import com.optimize.elykia.tontine.api.FormerPortfolioTontinePort;
+import com.optimize.elykia.tontine.application.TontineMemberRelayService;
 import com.optimize.elykia.tontine.application.TontineService;
+import com.optimize.elykia.tontine.domain.TontineMemberCommercialAssignment;
 import com.optimize.elykia.tontine.application.TontineStockService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -49,6 +51,7 @@ import java.util.Set;
 public class TontineController {
 
     private final TontineService tontineService;
+    private final TontineMemberRelayService tontineMemberRelayService;
     private final FormerPortfolioTontinePort formerPortfolioService;
     private final TontineStockService tontineStockService;
     private final TontineMemberFieldControlService tontineMemberFieldControlService;
@@ -373,5 +376,35 @@ public class TontineController {
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(tontineStockService.getAll(commercial, pageable, historic)),
                 HttpStatus.OK);
+    }
+
+    @GetMapping("/members/{memberId}/stewardship")
+    public ResponseEntity<java.util.List<TontineMemberCommercialAssignment>> getMemberStewardship(@PathVariable Long memberId) {
+        return ResponseEntity.ok(tontineMemberRelayService.listStewardship(memberId));
+    }
+
+    @PostMapping("/members/{memberId}/relay")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.ASSIGN_CLIENT_COLLECTOR + "')")
+    public ResponseEntity<TontineMemberCommercialAssignment> relayMember(
+            @PathVariable Long memberId,
+            @RequestBody TontineRelayRequest request) {
+        return ResponseEntity.ok(tontineMemberRelayService.assignOrRelayMember(
+                memberId, request.targetCommercialUsername(), request.handoverFromExisting(), request.reason()));
+    }
+
+    @PostMapping("/members/bulk-relay")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.ASSIGN_CLIENT_COLLECTOR + "')")
+    public ResponseEntity<java.util.Map<String, Integer>> bulkRelayMembers(@RequestBody BulkTontineRelayRequest request) {
+        int count = tontineMemberRelayService.bulkRelayMembers(request.sourceCommercialUsername(),
+                request.targetCommercialUsername(), request.memberIds(), request.handoverFromExisting(),
+                request.reason());
+        return ResponseEntity.ok(java.util.Map.of("impactedMembersCount", count));
+    }
+
+    public record TontineRelayRequest(String targetCommercialUsername, boolean handoverFromExisting, String reason) {
+    }
+
+    public record BulkTontineRelayRequest(String sourceCommercialUsername, String targetCommercialUsername,
+                                          java.util.List<Long> memberIds, boolean handoverFromExisting, String reason) {
     }
 }

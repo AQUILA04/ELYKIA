@@ -46,3 +46,28 @@ La même personne peut revenir plus tard sur le même compte, dès que les dates
 1. Sur l'historique, cliquez sur **Corriger**.
 2. Ajustez la personne ou les dates, puis cliquez sur **Enregistrer**.
 3. **Retirer** enlève la période de l'historique. Les ventes et les encaissements déjà enregistrés sur le compte ne sont pas modifiés.
+
+
+---
+
+## 4. Portefeuille multi-commerciaux, relais (Crédit / Tontine) et opérations en masse
+
+Un client peut avoir un commercial différent par activité (**Crédit**, **Tontine**, **Agence**, **Recouvrement**) ainsi que plusieurs commerciaux sur une même activité, chacun avec le statut **Actif** (peut enregistrer de nouvelles opérations) ou **Inactif** (consultation seule uniquement sur ses propres opérations passées, réactivable à tout moment).
+
+### A. Sur la fiche d'un client (onglet « Commerciaux & Historique »)
+1. Ouvrez la fiche d'un client puis cliquez sur l'onglet **« Commerciaux & Historique »**.
+2. Choisissez l'**Activité** (`Crédit`, `Tontine`, `Agence`, `Recouvrement`), le **Commercial** et le **Mode** :
+   * **Prendre le relais (désactiver l'actuel)** : le nouveau commercial devient **Actif (Principal)** et le commercial précédent passe automatiquement à **Inactif** (il garde la consultation de ses propres opérations).
+   * **Co-commercial actif (tous deux actifs)** : les deux commerciaux peuvent opérer avec le client.
+3. Cliquez sur **« Désactiver (consultation seule) »** ou **« Réactiver »** sur une ligne pour basculer le statut d'un commercial à tout moment.
+4. Le tableau **Historique des changements de commercial** en bas d'onglet trace chaque affectation, relais, désactivation et réactivation avec la date, l'auteur et le motif.
+
+### B. Opération de portefeuille en masse (1 000+ clients en un clic)
+1. Dans **Clients > Liste des clients**, cliquez sur **« Relais / Portefeuille en masse »**.
+2. Sans cocher de clients, sélectionnez directement le **Commercial source A** pour cibler tout son portefeuille d'un coup (ou filtrez par quartier, ou cochez une sélection).
+3. Choisissez le **Mode d'opération** :
+   * **Passer le relais (A → B)**,
+   * **Ajouter un co-commercial actif (A et B actifs)**,
+   * **Désactiver le commercial source (consultation seule sur ses propres opérations)**,
+   * **Réactiver le portefeuille inactif d'un commercial**.
+4. Cliquez sur **« Aperçu »** pour vérifier le nombre exact de clients et d'affectations impactés, puis sur **« Exécuter en masse »**.

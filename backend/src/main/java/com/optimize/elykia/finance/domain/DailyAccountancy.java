@@ -19,8 +19,28 @@ public class DailyAccountancy extends BaseEntity<String> {
     @Enumerated(EnumType.STRING)
     private AccountancyStatus status = AccountancyStatus.COMPLIANT;
     private Double balanceDifference = 0D;
+    /** @deprecated Utiliser {@link #commercialUsername}. */
+    @Deprecated(since = "2.14.0", forRemoval = true)
     @Column(updatable = false)
     private String collector;
+
+    @Column(name = "commercial_username")
+    private String commercialUsername;
+
+    public void setCommercialUsername(String commercialUsername) {
+        this.commercialUsername = commercialUsername;
+        this.collector = commercialUsername;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setCollector(String collector) {
+        this.collector = collector;
+        this.commercialUsername = collector;
+    }
+
+    public String getCommercialUsername() {
+        return commercialUsername != null ? commercialUsername : collector;
+    }
     @Column(updatable = false)
     private LocalDate accountingDate = LocalDate.now();
     @ManyToOne

@@ -26,8 +26,28 @@ public class CommercialStockPeriodSnapshot {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** @deprecated Utiliser {@link #commercialUsername}. */
+    @Deprecated(since = "2.14.0", forRemoval = true)
     @Column(name = "collector", nullable = false, length = 100)
     private String collector;
+
+    @Column(name = "commercial_username", nullable = false, length = 100)
+    private String commercialUsername;
+
+    public void setCommercialUsername(String commercialUsername) {
+        this.commercialUsername = commercialUsername;
+        this.collector = commercialUsername;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setCollector(String collector) {
+        this.collector = collector;
+        this.commercialUsername = collector;
+    }
+
+    public String getCommercialUsername() {
+        return commercialUsername != null ? commercialUsername : collector;
+    }
 
     @Column(name = "article_id", nullable = false)
     private Long articleId;

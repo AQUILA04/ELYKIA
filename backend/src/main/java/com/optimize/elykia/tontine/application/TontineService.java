@@ -78,6 +78,12 @@ public class TontineService extends GenericService<TontineMember, Long> {
     private TontineMemberAmountHistoryArchiveRepository tontineMemberAmountHistoryArchiveRepository;
     private final ClientService clientService;
     private final UserService userService;
+    private TontineMemberRelayService tontineMemberRelayService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setTontineMemberRelayService(TontineMemberRelayService tontineMemberRelayService) {
+        this.tontineMemberRelayService = tontineMemberRelayService;
+    }
     private final ParameterService parameterService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private BusinessMetricsPublisher metricsPublisher;
@@ -604,9 +610,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
             assertDeliveryTopUp(member, dto.getAmount());
         }
         Client client = member.getClient();
-        CollectorAudienceSecurity.assertPromoterOwnsTontineCollector(
-                userService.getCurrentUser(),
-                client != null ? client.getTontineCollector() : null);
+        assertPromoterCanOperateOnTontineMember(userService.getCurrentUser(), member, client);
 
         LocalDate allocationDate = LocalDate.now();
         LocalDateTime collectionDateTime = LocalDateTime.now();
@@ -1043,7 +1047,25 @@ public class TontineService extends GenericService<TontineMember, Long> {
      * Commercial propriétaire de la collecte / du rapport = collector tontine du client
      * au moment de la saisie (y compris si l'opérateur est RM ou secrétaire).
      */
+    private void assertPromoterCanOperateOnTontineMember(User user, TontineMember member, Client client) {
+        if (!CollectorAudienceSecurity.isPromoterOnly(user)) {
+            return;
+        }
+        if (tontineMemberRelayService != null
+                && tontineMemberRelayService.canCommercialOperateOnMember(user.getUsername(), member)) {
+            return;
+        }
+        CollectorAudienceSecurity.assertPromoterOwnsTontineCollector(
+                user, client != null ? client.getTontineCollector() : null);
+    }
+
     private String resolveCollectionCommercialUsername(TontineMember member) {
+        User current = userService.getCurrentUser();
+        if (current != null && CollectorAudienceSecurity.isPromoterOnly(current)
+                && tontineMemberRelayService != null
+                && tontineMemberRelayService.canCommercialOperateOnMember(current.getUsername(), member)) {
+            return current.getUsername();
+        }
         Client client = member.getClient();
         if (client == null || !StringUtils.hasText(client.getTontineCollector())) {
             throw new CustomValidationException(

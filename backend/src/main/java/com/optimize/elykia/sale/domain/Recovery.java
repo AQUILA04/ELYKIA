@@ -22,7 +22,27 @@ public class Recovery extends BaseEntity<String> {
     private String notes;
     private String distributionId;
     private String clientId;
+    /** @deprecated Utiliser {@link #commercialUsername}. */
+    @Deprecated(since = "2.14.0", forRemoval = true)
     private String commercialId;
+
+    @Column(name = "commercial_username")
+    private String commercialUsername;
+
+    public void setCommercialUsername(String commercialUsername) {
+        this.commercialUsername = commercialUsername;
+        this.commercialId = commercialUsername;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setCommercialId(String commercialId) {
+        this.commercialId = commercialId;
+        this.commercialUsername = commercialId;
+    }
+
+    public String getCommercialUsername() {
+        return commercialUsername != null ? commercialUsername : commercialId;
+    }
     private LocalDate createdAt;
     private LocalDate syncDate;
 

@@ -13,4 +13,7 @@ public record CommercialStockTeamRowView(
         int closingQuantity,
         double soldValue,
         double realizedMargin) {
+    public String commercialUsername() {
+        return collector;
+    }
 }

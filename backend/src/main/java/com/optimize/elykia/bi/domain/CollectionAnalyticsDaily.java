@@ -1,7 +1,6 @@
 package com.optimize.elykia.bi.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -19,7 +18,6 @@ import java.time.LocalDateTime;
        uniqueConstraints = @UniqueConstraint(columnNames = {"collection_date", "collector"}))
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class CollectionAnalyticsDaily {
     
     @Id
@@ -31,6 +29,24 @@ public class CollectionAnalyticsDaily {
     
     @Column(name = "collector")
     private String collector;
+
+    @Column(name = "commercial_username")
+    private String commercialUsername;
+
+    public void setCommercialUsername(String commercialUsername) {
+        this.commercialUsername = commercialUsername;
+        this.collector = commercialUsername;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setCollector(String collector) {
+        this.collector = collector;
+        this.commercialUsername = collector;
+    }
+
+    public String getCommercialUsername() {
+        return commercialUsername != null ? commercialUsername : collector;
+    }
     
     @Column(name = "payment_count", nullable = false)
     private Integer paymentCount = 0;

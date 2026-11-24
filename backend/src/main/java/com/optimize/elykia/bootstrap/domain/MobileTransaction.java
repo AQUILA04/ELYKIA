@@ -1,6 +1,7 @@
 package com.optimize.elykia.bootstrap.domain;
 
 import com.optimize.common.entities.entity.BaseEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -25,5 +26,25 @@ public class MobileTransaction extends BaseEntity<String> {
     private Double amount;
     private String details;
     private LocalDate date;
+    /** @deprecated Utiliser {@link #commercialUsername}. */
+    @Deprecated(since = "2.14.0", forRemoval = true)
     private String commercialId;
+
+    @Column(name = "commercial_username")
+    private String commercialUsername;
+
+    public void setCommercialUsername(String commercialUsername) {
+        this.commercialUsername = commercialUsername;
+        this.commercialId = commercialUsername;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setCommercialId(String commercialId) {
+        this.commercialId = commercialId;
+        this.commercialUsername = commercialId;
+    }
+
+    public String getCommercialUsername() {
+        return commercialUsername != null ? commercialUsername : commercialId;
+    }
 }

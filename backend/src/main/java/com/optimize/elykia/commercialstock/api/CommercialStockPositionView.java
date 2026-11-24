@@ -15,4 +15,7 @@ public record CommercialStockPositionView(
 
     public record LayerView(Long layerId, int quantityRemaining, double unitPurchaseCost, Double effectiveSalePrice) {
     }
+    public String commercialUsername() {
+        return collector;
+    }
 }

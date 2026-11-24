@@ -2644,6 +2644,196 @@
           "refColumn": "id"
         }
       ]
+    },
+    {
+      "name": "client_commercial_assignment",
+      "description": "Affectations commerciales d'un client par type d'activité (CREDIT, TONTINE, AGENCY, RECOVERY) avec statut ACTIVE (opérations autorisées) ou INACTIVE (consultation seule sur ses propres opérations) et indicateur principal is_primary",
+      "synonyms": [
+        "affectation commercial client",
+        "portefeuille client"
+      ],
+      "rowLevelFilter": "commercial_username",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "client_id",
+          "type": "bigint",
+          "description": "FK client"
+        },
+        {
+          "name": "commercial_username",
+          "type": "varchar"
+        },
+        {
+          "name": "activity_type",
+          "type": "varchar",
+          "description": "CREDIT, TONTINE, AGENCY ou RECOVERY"
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "description": "ACTIVE ou INACTIVE"
+        },
+        {
+          "name": "is_primary",
+          "type": "boolean",
+          "description": "Commercial principal pour cette activité"
+        },
+        {
+          "name": "assigned_at",
+          "type": "timestamp"
+        },
+        {
+          "name": "last_activated_at",
+          "type": "timestamp"
+        },
+        {
+          "name": "deactivated_at",
+          "type": "timestamp"
+        },
+        {
+          "name": "status_reason",
+          "type": "varchar"
+        }
+      ],
+      "relations": [
+        {
+          "column": "client_id",
+          "refTable": "client",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "client_commercial_assignment_history",
+      "description": "Historique immuable de tous les changements de commercial sur un client (affectation, relais, désactivation en consultation seule, réactivation)",
+      "synonyms": [
+        "historique commercial client",
+        "journal relais commercial"
+      ],
+      "rowLevelFilter": "commercial_username",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "assignment_id",
+          "type": "bigint"
+        },
+        {
+          "name": "client_id",
+          "type": "bigint"
+        },
+        {
+          "name": "commercial_username",
+          "type": "varchar"
+        },
+        {
+          "name": "activity_type",
+          "type": "varchar"
+        },
+        {
+          "name": "event_type",
+          "type": "varchar",
+          "description": "ASSIGNED, ACTIVATED, DEACTIVATED, REACTIVATED, PROMOTED_PRIMARY, DEMOTED_PRIMARY, RELAY_HANDOVER"
+        },
+        {
+          "name": "previous_status",
+          "type": "varchar"
+        },
+        {
+          "name": "new_status",
+          "type": "varchar"
+        },
+        {
+          "name": "replaced_by_commercial_username",
+          "type": "varchar"
+        },
+        {
+          "name": "reason",
+          "type": "varchar"
+        },
+        {
+          "name": "performed_by",
+          "type": "varchar"
+        },
+        {
+          "name": "occurred_at",
+          "type": "timestamp"
+        }
+      ],
+      "relations": [
+        {
+          "column": "client_id",
+          "refTable": "client",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "tontine_member_commercial_assignment",
+      "description": "Mandats des commerciaux sur un carnet tontine (INITIATOR qui a démarré le carnet, RELAY qui a pris le relais, CO_COLLECTOR) avec statut ACTIVE ou INACTIVE et cumul de ses propres collectes",
+      "synonyms": [
+        "relais commercial tontine",
+        "mandat carnet tontine"
+      ],
+      "rowLevelFilter": "commercial_username",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "tontine_member_id",
+          "type": "bigint",
+          "description": "FK tontine_member"
+        },
+        {
+          "name": "commercial_username",
+          "type": "varchar"
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "description": "ACTIVE ou INACTIVE"
+        },
+        {
+          "name": "role",
+          "type": "varchar",
+          "description": "INITIATOR, RELAY ou CO_COLLECTOR"
+        },
+        {
+          "name": "effective_from",
+          "type": "date"
+        },
+        {
+          "name": "effective_to",
+          "type": "date"
+        },
+        {
+          "name": "collections_count_snapshot",
+          "type": "bigint"
+        },
+        {
+          "name": "collections_amount_snapshot",
+          "type": "double"
+        },
+        {
+          "name": "reason",
+          "type": "varchar"
+        }
+      ],
+      "relations": [
+        {
+          "column": "tontine_member_id",
+          "refTable": "tontine_member",
+          "refColumn": "id"
+        }
+      ]
     }
   ],
   "views": [
@@ -2669,6 +2859,7 @@
     "Qui utilisait un compte commercial à une date : commercial_account_assignment joint à promoter. user_id identifie le compte ; le username COM des ventes reste collector ou commercial_username.",
     "Toujours filtrer visibility = 'ENABLED' si la colonne existe",
     "Toute requête SQL générée qui doit afficher le nom d'un article doit le formater sous l'alias commercialName en concaténant ses attributs (ex: CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name) AS commercialName).",
-    "Stock commercial continu (tables commercial_stock_*) : équation de conservation sur une période [D1,D2] = ouverture + entrées + transferts entrants + annulations − ventes/livraisons − retours − transferts sortants − dettes ± ajustements = clôture. Les mouvements se rattachent aux périodes par accounting_date (et non occurred_at). Le coût d'achat (unit_purchase_cost) est immuable ; seul le prix de vente effectif peut être réaligné. Les tables commercial_monthly_stock*, tontine_stock* et l'ancien commercial_stock_movement restent des archives."
+    "Stock commercial continu (tables commercial_stock_*) : équation de conservation sur une période [D1,D2] = ouverture + entrées + transferts entrants + annulations − ventes/livraisons − retours − transferts sortants − dettes ± ajustements = clôture. Les mouvements se rattachent aux périodes par accounting_date (et non occurred_at). Le coût d'achat (unit_purchase_cost) est immuable ; seul le prix de vente effectif peut être réaligné. Les tables commercial_monthly_stock*, tontine_stock* et l'ancien commercial_stock_movement restent des archives.",
+    "Identifiant standardisé du commercial : toutes les tables exposent commercial_username (les anciennes colonnes collector, commercial et commercial_id sont dépréciées et synchronisées par triggers). Portefeuille commercial : table client_commercial_assignment (status ACTIVE = lecture/écriture, INACTIVE = consultation seule uniquement sur ses propres opérations) et tontine_member_commercial_assignment (relais de carnet tontine sans écraser les collectes passées)."
   ]
 }

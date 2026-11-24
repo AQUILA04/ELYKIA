@@ -68,22 +68,24 @@ public class CommercialStockController {
 
     @GetMapping("/positions")
     public ResponseEntity<List<CommercialStockPositionView>> positions(
-            @RequestParam(required = false) String collector,
+            @RequestParam(required = false) String commercialUsername,
+            @Deprecated @RequestParam(required = false) String collector,
             @RequestParam(required = false) StockActivityType activityType,
             @RequestParam(defaultValue = "true") boolean onlyPositive) {
-        return ResponseEntity.ok(facade.getPositions(scopedCollector(collector), activityType, onlyPositive));
+        return ResponseEntity.ok(facade.getPositions(scopedCollector(resolveCommercial(commercialUsername, collector)), activityType, onlyPositive));
     }
 
     @GetMapping("/movements")
     public ResponseEntity<List<CommercialStockMovementView>> movements(
-            @RequestParam(required = false) String collector,
+            @RequestParam(required = false) String commercialUsername,
+            @Deprecated @RequestParam(required = false) String collector,
             @RequestParam(required = false) Long articleId,
             @RequestParam(required = false) StockActivityType activityType,
             @RequestParam(required = false) CommercialStockMovementType movementType,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(defaultValue = "200") int limit) {
-        return ResponseEntity.ok(facade.getMovements(scopedCollector(collector), articleId, activityType, movementType,
+        return ResponseEntity.ok(facade.getMovements(scopedCollector(resolveCommercial(commercialUsername, collector)), articleId, activityType, movementType,
                 startDate, endDate, limit));
     }
 
@@ -114,6 +116,10 @@ public class CommercialStockController {
 
     public record RealignPricesRequest(Long articleId, StockActivityType activityType, String collector,
                                        Double newSalePrice) {
+    }
+
+    private static String resolveCommercial(String commercialUsername, String deprecatedCollector) {
+        return (commercialUsername != null && !commercialUsername.isBlank()) ? commercialUsername : deprecatedCollector;
     }
 
     private String scopedCollector(String requested) {

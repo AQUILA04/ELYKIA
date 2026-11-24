@@ -20,4 +20,7 @@ public record CommercialStockPeriodRowView(
         double purchaseCostOfSold,
         double realizedMargin,
         boolean hasBackdatedMovements) {
+    public String commercialUsername() {
+        return collector;
+    }
 }

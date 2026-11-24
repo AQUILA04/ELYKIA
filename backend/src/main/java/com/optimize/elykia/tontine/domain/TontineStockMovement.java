@@ -36,8 +36,28 @@ public class TontineStockMovement extends Auditable<String> {
 
     private String tontineDeliveryReference;
 
+    /** @deprecated Utiliser {@link #commercialUsername}. */
+    @Deprecated(since = "2.14.0", forRemoval = true)
     @Column(nullable = false)
     private String collector;
+
+    @Column(name = "commercial_username", nullable = false)
+    private String commercialUsername;
+
+    public void setCommercialUsername(String commercialUsername) {
+        this.commercialUsername = commercialUsername;
+        this.collector = commercialUsername;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setCollector(String collector) {
+        this.collector = collector;
+        this.commercialUsername = collector;
+    }
+
+    public String getCommercialUsername() {
+        return commercialUsername != null ? commercialUsername : collector;
+    }
 
     @Column(name = "article_id", nullable = false)
     private Long articleId;

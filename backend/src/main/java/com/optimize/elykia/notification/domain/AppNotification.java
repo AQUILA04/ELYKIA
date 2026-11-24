@@ -50,11 +50,51 @@ public class AppNotification extends BaseEntity<String> {
     @Column(name = "client_name")
     private String clientName;
 
+    /** @deprecated Utiliser {@link #targetCommercialUsername}. */
+    @Deprecated(since = "2.14.0", forRemoval = true)
     @Column(name = "target_collector")
     private String targetCollector;
 
+    @Column(name = "target_commercial_username")
+    private String targetCommercialUsername;
+
+    /** @deprecated Utiliser {@link #tontineCommercialUsername}. */
+    @Deprecated(since = "2.14.0", forRemoval = true)
     @Column(name = "tontine_collector")
     private String tontineCollector;
+
+    @Column(name = "tontine_commercial_username")
+    private String tontineCommercialUsername;
+
+    public void setTargetCommercialUsername(String targetCommercialUsername) {
+        this.targetCommercialUsername = targetCommercialUsername;
+        this.targetCollector = targetCommercialUsername;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setTargetCollector(String targetCollector) {
+        this.targetCollector = targetCollector;
+        this.targetCommercialUsername = targetCollector;
+    }
+
+    public String getTargetCommercialUsername() {
+        return targetCommercialUsername != null ? targetCommercialUsername : targetCollector;
+    }
+
+    public void setTontineCommercialUsername(String tontineCommercialUsername) {
+        this.tontineCommercialUsername = tontineCommercialUsername;
+        this.tontineCollector = tontineCommercialUsername;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setTontineCollector(String tontineCollector) {
+        this.tontineCollector = tontineCollector;
+        this.tontineCommercialUsername = tontineCollector;
+    }
+
+    public String getTontineCommercialUsername() {
+        return tontineCommercialUsername != null ? tontineCommercialUsername : tontineCollector;
+    }
 
     @Column(name = "operation_date")
     private LocalDate operationDate;

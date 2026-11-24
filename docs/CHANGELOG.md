@@ -211,6 +211,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [3.3.0] — 2026-11-24
+
+### Added
+
+- **Portefeuille commercial multi-affectations & Historique (`@features/client`) —** nouvel onglet **« Commerciaux & Historique »** dans `ClientDetailsComponent` (liste des commerciaux par activité `CREDIT`, `TONTINE`, `AGENCY`, `RECOVERY` avec statut **Actif** vs **Inactif — consultation seule sur ses propres opérations**, prise de relais, ajout d'un co-commercial actif, désactivation/réactivation en 1 clic, et timeline d'historique des changements).
+- **Opérations de portefeuille en masse (`ClientListComponent`) —** modale **« Relais / Portefeuille en masse »** permettant de cibler directement tout le portefeuille d'un commercial source (1 000+ clients en 1 clic, filtrable par activité et quartier, ou sur sélection) avec aperçu (`bulk-preview`) et 4 modes : **Passer le relais (A → B)**, **Co-commercial actif**, **Désactiver (consultation seule)** et **Réactiver le portefeuille**.
+
 ## Frontend — [3.2.0] — 2026-11-24
 
 ### Added
@@ -953,6 +960,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [2.14.0] — 2026-11-24
+
+### Added
+
+- **Uniformisation de l'identifiant du commercial vers `commercial_username` & dépréciation de `collector` (Plan 1, `.cursor/plans/commercial_username_standardization.plan.md`) :**
+  - **Migration Flyway `V050__standardize_commercial_username.sql` —** ajout et backfill de `commercial_username` (et variantes `old_/new_/credit_/tontine_/agency_/recovery_/target_commercial_username`) sur les 23 tables utilisant historiquement `collector`, `commercial` ou `commercial_id`, avec index et triggers PostgreSQL `BEFORE INSERT OR UPDATE` de synchronisation bidirectionnelle.
+  - **Entités JPA & API —** exposition de `commercialUsername` synchronisé avec les getters/setters `collector`/`commercial`/`commercialId` marqués `@Deprecated(since = "2.14.0", forRemoval = true)` jusqu'à l'itération N+1.
+- **Portefeuille commercial multi-affectations (`ACTIVE` / `INACTIVE`), Relais Tontine/Crédit & Opérations Bulk (Plan 2, `.cursor/plans/commercial_portfolio_management_ddd.plan.md`) :**
+  - **Migration Flyway `V051__commercial_portfolio_multi_assignment_and_relay.sql` —** tables `client_commercial_assignment` `(client_id, commercial_username, activity_type, status ACTIVE|INACTIVE, is_primary)`, `client_commercial_assignment_history` et `tontine_member_commercial_assignment` (`INITIATOR`, `RELAY`, `CO_COLLECTOR`) avec reprise automatique de l'existant.
+  - **Port Hexagonal & Services (`CommercialPortfolioAccessPort`, `ClientCommercialPortfolioService`, `TontineMemberRelayService`) —** statut `ACTIVE` (`READ_WRITE`) vs `INACTIVE` (`READ_ONLY_OWN_OPERATIONS` : consultation uniquement sur ses propres opérations réalisées, réactivable sans doublon), synchronisation automatique du commercial principal vers `Client`, relais de carnets tontine sans écraser les collectes passées, et moteur Bulk (`HANDOVER_RELAY`, `ADD_CO_COMMERCIAL`, `DEACTIVATE_COMMERCIAL`, `REACTIVATE_COMMERCIAL`) + endpoints REST (`/api/v1/clients/{id}/commercial-assignments*`, `/api/v1/clients/commercial-assignments/bulk-{preview,execute}`, `/api/v1/tontines/members/{id}/{stewardship,relay}`, `/api/v1/tontines/members/bulk-relay`).
+  - **Catalogue IA (`schema-catalog.json`) & Guide utilisateur + Index RAG (`user-guide-index.json`, 353 chunks) —** mis à jour.
 
 ## Backend — [2.13.0] — 2026-11-24
 

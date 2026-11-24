@@ -176,6 +176,13 @@
     <div class="table-card a5">
       <div class="table-card-actions">
         <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
+          <button
+            type="button"
+            class="btn-secondary"
+            (click)="openBulkPortfolioModal()"
+            data-testid="e2e-client-bulk-portfolio-btn">
+            Relais / Portefeuille en masse {{ selectedClients.size > 0 ? '(' + selectedClients.size + ' sélectionnés)' : '(par commercial)' }}
+          </button>
           @if (selectedClients.size > 0) {
             <button
               type="button"
@@ -354,6 +361,87 @@
     </div>
   </div>
 </div>
+
+@if (showBulkPortfolioModal) {
+  <div class="client-list-bulk-modal modal-overlay" (click)="closeBulkPortfolioModal()" data-testid="e2e-client-bulk-portfolio-modal">
+    <div class="bulk-modal-dialog" role="dialog" (click)="$event.stopPropagation()">
+      <div class="bulk-modal-content">
+        <div class="bulk-modal-header">
+          <h5 class="bulk-modal-title">Opération de portefeuille en masse (Relais / Co-commercial / Statut)</h5>
+          <button type="button" class="bulk-modal-close" aria-label="Fermer" (click)="closeBulkPortfolioModal()">&times;</button>
+        </div>
+        <div class="bulk-modal-body">
+          @if (selectedClients.size > 0) {
+            <p class="small text-muted">Cible : <strong>{{ selectedClients.size }} client(s) coché(s)</strong> (décochez pour cibler tout le portefeuille d'un commercial source).</p>
+          } @else {
+            <p class="small text-muted">Cible : <strong>tout le portefeuille du commercial source</strong> (ex. 1 000 clients en 1 clic).</p>
+          }
+          <div class="bulk-form-group">
+            <label>Mode d'opération</label>
+            <select class="bulk-form-control" [(ngModel)]="bulkMode" data-testid="e2e-bulk-portfolio-mode">
+              <option value="HANDOVER_RELAY">Passer le relais (A → B : A passe en consultation seule, B devient actif principal)</option>
+              <option value="ADD_CO_COMMERCIAL">Ajouter un co-commercial actif (A et B restent tous deux actifs)</option>
+              <option value="DEACTIVATE_COMMERCIAL">Désactiver le commercial source (consultation seule sur ses propres opérations)</option>
+              <option value="REACTIVATE_COMMERCIAL">Réactiver le portefeuille inactif d'un commercial</option>
+            </select>
+          </div>
+          <div class="bulk-form-group">
+            <label>Activité(s) concernée(s)</label>
+            <select class="bulk-form-control" [(ngModel)]="bulkActivityScope" data-testid="e2e-bulk-portfolio-activity">
+              <option value="BOTH">Crédit & Tontine</option>
+              <option value="CREDIT">Crédit uniquement</option>
+              <option value="TONTINE">Tontine uniquement</option>
+            </select>
+          </div>
+          <div class="bulk-form-group">
+            <label>Commercial source A (`commercial_username`)</label>
+            <select class="bulk-form-control" [(ngModel)]="bulkSourceCommercial" data-testid="e2e-bulk-portfolio-source">
+              <option value="">— Sélectionner —</option>
+              @for (collector of collectors; track collector.username) {
+                <option [value]="collector.username">{{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})</option>
+              }
+            </select>
+          </div>
+          @if (bulkMode !== 'DEACTIVATE_COMMERCIAL') {
+            <div class="bulk-form-group">
+              <label>Commercial cible B (`commercial_username`)</label>
+              <select class="bulk-form-control" [(ngModel)]="bulkTargetCommercial" data-testid="e2e-bulk-portfolio-target">
+                <option value="">— Sélectionner —</option>
+                @for (collector of collectors; track collector.username) {
+                  <option [value]="collector.username">{{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})</option>
+                }
+              </select>
+            </div>
+          }
+          <div class="bulk-form-group">
+            <label>Filtrer par quartier (optionnel)</label>
+            <input type="text" class="bulk-form-control" [(ngModel)]="bulkQuarter" placeholder="Tous les quartiers">
+          </div>
+          <div class="bulk-form-group">
+            <label>Motif (tracé dans l'historique)</label>
+            <input type="text" class="bulk-form-control" [(ngModel)]="bulkReason" placeholder="Congé, relais de zone, réorganisation...">
+          </div>
+          <div class="bulk-form-group bulk-checkbox-group">
+            <label class="bulk-checkbox-label">
+              <input type="checkbox" class="bulk-checkbox-input" [(ngModel)]="transferInProgressCredits">
+              <span>Transférer aussi les crédits en cours (INPROGRESS) vers le commercial cible</span>
+            </label>
+          </div>
+          @if (bulkPreview) {
+            <div class="alert alert-info py-2 mb-0">
+              Aperçu : <strong>{{ bulkPreview.impactedClientsCount }} client(s)</strong> et <strong>{{ bulkPreview.impactedAssignmentsCount }} affectation(s)</strong> seront mis à jour.
+            </div>
+          }
+        </div>
+        <div class="bulk-modal-footer">
+          <button type="button" class="btn-cancel" (click)="closeBulkPortfolioModal()">Annuler</button>
+          <button type="button" class="btn-cancel" (click)="previewBulkPortfolio()" data-testid="e2e-bulk-portfolio-preview">Aperçu</button>
+          <button type="button" class="btn-validate" (click)="confirmBulkPortfolio()" data-testid="e2e-bulk-portfolio-execute">Exécuter en masse</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
 
 @if (showBulkAssignCollectorModal) {
   <div class="client-list-bulk-modal modal-overlay" (click)="closeBulkAssignCollectorModal()"

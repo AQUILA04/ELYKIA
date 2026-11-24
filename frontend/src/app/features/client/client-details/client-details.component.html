@@ -162,6 +162,94 @@
                   (pageChange)="onCotisationPageChange($event)">
                 </app-client-cotisation-history>
               </mat-tab>
+              <mat-tab label="Commerciaux & Historique">
+                <div class="p-3" data-testid="e2e-client-commercial-portfolio-tab">
+                  <h3 class="h6 mb-2">Commerciaux rattachés au client (Actifs & Consultation seule)</h3>
+                  <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:14px">
+                    <div>
+                      <label class="small text-muted">Activité</label>
+                      <select class="form-control" [(ngModel)]="newAssignmentActivity" data-testid="e2e-client-assign-activity">
+                        <option value="CREDIT">Crédit</option>
+                        <option value="TONTINE">Tontine</option>
+                        <option value="AGENCY">Agence</option>
+                        <option value="RECOVERY">Recouvrement</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="small text-muted">Commercial (`commercial_username`)</label>
+                      <select class="form-control" [(ngModel)]="newAssignmentCommercial" data-testid="e2e-client-assign-commercial">
+                        <option value="">— Choisir —</option>
+                        @for (c of availableCommercials; track c.username) {
+                          <option [value]="c.username">{{ c.firstname }} {{ c.lastname }} ({{ c.username }})</option>
+                        }
+                      </select>
+                    </div>
+                    <div>
+                      <label class="small text-muted">Mode</label>
+                      <select class="form-control" [(ngModel)]="newAssignmentHandover" data-testid="e2e-client-assign-mode">
+                        <option [ngValue]="true">Prendre le relais (désactiver l'actuel)</option>
+                        <option [ngValue]="false">Co-commercial actif (tous deux actifs)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="small text-muted">Motif</label>
+                      <input type="text" class="form-control" [(ngModel)]="newAssignmentReason" placeholder="Congé, relais zone...">
+                    </div>
+                    <button type="button" class="btn-primary" (click)="submitCommercialAssignment()" [disabled]="portfolioBusy || !newAssignmentCommercial" data-testid="e2e-client-assign-submit">Enregistrer</button>
+                  </div>
+
+                  @if (commercialAssignments.length > 0) {
+                    <table class="table table-sm mb-4">
+                      <thead><tr><th>Activité</th><th>Commercial</th><th>Statut</th><th>Rôle</th><th>Motif</th><th class="text-end">Action</th></tr></thead>
+                      <tbody>
+                        @for (a of commercialAssignments; track a.id) {
+                          <tr>
+                            <td><strong>{{ a.activityType }}</strong></td>
+                            <td>{{ a.commercialUsername }}</td>
+                            <td>
+                              <span class="badge" [ngClass]="a.status === 'ACTIVE' ? 'badge-success' : 'badge-secondary'">
+                                {{ a.status === 'ACTIVE' ? 'Actif (opérations autorisées)' : 'Inactif (consultation seule — ses opérations)' }}
+                              </span>
+                            </td>
+                            <td>{{ a.primary ? 'Principal ★' : 'Co-affecté / Ancien' }}</td>
+                            <td>{{ a.statusReason || '—' }}</td>
+                            <td class="text-end">
+                              <button type="button" class="btn-outline" (click)="toggleAssignmentStatus(a)" [disabled]="portfolioBusy">
+                                {{ a.status === 'ACTIVE' ? 'Désactiver (consultation seule)' : 'Réactiver' }}
+                              </button>
+                            </td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  } @else {
+                    <p class="text-muted">Aucune affectation enregistrée.</p>
+                  }
+
+                  <h3 class="h6 mb-2">Historique des changements de commercial</h3>
+                  @if (commercialHistory.length > 0) {
+                    <table class="table table-sm">
+                      <thead><tr><th>Date</th><th>Activité</th><th>Commercial</th><th>Événement</th><th>Statut</th><th>Relais vers</th><th>Par</th><th>Motif</th></tr></thead>
+                      <tbody>
+                        @for (h of commercialHistory; track h.id) {
+                          <tr>
+                            <td>{{ h.occurredAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                            <td>{{ h.activityType }}</td>
+                            <td><strong>{{ h.commercialUsername }}</strong></td>
+                            <td>{{ h.eventType }}</td>
+                            <td>{{ h.previousStatus || '—' }} → {{ h.newStatus }}</td>
+                            <td>{{ h.replacedByCommercialUsername || '—' }}</td>
+                            <td>{{ h.performedBy }}</td>
+                            <td>{{ h.reason || '—' }}</td>
+                          </tr>
+                        }
+                      </tbody>
+                    </table>
+                  } @else {
+                    <p class="text-muted mb-0">Aucun historique de changement pour ce client.</p>
+                  }
+                </div>
+              </mat-tab>
             </mat-tab-group>
           </div>
         </div>

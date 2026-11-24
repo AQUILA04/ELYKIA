@@ -20,6 +20,12 @@ import org.springframework.util.StringUtils;
 public class ClientCollectorAssignmentService {
 
     private final ClientService clientService;
+    private ClientCommercialPortfolioService portfolioService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setPortfolioService(ClientCommercialPortfolioService portfolioService) {
+        this.portfolioService = portfolioService;
+    }
     private final UserService userService;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -30,6 +36,20 @@ public class ClientCollectorAssignmentService {
                 dto.getClientIds() != null ? dto.getClientIds().size() : 0,
                 username);
         clientService.bulkAssignCollectors(dto, username);
+        if (dto.getClientIds() != null && portfolioService != null) {
+            for (Long clientId : dto.getClientIds()) {
+                if (StringUtils.hasText(dto.getCollector())) {
+                    portfolioService.assignOrRelay(clientId, dto.getCollector(),
+                            com.optimize.elykia.client.api.PortfolioActivityType.CREDIT, true, true,
+                            "Réaffectation crédit en masse");
+                }
+                if (StringUtils.hasText(dto.getTontineCollector())) {
+                    portfolioService.assignOrRelay(clientId, dto.getTontineCollector(),
+                            com.optimize.elykia.client.api.PortfolioActivityType.TONTINE, true, true,
+                            "Réaffectation tontine en masse");
+                }
+            }
+        }
         if (dto.isTransferInProgressCredits() && StringUtils.hasText(dto.getCollector())) {
             eventPublisher.publishEvent(new InProgressCreditsTransferEvent(
                     this, dto.getClientIds(), dto.getCollector(), username));

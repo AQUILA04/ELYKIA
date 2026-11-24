@@ -23,8 +23,28 @@ public class TontineStock extends BaseEntity<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    /** @deprecated Utiliser {@link #commercialUsername}. */
+    @Deprecated(since = "2.14.0", forRemoval = true)
     @Column(name = "commercial", nullable = false)
     private String commercial;
+
+    @Column(name = "commercial_username", nullable = false)
+    private String commercialUsername;
+
+    public void setCommercialUsername(String commercialUsername) {
+        this.commercialUsername = commercialUsername;
+        this.commercial = commercialUsername;
+    }
+
+    @Deprecated(since = "2.14.0", forRemoval = true)
+    public void setCommercial(String commercial) {
+        this.commercial = commercial;
+        this.commercialUsername = commercial;
+    }
+
+    public String getCommercialUsername() {
+        return commercialUsername != null ? commercialUsername : commercial;
+    }
     
     // Ce champ deviendra obsolète avec la nouvelle gestion, mais on le garde pour compatibilité temporaire
     private Long creditId;
