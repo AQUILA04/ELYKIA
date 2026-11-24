@@ -633,6 +633,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.49.10] — 2026-11-24
+
+### Added
+
+- **Recherche dans l'onglet Retards (RM) —** barre de recherche (nom, téléphone, référence, localité, commercial ; accents et casse ignorés). Hors ligne, elle filtre le pack local ; en ligne, elle interroge `GET /recovery-manager/field/late-credits` (même définition du retard que le pack) avec pagination « charger plus », en ne gardant que les commerciaux du plan du jour. Si le serveur échoue, repli sur le filtre local. Les compteurs Retards / Dû suivent la recherche ; les actions Vérifier, Contrôle et Clôturer sont inchangées.
+
+### Fixed
+
+- Libellé de l'onglet « Retardss » corrigé en « Retards ».
+
 ## Mobile — [2.49.9] — 2026-11-24
 
 ### Added

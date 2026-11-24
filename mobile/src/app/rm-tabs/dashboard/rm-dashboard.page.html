@@ -18,7 +18,21 @@
       <app-rm-session-bar></app-rm-session-bar>
     </header>
 
-    <section class="kpi-strip" data-testid="e2e-rm-kpi-strip">
+    <div class="search">
+      <ion-searchbar
+        [(ngModel)]="query"
+        placeholder="Nom, téléphone, référence, localité, commercial"
+        debounce="300"
+        mode="md"
+        class="rm-searchbar"
+        aria-label="Rechercher dans les retards"
+        (ionInput)="onSearchInput()"
+        data-testid="e2e-rm-dashboard-search">
+      </ion-searchbar>
+    </div>
+    <p class="live-hint" *ngIf="searchLoading">Recherche en cours…</p>
+
+    <section class="kpi-strip"data-testid="e2e-rm-kpi-strip">
       <article class="kpi kpi-navy" data-testid="e2e-rm-kpi-lates">
         <span>Retards</span>
         <strong>{{ lateCount }}</strong>
@@ -83,8 +97,8 @@
 
     <section *ngIf="pack && lateCount === 0" class="elyk-empty no-lates-empty" data-testid="e2e-rm-dashboard-no-lates">
       <ion-icon name="checkmark-circle-outline"></ion-icon>
-      <h2>Aucun retard dans le périmètre du plan</h2>
-      <p>Consultez l'onglet Terrain ou Clients pour vos opérations du jour.</p>
+      <h2>{{ searching ? 'Aucun résultat pour cette recherche.' : 'Aucun retard dans le périmètre du plan' }}</h2>
+      <p *ngIf="!searching">Consultez l'onglet Terrain ou Clients pour vos opérations du jour.</p>
     </section>
 
     <section *ngFor="let group of grouped" class="quarter-block">
@@ -136,5 +150,9 @@
         </div>
       </article>
     </section>
+
+    <ion-infinite-scroll *ngIf="hasMoreServer" threshold="200px" (ionInfinite)="loadMore($event)">
+      <ion-infinite-scroll-content loadingSpinner="crescent"></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
   </div>
 </ion-content>
