@@ -8,6 +8,20 @@ import {Capacitor} from "@capacitor/core";
 })
 export class LoggerService {
   private static inMemoryLogs: string[] = [];
+  /** Taille maximale d'un fichier de journal avant rotation. */
+  static readonly MAX_LOG_BYTES = 1_000_000;
+  /** Nombre de fichiers conservés : app_logs.txt, app_logs.1.txt, app_logs.2.txt. */
+  static readonly LOG_FILES_KEPT = 3;
+  private static currentUsername: string | null = null;
+  /** Remplaçable en test : les spies sur le proxy Capacitor web ne prennent pas. */
+  private fs: Pick<typeof Filesystem, 'stat' | 'writeFile' | 'appendFile' | 'readFile' | 'deleteFile' | 'rename'> = Filesystem;
+  private approxLogBytes = 0;
+  private rotating = false;
+
+  /** Renseigné par AuthService (le logger ne peut pas l'injecter : dépendance circulaire). */
+  static setCurrentUsername(username: string | null): void {
+    LoggerService.currentUsername = username;
+  }
   /** Une seule écriture disque à la fois : les append parallèles bloquent le pont Android. */
   private fileQueue: Promise<void> = Promise.resolve();
   // Chemin dans le répertoire de données de l'application
@@ -23,10 +37,16 @@ export class LoggerService {
     try {
       // Vérifier d'abord si le fichier existe
       const fileExists = await this.checkFileExists();
+      if (fileExists) {
+        const stat = await this.fs.stat({ path: this.logFileName, directory: this.logDirectory })
+          .catch(() => null);
+        this.approxLogBytes = stat?.size ?? 0;
+        await this.rotateIfNeeded();
+      }
 
       if (!fileExists) {
         // Créer le fichier s'il n'existe pas
-        await Filesystem.writeFile({
+        await this.fs.writeFile({
           path: this.logFileName,
           data: `--- Log Initialized at ${new Date().toISOString()} ---\n`,
           directory: this.logDirectory,
@@ -35,7 +55,7 @@ export class LoggerService {
         console.log('✅ Fichier de logs créé avec succès');
       } else {
         // Ajouter une ligne de séparation si le fichier existe déjà
-        await Filesystem.appendFile({
+        await this.fs.appendFile({
           path: this.logFileName,
           data: `\n--- Session Started at ${new Date().toISOString()} ---\n`,
           directory: this.logDirectory,
@@ -55,7 +75,7 @@ export class LoggerService {
 
   private async checkFileExists(): Promise<boolean> {
     try {
-      await Filesystem.stat({
+      await this.fs.stat({
         path: this.logFileName,
         directory: this.logDirectory
       });
@@ -85,7 +105,8 @@ export class LoggerService {
   }
 
   private remember(message: string): string {
-    const logMessage = `[${new Date().toISOString()}] ${message}\n`;
+    const user = LoggerService.currentUsername ? ` [${LoggerService.currentUsername}]` : '';
+    const logMessage = `[${new Date().toISOString()}]${user} ${message}\n`;
     LoggerService.inMemoryLogs.push(logMessage);
     if (LoggerService.inMemoryLogs.length > 500) {
       LoggerService.inMemoryLogs.splice(0, LoggerService.inMemoryLogs.length - 500);
@@ -146,9 +167,77 @@ export class LoggerService {
       this.enqueueFileWrite(logMessage);
   }
 
+  /** Nom du fichier de rang `index` (0 = courant). */
+  logFileNameAt(index: number): string {
+    return index === 0 ? this.logFileName : this.logFileName.replace(/\.txt$/, `.${index}.txt`);
+  }
+
+  /** Le plus ancien est supprimé, puis chaque fichier passe au rang suivant. Un échec n'empêche jamais l'écriture. */
+  private async rotateIfNeeded(): Promise<void> {
+    if (this.rotating || this.approxLogBytes < LoggerService.MAX_LOG_BYTES) {
+      return;
+    }
+    this.rotating = true;
+    try {
+      const last = LoggerService.LOG_FILES_KEPT - 1;
+      await this.fs.deleteFile({ path: this.logFileNameAt(last), directory: this.logDirectory })
+        .catch(() => undefined);
+      for (let index = last - 1; index >= 0; index--) {
+        await this.fs.rename({
+          from: this.logFileNameAt(index),
+          to: this.logFileNameAt(index + 1),
+          directory: this.logDirectory,
+          toDirectory: this.logDirectory,
+        }).catch(() => undefined);
+      }
+      this.approxLogBytes = 0;
+    } finally {
+      this.rotating = false;
+    }
+  }
+
+  /** Concatène les fichiers conservés (du plus ancien au plus récent) dans un seul export. */
+  async exportLogs(username: string | null): Promise<string | null> {
+    try {
+      let content = '';
+      for (let index = LoggerService.LOG_FILES_KEPT - 1; index >= 0; index--) {
+        try {
+          const { data } = await this.fs.readFile({
+            path: this.logFileNameAt(index),
+            directory: this.logDirectory,
+            encoding: Encoding.UTF8,
+          });
+          if (typeof data === 'string') {
+            content += data;
+          }
+        } catch {
+          // Fichier absent : rang non utilisé.
+        }
+      }
+      if (!content) {
+        return null;
+      }
+      const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const path = `elykia/journal-${username || 'rm'}-${stamp}.txt`;
+      await this.fs.writeFile({
+        path,
+        data: content,
+        directory: this.logDirectory,
+        encoding: Encoding.UTF8,
+        recursive: true,
+      });
+      return path;
+    } catch (error) {
+      console.warn('Export du journal impossible', error);
+      return null;
+    }
+  }
+
   private async saveToFileAsync(logMessage: string) {
     try {
-      await Filesystem.appendFile({
+      this.approxLogBytes += logMessage.length;
+      await this.rotateIfNeeded();
+      await this.fs.appendFile({
         path: this.logFileName,
         data: logMessage,
         directory: this.logDirectory,
@@ -157,7 +246,7 @@ export class LoggerService {
     } catch (error: any) {
       // Si l'écriture échoue, essayer de recréer le fichier
       try {
-        await Filesystem.writeFile({
+        await this.fs.writeFile({
           path: this.logFileName,
           data: `--- Log File Recreated at ${new Date().toISOString()} ---\n${logMessage}`,
           directory: this.logDirectory,
@@ -177,7 +266,7 @@ export class LoggerService {
 
   async readLogs(): Promise<string> {
     try {
-      const { data } = await Filesystem.readFile({
+      const { data } = await this.fs.readFile({
         path: this.logFileName,
         directory: this.logDirectory,
         encoding: Encoding.UTF8,
@@ -210,7 +299,7 @@ export class LoggerService {
 
   async getLogFileInfo(): Promise<LogFileInfo> {
     try {
-      const stat = await Filesystem.stat({
+      const stat = await this.fs.stat({
         path: this.logFileName,
         directory: this.logDirectory
       });
@@ -234,7 +323,7 @@ export class LoggerService {
 
   async getLogFileContent(): Promise<string> {
     try {
-      const { data } = await Filesystem.readFile({
+      const { data } = await this.fs.readFile({
         path: this.logFileName,
         directory: this.logDirectory,
         encoding: Encoding.UTF8,
@@ -251,7 +340,7 @@ export class LoggerService {
 
   async clearLogFile(): Promise<boolean> {
     try {
-      await Filesystem.deleteFile({
+      await this.fs.deleteFile({
         path: this.logFileName,
         directory: this.logDirectory
       });
