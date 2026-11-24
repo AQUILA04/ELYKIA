@@ -69,23 +69,7 @@ export class AddComponent implements OnInit {
   loadArticle(articleId: number): void {
     this.itemService.getArticleById(articleId).subscribe(
       (data: any) => {
-        console.log(data)
-        this.articleForm.patchValue({
-          name: data.data.name,
-          marque: data.data.marque,
-          model: data.data.model || '',
-          type: data.data.type,
-          purchasePrice: data.data.purchasePrice,
-          sellingPrice: data.data.sellingPrice,
-          creditSalePrice: data.data.creditSalePrice,
-          reorderPoint: data.data.reorderPoint,
-          optimalStockLevel: data.data.optimalStockLevel,
-          isSeasonal: data.data.isSeasonal,
-          packagingType: data.data.packagingType || 'NONE',
-          unitsPerPackage: data.data.unitsPerPackage ?? null,
-          wholesalePurchasePrice: data.data.wholesalePurchasePrice ?? null,
-          halfWholesalePurchasePrice: data.data.halfWholesalePurchasePrice ?? null
-        });
+        this.setFormValues(data.data);
         this.existingOwnPhoto = data.data.photoUrl || null;
         this.inheritedPhotoUrl = data.data.photoUrl ? null : (data.data.displayPhotoUrl || null);
         this.refreshInherited(data.data.type);
