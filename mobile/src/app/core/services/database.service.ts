@@ -2714,6 +2714,17 @@ export class DatabaseService {
     }
   }
 
+  /** Saisies RM non envoyées de la base courante (pour l'instantané). */
+  exportUnsyncedRmOps(): Promise<RmOfflineOpRow[]> {
+    return this.captureUnsyncedRmOps();
+  }
+
+  /** Replace des saisies RM (instantané) dans les files puis recharge celles-ci en mémoire. */
+  async importRmOpRows(rows: RmOfflineOpRow[]): Promise<void> {
+    await this.reinjectUnsyncedRmOps(planRmOpsReinjection(rows));
+    await notifyRmDataRestored();
+  }
+
   /** Saisies RM non envoyées de la base courante (illisible = on n'en retient aucune, sans bloquer). */
   private async captureUnsyncedRmOps(): Promise<RmOfflineOpRow[]> {
     try {

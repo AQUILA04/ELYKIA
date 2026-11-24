@@ -5,10 +5,13 @@ import { DatabaseService } from '../database.service';
 import { LoggerService } from '../logger.service';
 import { RmPendingSyncCoordinator } from './rm-pending-sync.coordinator';
 import { RmPendingQueuesService } from './rm-pending-queues.service';
+import { RmQueueSnapshotService } from './rm-queue-snapshot.service';
 import { countUnsyncedRmOpsInBackup } from './rm-restore.util';
 
 export interface RecoverableBackup {
-  path: string;
+  /** Chemin de la sauvegarde SQL, ou absent pour l'instantané des files. */
+  path?: string;
+  source?: 'backup' | 'snapshot';
   unsyncedCount: number;
 }
 
@@ -28,7 +31,8 @@ export class RmRestoreAdvisorService {
     private readonly pendingSync: RmPendingSyncCoordinator,
     private readonly alertCtrl: AlertController,
     private readonly toastCtrl: ToastController,
-    private readonly log: LoggerService
+    private readonly log: LoggerService,
+    private readonly snapshot: RmQueueSnapshotService
   ) {}
 
   /**
@@ -40,13 +44,19 @@ export class RmRestoreAdvisorService {
       if (await this.pending.hasPending()) {
         return null;
       }
+      // L'instantané est le plus récent : il contient les saisies faites après la dernière sauvegarde.
+      const snapshot = await this.snapshot.read();
+      if (snapshot) {
+        void this.log.log(`[RmRestoreAdvisor] ${snapshot.rows.length} saisie(s) retrouvée(s) dans l'instantané.`);
+        return { source: 'snapshot', unsyncedCount: snapshot.rows.length };
+      }
       const files = await this.database.listBackupFiles(RmRestoreAdvisorService.BACKUPS_SCANNED);
       for (const path of files) {
         const sql = await this.database.readBackupFile(path);
         const unsyncedCount = sql ? countUnsyncedRmOpsInBackup(sql) : 0;
         if (unsyncedCount > 0) {
           void this.log.log(`[RmRestoreAdvisor] ${unsyncedCount} saisie(s) non envoyée(s) retrouvée(s) dans ${path}.`);
-          return { path, unsyncedCount };
+          return { path, source: 'backup', unsyncedCount };
         }
       }
     } catch (error) {
@@ -58,7 +68,7 @@ export class RmRestoreAdvisorService {
   async propose(candidate: RecoverableBackup): Promise<void> {
     const alert = await this.alertCtrl.create({
       header: 'Saisies retrouvées',
-      message: `Une sauvegarde de ce téléphone contient ${candidate.unsyncedCount} saisie(s) non envoyée(s) `
+      message: `${candidate.source === 'snapshot' ? 'Un instantané de ce téléphone contient' : 'Une sauvegarde de ce téléphone contient'} ${candidate.unsyncedCount} saisie(s) non envoyée(s) `
         + "qui ne sont plus dans l'application. Les restaurer maintenant ? Votre état actuel est copié avant.",
       buttons: [
         { text: 'Plus tard', role: 'cancel' },
@@ -70,12 +80,22 @@ export class RmRestoreAdvisorService {
 
   private async restore(candidate: RecoverableBackup): Promise<void> {
     try {
-      const result = await this.dataInitialization.restoreFromBackup(candidate.path);
+      let success: boolean;
+      if (candidate.source === 'snapshot') {
+        const snapshot = await this.snapshot.read();
+        if (!snapshot) {
+          throw new Error('instantané illisible');
+        }
+        await this.database.importRmOpRows(snapshot.rows);
+        success = true;
+      } else {
+        success = (await this.dataInitialization.restoreFromBackup(candidate.path!)).success;
+      }
       await this.toast(
-        result.success ? 'Saisies restaurées. Envoi en cours…' : 'La restauration a échoué, rien n\'a été modifié.',
-        result.success ? 'success' : 'danger'
+        success ? 'Saisies restaurées. Envoi en cours…' : 'La restauration a échoué, rien n\'a été modifié.',
+        success ? 'success' : 'danger'
       );
-      if (result.success) {
+      if (success) {
         this.pendingSync.request('restauration');
       }
     } catch (error) {

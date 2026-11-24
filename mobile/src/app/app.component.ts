@@ -22,6 +22,7 @@ import { FeatureFlagService, FeatureFlags } from './core/services/feature-flag.s
 import { DeviceIdentityService } from './core/services/device-identity.service';
 import { AutoSyncSchedulerService } from './core/services/auto-sync-scheduler.service';
 import { RmPendingSyncCoordinator } from './core/services/rm/rm-pending-sync.coordinator';
+import { RmQueueSnapshotService } from './core/services/rm/rm-queue-snapshot.service';
 import { environment } from '../environments/environment';
 import { resolveEnvironmentLabel } from './core/utils/environment-label.util';
 
@@ -57,6 +58,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private readonly deviceIdentityService: DeviceIdentityService,
     private readonly autoSyncSchedulerService: AutoSyncSchedulerService,
     private readonly rmPendingSync: RmPendingSyncCoordinator,
+    private readonly rmQueueSnapshot: RmQueueSnapshotService,
     private readonly authService: AuthService
   ) { this.initializeApp().then(r => console.log(r) ); }
 
@@ -200,6 +202,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     await this.autoSyncSchedulerService.init();
     this.rmPendingSync.init();
+    this.rmQueueSnapshot.init();
   }
 
   /** Aligné sur --ion-color-primary (barre de statut + en-têtes dashboard). */
