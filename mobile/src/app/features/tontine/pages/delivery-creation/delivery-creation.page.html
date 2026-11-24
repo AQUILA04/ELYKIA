@@ -112,14 +112,16 @@
           <div class="article-stock" [class.stock-free-none]="article.warehouseStock === 0" data-testid="e2e-delivery-catalogue-warehouse-stock">
             {{ warehouseLabel(article) }}
           </div>
-          <select *ngIf="offersFor(article.id, catalogueUnitPrice(article)).length > 1"
-            [value]="'UNIT:1'"
-            (change)="onOfferChange(article.id, article.id, $any($event.target).value, catalogueUnitPrice(article), article.commercialName || article.name || 'Article', 1000000)"
-            aria-label="Offre">
-            <option *ngFor="let offer of offersFor(article.id, catalogueUnitPrice(article))" [value]="offer.mode + ':' + offer.unitsPerPack">
-              {{ offer.label }} — {{ offer.salePrice | number }} FCFA
-            </option>
-          </select>
+          <div class="offer-picker" role="radiogroup" aria-label="Offre" *ngIf="offersFor(article.id, catalogueUnitPrice(article)).length > 1">
+            <button type="button" class="offer-option" role="radio"
+              *ngFor="let offer of offersFor(article.id, catalogueUnitPrice(article))"
+              [class.offer-option--active]="selectedOfferValue(article.id, article.id, catalogueUnitPrice(article)) === offerValue(offer)"
+              [attr.aria-checked]="selectedOfferValue(article.id, article.id, catalogueUnitPrice(article)) === offerValue(offer)"
+              (click)="onOfferChange(article.id, article.id, offerValue(offer), catalogueUnitPrice(article), article.commercialName || article.name || 'Article', 1000000)">
+              <span class="offer-label">{{ offer.label }}</span>
+              <span class="offer-price">{{ offer.salePrice | number }} F</span>
+            </button>
+          </div>
           <div class="quantity-control">
             <button type="button" class="qty-btn" (click)="decreaseCatalogueQuantity(article)" [disabled]="getQuantity(article.id) === 0">
               <ion-icon name="remove"></ion-icon>
@@ -153,14 +155,16 @@
               · <span [class.stock-free-none]="freeFor(stock) === 0">Libre : {{ freeFor(stock) }}</span>
             </ng-container>
           </div>
-          <select *ngIf="offersFor(stock.articleId, stock.unitPrice).length > 1"
-            [value]="'UNIT:1'"
-            (change)="onOfferChange(stock.articleId, stock.id, $any($event.target).value, stock.unitPrice, stock.articleName || 'Article', stock.availableQuantity, stock.id)"
-            aria-label="Offre">
-            <option *ngFor="let offer of offersFor(stock.articleId, stock.unitPrice)" [value]="offer.mode + ':' + offer.unitsPerPack">
-              {{ offer.label }} — {{ offer.salePrice | number }} FCFA
-            </option>
-          </select>
+          <div class="offer-picker" role="radiogroup" aria-label="Offre" *ngIf="offersFor(stock.articleId, stock.unitPrice).length > 1">
+            <button type="button" class="offer-option" role="radio"
+              *ngFor="let offer of offersFor(stock.articleId, stock.unitPrice)"
+              [class.offer-option--active]="selectedOfferValue(stock.id, stock.articleId, stock.unitPrice) === offerValue(offer)"
+              [attr.aria-checked]="selectedOfferValue(stock.id, stock.articleId, stock.unitPrice) === offerValue(offer)"
+              (click)="onOfferChange(stock.articleId, stock.id, offerValue(offer), stock.unitPrice, stock.articleName || 'Article', stock.availableQuantity, stock.id)">
+              <span class="offer-label">{{ offer.label }}</span>
+              <span class="offer-price">{{ offer.salePrice | number }} F</span>
+            </button>
+          </div>
           <div class="quantity-control">
             <button type="button" class="qty-btn" (click)="decreaseQuantity(stock)" [disabled]="getQuantity(stock.id) === 0">
               <ion-icon name="remove"></ion-icon>
@@ -233,7 +237,7 @@
       <div class="cart-line elyk-card" *ngFor="let line of cartLines" data-testid="e2e-tontine-delivery-cart-line">
         <div class="cart-line-info">
           <div class="article-name">{{ line.name }}</div>
-          <div class="article-stock" *ngIf="line.offer">{{ line.offer }}</div>
+          <div class="cart-line-offer" *ngIf="line.offer">{{ line.offer }}</div>
           <div class="article-price elyk-amount" *appIfUnitPrice="'CASH'">{{ line.quantity }} × {{ line.unitPrice | number }} = {{ line.total | number }} F</div>
         </div>
         <div class="quantity-control">
