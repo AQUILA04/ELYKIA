@@ -90,6 +90,14 @@ public class TontineController {
                 ResponseUtil.successResponse(tontineService.getAllocationMigrationStatus()), HttpStatus.OK);
     }
 
+    @GetMapping("/allocation-migration/last-report")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.ADMIN + "')")
+    @Operation(summary = "Dernier recalcul des parts société avec le rapport des membres en échec")
+    public ResponseEntity<Response> getLastAllocationMigrationReport() {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(tontineService.getLastAllocationMigrationReport()), HttpStatus.OK);
+    }
+
     @PostMapping("/sessions/current/recalculate-allocations")
     @PreAuthorize("hasAnyRole('" + UserPermissionConstant.ADMIN + "')")
     @Operation(summary = "Relancer manuellement le recalcul des allocations tontine")

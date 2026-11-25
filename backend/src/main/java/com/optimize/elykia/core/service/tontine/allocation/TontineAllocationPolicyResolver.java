@@ -12,9 +12,13 @@ public class TontineAllocationPolicyResolver {
     private final ParameterService parameterService;
     private final V1TontineAllocationPolicy v1Policy;
     private final V2TontineAllocationPolicy v2Policy;
+    private final V3TontineAllocationPolicy v3Policy;
 
     public TontineAllocationPolicy resolve() {
         String version = parameterService.getValue(TontineParameterConstant.SOCIETY_SHARE_VERSION);
+        if (TontineParameterConstant.SOCIETY_SHARE_VERSION_V3.equalsIgnoreCase(version)) {
+            return v3Policy;
+        }
         if (TontineParameterConstant.SOCIETY_SHARE_VERSION_V2.equalsIgnoreCase(version)) {
             return v2Policy;
         }
@@ -23,5 +27,9 @@ public class TontineAllocationPolicyResolver {
 
     public boolean isV2() {
         return v2Policy == resolve();
+    }
+
+    public boolean isV3() {
+        return v3Policy == resolve();
     }
 }

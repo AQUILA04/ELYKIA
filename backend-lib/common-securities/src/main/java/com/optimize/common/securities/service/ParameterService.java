@@ -24,7 +24,8 @@ public class ParameterService {
 
     private static final Set<String> SOCIETY_SHARE_VERSIONS = Set.of(
             TontineParameterConstant.SOCIETY_SHARE_VERSION_V1,
-            TontineParameterConstant.SOCIETY_SHARE_VERSION_V2);
+            TontineParameterConstant.SOCIETY_SHARE_VERSION_V2,
+            TontineParameterConstant.SOCIETY_SHARE_VERSION_V3);
 
     private final ParameterRepository parameterRepository;
     private final ApplicationEventPublisher eventPublisher;
@@ -112,7 +113,7 @@ public class ParameterService {
         String normalized = value.trim().toUpperCase();
         if (!SOCIETY_SHARE_VERSIONS.contains(normalized)) {
             throw new CustomValidationException(
-                    "La valeur de TONTINE_SOCIETY_SHARE_VERSION doit être V1 ou V2.");
+                    "La valeur de TONTINE_SOCIETY_SHARE_VERSION doit être V1, V2 ou V3.");
         }
     }
 

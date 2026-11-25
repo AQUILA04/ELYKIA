@@ -86,6 +86,6 @@ export class ParameterService {
    */
   async getSocietyShareVersion(): Promise<SocietyShareVersion> {
     const value = (await this.getParameterValue('TONTINE_SOCIETY_SHARE_VERSION') || 'V1').trim().toUpperCase();
-    return value === 'V2' ? 'V2' : 'V1';
+    return value === 'V3' ? 'V3' : value === 'V2' ? 'V2' : 'V1';
   }
 }

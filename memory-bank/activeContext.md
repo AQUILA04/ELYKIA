@@ -8,6 +8,8 @@ Arrêt au **2026-11-21** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de
 
 ## Focus récent (changelog et PR)
 
+- **Part société V3** (2026-11-25, Backend 1.65.0, Frontend 2.67.0, Mobile 2.50.0, non fusionné). `V3TontineAllocationPolicy` : mises = `ceil(jours bruts du mois / 31)` par mois de cotisation, sans plafond ; le basculement du paramètre lance le recalcul existant (`TontineAllocationMigrationService`, une transaction par membre via `TransactionTemplate`, rapport `failureReport`). Fiche membre web : seulement la part prélevée, visible avec `ROLE_VIEW_TONTINE_SOCIETY_SHARE` ; le champ `societyShare` reste présent dans l'API (le mobile en a besoin). `validatedMonths` / `currentMonthDays` = 0 en V3. Mise en production : basculer le paramètre sur V3 déclenche le recalcul.
+
 - **Recherche sur l'onglet Retards RM** (2026-11-24, Mobile 2.49.10). `rm-dashboard.page.ts` : filtre local (`filterRmLateCredits`, pack) hors ligne ; en ligne `RmFieldListApiService.pageLateCredits` (`/field/late-credits`, global, donc filtré sur les commerciaux du plan côté mobile) + pagination ; repli local si échec. Le total serveur n'est donc pas celui affiché quand le plan restreint les commerciaux.
 
 - **Journal (Lot 3 / PR E)** (2026-11-24, Mobile 2.49.9). `LoggerService` : rotation à 1 Mo sur 3 fichiers (`app_logs[.1|.2].txt`), préfixe `[utilisateur]` via `LoggerService.setCurrentUsername` (alimenté par le setter `_user` d'`AuthService`, pas d'injection : circulaire), `exportLogs()` appelé par l'écran Plus RM. Pas de plugin de partage installé : l'export reste dans Documents. Le Lot 3 est complet.

@@ -553,40 +553,6 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     return TONTINE_DELIVERY_STATUS_COLORS[status] || 'secondary';
   }
 
-  // Calculate theoretical society share due
-  getTheoreticalSocietyShare(): number {
-    // if (!this.member || !this.member.tontineSession) return 0;
-    //
-    // const dailyAmount = this.member.amount ?? 0;
-    // const startDateStr = this.member.tontineSession.startDate;
-    // const registrationDateStr = this.member.registrationDate;
-    //
-    // if (!startDateStr) return 0;
-    //
-    // let startDate = new Date(startDateStr);
-    // const now = new Date();
-    //
-    // // Logic to use registration date if it's later than session start
-    // if (registrationDateStr) {
-    //   const regDate = new Date(registrationDateStr);
-    //   if (regDate > startDate) {
-    //     startDate = regDate;
-    //   }
-    // }
-    //
-    // let monthsStarted = 0;
-    // if (now >= startDate) {
-    //   monthsStarted = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth()) + 1;
-    // }
-    //
-    // const MAX_MONTHS = 10;
-    // if (monthsStarted > MAX_MONTHS) monthsStarted = MAX_MONTHS;
-    // if (monthsStarted < 0) monthsStarted = 0;
-    //
-
-    return ((this.member?.amount ?? 0) * (this.member?.validatedMonths ?? 0)) + ((this.member?.currentMonthDays ?? 0) > 0 ? (this.member?.amount ?? 0) : 0);
-  }
-
   getStatusBadgeClass(status?: TontineMemberDeliveryStatus): string {
     if (!status) return 'status-inprogress';
     const map: Record<string, string> = {
@@ -616,12 +582,6 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       return (parts[0][0] + parts[1][0]).toUpperCase();
     }
     return name.slice(0, 2).toUpperCase();
-  }
-
-  getSocietyShareStatusColor(): string {
-    const paid = this.member?.societyShare || 0;
-    const due = this.getTheoreticalSocietyShare();
-    return paid < due ? 'warn' : 'primary';
   }
 
   get monthlyCollectionSummaries(): MonthlyCollectionSummary[] {

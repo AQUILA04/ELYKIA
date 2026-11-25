@@ -94,6 +94,7 @@ public class UserPermissionConstant {
     public static final String CANCEL_EXPENSE = "ROLE_CANCEL_EXPENSE";
 
     /** Annulation d'une demande de sortie déjà validée, tant qu'elle n'est pas livrée. GESTIONNAIRE et STOREKEEPER par défaut. */
+    public static final String VIEW_TONTINE_SOCIETY_SHARE = "ROLE_VIEW_TONTINE_SOCIETY_SHARE";
     public static final String CANCEL_VALIDATED_STOCK_REQUEST = "ROLE_CANCEL_VALIDATED_STOCK_REQUEST";
 
     public static final String CREATE_INVENTORY = "ROLE_CREATE_INVENTORY";

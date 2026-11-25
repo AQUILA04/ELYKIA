@@ -9,6 +9,24 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend, Frontend & Mobile — 2026-11-25 (part société V3)
+
+### Added
+
+- **Backend → Tontine → part société V3 (`TONTINE_SOCIETY_SHARE_VERSION=V3`) →** une mise est prélevée dès qu'un mois de cotisation est entamé (même sans 31 jours), puis une mise de plus à chaque bloc de 31 jours collectés dans ce mois (32e jour, 63e jour…). Les jours sont comptés bruts (montant / mise du mois), sans plafond de mois ni de mises. V2 reste disponible.
+- **Backend → recalcul des parts société →** le passage à V3 relance le recalcul de tous les membres actifs (collectes actives). Une transaction par membre : un membre en échec est annulé seul, ajouté au rapport (`failureReport`, `GET /api/v1/tontines/allocation-migration/last-report`, admin) et ne bloque jamais les autres. La progression est écrite par lot de 50.
+- **Backend → rôle `ROLE_VIEW_TONTINE_SOCIETY_SHARE` (`V048`) →** accordé par défaut à SUPER_ADMIN, ADMIN et GESTIONNAIRE ; migration `V047` (`failure_report`).
+- **Mobile →** estimation hors ligne V3 identique au serveur.
+
+### Changed
+
+- **Frontend → Tontine → fiche membre →** la carte « Part société » n'affiche plus que la part prélevée (plus de « dû ») et n'est visible qu'avec `ROLE_VIEW_TONTINE_SOCIETY_SHARE` ou admin ; la section « Progression des mois » est retirée. Le paramètre propose V1, V2 et V3.
+- **Backend →** en V3, `validatedMonths` et `currentMonthDays` valent 0 (ils ne pilotent plus le calcul).
+
+### Fixed
+
+- **Backend → recalcul des parts société →** `processMemberInNewTransaction` était appelée par auto-invocation : le `REQUIRES_NEW` ne s'appliquait pas. Elle passe maintenant par un `TransactionTemplate`.
+
 ## Mobile & Backend — 2026-11-24 (photo des membres tontine, filtre « Livrés »)
 
 ### Added

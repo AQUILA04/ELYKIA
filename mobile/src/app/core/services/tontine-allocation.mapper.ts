@@ -1,6 +1,6 @@
 import { TontineCollection, TontineMember } from '../../models/tontine.model';
 
-export type SocietyShareVersion = 'V1' | 'V2';
+export type SocietyShareVersion = 'V1' | 'V2' | 'V3';
 
 export function toDateOnlyString(value?: string | null): string | undefined {
   if (!value) {

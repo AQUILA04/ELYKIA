@@ -168,4 +168,28 @@ describe('TontineCalculationService', () => {
 
     expect(status.isExact).toBeFalse();
   });
+  it('V3 charges one share as soon as a month is started', async () => {
+    parameterService.getSocietyShareVersion.and.resolveTo('V3');
+    const status = await service.calculateMemberStatus(member(), session(), [collection('1', `${year}-03-05`, 10000)]);
+    expect(status.societyShare).toBe(1000);
+  });
+
+  it('V3 charges one more share at each block of 31 days in the same month', async () => {
+    parameterService.getSocietyShareVersion.and.resolveTo('V3');
+    const at = async (amount: number) =>
+      (await service.calculateMemberStatus(member(), session(), [collection('1', `${year}-09-01`, amount)])).societyShare;
+    expect(await at(31000)).toBe(1000);
+    expect(await at(32000)).toBe(2000);
+    expect(await at(62000)).toBe(2000);
+    expect(await at(63000)).toBe(3000);
+    expect(await at(90000)).toBe(3000);
+  });
+
+  it('V3 has no cap on the number of shares', async () => {
+    parameterService.getSocietyShareVersion.and.resolveTo('V3');
+    const collections = Array.from({ length: 12 }, (_, i) =>
+      collection(String(i + 1), `${year}-${String(i + 1).padStart(2, '0')}-10`, 1000));
+    const status = await service.calculateMemberStatus(member(), session(), collections);
+    expect(status.societyShare).toBe(12000);
+  });
 });

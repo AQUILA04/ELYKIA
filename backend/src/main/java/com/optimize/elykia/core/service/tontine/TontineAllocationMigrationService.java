@@ -22,6 +22,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionPhase;
@@ -41,6 +43,7 @@ import java.util.Objects;
 public class TontineAllocationMigrationService {
 
     private static final int BATCH_SIZE = 50;
+    private static final int MAX_REPORT_LENGTH = 20_000;
 
     private final TontineAllocationMigrationRunRepository runRepository;
     private final TontineMemberAllocationSnapshotRepository snapshotRepository;
@@ -49,6 +52,7 @@ public class TontineAllocationMigrationService {
     private final TontineSessionRepository sessionRepository;
     private final TontineAllocationPolicyResolver policyResolver;
     private final TontineAllocationMigrationJobRunner jobRunner;
+    private final PlatformTransactionManager transactionManager;
 
     public boolean isMigrationRunning() {
         return runRepository.findLatestByStatusIn(List.of(
@@ -129,6 +133,9 @@ public class TontineAllocationMigrationService {
         runRepository.save(run);
 
         Long lastId = run.getLastProcessedMemberId() != null ? run.getLastProcessedMemberId() : 0L;
+        // Une transaction par membre : un membre en erreur est annulé seul, rapporté, et la boucle continue.
+        TransactionTemplate perMember = new TransactionTemplate(transactionManager);
+        perMember.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         Page<TontineMember> page;
 
         do {
@@ -142,16 +149,20 @@ public class TontineAllocationMigrationService {
                 break;
             }
 
+            int processed = 0;
+            List<String> failures = new ArrayList<>();
             for (TontineMember member : page.getContent()) {
+                Long memberId = member.getId();
                 try {
-                    processMemberInNewTransaction(runId, member.getId());
+                    perMember.executeWithoutResult(status -> processMemberInNewTransaction(runId, memberId));
                 } catch (Exception e) {
-                    log.error("Échec recalcul membre {} pour run {}", member.getId(), runId, e);
-                    incrementFailedMembers(runId);
+                    log.error("Échec recalcul membre {} pour run {}", memberId, runId, e);
+                    failures.add(describeFailure(memberId, e));
                 }
-                lastId = member.getId();
-                updateRunProgress(runId, lastId);
+                processed++;
+                lastId = memberId;
             }
+            recordBatchProgress(runId, lastId, processed, failures);
         } while (page.hasNext());
 
         finalizeRun(runId);
@@ -203,20 +214,24 @@ public class TontineAllocationMigrationService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void updateRunProgress(Long runId, Long lastProcessedMemberId) {
+    public void recordBatchProgress(Long runId, Long lastProcessedMemberId, int processed, List<String> failures) {
         runRepository.findById(runId).ifPresent(run -> {
             run.setLastProcessedMemberId(lastProcessedMemberId);
-            run.setProcessedMembers(run.getProcessedMembers() + 1);
+            run.setProcessedMembers(run.getProcessedMembers() + processed);
+            if (failures != null && !failures.isEmpty()) {
+                run.setFailedMembers(run.getFailedMembers() + failures.size());
+                String existing = run.getFailureReport() != null ? run.getFailureReport() + "\n" : "";
+                String merged = existing + String.join("\n", failures);
+                run.setFailureReport(merged.length() > MAX_REPORT_LENGTH
+                        ? merged.substring(0, MAX_REPORT_LENGTH) + "\n..." : merged);
+            }
             runRepository.save(run);
         });
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void incrementFailedMembers(Long runId) {
-        runRepository.findById(runId).ifPresent(run -> {
-            run.setFailedMembers(run.getFailedMembers() + 1);
-            runRepository.save(run);
-        });
+    private static String describeFailure(Long memberId, Exception e) {
+        String message = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
+        return "Membre " + memberId + " : " + message;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
