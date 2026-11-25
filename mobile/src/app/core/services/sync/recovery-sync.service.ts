@@ -192,12 +192,7 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
             if (distributionServerId) {
                 stakeUnits.push({
                     creditId: Number.parseInt(distributionServerId),
-                    recoveryId: recovery.id,
-                    reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
-                    reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
-                    operationConsentCode: recovery.operationConsentCode ?? null,
-                    confirmedAmount: recovery.confirmedAmount ?? null,
-                    operationDate: toLocalDateTimeString(recovery.createdAt) ?? null
+                    ...commonStakeFields(recovery)
                 });
             }
         }
@@ -271,12 +266,7 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
                             amount: recovery.amount,
                             creditId: parsedCreditId,
                             clientId: parsedClientId,
-                            recoveryId: recovery.id,
-                            reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
-                            reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
-                            operationConsentCode: recovery.operationConsentCode ?? null,
-                            confirmedAmount: recovery.confirmedAmount ?? null,
-                    operationDate: toLocalDateTimeString(recovery.createdAt) ?? null
+                            ...commonStakeFields(recovery)
                         });
                     }
                 }
@@ -344,12 +334,7 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
             if (distributionServerId) {
                 stakeUnits.push({
                     creditId: Number.parseInt(distributionServerId, 10),
-                    recoveryId: recovery.id,
-                    reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
-                    reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
-                    operationConsentCode: recovery.operationConsentCode ?? null,
-                    confirmedAmount: recovery.confirmedAmount ?? null,
-                    operationDate: toLocalDateTimeString(recovery.createdAt) ?? null
+                    ...commonStakeFields(recovery)
                 });
             }
         }
@@ -390,12 +375,7 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
                             amount: recovery.amount,
                             creditId: parsedCreditId,
                             clientId: parsedClientId,
-                            recoveryId: recovery.id,
-                            reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
-                            reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
-                            operationConsentCode: recovery.operationConsentCode ?? null,
-                            confirmedAmount: recovery.confirmedAmount ?? null,
-                    operationDate: toLocalDateTimeString(recovery.createdAt) ?? null
+                            ...commonStakeFields(recovery)
                         });
                     }
                 }
@@ -435,4 +415,16 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
             }
         }
     }
+}
+
+/** Champs communs à toutes les mises envoyées au serveur (crédit par défaut ou spécial, unitaire ou par lot). */
+function commonStakeFields(recovery: Recovery) {
+    return {
+        recoveryId: recovery.id,
+        reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
+        reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
+        operationConsentCode: recovery.operationConsentCode ?? null,
+        confirmedAmount: recovery.confirmedAmount ?? null,
+        operationDate: toLocalDateTimeString(recovery.createdAt) ?? null
+    };
 }
