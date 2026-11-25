@@ -70,7 +70,7 @@ interface DeliveryViewModel {
     remainingBudget: number;
     selectedCount: number;
     loading: boolean;
-    allocationVersion: 'V1' | 'V2' | null;
+    allocationVersion: 'V1' | 'V2' | 'V3' | null;
     isOfflineEstimate: boolean;
     isExactBudget: boolean;
 }

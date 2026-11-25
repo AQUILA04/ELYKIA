@@ -13,11 +13,12 @@ public record TontineAllocationMigrationStatusDto(
         int totalMembers,
         int failedMembers,
         LocalDateTime startedAt,
-        TontineAllocationMigrationRunStatus status) {
+        TontineAllocationMigrationRunStatus status,
+        String failureReport) {
 
     public static TontineAllocationMigrationStatusDto idle() {
         return new TontineAllocationMigrationStatusDto(
-                false, null, null, 0, 0, 0, null, null);
+                false, null, null, 0, 0, 0, null, null, null);
     }
 
     public static TontineAllocationMigrationStatusDto from(TontineAllocationMigrationRun run) {
@@ -31,6 +32,7 @@ public record TontineAllocationMigrationStatusDto(
                 run.getTotalMembers() != null ? run.getTotalMembers() : 0,
                 run.getFailedMembers() != null ? run.getFailedMembers() : 0,
                 run.getStartedAt(),
-                run.getStatus());
+                run.getStatus(),
+                run.getFailureReport());
     }
 }

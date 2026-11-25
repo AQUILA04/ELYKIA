@@ -127,10 +127,10 @@
       <div class="kpi-value">{{ formatCurrency(member.availableContribution || 0) }}</div>
       <div class="kpi-sub">Montant utilisable</div>
     </div>
-    <div class="kpi-card kpi-total" [class.kpi-echeance]="getSocietyShareStatusColor() === 'warn'">
-      <div class="kpi-label">Part Société (Payé / Dû)</div>
-      <div class="kpi-value">{{ formatCurrency(member.societyShare || 0) }} / {{ formatCurrency(getTheoreticalSocietyShare()) }}</div>
-      <div class="kpi-sub">Cotisation société</div>
+    <div class="kpi-card kpi-total" *ngxPermissionsOnly="['ROLE_VIEW_TONTINE_SOCIETY_SHARE', 'ROLE_ADMIN']" data-testid="e2e-tontine-society-share">
+      <div class="kpi-label">Part Société</div>
+      <div class="kpi-value">{{ formatCurrency(member.societyShare || 0) }}</div>
+      <div class="kpi-sub">Cotisation société prélevée</div>
     </div>
     <div class="kpi-card kpi-total">
       <div class="kpi-label">Collectes à la livraison</div>
@@ -323,27 +323,7 @@
       </div>
     </div>
 
-    <div class="progress-section" *ngIf="member.validatedMonths !== undefined">
-      <h3 class="section-subtitle">Progression des Mois ({{ member.validatedMonths }}/10)</h3>
-      <div class="months-grid">
-        <div *ngFor="let month of monthsList; let i = index"
-             class="month-item"
-             [class.validated]="i < (member.validatedMonths || 0)"
-             [class.current]="i === (member.validatedMonths || 0)"
-             [class.pending]="i > (member.validatedMonths || 0)">
-          <span class="month-name">{{ month }}</span>
-          <svg *ngIf="i < (member.validatedMonths || 0)" class="validated-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
-          <div *ngIf="i === (member.validatedMonths || 0)" class="current-month-progress">
-            <div class="progress-track">
-              <div class="progress-fill" [style.width.%]="((member.currentMonthDays || 0) / 31) * 100"></div>
-            </div>
-            <span class="days-count">{{ member.currentMonthDays || 0 }}/31j</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="collections-by-month-section" *ngIf="member.validatedMonths !== undefined">
+    <div class="collections-by-month-section">
       <div class="collections-by-month-header">
         <h3 class="section-subtitle">Synthèse des collectes par mois</h3>
         <span class="result-count" *ngIf="!loadingMonthlySummary">

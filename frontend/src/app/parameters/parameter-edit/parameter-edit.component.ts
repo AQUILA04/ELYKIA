@@ -66,7 +66,7 @@ export class ParameterEditComponent implements OnInit {
     if (this.isSocietyShareVersion) {
       this.isBooleanValue = false;
       const normalized = (value || '').toString().trim().toUpperCase();
-      const nextValue = this.societyShareVersionOptions.includes(normalized as 'V1' | 'V2')
+      const nextValue = this.societyShareVersionOptions.includes(normalized as 'V1' | 'V2' | 'V3')
         ? normalized
         : 'V1';
       if (this.form.get('value')?.value !== nextValue) {
@@ -109,7 +109,7 @@ export class ParameterEditComponent implements OnInit {
       formValue.value = String(formValue.value || '').trim().toUpperCase();
       if (!this.societyShareVersionOptions.includes(formValue.value)) {
         this.spinner.hide();
-        this.toastr.error('La version part société doit être V1 ou V2', 'Erreur');
+        this.toastr.error('La version part société doit être V1, V2 ou V3', 'Erreur');
         return;
       }
     }

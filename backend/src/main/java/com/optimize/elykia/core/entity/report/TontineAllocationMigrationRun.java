@@ -53,4 +53,8 @@ public class TontineAllocationMigrationRun extends Auditable<String> {
 
     @Column(columnDefinition = "TEXT")
     private String errorMessage;
+
+    /** Un membre en échec par ligne (« Membre 12 : motif »). Les autres membres ne sont jamais bloqués. */
+    @Column(columnDefinition = "TEXT")
+    private String failureReport;
 }

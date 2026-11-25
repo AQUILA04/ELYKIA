@@ -71,7 +71,9 @@ export class TontineCalculationService {
     const isExact = version === 'V1'
       || ordered.every(collection => !!collection.contributionMonth);
 
-    const status = version === 'V2'
+    const status = version === 'V3'
+      ? this.calculateV3(member, regular, history, isOfflineEstimate, isExact)
+      : version === 'V2'
       ? this.calculateV2(member, regular, history, isOfflineEstimate, isExact)
       : this.calculateV1(member, session, regular, history, useRegistrationDate, isOfflineEstimate, isExact);
     const topUpAmount = topUps.reduce((sum, collection) => sum + (collection.amount || 0), 0);
@@ -428,6 +430,105 @@ export class TontineCalculationService {
       validatedMonths,
       currentMonthDays: orderedMonths.length ? latestDays : 0,
       monthsStarted: openedSocietyMonths.size,
+      targetSocietyShare: totalSocietyShare,
+      isOfflineEstimate,
+      isExact,
+      collections: allocated
+    };
+  }
+
+  /**
+   * V3 : une mise dès qu'un mois est entamé, puis une de plus à chaque bloc de 31 jours bruts
+   * collectés dans ce mois (32e, 63e jour...). Aucun plafond. Miroir de V3TontineAllocationPolicy.
+   */
+  private calculateV3(
+    member: TontineMember,
+    collections: TontineCollection[],
+    history: TontineMemberAmountHistory[],
+    isOfflineEstimate: boolean,
+    isExact: boolean
+  ): TontineMemberAllocationStatus {
+    const EPSILON = 0.0001;
+    const months = new Map<string, { dailyAmount: number; gross: number; societyPaid: number }>();
+    let totalContribution = 0;
+    let totalSocietyShare = 0;
+
+    const bucketOf = (month: string) => {
+      let bucket = months.get(month);
+      if (!bucket) {
+        bucket = { dailyAmount: this.getDailyAmountForMonth(member, history, month), gross: 0, societyPaid: 0 };
+        months.set(month, bucket);
+      }
+      return bucket;
+    };
+
+    const blocks = (gross: number, daily: number): number =>
+      daily <= 0 || gross <= EPSILON ? 0 : Math.ceil(gross / (DAYS_PER_MONTH * daily) - EPSILON);
+
+    const applyToMonth = (month: string, amount: number): number => {
+      if (amount <= 0) {
+        return 0;
+      }
+      const bucket = bucketOf(month);
+      bucket.gross += amount;
+      const target = blocks(bucket.gross, bucket.dailyAmount) * bucket.dailyAmount;
+      const paid = Math.min(amount, Math.max(0, target - bucket.societyPaid));
+      bucket.societyPaid += paid;
+      totalSocietyShare += paid;
+      return paid;
+    };
+
+    const allocated = collections.map(collection => {
+      const allocationDate = toDateOnlyString(collection.collectionDate);
+      const baseMonth = (toContributionMonth(collection.contributionMonth, collection.collectionDate)
+        || `${allocationDate?.substring(0, 7)}-01`).substring(0, 7);
+      const advance = collection.advanceToNextMonth === true;
+      const amount = collection.amount || 0;
+      let societyShareAmount = 0;
+      let resolved = baseMonth;
+
+      if (!advance) {
+        societyShareAmount = applyToMonth(baseMonth, amount);
+      } else {
+        const bucket = bucketOf(baseMonth);
+        const blockAmount = DAYS_PER_MONTH * bucket.dailyAmount;
+        const needed = Math.max(0, blockAmount - bucket.gross);
+        if (bucket.gross >= blockAmount - EPSILON) {
+          resolved = this.plusMonths(baseMonth, 1);
+          societyShareAmount = applyToMonth(resolved, amount);
+        } else if (amount <= needed + EPSILON) {
+          const projectedDays = bucket.dailyAmount > 0
+            ? Math.trunc((bucket.gross + amount) / bucket.dailyAmount + EPSILON) : 0;
+          if (projectedDays < DAYS_PER_MONTH) {
+            throw new TontineAllocationValidationError(
+              "Impossible de passer au mois suivant : le mois courant n'atteint pas 31 jours de cotisation."
+            );
+          }
+          societyShareAmount = applyToMonth(baseMonth, amount);
+        } else {
+          const onCurrent = applyToMonth(baseMonth, needed);
+          resolved = this.plusMonths(baseMonth, 1);
+          societyShareAmount = onCurrent + applyToMonth(resolved, amount - needed);
+        }
+      }
+
+      totalContribution += amount;
+      return {
+        ...collection,
+        societyShareAmount,
+        contributionMonth: `${resolved}-01`,
+        advanceToNextMonth: advance
+      };
+    });
+
+    return {
+      version: 'V3',
+      totalCollected: totalContribution,
+      societyShare: totalSocietyShare,
+      availableBudget: Math.max(0, totalContribution - totalSocietyShare),
+      validatedMonths: 0,
+      currentMonthDays: 0,
+      monthsStarted: months.size,
       targetSocietyShare: totalSocietyShare,
       isOfflineEstimate,
       isExact,

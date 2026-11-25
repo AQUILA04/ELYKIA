@@ -1158,6 +1158,14 @@ public class TontineService extends GenericService<TontineMember, Long> {
         return TontineAllocationMigrationStatusDto.idle();
     }
 
+    public TontineAllocationMigrationStatusDto getLastAllocationMigrationReport() {
+        if (allocationMigrationService == null) {
+            return TontineAllocationMigrationStatusDto.idle();
+        }
+        TontineAllocationMigrationRun run = allocationMigrationService.getLatestActiveOrRecentRun();
+        return run == null ? TontineAllocationMigrationStatusDto.idle() : TontineAllocationMigrationStatusDto.from(run);
+    }
+
     @Transactional
     public TontineAllocationMigrationRun triggerAllocationRecalculation(String triggeredBy) {
         if (allocationMigrationService == null) {

@@ -165,6 +165,7 @@ class TontineAllocationMigrationServiceTest {
 
     private TontineAllocationMigrationService service() {
         return new TontineAllocationMigrationService(runRepository, snapshotRepository, memberRepository,
-                collectionRepository, sessionRepository, policyResolver, jobRunner);
+                collectionRepository, sessionRepository, policyResolver, jobRunner,
+                org.mockito.Mockito.mock(org.springframework.transaction.PlatformTransactionManager.class));
     }
 }
