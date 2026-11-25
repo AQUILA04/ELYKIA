@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Complément encaissé à la remise : il augmente le solde disponible en entier,
- * sans ouvrir un mois ni reprendre une part société.
+ * Collecte faite à la livraison (complément encaissé à la remise) : elle augmente le solde disponible en entier,
+ * sans ouvrir un mois ni reprendre une part société. Exemptée que la session soit active ou clôturée.
  */
 public final class TontineBalanceTopUp {
 
@@ -16,7 +16,9 @@ public final class TontineBalanceTopUp {
     }
 
     public static boolean isTopUp(TontineCollection collection) {
-        return collection != null && Boolean.TRUE.equals(collection.getBalanceTopUp());
+        return collection != null
+                && (Boolean.TRUE.equals(collection.getBalanceTopUp())
+                || Boolean.TRUE.equals(collection.getIsDeliveryCollection()));
     }
 
     public static List<TontineCollection> regular(List<TontineCollection> collections) {

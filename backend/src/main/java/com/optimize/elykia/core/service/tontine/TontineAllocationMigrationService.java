@@ -88,7 +88,8 @@ public class TontineAllocationMigrationService {
             return;
         }
         if (isMigrationRunning()) {
-            log.error("Bascule {} -> {} ignorée : migration déjà en cours", fromVersion, toVersion);
+            // Pas perdue : à la fin du run en cours, runFollowUpIfVersionChanged relance vers la version courante.
+            log.info("Bascule {} -> {} mise en file : un recalcul est déjà en cours", fromVersion, toVersion);
             return;
         }
         try {
@@ -210,6 +211,35 @@ public class TontineAllocationMigrationService {
         } catch (Exception e) {
             log.error("Échec fatal du job de migration allocation tontine run={}", runId, e);
             markRunFailed(runId, e.getMessage());
+            return;
+        }
+        runFollowUpIfVersionChanged(runId);
+    }
+
+    /**
+     * Si le paramètre a changé pendant le run (ex. V3 -> V2 puis V2 -> V3 avant la fin), le changement avait été mis
+     * en file : on relance un recalcul complet vers la version désormais configurée. L'état est relu en base,
+     * donc rien n'est perdu ; la chaîne s'arrête quand la version configurée égale celle du dernier run.
+     */
+    void runFollowUpIfVersionChanged(Long runId) {
+        String from = "?";
+        String to = "?";
+        try {
+            TontineAllocationMigrationRun finished = runRepository.findById(runId).orElse(null);
+            if (finished == null || finished.getStatus() != TontineAllocationMigrationRunStatus.COMPLETED) {
+                return;
+            }
+            String current = policyResolver.currentVersion();
+            from = finished.getToVersion();
+            to = current;
+            if (!current.equals(finished.getToVersion())) {
+                log.info("Version configurée {} différente du run {} ({}) : nouveau recalcul", current, runId,
+                        finished.getToVersion());
+                startMigration(finished.getToVersion(), current, "system");
+            }
+        } catch (Exception e) {
+            log.error("Impossible de relancer le recalcul en file après le run {}", runId, e);
+            recordStartFailure(from, to, "system", e);
         }
     }
 

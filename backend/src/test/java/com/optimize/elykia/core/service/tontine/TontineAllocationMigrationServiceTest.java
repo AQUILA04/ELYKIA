@@ -220,4 +220,47 @@ class TontineAllocationMigrationServiceTest {
                 collectionRepository, sessionRepository, policyResolver, jobRunner,
                 org.mockito.Mockito.mock(org.springframework.transaction.PlatformTransactionManager.class));
     }
+
+    @Test
+    void followUp_startsNewRunWhenConfiguredVersionChangedDuringRun() {
+        TontineAllocationMigrationService service = service();
+        TontineAllocationMigrationRun finished = new TontineAllocationMigrationRun();
+        finished.setId(10L);
+        finished.setToVersion("V2");
+        finished.setStatus(TontineAllocationMigrationRunStatus.COMPLETED);
+        TontineSession session = new TontineSession();
+        session.setId(22L);
+        when(runRepository.findById(10L)).thenReturn(Optional.of(finished));
+        when(policyResolver.currentVersion()).thenReturn("V3");
+        when(runRepository.findLatestByStatusIn(any())).thenReturn(Optional.empty());
+        when(sessionRepository.findByYear(LocalDate.now().getYear())).thenReturn(Optional.of(session));
+        when(runRepository.saveAndFlush(any(TontineAllocationMigrationRun.class))).thenAnswer(invocation -> {
+            TontineAllocationMigrationRun run = invocation.getArgument(0);
+            run.setId(11L);
+            return run;
+        });
+        ArgumentCaptor<TontineAllocationMigrationRun> captor = ArgumentCaptor.forClass(TontineAllocationMigrationRun.class);
+
+        service.runFollowUpIfVersionChanged(10L);
+
+        verify(runRepository).saveAndFlush(captor.capture());
+        assertEquals("V2", captor.getValue().getFromVersion());
+        assertEquals("V3", captor.getValue().getToVersion());
+        verify(jobRunner).runAsync(11L);
+    }
+
+    @Test
+    void followUp_doesNothingWhenVersionIsUnchanged() {
+        TontineAllocationMigrationService service = service();
+        TontineAllocationMigrationRun finished = new TontineAllocationMigrationRun();
+        finished.setId(10L);
+        finished.setToVersion("V3");
+        finished.setStatus(TontineAllocationMigrationRunStatus.COMPLETED);
+        when(runRepository.findById(10L)).thenReturn(Optional.of(finished));
+        when(policyResolver.currentVersion()).thenReturn("V3");
+
+        service.runFollowUpIfVersionChanged(10L);
+
+        verify(jobRunner, never()).runAsync(any());
+    }
 }
