@@ -14,8 +14,9 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - **Backend → Tontine → part société V3 (`TONTINE_SOCIETY_SHARE_VERSION=V3`) →** une mise est prélevée dès qu'un mois de cotisation est entamé (même sans 31 jours), puis une mise de plus à chaque bloc de 31 jours collectés dans ce mois (32e jour, 63e jour…). Les jours sont comptés bruts (montant / mise du mois), sans plafond de mois ni de mises. V2 reste disponible.
-- **Backend → recalcul des parts société →** le passage à V3 relance le recalcul de tous les membres actifs (collectes actives). Une transaction par membre : un membre en échec est annulé seul, ajouté au rapport (`failureReport`, `GET /api/v1/tontines/allocation-migration/last-report`, admin) et ne bloque jamais les autres. La progression est écrite par lot de 50.
+- **Backend → recalcul des parts société →** le passage à V3 relance le recalcul de tous les membres actifs (collectes actives). Une transaction par membre : un membre en échec est annulé seul, enregistré avec son motif et sa pile d'appels (table `tontine_allocation_migration_failure`, `V049`) et ne bloque jamais les autres. La progression est écrite par lot de 50.
 - **Backend → rôle `ROLE_VIEW_TONTINE_SOCIETY_SHARE` (`V048`) →** accordé par défaut à SUPER_ADMIN, ADMIN et GESTIONNAIRE ; migration `V047` (`failure_report`).
+- **Frontend → Administration → « Recalcul parts société » (`/admin/allocation-migration`, admin) →** historique des recalculs, progression en direct, liste paginée des membres en erreur avec détail technique dépliable, bouton « Relancer ce recalcul » (reprise d'un run échoué) et « Recalcul complet ». API : `GET /allocation-migration/runs`, `/runs/{id}`, `/runs/{id}/failures`, `POST /runs/{id}/retry`.
 - **Mobile →** estimation hors ligne V3 identique au serveur.
 
 ### Changed
@@ -25,6 +26,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Fixed
 
+- **Backend → recalcul des parts société →** le changement du paramètre n'enregistrait aucun run (`run=null`, `findById(null)`) : `startMigration` était appelée depuis un listener `AFTER_COMMIT`, sans transaction active, donc l'INSERT `IDENTITY` était différé et l'id restait nul. Le run est désormais créé dans une transaction `REQUIRES_NEW` commitée avant le lancement du job asynchrone ; un job sans identifiant est refusé.
 - **Backend → recalcul des parts société →** `processMemberInNewTransaction` était appelée par auto-invocation : le `REQUIRES_NEW` ne s'appliquait pas. Elle passe maintenant par un `TransactionTemplate`.
 
 ## Mobile & Backend — 2026-11-24 (photo des membres tontine, filtre « Livrés »)

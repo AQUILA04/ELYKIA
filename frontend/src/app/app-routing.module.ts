@@ -88,6 +88,19 @@ const routes: Routes = [
   },
 
   {
+    path: 'admin/allocation-migration',
+    loadChildren: () => import('./tontine-allocation-admin/allocation-migration-admin.module')
+      .then(m => m.AllocationMigrationAdminModule),
+    canActivate: [AuthGuard, NgxPermissionsGuard],
+    data: {
+      permissions: {
+        only: ['ROLE_ADMIN'],
+        redirectTo: '/home'
+      }
+    }
+  },
+
+  {
     path: 'audit',
     loadChildren: () => import('./customer-activity-audit/customer-activity-audit.module')
       .then(m => m.CustomerActivityAuditModule),

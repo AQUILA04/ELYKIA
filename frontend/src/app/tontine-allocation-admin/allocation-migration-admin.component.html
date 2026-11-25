@@ -1,0 +1,92 @@
+<div class="main-container allocation-admin" data-testid="e2e-allocation-migration-admin">
+  <div class="page-head">
+    <div>
+      <h1>Recalcul des parts société</h1>
+      <p class="subtitle">Suivi des recalculs déclenchés par le changement de version (V1 / V2 / V3) et des membres en erreur.</p>
+    </div>
+    <div class="head-actions">
+      <button type="button" class="btn" (click)="loadRuns()" [disabled]="loading">Actualiser</button>
+      <button type="button" class="btn btn-primary" (click)="startFull()" [disabled]="actionBusy || anyRunning"
+              data-testid="e2e-allocation-start-full">Recalcul complet</button>
+    </div>
+  </div>
+
+  <div class="alert alert-error" *ngIf="error">{{ error }}</div>
+  <div class="alert alert-info" *ngIf="info">{{ info }}</div>
+
+  <div class="layout">
+    <section class="card runs">
+      <h2>Historique</h2>
+      <p class="empty" *ngIf="!loading && !runs.length">Aucun recalcul n'a encore été lancé.</p>
+      <ul class="run-list">
+        <li *ngFor="let run of runs" [class.active]="selected?.id === run.id" (click)="select(run)"
+            [attr.data-testid]="'e2e-allocation-run-' + run.id">
+          <div class="run-line">
+            <strong>#{{ run.id }} · {{ run.fromVersion }} → {{ run.toVersion }}</strong>
+            <span class="badge" [ngClass]="'st-' + run.status.toLowerCase()">{{ statusLabel(run.status) }}</span>
+          </div>
+          <div class="run-meta">{{ run.startedAt ? (run.startedAt | date:'dd/MM/yyyy HH:mm') : 'Pas encore démarré' }}
+            · {{ run.processedMembers }}/{{ run.totalMembers }} membres
+            <span class="fail" *ngIf="run.failedMembers"> · {{ run.failedMembers }} en erreur</span></div>
+        </li>
+      </ul>
+      <div class="pager" *ngIf="runsTotalPages > 1">
+        <button type="button" class="btn" (click)="pageRuns(-1)" [disabled]="runsPage === 0">‹</button>
+        <span>{{ runsPage + 1 }} / {{ runsTotalPages }}</span>
+        <button type="button" class="btn" (click)="pageRuns(1)" [disabled]="runsPage >= runsTotalPages - 1">›</button>
+      </div>
+    </section>
+
+    <section class="card detail" *ngIf="selected">
+      <div class="detail-head">
+        <h2>Recalcul #{{ selected.id }}</h2>
+        <span class="badge" [ngClass]="'st-' + selected.status.toLowerCase()">{{ statusLabel(selected.status) }}</span>
+        <button type="button" class="btn btn-primary" *ngIf="selected.status === 'FAILED'" (click)="retry()"
+                [disabled]="actionBusy || anyRunning" data-testid="e2e-allocation-retry">Relancer ce recalcul</button>
+      </div>
+
+      <div class="progress" aria-label="Progression">
+        <div class="bar" [style.width.%]="progress(selected)"></div>
+      </div>
+      <dl class="facts">
+        <div><dt>Progression</dt><dd>{{ selected.processedMembers }} / {{ selected.totalMembers }} ({{ progress(selected) }} %)</dd></div>
+        <div><dt>Membres en erreur</dt><dd>{{ selected.failedMembers }}</dd></div>
+        <div><dt>Déclenché par</dt><dd>{{ selected.triggeredBy || '—' }}</dd></div>
+        <div><dt>Début</dt><dd>{{ selected.startedAt ? (selected.startedAt | date:'dd/MM/yyyy HH:mm:ss') : '—' }}</dd></div>
+        <div><dt>Fin</dt><dd>{{ selected.finishedAt ? (selected.finishedAt | date:'dd/MM/yyyy HH:mm:ss') : '—' }}</dd></div>
+      </dl>
+
+      <div class="alert alert-error" *ngIf="selected.errorMessage">
+        <strong>Erreur fatale :</strong> {{ selected.errorMessage }}
+        <div class="hint" *ngIf="selected.status === 'FAILED'">« Relancer ce recalcul » reprend là où le job s'est arrêté.</div>
+      </div>
+
+      <h3>Membres en erreur ({{ failuresTotal }})</h3>
+      <p class="empty" *ngIf="!failures.length">Aucune erreur enregistrée pour ce recalcul.</p>
+      <table class="failures" *ngIf="failures.length">
+        <thead><tr><th>Membre</th><th>Type</th><th>Message</th><th></th></tr></thead>
+        <tbody>
+          <ng-container *ngFor="let f of failures">
+            <tr (click)="toggle(f)" class="clickable">
+              <td>{{ f.memberName || ('Membre #' + f.memberId) }}<small> (#{{ f.memberId }})</small></td>
+              <td>{{ f.errorType }}</td>
+              <td class="msg">{{ f.message }}</td>
+              <td>{{ expandedFailureId === f.id ? '▾' : '▸' }}</td>
+            </tr>
+            <tr *ngIf="expandedFailureId === f.id" class="detail-row">
+              <td colspan="4">
+                <div><strong>Survenue le</strong> {{ f.occurredAt | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+                <pre>{{ f.detail || 'Pas de détail technique.' }}</pre>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+      <div class="pager" *ngIf="failuresTotalPages > 1">
+        <button type="button" class="btn" (click)="pageFailures(-1)" [disabled]="failuresPage === 0">‹</button>
+        <span>{{ failuresPage + 1 }} / {{ failuresTotalPages }}</span>
+        <button type="button" class="btn" (click)="pageFailures(1)" [disabled]="failuresPage >= failuresTotalPages - 1">›</button>
+      </div>
+    </section>
+  </div>
+</div>

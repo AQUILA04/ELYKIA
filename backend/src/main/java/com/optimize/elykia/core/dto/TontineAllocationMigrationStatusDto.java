@@ -6,6 +6,7 @@ import com.optimize.elykia.core.enumaration.TontineAllocationMigrationRunStatus;
 import java.time.LocalDateTime;
 
 public record TontineAllocationMigrationStatusDto(
+        Long id,
         boolean running,
         String fromVersion,
         String toVersion,
@@ -13,18 +14,21 @@ public record TontineAllocationMigrationStatusDto(
         int totalMembers,
         int failedMembers,
         LocalDateTime startedAt,
+        LocalDateTime finishedAt,
         TontineAllocationMigrationRunStatus status,
-        String failureReport) {
+        String triggeredBy,
+        String errorMessage) {
 
     public static TontineAllocationMigrationStatusDto idle() {
         return new TontineAllocationMigrationStatusDto(
-                false, null, null, 0, 0, 0, null, null, null);
+                null, false, null, null, 0, 0, 0, null, null, null, null, null);
     }
 
     public static TontineAllocationMigrationStatusDto from(TontineAllocationMigrationRun run) {
         boolean running = run.getStatus() == TontineAllocationMigrationRunStatus.PENDING
                 || run.getStatus() == TontineAllocationMigrationRunStatus.RUNNING;
         return new TontineAllocationMigrationStatusDto(
+                run.getId(),
                 running,
                 run.getFromVersion(),
                 run.getToVersion(),
@@ -32,7 +36,9 @@ public record TontineAllocationMigrationStatusDto(
                 run.getTotalMembers() != null ? run.getTotalMembers() : 0,
                 run.getFailedMembers() != null ? run.getFailedMembers() : 0,
                 run.getStartedAt(),
+                run.getFinishedAt(),
                 run.getStatus(),
-                run.getFailureReport());
+                run.getTriggeredBy(),
+                run.getErrorMessage());
     }
 }

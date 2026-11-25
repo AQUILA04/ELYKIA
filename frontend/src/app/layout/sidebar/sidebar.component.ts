@@ -127,6 +127,7 @@ export class SidebarComponent implements OnInit {
 
   isAdministrationRoute(): boolean {
     return this.isSubRouteActive('/audit')
+      || this.isSubRouteActive('/admin/allocation-migration')
       || this.isSubRouteActive('/security')
       || this.isUserManagementRoute();
   }
