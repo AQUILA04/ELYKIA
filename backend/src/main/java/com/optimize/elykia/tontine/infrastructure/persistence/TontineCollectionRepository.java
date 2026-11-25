@@ -30,6 +30,17 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
     long countByTontineMember_IdAndCollectionDateBetweenAndState(Long memberId, java.time.LocalDateTime start, java.time.LocalDateTime end, State state);
 
     @Query("""
+            SELECT COUNT(c) FROM TontineCollection c
+            WHERE c.tontineMember.tontineSession.id = :sessionId
+              AND c.state = com.optimize.common.entities.enums.State.ENABLED
+              AND (c.collectionDate < :start OR c.collectionDate > :end)
+            """)
+    long countEnabledOutsideSessionRange(
+            @Param("sessionId") Long sessionId,
+            @Param("start") java.time.LocalDateTime start,
+            @Param("end") java.time.LocalDateTime end);
+
+    @Query("""
             SELECT new com.optimize.elykia.tontine.web.dto.TontineMemberMonthlyAggregateDto(
                 tm.id,
                 YEAR(tc.collectionDate),

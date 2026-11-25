@@ -376,6 +376,7 @@ export interface SyncLogEntry {
 
 export interface TontineMemberSyncRequest {
   clientId: number;
+  sessionId?: number;
   frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY';
   amount?: number;
   notes?: string;

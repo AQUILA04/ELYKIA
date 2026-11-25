@@ -10,6 +10,9 @@ import java.time.LocalDate;
 public class TontineSessionDto {
 
     private Long id;
+    private String name;
+    private String code;
+    private String kind;
     private Integer year;
     private LocalDate startDate;
     private LocalDate endDate;

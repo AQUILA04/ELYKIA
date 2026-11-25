@@ -58,6 +58,13 @@ public class UserAccount extends BaseEntity<String> {
     @Column(name = "must_change_password", columnDefinition = "boolean default false")
     private Boolean mustChangePassword = Boolean.FALSE;
 
+    /**
+     * Current agency for Profil_Terrain users ({@code USERS} linked via this account).
+     * Null for Profil_Global (GESTIONNAIRE, ADMIN, SUPER_ADMIN).
+     */
+    @Column(name = "current_agency_id")
+    private Long currentAgencyId;
+
     @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "PROID", nullable = false)
     private UserProfil userProfil;

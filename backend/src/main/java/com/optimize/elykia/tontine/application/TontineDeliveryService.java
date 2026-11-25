@@ -490,7 +490,9 @@ public class TontineDeliveryService {
 
         }
 
-        clientService.updateTontineStatus(member.getClient().getId(), Boolean.FALSE);
+        if (memberRepository.countOtherOpenMemberships(member.getClient().getId(), member.getId()) == 0) {
+            clientService.updateTontineStatus(member.getClient().getId(), Boolean.FALSE);
+        }
         log.info("Delivery {} marked as DELIVERED.", delivery.getId());
         return mapToDto(delivery);
     }

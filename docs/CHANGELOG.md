@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-24 (adaptation DDD multi-agences PR #113 & multi-sessions Tontine PR #184)
+
+### Changed
+
+- **Guide utilisateur & RAG (`user-guide/docs/commercial/tontine.md`, `user-guide/docs/customer/tontine.md`, `backend/src/main/resources/ai/user-guide-index.json`) —** documentation de la création et sélection de plusieurs sessions de tontine dans la même année (`ANNUAL` + `EXTRA`) côté commercial/gestionnaire et côté Espace Client ; régénération de l'index RAG (357 chunks).
+- **Plan d'intégration (`.cursor/plans/multi_agency_and_multi_tontine_sessions.plan.md`) —** plan en 5 phases d'adaptation des PR #113 (multi-agences) et #184 (multi-sessions Tontine) aux 20 modules Spring Modulith, Angular 21 standalone et Ionic 9 sur la branche tronc `migration-develop`.
+
 ## Docs & Infra — 2026-11-22 (plan de refonte domaine `Sale`)
 
 ### Added
@@ -210,6 +217,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [3.4.0] — 2026-11-24
+
+### Added
+
+- **Multi-sessions Tontine (`@features/tontine`) —** modale `CreateSessionModalComponent` (« Nouvelle session », réservée aux profils `GESTIONNAIRE`, `ADMIN`, `SUPER_ADMIN`), édition du nom et des dates de toute session via `SessionSettingsModalComponent` (`PUT /api/v1/tontines/sessions/{sessionId}`), sélecteur enrichi `SessionSelectorComponent` affichant nom, plage de dates et état (`Session ouverte`, `Livraisons en cours`, `Session terminée`), filtrage de la liste des membres et rattachement des nouvelles adhésions unitaires/multiples par `sessionId`.
 
 ## Frontend — [3.3.0] — 2026-11-24
 
@@ -653,6 +666,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [3.1.0] — 2026-11-24
+
+### Added
+
+- **Multi-sessions Tontine (local-first SQLite v40) —** migration SQLite `v40` ajoutant `name`, `code`, `kind` sur `tontine_sessions`, chargement des sessions opérationnelles via `GET /api/v1/tontines/sessions/operational` (repli `/current`), sélecteur de session par `ActionSheet` sur le tableau de bord Tontine, et propagation de `sessionId` lors de la synchronisation des adhésions.
+
 ## Mobile — [3.0.1] — 2026-11-24
 
 ### Added
@@ -960,6 +979,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [2.15.0] — 2026-11-24
+
+### Added
+
+- **Multi-sessions de Tontine dans l'année (adaptation DDD de la PR #184, `V052__tontine_multiple_sessions.sql`) —** ajout de `name`, `code` (unique), `kind` (`ANNUAL` | `EXTRA`) sur `tontine_session` ; remplacement de la contrainte unique sur `year` par un index unique partiel `uq_tontine_session_annual_year` (`WHERE kind = 'ANNUAL'`) ; création de sessions supplémentaires `POST /api/v1/tontines/sessions`, mise à jour `PUT /api/v1/tontines/sessions/{sessionId}`, liste opérationnelle `GET /api/v1/tontines/sessions/operational`, filtre `sessionId` sur `GET /api/v1/tontines/members`, adhésion multi-sessions d'un même client et exposition Espace Client `GET /api/customer/tontine/sessions`.
+- **Gestion multi-agences Vagues 1 & 2 (adaptation DDD de la PR #113, `V053__multi_agency_management.sql`) —** enrichissement de `agency` (`active`, `deactivated_at`, `deactivated_by`, code unique), table `agency_assignment` (`user_id` = `users.useid`), `uacc.current_agency_id`, ajout et backfill vers l'agence `DEFAULT` de `agency_id` sur les 14 tables opérationnelles historiques ainsi que les 10 nouvelles tables `V047`..`V051` (`commercial_stock_position`, `commercial_stock_ledger_entry`, `commercial_stock_period_snapshot`, `stock_tontine_request`, `stock_tontine_return`, `tontine_stock`, `tontine_stock_movement`, `cash_sales_register_session`, `cash_sales_register_entry`, `client_commercial_assignment`).
+- **Sécurité & Cloisonnement Agence (`com.optimize.common.securities.security.agency`) —** claim JWT `agencyId`, `JwtResponse.agencyId`, `UserDetailsImpl.agencyId`, `AgencyContext` (`ThreadLocal`), `AgencyProfils` (incluant `CASHIER` dans `TERRAIN`), et `AgencyScopeFilter` enregistrée dans `WebSecurityConfig` (Profil_Terrain sans agence → HTTP 403).
+- **Catalogue IA (`schema-catalog.json`) —** ajout des tables `agency` et `agency_assignment`, des colonnes `name`/`code`/`kind` sur `tontine_session`, et de `agency_id` sur toutes les tables opérationnelles.
 
 ## Backend — [2.14.0] — 2026-11-24
 
@@ -2615,6 +2643,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.19.0] — 2026-11-24
+
+### Added
+
+- **Multi-sessions Tontine —** affichage du nom de session (`sessionName`) sur la liste, le bandeau et le détail tontine ; sélection de la session à rejoindre parmi `GET /api/customer/tontine/sessions` lorsque plusieurs sessions sont ouvertes simultanément, avec envoi de `sessionId` dans `POST /api/customer/tontine/join`.
 
 ## Customer-space — [0.18.0] — 2026-11-22
 

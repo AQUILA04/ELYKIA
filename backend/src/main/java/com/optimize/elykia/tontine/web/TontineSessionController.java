@@ -6,7 +6,10 @@ import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.tontine.web.dto.CompareSessionsRequestDto;
 import com.optimize.elykia.tontine.web.dto.SessionComparisonDto;
 import com.optimize.elykia.tontine.web.dto.SessionStatsDto;
+import com.optimize.elykia.tontine.web.dto.CreateTontineSessionDto;
 import com.optimize.elykia.tontine.web.dto.TontineSessionDto;
+import com.optimize.elykia.tontine.web.dto.TontineSessionUpdateDto;
+import com.optimize.elykia.tontine.application.TontineService;
 import com.optimize.elykia.tontine.domain.TontineMember;
 import com.optimize.elykia.tontine.application.TontineExportService;
 import com.optimize.elykia.tontine.application.TontineSessionService;
@@ -38,7 +41,25 @@ import java.util.List;
 public class TontineSessionController {
 
     private final TontineSessionService sessionService;
+    private final TontineService tontineService;
     private final TontineExportService exportService;
+
+    @PostMapping
+    @PreAuthorize("hasAnyRole('ROLE_GESTIONNAIRE', 'ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @Operation(summary = "Créer une session complémentaire")
+    public ResponseEntity<Response> create(@Valid @RequestBody CreateTontineSessionDto dto) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.createExtraSession(dto)),
+                HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{sessionId}")
+    @PreAuthorize("hasAnyRole('ROLE_GESTIONNAIRE', 'ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @Operation(summary = "Modifier les dates ou le nom d'une session ouverte")
+    public ResponseEntity<Response> update(@PathVariable Long sessionId,
+            @Valid @RequestBody TontineSessionUpdateDto dto) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.updateSession(sessionId, dto)),
+                HttpStatus.OK);
+    }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_TONTINE', 'ROLE_CONSULT_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_ADMIN')")

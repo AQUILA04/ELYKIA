@@ -50,6 +50,7 @@ import com.optimize.elykia.sale.domain.OrderSource;
 import com.optimize.elykia.customer.domain.PaymentProofLinkedType;
 import com.optimize.elykia.tontine.domain.TontineMemberFrequency;
 import com.optimize.elykia.tontine.domain.TontineMemberRegistrationSource;
+import com.optimize.elykia.tontine.domain.TontineSessionKind;
 import com.optimize.elykia.tontine.domain.TontineSessionStatus;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineCollectionRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberRepository;
@@ -207,9 +208,35 @@ public class CustomerPortalService {
      */
     public CustomerTontineSessionDto getCurrentTontineSession() {
         Client client = requireActiveClient();
-        int currentYear = LocalDate.now().getYear();
-        Optional<TontineSession> sessionOpt = tontineSessionRepository.findByYear(currentYear);
-        if (sessionOpt.isEmpty()) {
+        return toCustomerSessionView(findAnnualSessionReadOnly().orElse(null), client);
+    }
+
+    public List<CustomerTontineSessionDto> listJoinableTontineSessions() {
+        Client client = requireActiveClient();
+        LocalDate today = LocalDate.now();
+        return tontineSessionRepository.findByStatus(TontineSessionStatus.ACTIVE).stream()
+                .filter(session -> session.getEndDate() == null || !today.isAfter(session.getEndDate()))
+                .sorted(java.util.Comparator
+                        .comparing(TontineSession::getYear, java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder()))
+                        .thenComparing(session -> session.getKind() == TontineSessionKind.ANNUAL ? 0 : 1)
+                        .thenComparing(TontineSession::getStartDate, java.util.Comparator.nullsLast(java.util.Comparator.reverseOrder())))
+                .map(session -> toCustomerSessionView(session, client))
+                .toList();
+    }
+
+    private Optional<TontineSession> findAnnualSessionReadOnly() {
+        return tontineSessionRepository.findByYearAndKind(LocalDate.now().getYear(), TontineSessionKind.ANNUAL);
+    }
+
+    private TontineSession resolveJoinSession(Long sessionId) {
+        if (sessionId == null) {
+            return findAnnualSessionReadOnly().orElse(null);
+        }
+        return tontineSessionRepository.findById(sessionId).orElse(null);
+    }
+
+    private CustomerTontineSessionDto toCustomerSessionView(TontineSession session, Client client) {
+        if (session == null) {
             return CustomerTontineSessionDto.builder()
                     .available(false)
                     .joinable(false)
@@ -217,12 +244,10 @@ public class CustomerPortalService {
                     .minDailyStake(TONTINE_MIN_DAILY_STAKE)
                     .build();
         }
-
-        TontineSession session = sessionOpt.get();
         Optional<TontineMember> memberOpt = tontineMemberRepository
-                .findByTontineSession_YearAndClient_Id(currentYear, client.getId());
-        boolean alreadyMember = memberOpt.isPresent()
-                && memberOpt.get().getState() == com.optimize.common.entities.enums.State.ENABLED;
+                .findByTontineSession_IdAndClient_IdAndState(
+                        session.getId(), client.getId(), com.optimize.common.entities.enums.State.ENABLED);
+        boolean alreadyMember = memberOpt.isPresent();
         LocalDate today = LocalDate.now();
         boolean joinable = session.getStatus() == TontineSessionStatus.ACTIVE
                 && session.getEndDate() != null
@@ -231,6 +256,9 @@ public class CustomerPortalService {
 
         return CustomerTontineSessionDto.builder()
                 .available(true)
+                .id(session.getId() != null ? String.valueOf(session.getId()) : null)
+                .name(session.getName())
+                .kind(session.getKind() != null ? session.getKind().name() : null)
                 .year(session.getYear())
                 .startDate(session.getStartDate() != null ? session.getStartDate().toString() : null)
                 .endDate(session.getEndDate() != null ? session.getEndDate().toString() : null)
@@ -257,10 +285,11 @@ public class CustomerPortalService {
     @Transactional
     public CustomerTontineJoinResponse joinTontineSession(CustomerTontineJoinRequest request) {
         Client client = requireActiveClient();
-        CustomerTontineSessionDto sessionView = getCurrentTontineSession();
+        TontineSession session = resolveJoinSession(request.getSessionId());
+        CustomerTontineSessionDto sessionView = toCustomerSessionView(session, client);
         if (sessionView.isAlreadyMember()) {
             throw new CustomValidationException(
-                    "Vous êtes déjà inscrit à la session de tontine de cette année.");
+                    "Vous êtes déjà inscrit à la session de tontine « " + session.getName() + " ».");
         }
         if (!sessionView.isAvailable() || !sessionView.isJoinable()) {
             throw new CustomValidationException("Aucune session de tontine ouverte.");
@@ -268,6 +297,7 @@ public class CustomerPortalService {
 
         TontineMemberDto memberDto = new TontineMemberDto();
         memberDto.setClientId(client.getId());
+        memberDto.setSessionId(session.getId());
         memberDto.setFrequency(TontineMemberFrequency.DAILY);
         memberDto.setAmount(request.getDailyStake());
 
@@ -317,6 +347,7 @@ public class CustomerPortalService {
         return CustomerTontineContributionDetailDto.builder()
                 .memberId(String.valueOf(member.getId()))
                 .sessionYear(member.getTontineSession() != null ? member.getTontineSession().getYear() : null)
+                .sessionName(member.getTontineSession() != null ? member.getTontineSession().getName() : null)
                 .deliveryStatus(member.getDeliveryStatus() != null ? member.getDeliveryStatus().name() : null)
                 .sessionStatus(member.getTontineSession() != null && member.getTontineSession().getStatus() != null
                         ? member.getTontineSession().getStatus().name()

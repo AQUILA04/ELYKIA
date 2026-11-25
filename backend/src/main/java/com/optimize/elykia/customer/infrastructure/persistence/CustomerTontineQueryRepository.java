@@ -32,7 +32,8 @@ public interface CustomerTontineQueryRepository extends Repository<TontineMember
                 tm.registrationDate,
                 tm.tontineSession.startDate,
                 tm.tontineSession.endDate,
-                tm.tontineSession.status
+                tm.tontineSession.status,
+                tm.tontineSession.name
             )
             FROM TontineMember tm
             WHERE tm.client.id = :clientId

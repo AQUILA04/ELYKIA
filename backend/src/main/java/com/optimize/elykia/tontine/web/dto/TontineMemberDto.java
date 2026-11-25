@@ -9,6 +9,8 @@ import lombok.Data;
 public class TontineMemberDto {
     @NotNull(message = "L'ID du client ne peut pas être nul.")
     private Long clientId;
+    /** Session cible. Absente : la session annuelle de l'année est utilisée. */
+    private Long sessionId;
     private TontineMemberFrequency frequency;
     private Double amount;
     private String notes;

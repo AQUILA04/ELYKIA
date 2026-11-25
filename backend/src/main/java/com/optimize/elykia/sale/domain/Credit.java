@@ -40,6 +40,10 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Multi-agency scope (FK agency.id). */
+    @Column(name = "agency_id")
+    private Long agencyId;
     @ManyToOne
     private Client client;
     @OneToMany(mappedBy = "credit", cascade = CascadeType.ALL)

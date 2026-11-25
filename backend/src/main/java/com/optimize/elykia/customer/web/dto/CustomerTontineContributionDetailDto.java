@@ -10,6 +10,7 @@ import java.util.List;
 public class CustomerTontineContributionDetailDto {
     private String memberId;
     private Integer sessionYear;
+    private String sessionName;
     private String deliveryStatus;
     private String sessionStatus;
     private double dailyStake;

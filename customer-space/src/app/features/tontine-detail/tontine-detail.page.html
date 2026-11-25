@@ -14,7 +14,7 @@
   <app-elyk-page-header
     eyebrow="ESPACE TONTINE"
     title="Détail tontine"
-    [subtitle]="detail?.sessionYear ? ('Session ' + detail?.sessionYear) : 'Votre épargne'"
+    [subtitle]="detail?.sessionName || (detail?.sessionYear ? ('Session ' + detail?.sessionYear) : 'Votre épargne')"
     [showBack]="true"
     (back)="goBack()">
   </app-elyk-page-header>
@@ -29,7 +29,7 @@
     <ng-container *ngIf="!isLoading && detail">
       <section class="summary-card elyk-animate">
         <div class="summary-card__head">
-          <h2>Session {{ detail.sessionYear }}</h2>
+          <h2>{{ detail.sessionName || ('Session ' + detail.sessionYear) }}</h2>
           <span class="elyk-chip elyk-chip--gold">Active</span>
         </div>
 

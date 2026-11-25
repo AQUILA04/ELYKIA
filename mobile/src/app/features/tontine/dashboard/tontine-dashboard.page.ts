@@ -4,7 +4,7 @@ import { Observable, Subject, combineLatest, BehaviorSubject } from 'rxjs';
 import { takeUntil, map, startWith, tap, take, filter, switchMap, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { TontineService } from 'src/app/core/services/tontine.service';
 import { selectTontineSession, selectPaginatedTontineMembers, selectTontineMemberPaginationLoading, selectTontineMemberPaginationHasMore } from 'src/app/store/tontine/tontine.selectors';
-import { loadTontineSession, loadFirstPageTontineMembers, loadNextPageTontineMembers } from 'src/app/store/tontine/tontine.actions';
+import { loadTontineSession, loadTontineSessionSuccess, loadFirstPageTontineMembers, loadNextPageTontineMembers } from 'src/app/store/tontine/tontine.actions';
 import { ActionSheetController, NavController } from '@ionic/angular';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import * as KpiActions from 'src/app/store/kpi/kpi.actions';
@@ -32,6 +32,7 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
     totalCollected$: Observable<number>;
     pendingDeliveries$: Observable<number>;
     currentYear$: Observable<number>;
+    sessionLabel$: Observable<string>;
 
     // Filters (Local State for API calls)
     searchTerm$ = new BehaviorSubject<string>('');
@@ -44,6 +45,7 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
         private store: Store,
         private navCtrl: NavController,
         private actionSheetCtrl: ActionSheetController,
+        private tontineService: TontineService,
     ) {
         this.session$ = this.store.select(selectTontineSession);
         this.members$ = this.store.select(selectPaginatedTontineMembers);
@@ -56,6 +58,9 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
 
         this.currentYear$ = this.session$.pipe(
             map(session => session ? session.year : new Date().getFullYear())
+        );
+        this.sessionLabel$ = this.session$.pipe(
+            map(session => session?.name || (session?.year ? `Session ${session.year}` : 'Session'))
         );
 
         // KPI Selectors from KpiStore
@@ -140,6 +145,26 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
     ngOnDestroy() {
         this.destroy$.next();
         this.destroy$.complete();
+    }
+
+    async chooseSession(): Promise<void> {
+        const sessions = await this.tontineService.listLocalSessions();
+        if (!sessions.length) {
+            return;
+        }
+        const sheet = await this.actionSheetCtrl.create({
+            header: 'Choisir une session',
+            buttons: [
+                ...sessions.map(session => ({
+                    text: session.name || `Session ${session.year}`,
+                    handler: () => {
+                        this.store.dispatch(loadTontineSessionSuccess({ session }));
+                    }
+                })),
+                { text: 'Annuler', role: 'cancel' }
+            ]
+        });
+        await sheet.present();
     }
 
     loadFirstPage(sessionId: string, search: string, status: string) {

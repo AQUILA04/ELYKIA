@@ -33,9 +33,12 @@ export function mapApiMemberToLocal(
   localUnsyncedTotal = 0
 ): TontineMember {
   const serverTotal = member.totalContribution || 0;
+  const resolvedSessionId = member?.tontineSession?.id != null
+    ? String(member.tontineSession.id)
+    : sessionId;
   return {
     id: String(member.id),
-    tontineSessionId: sessionId,
+    tontineSessionId: resolvedSessionId,
     clientId: member.client?.id != null ? String(member.client.id) : member.clientId,
     commercialUsername: commercialUsername || member.commercialUsername,
     totalContribution: serverTotal + localUnsyncedTotal,

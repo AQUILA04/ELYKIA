@@ -34,10 +34,10 @@
         <span>Total collecté</span>
         <strong>{{ (totalCollected$ | async) | number:'1.0-0':'fr-FR' }}</strong>
       </article>
-      <article class="elyk-kpi elyk-kpi--cyan">
+      <button type="button" class="elyk-kpi elyk-kpi--cyan session-switch" (click)="chooseSession()">
         <span>Session</span>
-        <strong>{{ currentYear$ | async }}</strong>
-      </article>
+        <strong>{{ sessionLabel$ | async }}</strong>
+      </button>
       <article class="elyk-kpi elyk-kpi--orange">
         <span>En attente livraison</span>
         <strong>{{ pendingDeliveries$ | async }}</strong>

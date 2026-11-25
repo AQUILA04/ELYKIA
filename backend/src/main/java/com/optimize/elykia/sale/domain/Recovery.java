@@ -16,6 +16,10 @@ public class Recovery extends BaseEntity<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Multi-agency scope (FK agency.id). */
+    @Column(name = "agency_id")
+    private Long agencyId;
     private Double amount;
     private LocalDate paymentDate;
     private String paymentMethod = "CASH";

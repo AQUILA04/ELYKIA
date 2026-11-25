@@ -12,6 +12,7 @@ import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.tontine.domain.TontineMember;
 import com.optimize.elykia.tontine.domain.TontineSession;
+import com.optimize.elykia.tontine.domain.TontineSessionKind;
 import com.optimize.elykia.tontine.domain.TontineMemberDeliveryStatus;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineCollectionRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberRepository;
@@ -49,7 +50,10 @@ public class TontineSessionService {
 
                 return sessions.stream()
                                 .map(this::mapToSessionDto)
-                                .sorted(Comparator.comparing(TontineSessionDto::getYear).reversed())
+                                .sorted(Comparator
+                                                .comparing(TontineSessionDto::getYear, Comparator.nullsLast(Comparator.reverseOrder()))
+                                                .thenComparing(dto -> "ANNUAL".equals(dto.getKind()) ? 0 : 1)
+                                                .thenComparing(TontineSessionDto::getStartDate, Comparator.nullsLast(Comparator.reverseOrder())))
                                 .collect(Collectors.toList());
         }
 
@@ -190,7 +194,7 @@ public class TontineSessionService {
                 List<SessionSummaryDto> sessionSummaries = new ArrayList<>();
 
                 for (Integer year : years) {
-                        Optional<TontineSession> sessionOpt = sessionRepository.findByYear(year);
+                        Optional<TontineSession> sessionOpt = sessionRepository.findByYearAndKind(year, TontineSessionKind.ANNUAL);
 
                         if (sessionOpt.isPresent()) {
                                 TontineSession session = sessionOpt.get();
@@ -325,6 +329,9 @@ public class TontineSessionService {
 
                 return TontineSessionDto.builder()
                                 .id(session.getId())
+                                .name(session.getName())
+                                .code(session.getCode())
+                                .kind(session.getKind() != null ? session.getKind().name() : null)
                                 .year(session.getYear())
                                 .startDate(session.getStartDate())
                                 .endDate(session.getEndDate())

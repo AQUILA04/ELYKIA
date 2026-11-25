@@ -29,16 +29,27 @@ public class UserDetailsImpl implements UserDetails {
   @Setter
   private String profil;
 
+  /** Current agency for Profil_Terrain; null for Profil_Global. */
+  @Getter
+  @Setter
+  private Long agencyId;
+
   private Collection<? extends GrantedAuthority> authorities;
 
   public UserDetailsImpl(Long id, String username, String email, String password,
       Collection<? extends GrantedAuthority> authorities, String profil) {
+    this(id, username, email, password, authorities, profil, null);
+  }
+
+  public UserDetailsImpl(Long id, String username, String email, String password,
+      Collection<? extends GrantedAuthority> authorities, String profil, Long agencyId) {
     this.id = id;
     this.username = username;
     this.email = email;
     this.password = password;
     this.authorities = authorities;
     this.profil = profil;
+    this.agencyId = agencyId;
   }
 
   public static UserDetailsImpl build(User user) {
@@ -46,12 +57,18 @@ public class UserDetailsImpl implements UserDetails {
                                .map(permission -> new SimpleGrantedAuthority(permission.getName()))
                                .collect(Collectors.toList());
 
-    return new UserDetailsImpl(user.getId(), 
-                               user.getUsername(), 
+    Long agencyId = null;
+    if (user.getUserAccount() != null) {
+      agencyId = user.getUserAccount().getCurrentAgencyId();
+    }
+
+    return new UserDetailsImpl(user.getId(),
+                               user.getUsername(),
                                user.getEmail(),
-                               user.getPassword(), 
+                               user.getPassword(),
                                authorities,
-                               user.getProfilName());
+                               user.getProfilName(),
+                               agencyId);
   }
 
   @Override
