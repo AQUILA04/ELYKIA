@@ -95,6 +95,30 @@ public class TontineAllocationMigrationService {
             startMigration(fromVersion, toVersion, "system");
         } catch (Exception e) {
             log.error("Impossible de démarrer la migration allocation tontine {} -> {}", fromVersion, toVersion, e);
+            recordStartFailure(fromVersion, toVersion, "system", e);
+        }
+    }
+
+    /** Trace dans l'historique un recalcul qui n'a pas pu démarrer, pour qu'il soit visible dans la page d'administration. */
+    void recordStartFailure(String fromVersion, String toVersion, String triggeredBy, Exception cause) {
+        try {
+            requiresNew().executeWithoutResult(status -> {
+                TontineAllocationMigrationRun failed = new TontineAllocationMigrationRun();
+                failed.setSessionId(sessionRepository.findByYear(LocalDate.now().getYear())
+                        .map(TontineSession::getId).orElse(0L));
+                failed.setFromVersion(fromVersion);
+                failed.setToVersion(toVersion);
+                failed.setStatus(TontineAllocationMigrationRunStatus.FAILED);
+                failed.setTriggeredBy(triggeredBy);
+                failed.setStartedAt(LocalDateTime.now());
+                failed.setFinishedAt(LocalDateTime.now());
+                failed.setErrorMessage(truncate("Démarrage impossible : "
+                        + (cause.getMessage() != null ? cause.getMessage() : cause.getClass().getName()),
+                        MAX_MESSAGE_LENGTH));
+                runRepository.saveAndFlush(failed);
+            });
+        } catch (Exception secondary) {
+            log.error("Impossible d'enregistrer l'échec de démarrage de la migration allocation tontine", secondary);
         }
     }
 
@@ -142,6 +166,11 @@ public class TontineAllocationMigrationService {
                     .orElseThrow(() -> new CustomValidationException("Run de recalcul introuvable : " + runId));
             if (existing.getStatus() != TontineAllocationMigrationRunStatus.FAILED) {
                 throw new CustomValidationException("Seul un recalcul échoué peut être repris.");
+            }
+            if (existing.getSessionId() == null || existing.getSessionId() == 0L) {
+                TontineSession session = resolveActiveSession();
+                existing.setSessionId(session.getId());
+                existing.setTotalMembers((int) memberRepository.countEnabledBySessionId(session.getId()));
             }
             existing.setStatus(TontineAllocationMigrationRunStatus.PENDING);
             existing.setErrorMessage(null);

@@ -169,6 +169,7 @@ class TontineAllocationMigrationServiceTest {
         TontineAllocationMigrationService service = service();
         TontineAllocationMigrationRun failed = new TontineAllocationMigrationRun();
         failed.setId(7L);
+        failed.setSessionId(5L);
         failed.setStatus(TontineAllocationMigrationRunStatus.FAILED);
         failed.setErrorMessage("boom");
         when(runRepository.findLatestByStatusIn(any())).thenReturn(Optional.empty());
@@ -180,6 +181,19 @@ class TontineAllocationMigrationServiceTest {
         assertEquals(TontineAllocationMigrationRunStatus.PENDING, run.getStatus());
         assertEquals(null, run.getErrorMessage());
         verify(jobRunner).runAsync(7L);
+    }
+
+    @Test
+    void recordStartFailure_storesFailedRunWithReason() {
+        TontineAllocationMigrationService service = service();
+        when(sessionRepository.findByYear(LocalDate.now().getYear())).thenReturn(Optional.empty());
+        ArgumentCaptor<TontineAllocationMigrationRun> captor = ArgumentCaptor.forClass(TontineAllocationMigrationRun.class);
+
+        service.recordStartFailure("V2", "V3", "system", new IllegalStateException("boom"));
+
+        verify(runRepository).saveAndFlush(captor.capture());
+        assertEquals(TontineAllocationMigrationRunStatus.FAILED, captor.getValue().getStatus());
+        assertEquals("Démarrage impossible : boom", captor.getValue().getErrorMessage());
     }
 
     @Test
