@@ -10,6 +10,7 @@ import { DefaultDailyStakeRequest, DefaultDailyStakeResponse, SpecialDailyStakeR
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
 import { DateFilter } from '../../models/date-filter.model';
+import { toLocalDateTimeString } from '../../utils/local-date-time.util';
 
 @Injectable({
     providedIn: 'root'
@@ -195,7 +196,8 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
                     reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
                     reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
                     operationConsentCode: recovery.operationConsentCode ?? null,
-                    confirmedAmount: recovery.confirmedAmount ?? null
+                    confirmedAmount: recovery.confirmedAmount ?? null,
+                    operationDate: toLocalDateTimeString(recovery.createdAt) ?? null
                 });
             }
         }
@@ -273,7 +275,8 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
                             reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
                             reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
                             operationConsentCode: recovery.operationConsentCode ?? null,
-                            confirmedAmount: recovery.confirmedAmount ?? null
+                            confirmedAmount: recovery.confirmedAmount ?? null,
+                    operationDate: toLocalDateTimeString(recovery.createdAt) ?? null
                         });
                     }
                 }
@@ -345,7 +348,8 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
                     reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
                     reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
                     operationConsentCode: recovery.operationConsentCode ?? null,
-                    confirmedAmount: recovery.confirmedAmount ?? null
+                    confirmedAmount: recovery.confirmedAmount ?? null,
+                    operationDate: toLocalDateTimeString(recovery.createdAt) ?? null
                 });
             }
         }
@@ -390,7 +394,8 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
                             reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
                             reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
                             operationConsentCode: recovery.operationConsentCode ?? null,
-                            confirmedAmount: recovery.confirmedAmount ?? null
+                            confirmedAmount: recovery.confirmedAmount ?? null,
+                    operationDate: toLocalDateTimeString(recovery.createdAt) ?? null
                         });
                     }
                 }

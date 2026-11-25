@@ -19,6 +19,8 @@ public class TontineCollectionDto {
     private String notes;
     private String operationConsentCode;
     private Double confirmedAmount;
+    /** Moment réel de la collecte sur le terrain (optionnel, ignoré s'il est dans le futur). */
+    private java.time.LocalDateTime operationDate;
     private String syncConsentCode;
     @Positive(message = "La mise de rattrapage doit être positive.")
     private Double catchupDailyStake;

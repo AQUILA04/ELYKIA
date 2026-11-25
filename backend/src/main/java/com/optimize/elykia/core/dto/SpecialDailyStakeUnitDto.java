@@ -17,4 +17,6 @@ public class SpecialDailyStakeUnitDto {
     private Double reliquatUsedAmount = 0.0;
     private String operationConsentCode;
     private Double confirmedAmount;
+    /** Moment réel de la mise sur le terrain (optionnel, ignoré s'il est dans le futur). */
+    private java.time.LocalDateTime operationDate;
 }

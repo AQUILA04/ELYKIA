@@ -99,7 +99,7 @@ class CarnetEcartDecisionServiceTest {
     @Test
     void accept_tontineRealignsExcessMonthAndShortsOnlyTheNet() {
         stubTontineControl();
-        when(tontineService.reduceFieldControlExcess(9L, "com", 2026, 8, 31_000d)).thenReturn(31_000d);
+        when(tontineService.reduceFieldControlExcess(eq(9L), eq("com"), eq(2026), eq(8), eq(31_000d), any())).thenReturn(31_000d);
         when(tontineService.recordFieldControlCollection(
                 eq(9L), eq(186_000d), any(LocalDate.class), eq("com"), eq("FC-TONTINE-1")))
                 .thenReturn(new FieldControlTontinePosting(
@@ -122,7 +122,7 @@ class CarnetEcartDecisionServiceTest {
         assertEquals(1, result.getSucceeded().size());
         assertEquals(186_000d, result.getSucceeded().get(0).getAmount());
         assertTrue(result.getIgnored().isEmpty());
-        verify(tontineService).reduceFieldControlExcess(9L, "com", 2026, 8, 31_000d);
+        verify(tontineService).reduceFieldControlExcess(eq(9L), eq("com"), eq(2026), eq(8), eq(31_000d), any());
         verify(debtService).createFieldControlShortage(
                 eq("com"), any(LocalDate.class), eq(186_000d), eq("TONTINE"), eq(100L), anyString());
         verify(tontineService).publishFieldControlCollection(any());
@@ -183,7 +183,7 @@ class CarnetEcartDecisionServiceTest {
         when(tontineFieldControlRepository.findFirstByTontineMember_idAndStateOrderByObservedAtDesc(9L, State.ENABLED))
                 .thenReturn(Optional.of(control));
         when(decisionRepository.findByTontineLineId(anyLong())).thenReturn(Optional.empty());
-        when(tontineService.reduceFieldControlExcess(9L, "com", 2026, 8, 31_000d)).thenReturn(31_000d);
+        when(tontineService.reduceFieldControlExcess(eq(9L), eq("com"), eq(2026), eq(8), eq(31_000d), any())).thenReturn(31_000d);
         when(decisionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         CarnetEcartBulkResultDto result = service.accept(List.of("TONTINE|4|com"));
@@ -259,5 +259,24 @@ class CarnetEcartDecisionServiceTest {
         when(creditFieldControlRepository.findFirstByCredit_idAndStateOrderByObservedAtDesc(3L, State.ENABLED))
                 .thenReturn(Optional.of(control));
         when(decisionRepository.findByCreditFieldControlId(7L)).thenReturn(Optional.empty());
+    }
+
+    @Test
+    void accept_tontineExcessIsBoundedToTheInstantTheControlFrozeItsSnapshot() {
+        java.time.LocalDateTime frozenAt = java.time.LocalDateTime.of(2026, 8, 20, 10, 0);
+        TontineMemberFieldControl control = controlWith(line(2L, 2026, 8, 31_000d, 0d));
+        control.setCreatedDate(frozenAt.minusDays(1));
+        control.setLastModifiedDate(frozenAt);
+        when(tontineFieldControlRepository.findById(4L)).thenReturn(Optional.of(control));
+        when(tontineFieldControlRepository.findFirstByTontineMember_idAndStateOrderByObservedAtDesc(9L, State.ENABLED))
+                .thenReturn(Optional.of(control));
+        when(decisionRepository.findByTontineLineId(anyLong())).thenReturn(Optional.empty());
+        when(tontineService.reduceFieldControlExcess(eq(9L), eq("com"), eq(2026), eq(8), eq(31_000d), eq(frozenAt))).thenReturn(31_000d);
+        when(decisionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CarnetEcartBulkResultDto result = service.accept(List.of("TONTINE|4|com"));
+
+        assertEquals(1, result.getSucceeded().size());
+        verify(tontineService).reduceFieldControlExcess(eq(9L), eq("com"), eq(2026), eq(8), eq(31_000d), eq(frozenAt));
     }
 }

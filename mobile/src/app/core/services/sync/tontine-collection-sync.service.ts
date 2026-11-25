@@ -10,6 +10,7 @@ import { TontineCollectionSyncRequest, TontineCollectionSyncResponse } from '../
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
 import { DateFilter } from '../../models/date-filter.model';
+import { isLocalToday, toLocalDateTimeString } from '../../utils/local-date-time.util';
 
 @Injectable({
     providedIn: 'root'
@@ -171,6 +172,10 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
             confirmedAmount: collection.confirmedAmount ?? null,
             syncConsentCode: this.syncConsentCode ?? null,
             collectionDate: toCatchupCollectionDate(collection.collectionDate),
+            // Collecte du jour : collectionDate est le moment réel. Rattrapage : le serveur retient son heure.
+            operationDate: isLocalToday(collection.collectionDate)
+                ? toLocalDateTimeString(collection.collectionDate)
+                : undefined,
             advanceToNextMonth: collection.advanceToNextMonth === true
         };
     }

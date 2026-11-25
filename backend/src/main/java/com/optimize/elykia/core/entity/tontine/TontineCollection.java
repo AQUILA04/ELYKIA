@@ -60,4 +60,22 @@ public class TontineCollection extends BaseEntity<String> {
 
     @Column(name = "contribution_month")
     private java.time.LocalDate contributionMonth;
+
+    /** Moment réel de l'opération (terminal si transmis, sinon enregistrement serveur). */
+    @Column(name = "operation_date")
+    private LocalDateTime operationDate;
+
+    /** Journée comptable (de caisse) dans laquelle la cotisation est entrée. */
+    @Column(name = "accounting_date")
+    private java.time.LocalDate accountingDate;
+
+    @PrePersist
+    void fillOperationAndAccountingDates() {
+        if (operationDate == null) {
+            operationDate = LocalDateTime.now();
+        }
+        if (accountingDate == null) {
+            accountingDate = operationDate.toLocalDate();
+        }
+    }
 }

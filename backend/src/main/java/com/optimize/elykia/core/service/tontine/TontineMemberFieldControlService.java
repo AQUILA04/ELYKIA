@@ -113,8 +113,12 @@ public class TontineMemberFieldControlService {
         List<TontineCollection> collections = tontineCollectionRepository
                 .findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(memberId, State.ENABLED);
         assertMonthAttribution(dto.getMonths(), collections);
-        List<TontineMemberFieldControlLine> desiredLines = buildLines(dto.getMonths(), collections, member);
         LocalDateTime observedAt = dto.getObservedAt() != null ? dto.getObservedAt() : LocalDateTime.now();
+        // Le snapshot du contrôle ne contient que les cotisations saisies jusqu'à l'observation.
+        List<TontineCollection> collectionsAtControl = collections.stream()
+                .filter(c -> recordedBy(c, observedAt))
+                .toList();
+        List<TontineMemberFieldControlLine> desiredLines = buildLines(dto.getMonths(), collectionsAtControl, member);
         String observedBy = SecurityContextHolder.getContext().getAuthentication().getName();
 
         TontineMemberFieldControl saved;
@@ -163,6 +167,12 @@ public class TontineMemberFieldControlService {
         }
         CarnetVerificationSupport.apply(member, true, observedBy, LocalDateTime.now());
         tontineMemberRepository.save(member);
+    }
+
+    /** Une cotisation sans date d'opération (donnée ancienne) est toujours considérée comme déjà saisie. */
+    static boolean recordedBy(TontineCollection collection, LocalDateTime observedAt) {
+        LocalDateTime operationDate = collection.getOperationDate();
+        return observedAt == null || operationDate == null || !operationDate.isAfter(observedAt);
     }
 
     private Optional<TontineMemberFieldControl> findLatest(Long memberId) {

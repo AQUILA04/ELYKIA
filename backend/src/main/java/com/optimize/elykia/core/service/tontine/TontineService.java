@@ -626,6 +626,9 @@ public class TontineService extends GenericService<TontineMember, Long> {
                 Objects.nonNull(dto.getIsDeliveryCollection()) ? dto.getIsDeliveryCollection() : Boolean.FALSE);
         collection.setBalanceTopUp(deliveryTopUp);
         collection.setCollectionDate(collectionDateTime);
+        collection.setOperationDate(com.optimize.elykia.core.util.OperationDates.resolve(dto.getOperationDate()));
+        // Opération normale : jour même. Rattrapage : jour passé rattrapé.
+        collection.setAccountingDate(allocationDate);
         collection.setCommercialUsername(commercialUsername);
 
         if (StringUtils.hasText(dto.getReference())) {
@@ -738,6 +741,8 @@ public class TontineService extends GenericService<TontineMember, Long> {
         collection.setAmount(amount);
         collection.setIsDeliveryCollection(Boolean.FALSE);
         collection.setCollectionDate(collectionDateTime);
+        collection.setOperationDate(LocalDateTime.now());
+        collection.setAccountingDate(allocationDate);
         collection.setCommercialUsername(commercialUsername.trim());
         collection.setReference(reference);
         collection.setNotes(catchup ? "Rattrapage contrôle carnet" : "Contrôle carnet");
@@ -763,6 +768,10 @@ public class TontineService extends GenericService<TontineMember, Long> {
      * Les cotisations les plus récentes sont annulées en premier. Si la dernière dépasse
      * le reste à annuler, elle est recréée au montant encore conforme au carnet.
      *
+     * <p>Seules les cotisations enregistrées jusqu'à {@code snapshotAt} (instant où le contrôle a
+     * figé le montant système) peuvent être annulées : celles enregistrées après ne font pas
+     * partie du contrôle et restent intactes. {@code snapshotAt} null = aucune borne.
+     *
      * @return le montant réellement retiré
      */
     @Transactional
@@ -771,7 +780,8 @@ public class TontineService extends GenericService<TontineMember, Long> {
             String commercialUsername,
             int year,
             int month,
-            double excess) {
+            double excess,
+            LocalDateTime snapshotAt) {
         if (!CarnetEcartRules.isPositive(excess)) {
             return 0d;
         }
@@ -783,6 +793,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
                 .findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(memberId, State.ENABLED)
                 .stream()
                 .filter(collection -> matchesCommercialMonth(collection, commercial, year, month))
+                .filter(collection -> recordedBy(collection, snapshotAt))
                 .sorted(Comparator.comparing(TontineCollection::getCollectionDate).reversed()
                         .thenComparing(TontineCollection::getId, Comparator.nullsLast(Comparator.reverseOrder())))
                 .toList();
@@ -824,6 +835,14 @@ public class TontineService extends GenericService<TontineMember, Long> {
             }
         }
         return removed;
+    }
+
+    /** Vrai si la cotisation existait déjà à l'instant du snapshot du contrôle (ou si aucune borne). */
+    static boolean recordedBy(TontineCollection collection, LocalDateTime snapshotAt) {
+        if (snapshotAt == null || collection.getCreatedDate() == null) {
+            return true;
+        }
+        return !collection.getCreatedDate().isAfter(snapshotAt);
     }
 
     private static boolean matchesCommercialMonth(

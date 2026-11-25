@@ -231,6 +231,8 @@ export interface DefaultDailyStakeRequest {
     reliquatUsedAmount?: number;
     operationConsentCode?: string | null;
     confirmedAmount?: number | null;
+    /** Moment réel de la mise sur le terrain (heure locale, sans fuseau). */
+    operationDate?: string | null;
   }>;
 }
 
@@ -254,6 +256,8 @@ export interface SpecialDailyStakeRequest {
     reliquatUsedAmount?: number;
     operationConsentCode?: string | null;
     confirmedAmount?: number | null;
+    /** Moment réel de la mise sur le terrain (heure locale, sans fuseau). */
+    operationDate?: string | null;
   }>;
 }
 
@@ -394,6 +398,8 @@ export interface TontineCollectionSyncRequest {
   confirmedAmount?: number | null;
   syncConsentCode?: string | null;
   collectionDate?: string;
+  /** Moment réel de la collecte (heure locale, sans fuseau). Absent pour un rattrapage. */
+  operationDate?: string;
   advanceToNextMonth?: boolean;
   catchupDailyStake?: number;
 }
