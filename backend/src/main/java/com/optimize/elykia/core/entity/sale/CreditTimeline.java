@@ -42,6 +42,24 @@ public class CreditTimeline extends BaseEntity<String> {
     @JsonIgnore
     private DailyAccountancy dailyAccountancy;
 
+    /** Moment réel de la mise (terminal si transmis, sinon enregistrement serveur). */
+    @Column(name = "operation_date")
+    private java.time.LocalDateTime operationDate;
+
+    /** Journée comptable (de caisse) dans laquelle la mise est entrée. */
+    @Column(name = "accounting_date")
+    private LocalDate accountingDate;
+
+    @PrePersist
+    void fillOperationAndAccountingDates() {
+        if (operationDate == null) {
+            operationDate = java.time.LocalDateTime.now();
+        }
+        if (accountingDate == null) {
+            accountingDate = operationDate.toLocalDate();
+        }
+    }
+
     public void checkStakeValue(Double stake) {
         // SUPPRIMÉ : Ancienne vérification qui obligeait à ce que la mise soit un multiple.
         // if (amount % stake != 0) {

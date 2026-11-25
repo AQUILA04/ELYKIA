@@ -282,7 +282,7 @@ public class CarnetEcartDecisionService {
         for (TontineMemberFieldControlLine line : negative) {
             double excess = -safe(line.getDifferenceAmount());
             tontineService.reduceFieldControlExcess(
-                    memberId, commercial, line.getYear(), line.getMonth(), excess);
+                    memberId, commercial, line.getYear(), line.getMonth(), excess, snapshotAt(control));
             CarnetEcartDecision decision = baseDecision(
                     CarnetEcartDomain.TONTINE,
                     commercial,
@@ -666,6 +666,19 @@ public class CarnetEcartDecisionService {
             control = tontineFieldControlRepository.findById(controlId).orElse(control);
         }
         return control;
+    }
+
+    /**
+     * Instant où le contrôle a figé le montant système (création ou dernière réécriture).
+     * Les opérations enregistrées après n'en font pas partie.
+     */
+    static LocalDateTime snapshotAt(TontineMemberFieldControl control) {
+        LocalDateTime created = control.getCreatedDate();
+        LocalDateTime modified = control.getLastModifiedDate();
+        if (created == null) {
+            return modified;
+        }
+        return modified != null && modified.isAfter(created) ? modified : created;
     }
 
     private List<TontineMemberFieldControlLine> linesFor(TontineMemberFieldControl control, String commercial) {

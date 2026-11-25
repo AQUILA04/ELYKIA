@@ -31,6 +31,7 @@ public class CreditFieldControlService {
 
     private final CreditFieldControlRepository repository;
     private final CreditRepository creditRepository;
+    private final com.optimize.elykia.core.repository.CreditTimelineRepository timelineRepository;
     private final CarnetEcartRecontrolPolicy recontrolPolicy;
     private final ApplicationEventPublisher eventPublisher;
 
@@ -44,13 +45,13 @@ public class CreditFieldControlService {
         Credit credit = creditRepository.findById(creditId)
                 .orElseThrow(() -> new ResourceNotFoundException("credit.not.found"));
 
-        double systemAmountPaid = credit.getTotalAmountPaid() != null ? credit.getTotalAmountPaid() : 0d;
+        LocalDateTime observedAt = dto.getObservedAt() != null ? dto.getObservedAt() : LocalDateTime.now();
+        double systemAmountPaid = systemAmountPaidAt(credit, observedAt);
         double notebookAmount = dto.getNotebookTotalAmount() != null ? dto.getNotebookTotalAmount() : 0d;
         double differenceAmount = notebookAmount - systemAmountPaid;
         FieldControlStatus status = Math.abs(differenceAmount) < EPSILON
                 ? FieldControlStatus.CONFORME
                 : FieldControlStatus.ECART;
-        LocalDateTime observedAt = dto.getObservedAt() != null ? dto.getObservedAt() : LocalDateTime.now();
         String observedBy = SecurityContextHolder.getContext().getAuthentication().getName();
 
         CreditFieldControl latest = findLatest(creditId).orElse(null);
@@ -82,6 +83,19 @@ public class CreditFieldControlService {
         CreditFieldControl saved = repository.save(entity);
         publishEcart(saved, credit, differenceAmount);
         return toDto(saved);
+    }
+
+    /**
+     * Montant encaissé connu du système à l'instant du contrôle : le cumul actuel moins les mises saisies
+     * après {@code observedAt} (elles ne font pas partie du contrôle). Jamais négatif.
+     */
+    double systemAmountPaidAt(Credit credit, LocalDateTime observedAt) {
+        double paid = credit.getTotalAmountPaid() != null ? credit.getTotalAmountPaid() : 0d;
+        if (timelineRepository == null || credit.getId() == null || observedAt == null) {
+            return paid;
+        }
+        Double after = timelineRepository.sumAmountByCreditIdAndOperationDateAfter(credit.getId(), observedAt);
+        return Math.max(0d, paid - (after != null ? after : 0d));
     }
 
     private void publishEcart(CreditFieldControl saved, Credit credit, double differenceAmount) {

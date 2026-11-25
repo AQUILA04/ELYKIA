@@ -235,6 +235,13 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
             creditTimeline = credit.dailyStakeOperation(creditTimeline);
             creditTimeline.setDailyAccountancy(dailyAccountancy);
+            if (creditTimeline.getOperationDate() == null) {
+                creditTimeline.setOperationDate(java.time.LocalDateTime.now());
+            }
+            if (creditTimeline.getAccountingDate() == null) {
+                // Une mise de crédit est toujours encaissée le jour même (pas de rattrapage de mise).
+                creditTimeline.setAccountingDate(LocalDate.now());
+            }
             if (creditTimeline.getCollector() == null) {
                 creditTimeline.setCollector(credit.getCollector());
             }
@@ -310,7 +317,8 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
                         processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), null, true,
                                 successRecoveryIds, false, stakeUnit.getReliquatGeneratedAmount(),
                                 stakeUnit.getReliquatUsedAmount(), stakeUnit.getOperationConsentCode(),
-                                stakeUnit.getConfirmedAmount(), dto.getSyncConsentCode()));
+                                stakeUnit.getConfirmedAmount(), dto.getSyncConsentCode(),
+                                stakeUnit.getOperationDate()));
             } catch (Exception e) {
                 log.error("Échec mise quotidienne (sync) recoveryId={} creditId={}: {}",
                         stakeUnit.getRecoveryId(), stakeUnit.getCreditId(), e.getMessage(), e);
@@ -336,7 +344,8 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
                         processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), stakeUnit.getAmount(),
                                 false, successRecoveryIds, true, stakeUnit.getReliquatGeneratedAmount(),
                                 stakeUnit.getReliquatUsedAmount(), stakeUnit.getOperationConsentCode(),
-                                stakeUnit.getConfirmedAmount(), dto.getSyncConsentCode()));
+                                stakeUnit.getConfirmedAmount(), dto.getSyncConsentCode(),
+                                stakeUnit.getOperationDate()));
             } catch (Exception e) {
                 log.error("Échec mise spéciale (sync) recoveryId={} creditId={} amount={}: {}",
                         stakeUnit.getRecoveryId(), stakeUnit.getCreditId(), stakeUnit.getAmount(), e.getMessage(), e);
@@ -436,7 +445,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         return root.getMessage() != null ? root.getMessage() : e.toString();
     }
 
-    private void processDailyStake(Long creditId, String recoveryId, Double amount, boolean isNormalStake, List<String> successRecoveryIds, boolean throwOnNotFound, Double reliquatGenerated, Double reliquatUsed, String operationConsentCode, Double confirmedAmount, String syncConsentCode) {
+    private void processDailyStake(Long creditId, String recoveryId, Double amount, boolean isNormalStake, List<String> successRecoveryIds, boolean throwOnNotFound, Double reliquatGenerated, Double reliquatUsed, String operationConsentCode, Double confirmedAmount, String syncConsentCode, java.time.LocalDateTime operationDate) {
         if (getRepository().existsByReference(recoveryId)) {
             successRecoveryIds.add(recoveryId);
             return;
@@ -479,6 +488,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         creditTimeline.setOperationConsentCode(operationConsentCode);
         creditTimeline.setConfirmedAmount(confirmedAmount);
         creditTimeline.setSyncConsentCode(syncConsentCode);
+        creditTimeline.setOperationDate(com.optimize.elykia.core.util.OperationDates.resolve(operationDate));
         
         dailyStakeFactor(credit, creditTimeline);
 

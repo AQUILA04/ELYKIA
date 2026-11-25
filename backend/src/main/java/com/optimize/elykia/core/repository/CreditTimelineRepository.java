@@ -102,6 +102,18 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
             @Param("state") com.optimize.common.entities.enums.State state,
             Pageable pageable);
 
+    /** Montant des mises saisies après l'instant donné (hors le contrôle : elles ne font pas partie de son snapshot). */
+    @Query("""
+            SELECT COALESCE(SUM(ct.amount), 0)
+            FROM CreditTimeline ct
+            WHERE ct.credit.id = :creditId
+              AND ct.state = com.optimize.common.entities.enums.State.ENABLED
+              AND ct.operationDate > :after
+            """)
+    Double sumAmountByCreditIdAndOperationDateAfter(
+            @Param("creditId") Long creditId,
+            @Param("after") LocalDateTime after);
+
     boolean existsByReference(String reference);
 
     Optional<CreditTimeline> findByReference(String reference);
