@@ -90,12 +90,40 @@ public class TontineController {
                 ResponseUtil.successResponse(tontineService.getAllocationMigrationStatus()), HttpStatus.OK);
     }
 
-    @GetMapping("/allocation-migration/last-report")
+    @GetMapping("/allocation-migration/runs")
     @PreAuthorize("hasAnyRole('" + UserPermissionConstant.ADMIN + "')")
-    @Operation(summary = "Dernier recalcul des parts société avec le rapport des membres en échec")
-    public ResponseEntity<Response> getLastAllocationMigrationReport() {
+    @Operation(summary = "Historique des recalculs des parts société")
+    public ResponseEntity<Response> getAllocationMigrationRuns(
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
         return new ResponseEntity<>(
-                ResponseUtil.successResponse(tontineService.getLastAllocationMigrationReport()), HttpStatus.OK);
+                ResponseUtil.successResponse(tontineService.listAllocationMigrationRuns(page, size)), HttpStatus.OK);
+    }
+
+    @GetMapping("/allocation-migration/runs/{runId}")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.ADMIN + "')")
+    @Operation(summary = "Détail d'un recalcul des parts société")
+    public ResponseEntity<Response> getAllocationMigrationRun(@PathVariable Long runId) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(tontineService.getAllocationMigrationRun(runId)), HttpStatus.OK);
+    }
+
+    @GetMapping("/allocation-migration/runs/{runId}/failures")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.ADMIN + "')")
+    @Operation(summary = "Membres en échec d'un recalcul des parts société")
+    public ResponseEntity<Response> getAllocationMigrationFailures(
+            @PathVariable Long runId,
+            @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(tontineService.listAllocationMigrationFailures(runId, page, size)),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/allocation-migration/runs/{runId}/retry")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.ADMIN + "')")
+    @Operation(summary = "Reprendre un recalcul des parts société échoué")
+    public ResponseEntity<Response> retryAllocationMigrationRun(@PathVariable Long runId) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(tontineService.retryAllocationMigrationRun(runId)), HttpStatus.OK);
     }
 
     @PostMapping("/sessions/current/recalculate-allocations")

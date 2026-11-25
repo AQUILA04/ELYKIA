@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 class TontineAllocationMigrationServiceTest {
 
     @Mock private TontineAllocationMigrationRunRepository runRepository;
+    @Mock private com.optimize.elykia.core.repository.TontineAllocationMigrationFailureRepository failureRepository;
     @Mock private TontineMemberAllocationSnapshotRepository snapshotRepository;
     @Mock private TontineMemberRepository memberRepository;
     @Mock private TontineCollectionRepository collectionRepository;
@@ -74,7 +75,7 @@ class TontineAllocationMigrationServiceTest {
         when(runRepository.findLatestByStatusIn(any())).thenReturn(Optional.empty());
         when(sessionRepository.findByYear(LocalDate.now().getYear())).thenReturn(Optional.of(session));
         when(memberRepository.countEnabledBySessionId(22L)).thenReturn(12L);
-        when(runRepository.save(any(TontineAllocationMigrationRun.class))).thenAnswer(invocation -> {
+        when(runRepository.saveAndFlush(any(TontineAllocationMigrationRun.class))).thenAnswer(invocation -> {
             TontineAllocationMigrationRun run = invocation.getArgument(0);
             run.setId(91L);
             return run;
@@ -85,7 +86,7 @@ class TontineAllocationMigrationServiceTest {
         TontineAllocationMigrationRun run = service.startMigration("V1", "V2", "admin.a");
 
         // Then
-        verify(runRepository).save(runCaptor.capture());
+        verify(runRepository).saveAndFlush(runCaptor.capture());
         TontineAllocationMigrationRun created = runCaptor.getValue();
         assertEquals(22L, created.getSessionId());
         assertEquals("V1", created.getFromVersion());
@@ -163,8 +164,45 @@ class TontineAllocationMigrationServiceTest {
         verify(memberRepository).save(member);
     }
 
+    @Test
+    void retryRun_resumesFailedRunAndDispatchesAsyncWorker() {
+        TontineAllocationMigrationService service = service();
+        TontineAllocationMigrationRun failed = new TontineAllocationMigrationRun();
+        failed.setId(7L);
+        failed.setStatus(TontineAllocationMigrationRunStatus.FAILED);
+        failed.setErrorMessage("boom");
+        when(runRepository.findLatestByStatusIn(any())).thenReturn(Optional.empty());
+        when(runRepository.findById(7L)).thenReturn(Optional.of(failed));
+        when(runRepository.saveAndFlush(failed)).thenReturn(failed);
+
+        TontineAllocationMigrationRun run = service.retryRun(7L);
+
+        assertEquals(TontineAllocationMigrationRunStatus.PENDING, run.getStatus());
+        assertEquals(null, run.getErrorMessage());
+        verify(jobRunner).runAsync(7L);
+    }
+
+    @Test
+    void retryRun_refusesRunThatIsNotFailed() {
+        TontineAllocationMigrationService service = service();
+        TontineAllocationMigrationRun completed = new TontineAllocationMigrationRun();
+        completed.setId(8L);
+        completed.setStatus(TontineAllocationMigrationRunStatus.COMPLETED);
+        when(runRepository.findLatestByStatusIn(any())).thenReturn(Optional.empty());
+        when(runRepository.findById(8L)).thenReturn(Optional.of(completed));
+
+        assertThrows(CustomValidationException.class, () -> service.retryRun(8L));
+        verify(jobRunner, never()).runAsync(any());
+    }
+
+    @Test
+    void executeMigration_ignoresMissingRunId() {
+        service().executeMigration(null);
+        verify(runRepository, never()).findById(any());
+    }
+
     private TontineAllocationMigrationService service() {
-        return new TontineAllocationMigrationService(runRepository, snapshotRepository, memberRepository,
+        return new TontineAllocationMigrationService(runRepository, failureRepository, snapshotRepository, memberRepository,
                 collectionRepository, sessionRepository, policyResolver, jobRunner,
                 org.mockito.Mockito.mock(org.springframework.transaction.PlatformTransactionManager.class));
     }

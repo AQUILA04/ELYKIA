@@ -1158,15 +1158,34 @@ public class TontineService extends GenericService<TontineMember, Long> {
         return TontineAllocationMigrationStatusDto.idle();
     }
 
-    public TontineAllocationMigrationStatusDto getLastAllocationMigrationReport() {
-        if (allocationMigrationService == null) {
-            return TontineAllocationMigrationStatusDto.idle();
-        }
-        TontineAllocationMigrationRun run = allocationMigrationService.getLatestActiveOrRecentRun();
-        return run == null ? TontineAllocationMigrationStatusDto.idle() : TontineAllocationMigrationStatusDto.from(run);
+    public org.springframework.data.domain.Page<TontineAllocationMigrationStatusDto> listAllocationMigrationRuns(
+            int page, int size) {
+        requireAllocationMigrationService();
+        return allocationMigrationService.listRuns(page, size).map(TontineAllocationMigrationStatusDto::from);
     }
 
-    @Transactional
+    public TontineAllocationMigrationStatusDto getAllocationMigrationRun(Long runId) {
+        requireAllocationMigrationService();
+        return TontineAllocationMigrationStatusDto.from(allocationMigrationService.getRun(runId));
+    }
+
+    public org.springframework.data.domain.Page<com.optimize.elykia.core.entity.report.TontineAllocationMigrationFailure>
+    listAllocationMigrationFailures(Long runId, int page, int size) {
+        requireAllocationMigrationService();
+        return allocationMigrationService.listFailures(runId, page, size);
+    }
+
+    public TontineAllocationMigrationStatusDto retryAllocationMigrationRun(Long runId) {
+        requireAllocationMigrationService();
+        return TontineAllocationMigrationStatusDto.from(allocationMigrationService.retryRun(runId));
+    }
+
+    private void requireAllocationMigrationService() {
+        if (allocationMigrationService == null) {
+            throw new CustomValidationException("Service de migration allocation indisponible.");
+        }
+    }
+
     public TontineAllocationMigrationRun triggerAllocationRecalculation(String triggeredBy) {
         if (allocationMigrationService == null) {
             throw new CustomValidationException("Service de migration allocation indisponible.");
