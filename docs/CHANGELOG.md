@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend, Frontend & Mobile — 2026-11-26 (collectes de livraison exemptées, bascule en file)
+
+### Changed
+
+- **Backend → Tontine → collectes de livraison →** une collecte faite à la livraison (`isDeliveryCollection`) est exemptée de la part société, que la session soit active ou clôturée (avant : seulement session clôturée). Elle est créditée en entier au solde disponible, n'ouvre aucun mois et sa part société vaut 0. Règle partagée par V1, V2 et V3 (`TontineBalanceTopUp`). Pour les membres déjà calculés, lancer « Recalcul complet » depuis Administration → Recalcul parts société.
+- **Frontend → fiche membre →** les collectes de livraison sont surlignées dans la liste avec la pastille « Livraison · exemptée part société ».
+- **Mobile →** le calcul hors ligne exempte aussi les collectes de livraison en session active.
+
+### Fixed
+
+- **Backend → recalcul des parts société →** un changement du paramètre pendant qu'un recalcul tourne était ignoré (ex. V3 → V2 puis V2 → V3 avant la fin : aucun recalcul vers V3). Il est maintenant mis en file : à la fin du run, si la version configurée diffère de celle du run, un nouveau recalcul complet démarre vers la version courante.
+
 ## Backend, Frontend & Mobile — 2026-11-25 (part société V3)
 
 ### Added
@@ -26,6 +38,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Fixed
 
+- **Backend → recalcul des parts société →** un démarrage qui échoue est désormais tracé dans l'historique (run `FAILED` avec le motif) et peut être repris depuis la page d'administration ; la page suit la charte UI du frontend (header, KPI, tableaux, panneau de détail, confirmations `AlertService`).
 - **Backend → recalcul des parts société →** le changement du paramètre n'enregistrait aucun run (`run=null`, `findById(null)`) : `startMigration` était appelée depuis un listener `AFTER_COMMIT`, sans transaction active, donc l'INSERT `IDENTITY` était différé et l'id restait nul. Le run est désormais créé dans une transaction `REQUIRES_NEW` commitée avant le lancement du job asynchrone ; un job sans identifiant est refusé.
 - **Backend → recalcul des parts société →** `processMemberInNewTransaction` était appelée par auto-invocation : le `REQUIRES_NEW` ne s'appliquait pas. Elle passe maintenant par un `TransactionTemplate`.
 

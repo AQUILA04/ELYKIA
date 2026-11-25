@@ -140,4 +140,31 @@ class V3TontineAllocationPolicyTest {
         member.getAmountHistory().add(history);
         return member;
     }
+
+    @Test
+    void deliveryCollectionsAreExemptFromSocietyShareInV3EvenInActiveSession() {
+        V3TontineAllocationPolicy policy = new V3TontineAllocationPolicy(
+                new TontineAmountHistoryHelper(org.mockito.Mockito.mock(
+                        com.optimize.common.securities.service.ParameterService.class)));
+        com.optimize.elykia.core.entity.tontine.TontineMember member =
+                new com.optimize.elykia.core.entity.tontine.TontineMember();
+        member.setAmount(100d);
+
+        com.optimize.elykia.core.entity.tontine.TontineCollection regular =
+                new com.optimize.elykia.core.entity.tontine.TontineCollection();
+        regular.setAmount(100d);
+        regular.setCollectionDate(java.time.LocalDateTime.of(2026, 3, 2, 10, 0));
+        com.optimize.elykia.core.entity.tontine.TontineCollection delivery =
+                new com.optimize.elykia.core.entity.tontine.TontineCollection();
+        delivery.setAmount(5_000d);
+        delivery.setIsDeliveryCollection(true);
+        delivery.setCollectionDate(java.time.LocalDateTime.of(2026, 3, 3, 10, 0));
+
+        policy.recalculateMemberFromCollections(member, java.util.List.of(regular, delivery));
+
+        org.junit.jupiter.api.Assertions.assertEquals(100d, member.getSocietyShare());
+        org.junit.jupiter.api.Assertions.assertEquals(5_100d, member.getTotalContribution());
+        org.junit.jupiter.api.Assertions.assertEquals(5_000d, member.getAvailableContribution());
+        org.junit.jupiter.api.Assertions.assertEquals(0d, delivery.getSocietyShareAmount());
+    }
 }

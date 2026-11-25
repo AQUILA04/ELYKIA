@@ -64,9 +64,9 @@ export class TontineCalculationService {
     const useRegistrationDate = await this.parameterService.isEnabled('USE_MEMBER_REGISTRATION_DATE_FOR_SHARE');
     const history = await this.historyRepo.getByMemberId(member.id);
     const ordered = this.sortCollections(collections);
-    const sessionClosed = session.status === 'CLOSED';
-    const topUps = sessionClosed ? ordered.filter(collection => collection.isDeliveryCollection) : [];
-    const regular = sessionClosed ? ordered.filter(collection => !collection.isDeliveryCollection) : ordered;
+    // Collectes faites à la livraison : exemptées de la part société, session active ou clôturée (comme le serveur).
+    const topUps = ordered.filter(collection => collection.isDeliveryCollection);
+    const regular = ordered.filter(collection => !collection.isDeliveryCollection);
     const isOfflineEstimate = regular.some(collection => collection.isLocal && !collection.isSync);
     const isExact = version === 'V1'
       || ordered.every(collection => !!collection.contributionMonth);

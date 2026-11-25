@@ -25,6 +25,14 @@ public class TontineAllocationPolicyResolver {
         return v1Policy;
     }
 
+    /** Version actuellement configurée (V1 par défaut), normalisée en majuscules. */
+    public String currentVersion() {
+        String version = parameterService.getValue(TontineParameterConstant.SOCIETY_SHARE_VERSION);
+        return version == null || version.isBlank()
+                ? TontineParameterConstant.SOCIETY_SHARE_VERSION_V1
+                : version.trim().toUpperCase();
+    }
+
     public boolean isV2() {
         return v2Policy == resolve();
     }

@@ -192,4 +192,16 @@ describe('TontineCalculationService', () => {
     const status = await service.calculateMemberStatus(member(), session(), collections);
     expect(status.societyShare).toBe(12000);
   });
+
+  it('V3 exempts delivery collections from the society share even in an active session', async () => {
+    parameterService.getSocietyShareVersion.and.resolveTo('V3');
+    const collections = [
+      collection('1', `${year}-03-05`, 1000),
+      collection('2', `${year}-03-06`, 5000, { isDeliveryCollection: true })
+    ];
+    const status = await service.calculateMemberStatus(member(), session(), collections);
+    expect(status.societyShare).toBe(1000);
+    expect(status.totalCollected).toBe(6000);
+    expect(status.availableBudget).toBe(5000);
+  });
 });

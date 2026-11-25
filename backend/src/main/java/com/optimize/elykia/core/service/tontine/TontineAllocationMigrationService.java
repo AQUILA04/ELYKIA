@@ -88,13 +88,38 @@ public class TontineAllocationMigrationService {
             return;
         }
         if (isMigrationRunning()) {
-            log.error("Bascule {} -> {} ignorée : migration déjà en cours", fromVersion, toVersion);
+            // Pas perdue : à la fin du run en cours, runFollowUpIfVersionChanged relance vers la version courante.
+            log.info("Bascule {} -> {} mise en file : un recalcul est déjà en cours", fromVersion, toVersion);
             return;
         }
         try {
             startMigration(fromVersion, toVersion, "system");
         } catch (Exception e) {
             log.error("Impossible de démarrer la migration allocation tontine {} -> {}", fromVersion, toVersion, e);
+            recordStartFailure(fromVersion, toVersion, "system", e);
+        }
+    }
+
+    /** Trace dans l'historique un recalcul qui n'a pas pu démarrer, pour qu'il soit visible dans la page d'administration. */
+    void recordStartFailure(String fromVersion, String toVersion, String triggeredBy, Exception cause) {
+        try {
+            requiresNew().executeWithoutResult(status -> {
+                TontineAllocationMigrationRun failed = new TontineAllocationMigrationRun();
+                failed.setSessionId(sessionRepository.findByYear(LocalDate.now().getYear())
+                        .map(TontineSession::getId).orElse(0L));
+                failed.setFromVersion(fromVersion);
+                failed.setToVersion(toVersion);
+                failed.setStatus(TontineAllocationMigrationRunStatus.FAILED);
+                failed.setTriggeredBy(triggeredBy);
+                failed.setStartedAt(LocalDateTime.now());
+                failed.setFinishedAt(LocalDateTime.now());
+                failed.setErrorMessage(truncate("Démarrage impossible : "
+                        + (cause.getMessage() != null ? cause.getMessage() : cause.getClass().getName()),
+                        MAX_MESSAGE_LENGTH));
+                runRepository.saveAndFlush(failed);
+            });
+        } catch (Exception secondary) {
+            log.error("Impossible d'enregistrer l'échec de démarrage de la migration allocation tontine", secondary);
         }
     }
 
@@ -143,6 +168,11 @@ public class TontineAllocationMigrationService {
             if (existing.getStatus() != TontineAllocationMigrationRunStatus.FAILED) {
                 throw new CustomValidationException("Seul un recalcul échoué peut être repris.");
             }
+            if (existing.getSessionId() == null || existing.getSessionId() == 0L) {
+                TontineSession session = resolveActiveSession();
+                existing.setSessionId(session.getId());
+                existing.setTotalMembers((int) memberRepository.countEnabledBySessionId(session.getId()));
+            }
             existing.setStatus(TontineAllocationMigrationRunStatus.PENDING);
             existing.setErrorMessage(null);
             existing.setFinishedAt(null);
@@ -181,6 +211,35 @@ public class TontineAllocationMigrationService {
         } catch (Exception e) {
             log.error("Échec fatal du job de migration allocation tontine run={}", runId, e);
             markRunFailed(runId, e.getMessage());
+            return;
+        }
+        runFollowUpIfVersionChanged(runId);
+    }
+
+    /**
+     * Si le paramètre a changé pendant le run (ex. V3 -> V2 puis V2 -> V3 avant la fin), le changement avait été mis
+     * en file : on relance un recalcul complet vers la version désormais configurée. L'état est relu en base,
+     * donc rien n'est perdu ; la chaîne s'arrête quand la version configurée égale celle du dernier run.
+     */
+    void runFollowUpIfVersionChanged(Long runId) {
+        String from = "?";
+        String to = "?";
+        try {
+            TontineAllocationMigrationRun finished = runRepository.findById(runId).orElse(null);
+            if (finished == null || finished.getStatus() != TontineAllocationMigrationRunStatus.COMPLETED) {
+                return;
+            }
+            String current = policyResolver.currentVersion();
+            from = finished.getToVersion();
+            to = current;
+            if (!current.equals(finished.getToVersion())) {
+                log.info("Version configurée {} différente du run {} ({}) : nouveau recalcul", current, runId,
+                        finished.getToVersion());
+                startMigration(finished.getToVersion(), current, "system");
+            }
+        } catch (Exception e) {
+            log.error("Impossible de relancer le recalcul en file après le run {}", runId, e);
+            recordStartFailure(from, to, "system", e);
         }
     }
 
