@@ -35,14 +35,13 @@ import static org.mockito.Mockito.when;
 class TontineMemberCarnetVerificationServiceTest {
 
     @Mock private TontineMemberRepository tontineMemberRepository;
-    @Mock private TontineSessionRepository tontineSessionRepository;
 
     private TontineMemberCarnetVerificationService service;
     private TontineSession activeSession;
 
     @BeforeEach
     void setUp() {
-        service = new TontineMemberCarnetVerificationService(tontineMemberRepository, tontineSessionRepository);
+        service = new TontineMemberCarnetVerificationService(tontineMemberRepository);
         activeSession = session(10L, LocalDate.now().getYear(), TontineSessionStatus.ACTIVE);
 
         Authentication authentication = mock(Authentication.class);
@@ -61,7 +60,6 @@ class TontineMemberCarnetVerificationServiceTest {
     @Test
     void setVerifiedMarksMemberAndKeepsAudit() {
         TontineMember member = member(1L, false);
-        when(tontineSessionRepository.findByYear(LocalDate.now().getYear())).thenReturn(Optional.of(activeSession));
         when(tontineMemberRepository.findByIdWithClient(1L)).thenReturn(Optional.of(member));
         when(tontineMemberRepository.save(member)).thenReturn(member);
 
@@ -78,7 +76,6 @@ class TontineMemberCarnetVerificationServiceTest {
         TontineMember member = member(1L, true);
         member.setCarnetVerifiedAt(original);
         member.setCarnetVerifiedBy("first-rm");
-        when(tontineSessionRepository.findByYear(LocalDate.now().getYear())).thenReturn(Optional.of(activeSession));
         when(tontineMemberRepository.findByIdWithClient(1L)).thenReturn(Optional.of(member));
         when(tontineMemberRepository.save(member)).thenReturn(member);
 
@@ -93,7 +90,6 @@ class TontineMemberCarnetVerificationServiceTest {
         TontineMember member = member(1L, true);
         member.setCarnetVerifiedAt(LocalDateTime.now());
         member.setCarnetVerifiedBy("rm1");
-        when(tontineSessionRepository.findByYear(LocalDate.now().getYear())).thenReturn(Optional.of(activeSession));
         when(tontineMemberRepository.findByIdWithClient(1L)).thenReturn(Optional.of(member));
         when(tontineMemberRepository.save(member)).thenReturn(member);
 
@@ -109,7 +105,6 @@ class TontineMemberCarnetVerificationServiceTest {
         TontineMember a = member(1L, false);
         TontineMember b = member(2L, true);
         b.setCarnetVerifiedBy("already");
-        when(tontineSessionRepository.findByYear(LocalDate.now().getYear())).thenReturn(Optional.of(activeSession));
         when(tontineMemberRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(a, b));
         when(tontineMemberRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -126,7 +121,6 @@ class TontineMemberCarnetVerificationServiceTest {
     void bulkSetAllowsClosedCurrentYearSession() {
         activeSession.setStatus(TontineSessionStatus.CLOSED);
         TontineMember member = member(1L, false);
-        when(tontineSessionRepository.findByYear(LocalDate.now().getYear())).thenReturn(Optional.of(activeSession));
         when(tontineMemberRepository.findAllById(List.of(1L))).thenReturn(List.of(member));
         when(tontineMemberRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -145,7 +139,6 @@ class TontineMemberCarnetVerificationServiceTest {
 
     @Test
     void bulkSetRejectsUnknownMember() {
-        when(tontineSessionRepository.findByYear(LocalDate.now().getYear())).thenReturn(Optional.of(activeSession));
         when(tontineMemberRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(member(1L, false)));
 
         assertThatThrownBy(() -> service.bulkSet(List.of(1L, 2L), true))

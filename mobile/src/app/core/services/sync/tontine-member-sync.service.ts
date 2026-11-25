@@ -196,6 +196,7 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
         }
         return {
             clientId: Number.parseInt(clientServerId, 10),
+            sessionId: this.numericSessionId(member.tontineSessionId),
             frequency: member.frequency,
             amount: member.amount,
             notes: member.notes,
@@ -203,5 +204,12 @@ export class TontineMemberSyncService extends BaseSyncService<TontineMember, Ton
             operationConsentCode: member.operationConsentCode ?? null,
             syncConsentCode: this.syncConsentCode ?? null
         };
+    }
+
+    private numericSessionId(value?: string | null): number | undefined {
+        if (!value || !/^\d+$/.test(value)) {
+            return undefined;
+        }
+        return Number.parseInt(value, 10);
     }
 }

@@ -9,6 +9,7 @@ import com.optimize.elykia.tontine.domain.TontineMemberAllocationSnapshot;
 import com.optimize.elykia.tontine.domain.TontineCollection;
 import com.optimize.elykia.tontine.domain.TontineMember;
 import com.optimize.elykia.tontine.domain.TontineSession;
+import com.optimize.elykia.tontine.domain.TontineSessionKind;
 import com.optimize.elykia.tontine.domain.TontineAllocationMigrationRunStatus;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineAllocationMigrationRunRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineCollectionRepository;
@@ -254,7 +255,7 @@ public class TontineAllocationMigrationService {
 
     private TontineSession resolveActiveSession() {
         int currentYear = LocalDate.now().getYear();
-        return sessionRepository.findByYear(currentYear)
+        return sessionRepository.findByYearAndKind(currentYear, TontineSessionKind.ANNUAL)
                 .orElseThrow(() -> new CustomValidationException(
                         "Aucune session de tontine active trouvée pour l'année en cours."));
     }

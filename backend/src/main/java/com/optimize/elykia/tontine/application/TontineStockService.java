@@ -46,9 +46,16 @@ public class TontineStockService extends GenericService<TontineStock, Long> {
     private void publishShadow(LegacyStockMovementEvent.Kind kind, String collector, Long articleId, int quantity,
                                Double purchaseCost, Double salePrice, CommercialStockReferenceType refType,
                                Long refId, String refCode) {
+        publishShadow(kind, collector, articleId, quantity, purchaseCost, salePrice, refType, refId, refCode, null);
+    }
+
+    private void publishShadow(LegacyStockMovementEvent.Kind kind, String collector, Long articleId, int quantity,
+                               Double purchaseCost, Double salePrice, CommercialStockReferenceType refType,
+                               Long refId, String refCode, Long tontineSessionId) {
         if (eventPublisher != null) {
             eventPublisher.publishEvent(new LegacyStockMovementEvent(kind, StockActivityType.TONTINE, collector,
-                    articleId, quantity, purchaseCost, salePrice, refType, refId, refCode, null, LocalDate.now(), null));
+                    articleId, quantity, purchaseCost, salePrice, refType, refId, refCode, tontineSessionId,
+                    LocalDate.now(), null));
         }
     }
 
@@ -84,6 +91,11 @@ public class TontineStockService extends GenericService<TontineStock, Long> {
             String creditReference,
             TontineDelivery delivery) {
         Long tontineDeliveryId = delivery != null ? delivery.getId() : null;
+        Long tontineSessionId = delivery != null
+                && delivery.getTontineMember() != null
+                && delivery.getTontineMember().getTontineSession() != null
+                ? delivery.getTontineMember().getTontineSession().getId()
+                : null;
         String tontineDeliveryReference = buildTontineDeliveryReference(delivery);
 
         creditArticles.forEach(creditArticle -> {
@@ -114,7 +126,7 @@ public class TontineStockService extends GenericService<TontineStock, Long> {
                     tontineDeliveryReference);
             publishShadow(LegacyStockMovementEvent.Kind.SALE, commercial, saved.getArticleId(),
                     creditArticle.getQuantity(), null, null, CommercialStockReferenceType.CREDIT, creditId,
-                    creditReference);
+                    creditReference, tontineSessionId);
         });
     }
 

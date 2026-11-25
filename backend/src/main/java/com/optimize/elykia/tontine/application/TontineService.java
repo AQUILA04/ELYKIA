@@ -31,7 +31,13 @@ import com.optimize.elykia.tontine.domain.TontineSession;
 import com.optimize.elykia.tontine.domain.TontineMemberDeliveryStatus;
 import com.optimize.elykia.tontine.domain.TontineMemberRegistrationSource;
 import com.optimize.elykia.tontine.domain.TontineMemberUpdateScope;
+import com.optimize.elykia.tontine.domain.TontineSessionKind;
 import com.optimize.elykia.tontine.domain.TontineSessionStatus;
+import com.optimize.elykia.tontine.web.dto.CreateTontineSessionDto;
+import org.springframework.security.access.AccessDeniedException;
+import java.text.Normalizer;
+import java.time.LocalTime;
+import java.util.Locale;
 import com.optimize.elykia.tontine.event.TontineCollectionCancelledEvent;
 import com.optimize.elykia.tontine.event.TontineCollectionEvent;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineCollectionRepository;
@@ -169,32 +175,94 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     public TontineSession getActiveSession() {
-        int currentYear = LocalDate.now().getYear();
-        return tontineSessionRepository.findByYear(currentYear)
+        return ensureAnnualSession(LocalDate.now().getYear());
+    }
+
+    public TontineSession ensureAnnualSession(int year) {
+        return tontineSessionRepository.findByYearAndKind(year, TontineSessionKind.ANNUAL)
                 .orElseGet(() -> {
                     TontineSession newSession = new TontineSession();
-                    newSession.setYear(currentYear);
-                    newSession.setStartDate(LocalDate.of(currentYear, 2, 1));
-                    newSession.setEndDate(LocalDate.of(currentYear, 11, 30));
+                    newSession.setYear(year);
+                    newSession.setName("Session annuelle " + year);
+                    newSession.setCode("ANNUELLE-" + year);
+                    newSession.setKind(TontineSessionKind.ANNUAL);
+                    newSession.setStartDate(LocalDate.of(year, 2, 1));
+                    newSession.setEndDate(LocalDate.of(year, 11, 30));
                     newSession.setStatus(TontineSessionStatus.ACTIVE);
                     return tontineSessionRepository.save(newSession);
                 });
     }
 
-    public TontineSession updateCurrentSession(TontineSessionUpdateDto dto) {
-        int currentYear = LocalDate.now().getYear();
-        TontineSession session = tontineSessionRepository.findByYear(currentYear)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Aucune session de tontine active trouvée pour l'année en cours."));
-
-        if (dto.getStartDate().getYear() != currentYear || dto.getEndDate().getYear() != currentYear) {
-            throw new CustomValidationException("Les dates de début et de fin doivent être pour l'année en cours.");
+    public TontineSession createExtraSession(CreateTontineSessionDto dto) {
+        assertCanManageSessions();
+        if (dto.getEndDate() == null || dto.getStartDate() == null || !dto.getEndDate().isAfter(dto.getStartDate())) {
+            throw new CustomValidationException("La date de fin doit être postérieure à la date de début.");
         }
+        String name = dto.getName().trim();
+        int year = dto.getStartDate().getYear();
+        String code = resolveExtraSessionCode(dto.getCode(), name, year);
 
+        TontineSession session = new TontineSession();
+        session.setName(name);
+        session.setCode(code);
+        session.setKind(TontineSessionKind.EXTRA);
+        session.setYear(year);
         session.setStartDate(dto.getStartDate());
         session.setEndDate(dto.getEndDate());
-
+        session.setStatus(TontineSessionStatus.ACTIVE);
+        session.setTotalRevenue(0.0);
         return tontineSessionRepository.save(session);
+    }
+
+    public TontineSession updateCurrentSession(TontineSessionUpdateDto dto) {
+        return updateSession(getActiveSession().getId(), dto);
+    }
+
+    public TontineSession updateSession(Long sessionId, TontineSessionUpdateDto dto) {
+        assertCanManageSessions();
+        TontineSession session = tontineSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Session non trouvée"));
+        if (session.getStatus() != TontineSessionStatus.ACTIVE) {
+            throw new CustomValidationException("Seule une session ouverte peut être modifiée.");
+        }
+        if (dto.getEndDate() == null || dto.getStartDate() == null || !dto.getEndDate().isAfter(dto.getStartDate())) {
+            throw new CustomValidationException("La date de fin doit être postérieure à la date de début.");
+        }
+        long outside = tontineCollectionRepository.countEnabledOutsideSessionRange(
+                session.getId(),
+                dto.getStartDate().atStartOfDay(),
+                dto.getEndDate().atTime(LocalTime.MAX));
+        if (outside > 0) {
+            throw new CustomValidationException(
+                    "Des cotisations existent en dehors de ces dates. Élargissez la période ou conservez les dates actuelles.");
+        }
+        int newYear = dto.getStartDate().getYear();
+        if (session.getKind() == TontineSessionKind.ANNUAL) {
+            tontineSessionRepository.findByYearAndKind(newYear, TontineSessionKind.ANNUAL)
+                    .filter(other -> !other.getId().equals(session.getId()))
+                    .ifPresent(other -> {
+                        throw new CustomValidationException("Une session annuelle existe déjà pour " + newYear + ".");
+                    });
+        }
+        if (StringUtils.hasText(dto.getName())) {
+            session.setName(dto.getName().trim());
+        }
+        session.setStartDate(dto.getStartDate());
+        session.setEndDate(dto.getEndDate());
+        session.setYear(dto.getStartDate().getYear());
+        return tontineSessionRepository.save(session);
+    }
+
+    public List<TontineSession> listOperationalSessions() {
+        ensureAnnualSession(LocalDate.now().getYear());
+        return tontineSessionRepository.findAll().stream()
+                .filter(session -> session.getStatus() == TontineSessionStatus.ACTIVE
+                        || session.getStatus() == TontineSessionStatus.CLOSED)
+                .sorted(Comparator
+                        .comparing(TontineSession::getYear, Comparator.reverseOrder())
+                        .thenComparing(session -> session.getKind() == TontineSessionKind.ANNUAL ? 0 : 1)
+                        .thenComparing(TontineSession::getStartDate, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
     }
 
     /**
@@ -272,14 +340,22 @@ public class TontineService extends GenericService<TontineMember, Long> {
         assertTontineWritesAllowed();
         Client client = clientService.getById(dto.getClientId());
         String reportCommercial = resolveEnrollmentCommercialUsername(client);
-        TontineSession activeSession = getActiveSession();
+        TontineSession activeSession = resolveEnrollmentSession(dto.getSessionId());
+        if (activeSession.getStatus() != TontineSessionStatus.ACTIVE) {
+            throw new CustomValidationException(
+                    "La session « " + activeSession.getName() + " » n'accepte plus d'inscription.");
+        }
+        if (activeSession.getEndDate() != null && LocalDate.now().isAfter(activeSession.getEndDate())) {
+            throw new CustomValidationException(
+                    "La session « " + activeSession.getName() + " » est terminée.");
+        }
 
-        // Prevent duplicate registration for the same year
         Optional<TontineMember> existingMember = getRepository()
-                .findByTontineSession_YearAndClient_Id(activeSession.getYear(), dto.getClientId());
+                .findByTontineSession_IdAndClient_IdAndState(
+                        activeSession.getId(), dto.getClientId(), State.ENABLED);
         if (existingMember.isPresent()) {
             throw new CustomValidationException(
-                    "Ce client est déjà enregistré pour la session de tontine de cette année.");
+                    "Ce client est déjà inscrit à la session « " + activeSession.getName() + " ».");
         }
 
         TontineMemberRegistrationSource source = registrationSource != null
@@ -590,14 +666,6 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
     public TontineCollectionRespDto recordCollection(TontineCollectionDto dto) {
         assertTontineWritesAllowed();
-        TontineSession currentSession = getActiveSession();
-        boolean deliveryTopUp = Boolean.TRUE.equals(dto.getIsDeliveryCollection())
-                && TontineSessionStatus.CLOSED.equals(currentSession.getStatus());
-        if (!TontineSessionStatus.ACTIVE.equals(currentSession.getStatus()) && !deliveryTopUp) {
-            throw new CustomValidationException(
-                    "La session de cette année est déjà clôturer, Vous ne pouvez plus enregistrer de collecte !");
-        }
-
         // Check for duplicate reference
         if (StringUtils.hasText(dto.getReference())) {
             if (tontineCollectionRepository.existsByReference(dto.getReference())) {
@@ -606,8 +674,15 @@ public class TontineService extends GenericService<TontineMember, Long> {
         }
 
         TontineMember member = this.getById(dto.getMemberId());
+        TontineSession currentSession = member.getTontineSession() != null
+                ? member.getTontineSession()
+                : getActiveSession();
+        boolean deliveryTopUp = Boolean.TRUE.equals(dto.getIsDeliveryCollection())
+                && TontineSessionStatus.CLOSED.equals(currentSession.getStatus());
         if (deliveryTopUp) {
             assertDeliveryTopUp(member, dto.getAmount());
+        } else {
+            currentSession = requireWritableSession(member);
         }
         Client client = member.getClient();
         assertPromoterCanOperateOnTontineMember(userService.getCurrentUser(), member, client);
@@ -888,7 +963,9 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
     public TontineCatchupPreviewDto getCatchupPreview(Long memberId, LocalDate collectionDate) {
         TontineMember member = getById(memberId);
-        TontineSession currentSession = getActiveSession();
+        TontineSession currentSession = member.getTontineSession() != null
+                ? member.getTontineSession()
+                : getActiveSession();
         validateCatchupCollectionDate(member, currentSession, collectionDate);
 
         LocalDate monthStart = collectionDate.withDayOfMonth(1);
@@ -1097,6 +1174,88 @@ public class TontineService extends GenericService<TontineMember, Long> {
         currentPolicy().recalculateMemberFromCollections(member, collections);
     }
 
+    private TontineSession resolveEnrollmentSession(Long sessionId) {
+        if (sessionId == null) {
+            return getActiveSession();
+        }
+        return tontineSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Session non trouvée"));
+    }
+
+    private TontineSession requireWritableSession(TontineMember member) {
+        TontineSession session = member.getTontineSession() != null
+                ? member.getTontineSession()
+                : getActiveSession();
+        if (!TontineSessionStatus.ACTIVE.equals(session.getStatus())) {
+            throw new CustomValidationException(
+                    "La session « " + sessionLabel(session) + " » est clôturée. Vous ne pouvez plus enregistrer de collecte.");
+        }
+        LocalDate today = LocalDate.now();
+        if (session.getStartDate() != null && today.isBefore(session.getStartDate())) {
+            throw new CustomValidationException(
+                    "La session « " + sessionLabel(session) + " » n'a pas encore commencé.");
+        }
+        if (session.getEndDate() != null && today.isAfter(session.getEndDate())) {
+            throw new CustomValidationException(
+                    "La session « " + sessionLabel(session) + " » est terminée. Vous ne pouvez plus enregistrer de collecte.");
+        }
+        return session;
+    }
+
+    private void assertCanManageSessions() {
+        User current = userService != null ? userService.getCurrentUser() : null;
+        boolean allowed = current != null && (current.is(UserProfilConstant.GESTIONNAIRE)
+                || current.is(UserProfilConstant.ADMIN)
+                || current.is(UserProfilConstant.SU));
+        if (!allowed) {
+            throw new AccessDeniedException(
+                    "Seul un gestionnaire, un admin ou un super-admin peut créer ou modifier une session de tontine.");
+        }
+    }
+
+    private String resolveExtraSessionCode(String requestedCode, String name, int year) {
+        String code = StringUtils.hasText(requestedCode)
+                ? requestedCode.trim().toUpperCase(Locale.ROOT).replace(' ', '-')
+                : buildSessionCode(name, year);
+        if (code.startsWith("ANNUELLE-")) {
+            throw new CustomValidationException("Ce code est réservé à la session annuelle.");
+        }
+        if (!code.matches("[A-Z0-9][A-Z0-9-]{0,38}")) {
+            throw new CustomValidationException("Le code de session ne peut contenir que des lettres, des chiffres et des tirets.");
+        }
+        if (tontineSessionRepository.existsByCode(code)) {
+            throw new CustomValidationException("Ce code de session est déjà utilisé.");
+        }
+        return code;
+    }
+
+    private String buildSessionCode(String name, int year) {
+        String normalized = Normalizer.normalize(name, Normalizer.Form.NFD).replaceAll("\\p{M}", "");
+        String slug = normalized.toUpperCase(Locale.ROOT).replaceAll("[^A-Z0-9]+", "-").replaceAll("^-|-$", "");
+        if (!StringUtils.hasText(slug)) {
+            slug = "SESSION";
+        }
+        if (slug.length() > 24) {
+            slug = slug.substring(0, 24).replaceAll("-$", "");
+        }
+        String base = slug + "-" + year;
+        String code = base;
+        int suffix = 2;
+        while (tontineSessionRepository.existsByCode(code) || code.startsWith("ANNUELLE-")) {
+            code = base + "-" + suffix++;
+        }
+        return code;
+    }
+
+    private String sessionLabel(TontineSession session) {
+        if (session != null && StringUtils.hasText(session.getName())) {
+            return session.getName();
+        }
+        return session != null && session.getYear() != null
+                ? "Session " + session.getYear()
+                : "Session";
+    }
+
     private void validateCatchupCollectionDate(TontineMember member, TontineSession session, LocalDate collectionDate) {
         LocalDate today = LocalDate.now();
         if (!collectionDate.isBefore(today)) {
@@ -1223,6 +1382,12 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
     public Page<TontineMemberRespDto> getMembers(User currentUser, String search, String deliveryStatus, String commercial,
                                                  Boolean carnetVerified, String registrationSource, Pageable pageable) {
+        return getMembers(currentUser, search, deliveryStatus, commercial, carnetVerified, registrationSource, null, pageable);
+    }
+
+    public Page<TontineMemberRespDto> getMembers(User currentUser, String search, String deliveryStatus, String commercial,
+                                                 Boolean carnetVerified, String registrationSource, Long sessionId,
+                                                 Pageable pageable) {
         int currentYear = LocalDate.now().getYear();
 
 
@@ -1256,10 +1421,10 @@ public class TontineService extends GenericService<TontineMember, Long> {
         Page<TontineMemberRespDto> memberRespDtos= null;
         if (Objects.isNull(searchFilter)) {
             memberRespDtos= getRepository().findMembersDto(currentYear, commercialFilter, statusFilter, carnetVerified,
-                    registrationSourceFilter, pageable);
+                    registrationSourceFilter, sessionId, pageable);
         } else {
             memberRespDtos = getRepository().findMembersDtoWithSearch(currentYear, commercialFilter, searchFilter,
-                    statusFilter, carnetVerified, registrationSourceFilter, pageable);
+                    statusFilter, carnetVerified, registrationSourceFilter, sessionId, pageable);
         }
         if (memberRespDtos != null) {
             memberRespDtos = memberRespDtos.map(TontineMemberRespDto::withoutPhantomDelivery);

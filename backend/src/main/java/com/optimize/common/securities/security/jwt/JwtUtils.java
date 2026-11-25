@@ -31,14 +31,31 @@ public class JwtUtils {
 
   public String generateJwtToken(Authentication authentication) {
     UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
+    return generateJwtToken(userPrincipal);
+  }
 
+  public String generateJwtToken(UserDetailsImpl userPrincipal) {
     return Jwts.builder()
             .subject(userPrincipal.getUsername())
             .issuedAt(new Date())
             .claim("authorities", userPrincipal.getAuthorities())
+            .claim("agencyId", userPrincipal.getAgencyId())
             .expiration(new Date((new Date()).getTime() + jwtExpirationMs))
             .signWith(key(), Jwts.SIG.HS256)
             .compact();
+  }
+
+  public Long getAgencyIdFromJwtToken(String token) {
+    Object raw = Jwts.parser()
+            .verifyWith(key())
+            .build()
+            .parseSignedClaims(token)
+            .getPayload()
+            .get("agencyId");
+    if (raw == null) {
+      return null;
+    }
+    return Long.valueOf(raw.toString());
   }
 
   private SecretKey key() {
@@ -69,10 +86,6 @@ public class JwtUtils {
     }
 
     return false;
-  }
-
-  public String generateJwtToken(UserDetailsImpl userPrincipal) {
-    return generateTokenFromUsername(userPrincipal.getUsername());
   }
 
   public String generateTokenFromUsername(String username) {

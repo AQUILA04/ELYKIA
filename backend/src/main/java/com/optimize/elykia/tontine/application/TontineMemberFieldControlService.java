@@ -14,6 +14,7 @@ import com.optimize.elykia.tontine.web.dto.TontineMemberFieldControlLineDto;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.tontine.domain.TontineCollection;
 import com.optimize.elykia.tontine.domain.TontineMember;
+import com.optimize.elykia.tontine.domain.TontineSession;
 import com.optimize.elykia.tontine.domain.TontineMemberFieldControl;
 import com.optimize.elykia.tontine.domain.TontineSession;
 import com.optimize.elykia.tontine.domain.TontineMemberFieldControlLine;
@@ -92,10 +93,7 @@ public class TontineMemberFieldControlService {
 
         Set<String> seen = new HashSet<>();
         for (CreateTontineMemberFieldControlMonthDto monthDto : dto.getMonths()) {
-            if (!TONTINE_CALENDAR_MONTHS.contains(monthDto.getMonth())) {
-                throw new CustomValidationException(
-                        "Le mois " + monthDto.getMonth() + " n'est pas un mois de session tontine (février–novembre).");
-            }
+            assertMonthInsideSession(member, monthDto.getYear(), monthDto.getMonth());
             String commercial = normalizeCommercial(monthDto.getCommercialUsername());
             if (!StringUtils.hasText(commercial)) {
                 throw new CustomValidationException("Le commercial est obligatoire pour chaque mois contrôlé.");
@@ -546,6 +544,26 @@ public class TontineMemberFieldControlService {
             return null;
         }
         return requested;
+    }
+
+    private static void assertMonthInsideSession(TontineMember member, Integer year, Integer month) {
+        TontineSession session = member != null ? member.getTontineSession() : null;
+        if (session == null || session.getStartDate() == null || session.getEndDate() == null) {
+            if (month == null || !TONTINE_CALENDAR_MONTHS.contains(month)) {
+                throw new CustomValidationException(
+                        "Le mois " + month + " n'est pas un mois de session tontine (février–novembre).");
+            }
+            return;
+        }
+        if (year == null || month == null) {
+            throw new CustomValidationException("Le mois contrôlé est incomplet.");
+        }
+        java.time.LocalDate target = java.time.LocalDate.of(year, month, 1);
+        if (target.isBefore(session.getStartDate().withDayOfMonth(1))
+                || target.isAfter(session.getEndDate().withDayOfMonth(1))) {
+            throw new CustomValidationException(
+                    "Le mois " + month + "/" + year + " est en dehors de la session « " + session.getName() + " ».");
+        }
     }
 
     private static String normalizeCommercial(String value) {

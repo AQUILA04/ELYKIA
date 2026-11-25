@@ -2,7 +2,7 @@
 <app-elyk-desktop-page
   eyebrow="ESPACE TONTINE"
   title="Détail tontine"
-  [subtitle]="detail()?.sessionYear ? ('Session ' + detail()?.sessionYear) : 'Votre épargne'"
+  [subtitle]="detail()?.sessionName || (detail()?.sessionYear ? ('Session ' + detail()?.sessionYear) : 'Votre épargne')"
   [showBack]="true"
   [breadcrumbs]="[{ label: 'Tontines', link: '/tontines' }, { label: 'Détail' }]"
   (back)="back.emit()"

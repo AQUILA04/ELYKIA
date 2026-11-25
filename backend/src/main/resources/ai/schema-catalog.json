@@ -93,7 +93,23 @@
           "name": "credit_purpose",
           "type": "varchar",
           "description": "Finalité du crédit : PERSONAL (plafond 35000), BUSINESS ou EVENT (plafond = solde de l'adhésion x coefficient)",
-          "synonyms": ["personnel", "business", "événement", "adhésion"]
+          "synonyms": [
+            "personnel",
+            "business",
+            "événement",
+            "adhésion"
+          ]
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ],
       "relations": [
@@ -222,33 +238,102 @@
     {
       "name": "client_adhesion",
       "description": "Adhésion du client (personnelle, business ou événement) avec son propre solde",
-      "synonyms": ["adhésion", "dépôt initial", "plafond crédit"],
+      "synonyms": [
+        "adhésion",
+        "dépôt initial",
+        "plafond crédit"
+      ],
       "columns": [
-        { "name": "id", "type": "bigint", "description": "Identifiant" },
-        { "name": "client_id", "type": "bigint", "description": "FK client" },
-        { "name": "adhesion_type", "type": "varchar", "description": "PERSONAL, BUSINESS ou EVENT", "synonyms": ["type d'adhésion"] },
-        { "name": "status", "type": "varchar", "description": "PENDING, ACTIVE, SUSPENDED, CLOSED" },
-        { "name": "adhesion_fee", "type": "double", "description": "Montant d'adhésion encaissé" },
-        { "name": "fee_waived", "type": "boolean", "description": "Vrai si l'adhésion est offerte via le business" },
-        { "name": "balance", "type": "double", "description": "Solde de cette adhésion (base du plafond business/événement)", "synonyms": ["solde"] },
-        { "name": "source", "type": "varchar", "description": "MIGRATION, COUNTER, CUSTOMER_SPACE, BUSINESS_UNLOCK" }
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "client_id",
+          "type": "bigint",
+          "description": "FK client"
+        },
+        {
+          "name": "adhesion_type",
+          "type": "varchar",
+          "description": "PERSONAL, BUSINESS ou EVENT",
+          "synonyms": [
+            "type d'adhésion"
+          ]
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "description": "PENDING, ACTIVE, SUSPENDED, CLOSED"
+        },
+        {
+          "name": "adhesion_fee",
+          "type": "double",
+          "description": "Montant d'adhésion encaissé"
+        },
+        {
+          "name": "fee_waived",
+          "type": "boolean",
+          "description": "Vrai si l'adhésion est offerte via le business"
+        },
+        {
+          "name": "balance",
+          "type": "double",
+          "description": "Solde de cette adhésion (base du plafond business/événement)",
+          "synonyms": [
+            "solde"
+          ]
+        },
+        {
+          "name": "source",
+          "type": "varchar",
+          "description": "MIGRATION, COUNTER, CUSTOMER_SPACE, BUSINESS_UNLOCK"
+        }
       ],
       "relations": [
-        { "column": "client_id", "refTable": "client", "refColumn": "id" }
+        {
+          "column": "client_id",
+          "refTable": "client",
+          "refColumn": "id"
+        }
       ]
     },
     {
       "name": "adhesion_balance_movement",
       "description": "Mouvement de solde d'une adhésion (frais, recharge, reprise)",
-      "synonyms": ["recharge adhésion", "dépôt adhésion"],
+      "synonyms": [
+        "recharge adhésion",
+        "dépôt adhésion"
+      ],
       "columns": [
-        { "name": "id", "type": "bigint", "description": "Identifiant" },
-        { "name": "client_adhesion_id", "type": "bigint", "description": "FK client_adhesion" },
-        { "name": "amount", "type": "double", "description": "Montant du mouvement" },
-        { "name": "movement_type", "type": "varchar", "description": "ADHESION_FEE, TOP_UP, ADJUSTMENT, MIGRATION, OPENING" }
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "client_adhesion_id",
+          "type": "bigint",
+          "description": "FK client_adhesion"
+        },
+        {
+          "name": "amount",
+          "type": "double",
+          "description": "Montant du mouvement"
+        },
+        {
+          "name": "movement_type",
+          "type": "varchar",
+          "description": "ADHESION_FEE, TOP_UP, ADJUSTMENT, MIGRATION, OPENING"
+        }
       ],
       "relations": [
-        { "column": "client_adhesion_id", "refTable": "client_adhesion", "refColumn": "id" }
+        {
+          "column": "client_adhesion_id",
+          "refTable": "client_adhesion",
+          "refColumn": "id"
+        }
       ]
     },
     {
@@ -307,6 +392,17 @@
             "zone à préciser",
             "autre localité",
             "quartier hors liste"
+          ]
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
           ]
         }
       ]
@@ -453,46 +549,136 @@
     {
       "name": "article_sale_pack",
       "description": "Offre de vente libre d'un article, par exemple 3 unités pour 250",
-      "synonyms": ["pack", "offre", "lot promotionnel"],
+      "synonyms": [
+        "pack",
+        "offre",
+        "lot promotionnel"
+      ],
       "columns": [
-        { "name": "id", "type": "bigint", "description": "Identifiant" },
-        { "name": "article_id", "type": "bigint", "description": "Article" },
-        { "name": "quantity", "type": "integer", "description": "Nombre d'unités de l'offre" },
-        { "name": "sale_price", "type": "double", "description": "Prix de l'offre, pas le prix d'une unité" }
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "article_id",
+          "type": "bigint",
+          "description": "Article"
+        },
+        {
+          "name": "quantity",
+          "type": "integer",
+          "description": "Nombre d'unités de l'offre"
+        },
+        {
+          "name": "sale_price",
+          "type": "double",
+          "description": "Prix de l'offre, pas le prix d'une unité"
+        }
       ],
       "relations": [
-        { "column": "article_id", "refTable": "articles", "refColumn": "id" }
+        {
+          "column": "article_id",
+          "refTable": "articles",
+          "refColumn": "id"
+        }
       ]
     },
     {
       "name": "article_stock_lot",
       "description": "Lot d'entrée FIFO. Le prix de vente figé est celui recopié à l'entrée.",
-      "synonyms": ["lot", "entrée FIFO"],
+      "synonyms": [
+        "lot",
+        "entrée FIFO"
+      ],
       "columns": [
-        { "name": "id", "type": "bigint", "description": "Identifiant" },
-        { "name": "article_id", "type": "bigint", "description": "Article" },
-        { "name": "quantity_remaining", "type": "integer", "description": "Unités encore en stock dans le lot" },
-        { "name": "unit_purchase_price", "type": "double", "description": "Prix d'achat unitaire du lot" },
-        { "name": "unit_sale_price", "type": "double", "description": "Prix de vente unitaire figé à l'entrée" },
-        { "name": "wholesale_purchase_price", "type": "double", "description": "Prix d'achat du colis saisi à l'entrée" },
-        { "name": "wholesale_sale_price", "type": "double", "description": "Prix de vente du colis figé à l'entrée" },
-        { "name": "half_wholesale_purchase_price", "type": "double", "description": "Prix d'achat du demi-gros saisi à l'entrée" },
-        { "name": "half_wholesale_sale_price", "type": "double", "description": "Prix de vente du demi-gros figé à l'entrée" }
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "article_id",
+          "type": "bigint",
+          "description": "Article"
+        },
+        {
+          "name": "quantity_remaining",
+          "type": "integer",
+          "description": "Unités encore en stock dans le lot"
+        },
+        {
+          "name": "unit_purchase_price",
+          "type": "double",
+          "description": "Prix d'achat unitaire du lot"
+        },
+        {
+          "name": "unit_sale_price",
+          "type": "double",
+          "description": "Prix de vente unitaire figé à l'entrée"
+        },
+        {
+          "name": "wholesale_purchase_price",
+          "type": "double",
+          "description": "Prix d'achat du colis saisi à l'entrée"
+        },
+        {
+          "name": "wholesale_sale_price",
+          "type": "double",
+          "description": "Prix de vente du colis figé à l'entrée"
+        },
+        {
+          "name": "half_wholesale_purchase_price",
+          "type": "double",
+          "description": "Prix d'achat du demi-gros saisi à l'entrée"
+        },
+        {
+          "name": "half_wholesale_sale_price",
+          "type": "double",
+          "description": "Prix de vente du demi-gros figé à l'entrée"
+        }
       ],
       "relations": [
-        { "column": "article_id", "refTable": "articles", "refColumn": "id" }
+        {
+          "column": "article_id",
+          "refTable": "articles",
+          "refColumn": "id"
+        }
       ]
     },
     {
       "name": "article_type",
       "description": "Catégorie d'article. Le nom correspond au texte articles.type.",
-      "synonyms": ["type d'article", "catégorie d'article"],
+      "synonyms": [
+        "type d'article",
+        "catégorie d'article"
+      ],
       "columns": [
-        { "name": "id", "type": "bigint", "description": "Identifiant" },
-        { "name": "name", "type": "varchar", "description": "Nom du type, identique à articles.type" },
-        { "name": "code", "type": "varchar", "description": "Code court" },
-        { "name": "description", "type": "varchar", "description": "Description" },
-        { "name": "photo_object_key", "type": "varchar", "description": "Clé de stockage de la photo réduite du type" }
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "name",
+          "type": "varchar",
+          "description": "Nom du type, identique à articles.type"
+        },
+        {
+          "name": "code",
+          "type": "varchar",
+          "description": "Code court"
+        },
+        {
+          "name": "description",
+          "type": "varchar",
+          "description": "Description"
+        },
+        {
+          "name": "photo_object_key",
+          "type": "varchar",
+          "description": "Clé de stockage de la photo réduite du type"
+        }
       ]
     },
     {
@@ -513,6 +699,42 @@
         {
           "name": "status",
           "type": "varchar"
+        },
+        {
+          "name": "name",
+          "type": "varchar",
+          "description": "Nom de la session tontine (ex: Session annuelle 2026, Pâques 2026)"
+        },
+        {
+          "name": "code",
+          "type": "varchar",
+          "description": "Code unique de la session tontine (ex: ANNUELLE-2026)"
+        },
+        {
+          "name": "kind",
+          "type": "varchar",
+          "description": "Type de session: ANNUAL (session annuelle unique par année) ou EXTRA (session supplémentaire)"
+        },
+        {
+          "name": "start_date",
+          "type": "date",
+          "description": "Date de début de la session"
+        },
+        {
+          "name": "end_date",
+          "type": "date",
+          "description": "Date de fin de la session"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ]
     },
@@ -721,13 +943,17 @@
           "name": "surplus_coverage_credit",
           "type": "double",
           "description": "Manque crédit de ce jour couvert par un surplus",
-          "synonyms": ["couvert par surplus crédit"]
+          "synonyms": [
+            "couvert par surplus crédit"
+          ]
         },
         {
           "name": "surplus_coverage_tontine",
           "type": "double",
           "description": "Manque tontine de ce jour couvert par un surplus",
-          "synonyms": ["couvert par surplus tontine"]
+          "synonyms": [
+            "couvert par surplus tontine"
+          ]
         },
         {
           "name": "surplus_coverage_new_balance",
@@ -741,6 +967,17 @@
         {
           "name": "recovery_manager_collections_amount",
           "type": "double"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ]
     },
@@ -912,6 +1149,17 @@
           "name": "credit_id",
           "type": "bigint",
           "description": "Vente comptant liée. Vide pour une sortie vers le sac du commercial."
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ],
       "relations": [
@@ -1025,6 +1273,17 @@
           "name": "total_purchase_price",
           "type": "double",
           "description": "Coût d'achat total"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ],
       "relations": [
@@ -1312,6 +1571,17 @@
           "name": "status",
           "type": "varchar",
           "description": "CREATED, RECEIVED, CANCELLED, REFUSED"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ],
       "relations": [
@@ -1397,6 +1667,17 @@
           "name": "status",
           "type": "varchar",
           "description": "ACTIVE, etc."
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ]
     },
@@ -1513,113 +1794,347 @@
       ],
       "rowLevelFilter": "holder_username",
       "columns": [
-        { "name": "id", "type": "bigint" },
-        { "name": "reference", "type": "varchar" },
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "reference",
+          "type": "varchar"
+        },
         {
           "name": "holder_username",
           "type": "varchar",
-          "synonyms": ["commercial", "magasinier", "titulaire"]
+          "synonyms": [
+            "commercial",
+            "magasinier",
+            "titulaire"
+          ]
         },
-        { "name": "holder_profile", "type": "varchar", "description": "COMMERCIAL ou STOREKEEPER" },
+        {
+          "name": "holder_profile",
+          "type": "varchar",
+          "description": "COMMERCIAL ou STOREKEEPER"
+        },
         {
           "name": "debt_type",
           "type": "varchar",
           "description": "MERCHANDISE, CASH_SHORTAGE, CASH_SURPLUS, INVENTORY_SHORTAGE"
         },
-        { "name": "period_grain", "type": "varchar", "description": "MONTH ou DAY" },
-        { "name": "period_year", "type": "integer" },
-        { "name": "period_month", "type": "integer" },
-        { "name": "period_day", "type": "date" },
-        { "name": "status", "type": "varchar", "description": "OPEN, PARTIALLY_SETTLED, SETTLED, CANCELLED" },
-        { "name": "gross_amount", "type": "double", "synonyms": ["montant dette"] },
-        { "name": "offset_amount", "type": "double" },
-        { "name": "paid_amount", "type": "double", "synonyms": ["montant réglé"] },
-        { "name": "remaining_amount", "type": "double", "synonyms": ["reste à payer"] },
-        { "name": "monthly_stock_id", "type": "bigint" },
-        { "name": "daily_report_id", "type": "bigint" },
-        { "name": "inventory_id", "type": "bigint" },
-        { "name": "debt_origin", "type": "varchar", "description": "CASH_CONSTITUTION ou FIELD_CONTROL (manquant issu d'un écart de carnet accepté)" },
-        { "name": "cash_category", "type": "varchar", "description": "CREDIT ou TONTINE pour un manquant de carnet" },
-        { "name": "carnet_ecart_decision_id", "type": "bigint" }
+        {
+          "name": "period_grain",
+          "type": "varchar",
+          "description": "MONTH ou DAY"
+        },
+        {
+          "name": "period_year",
+          "type": "integer"
+        },
+        {
+          "name": "period_month",
+          "type": "integer"
+        },
+        {
+          "name": "period_day",
+          "type": "date"
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "description": "OPEN, PARTIALLY_SETTLED, SETTLED, CANCELLED"
+        },
+        {
+          "name": "gross_amount",
+          "type": "double",
+          "synonyms": [
+            "montant dette"
+          ]
+        },
+        {
+          "name": "offset_amount",
+          "type": "double"
+        },
+        {
+          "name": "paid_amount",
+          "type": "double",
+          "synonyms": [
+            "montant réglé"
+          ]
+        },
+        {
+          "name": "remaining_amount",
+          "type": "double",
+          "synonyms": [
+            "reste à payer"
+          ]
+        },
+        {
+          "name": "monthly_stock_id",
+          "type": "bigint"
+        },
+        {
+          "name": "daily_report_id",
+          "type": "bigint"
+        },
+        {
+          "name": "inventory_id",
+          "type": "bigint"
+        },
+        {
+          "name": "debt_origin",
+          "type": "varchar",
+          "description": "CASH_CONSTITUTION ou FIELD_CONTROL (manquant issu d'un écart de carnet accepté)"
+        },
+        {
+          "name": "cash_category",
+          "type": "varchar",
+          "description": "CREDIT ou TONTINE pour un manquant de carnet"
+        },
+        {
+          "name": "carnet_ecart_decision_id",
+          "type": "bigint"
+        }
       ],
       "relations": [
-        { "column": "monthly_stock_id", "refTable": "commercial_monthly_stock", "refColumn": "id" },
-        { "column": "inventory_id", "refTable": "inventory", "refColumn": "id" },
-        { "column": "carnet_ecart_decision_id", "refTable": "carnet_ecart_decision", "refColumn": "id" }
+        {
+          "column": "monthly_stock_id",
+          "refTable": "commercial_monthly_stock",
+          "refColumn": "id"
+        },
+        {
+          "column": "inventory_id",
+          "refTable": "inventory",
+          "refColumn": "id"
+        },
+        {
+          "column": "carnet_ecart_decision_id",
+          "refTable": "carnet_ecart_decision",
+          "refColumn": "id"
+        }
       ]
     },
     {
       "name": "carnet_ecart_decision",
       "description": "Décision du commercial sur un écart constaté entre le carnet du client et le système (accepté ou rejeté)",
-      "synonyms": ["écart carnet", "disparité carnet", "contrôle terrain accepté"],
+      "synonyms": [
+        "écart carnet",
+        "disparité carnet",
+        "contrôle terrain accepté"
+      ],
       "rowLevelFilter": "commercial_username",
       "columns": [
-        { "name": "id", "type": "bigint" },
-        { "name": "domain", "type": "varchar", "description": "CREDIT ou TONTINE" },
-        { "name": "credit_field_control_id", "type": "bigint" },
-        { "name": "tontine_field_control_id", "type": "bigint" },
-        { "name": "tontine_line_id", "type": "bigint" },
-        { "name": "commercial_username", "type": "varchar", "synonyms": ["commercial"] },
-        { "name": "system_amount", "type": "double", "synonyms": ["montant système"] },
-        { "name": "notebook_amount", "type": "double", "synonyms": ["montant carnet"] },
-        { "name": "difference_amount", "type": "double", "synonyms": ["écart"] },
-        { "name": "direction", "type": "varchar" },
-        { "name": "status", "type": "varchar", "description": "ACCEPTED ou REJECTED" },
-        { "name": "rejection_note", "type": "varchar" },
-        { "name": "decided_by", "type": "varchar" },
-        { "name": "decided_at", "type": "timestamp" },
-        { "name": "mise_reference", "type": "varchar" },
-        { "name": "debt_document_id", "type": "bigint" },
-        { "name": "operation_date", "type": "date" }
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "domain",
+          "type": "varchar",
+          "description": "CREDIT ou TONTINE"
+        },
+        {
+          "name": "credit_field_control_id",
+          "type": "bigint"
+        },
+        {
+          "name": "tontine_field_control_id",
+          "type": "bigint"
+        },
+        {
+          "name": "tontine_line_id",
+          "type": "bigint"
+        },
+        {
+          "name": "commercial_username",
+          "type": "varchar",
+          "synonyms": [
+            "commercial"
+          ]
+        },
+        {
+          "name": "system_amount",
+          "type": "double",
+          "synonyms": [
+            "montant système"
+          ]
+        },
+        {
+          "name": "notebook_amount",
+          "type": "double",
+          "synonyms": [
+            "montant carnet"
+          ]
+        },
+        {
+          "name": "difference_amount",
+          "type": "double",
+          "synonyms": [
+            "écart"
+          ]
+        },
+        {
+          "name": "direction",
+          "type": "varchar"
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "description": "ACCEPTED ou REJECTED"
+        },
+        {
+          "name": "rejection_note",
+          "type": "varchar"
+        },
+        {
+          "name": "decided_by",
+          "type": "varchar"
+        },
+        {
+          "name": "decided_at",
+          "type": "timestamp"
+        },
+        {
+          "name": "mise_reference",
+          "type": "varchar"
+        },
+        {
+          "name": "debt_document_id",
+          "type": "bigint"
+        },
+        {
+          "name": "operation_date",
+          "type": "date"
+        }
       ],
       "relations": [
-        { "column": "debt_document_id", "refTable": "debt_document", "refColumn": "id" }
+        {
+          "column": "debt_document_id",
+          "refTable": "debt_document",
+          "refColumn": "id"
+        }
       ]
     },
     {
       "name": "debt_line",
       "description": "Ligne de détail d'une dette (article ou rubrique caisse)",
-      "synonyms": ["ligne dette", "article dette"],
+      "synonyms": [
+        "ligne dette",
+        "article dette"
+      ],
       "columns": [
-        { "name": "id", "type": "bigint" },
-        { "name": "debt_document_id", "type": "bigint" },
-        { "name": "article_id", "type": "bigint" },
-        { "name": "quantity", "type": "integer" },
-        { "name": "unit_price", "type": "double" },
-        { "name": "amount", "type": "double" },
-        { "name": "line_code", "type": "varchar" },
-        { "name": "label", "type": "varchar" }
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "debt_document_id",
+          "type": "bigint"
+        },
+        {
+          "name": "article_id",
+          "type": "bigint"
+        },
+        {
+          "name": "quantity",
+          "type": "integer"
+        },
+        {
+          "name": "unit_price",
+          "type": "double"
+        },
+        {
+          "name": "amount",
+          "type": "double"
+        },
+        {
+          "name": "line_code",
+          "type": "varchar"
+        },
+        {
+          "name": "label",
+          "type": "varchar"
+        }
       ],
       "relations": [
-        { "column": "debt_document_id", "refTable": "debt_document", "refColumn": "id" },
-        { "column": "article_id", "refTable": "articles", "refColumn": "id" }
+        {
+          "column": "debt_document_id",
+          "refTable": "debt_document",
+          "refColumn": "id"
+        },
+        {
+          "column": "article_id",
+          "refTable": "articles",
+          "refColumn": "id"
+        }
       ]
     },
     {
       "name": "debt_settlement",
       "description": "Règlement d'une ou plusieurs dettes (espèces, surplus, abandon)",
-      "synonyms": ["règlement dette", "paiement dette"],
+      "synonyms": [
+        "règlement dette",
+        "paiement dette"
+      ],
       "columns": [
-        { "name": "id", "type": "bigint" },
-        { "name": "reference", "type": "varchar" },
-        { "name": "settlement_mode", "type": "varchar", "description": "CASH, SURPLUS_OFFSET, WRITE_OFF" },
-        { "name": "amount", "type": "double" },
-        { "name": "performed_by", "type": "varchar" },
-        { "name": "performed_at", "type": "timestamp" }
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "reference",
+          "type": "varchar"
+        },
+        {
+          "name": "settlement_mode",
+          "type": "varchar",
+          "description": "CASH, SURPLUS_OFFSET, WRITE_OFF"
+        },
+        {
+          "name": "amount",
+          "type": "double"
+        },
+        {
+          "name": "performed_by",
+          "type": "varchar"
+        },
+        {
+          "name": "performed_at",
+          "type": "timestamp"
+        }
       ]
     },
     {
       "name": "debt_allocation",
       "description": "Ventilation d'un règlement sur une dette",
       "columns": [
-        { "name": "id", "type": "bigint" },
-        { "name": "settlement_id", "type": "bigint" },
-        { "name": "debt_document_id", "type": "bigint" },
-        { "name": "amount", "type": "double" }
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "settlement_id",
+          "type": "bigint"
+        },
+        {
+          "name": "debt_document_id",
+          "type": "bigint"
+        },
+        {
+          "name": "amount",
+          "type": "double"
+        }
       ],
       "relations": [
-        { "column": "settlement_id", "refTable": "debt_settlement", "refColumn": "id" },
-        { "column": "debt_document_id", "refTable": "debt_document", "refColumn": "id" }
+        {
+          "column": "settlement_id",
+          "refTable": "debt_settlement",
+          "refColumn": "id"
+        },
+        {
+          "column": "debt_document_id",
+          "refTable": "debt_document",
+          "refColumn": "id"
+        }
       ]
     },
     {
@@ -1703,6 +2218,17 @@
         {
           "name": "source_id",
           "type": "bigint"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ],
       "relations": [
@@ -2072,43 +2598,136 @@
     {
       "name": "mobile_money_withdrawal_fee_bracket",
       "description": "Grille de frais de retrait Mobile Money appliquée au paiement depuis l'Espace Client, par réseau",
-      "synonyms": ["frais de retrait", "Mixx", "Flooz"],
+      "synonyms": [
+        "frais de retrait",
+        "Mixx",
+        "Flooz"
+      ],
       "columns": [
-        { "name": "id", "type": "bigint", "description": "Identifiant" },
-        { "name": "network", "type": "varchar", "description": "Réseau MIXX ou FLOOZ", "synonyms": ["Mixx by Yas", "Flooz", "Moov"] },
-        { "name": "min_amount", "type": "bigint", "description": "Montant minimum de la tranche, en FCFA" },
-        { "name": "max_amount", "type": "bigint", "description": "Montant maximum de la tranche, en FCFA" },
-        { "name": "fee_amount", "type": "bigint", "description": "Frais de retrait de la tranche, en FCFA" },
-        { "name": "visibility", "type": "varchar", "description": "ENABLED, DISABLED, DELETED" }
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "network",
+          "type": "varchar",
+          "description": "Réseau MIXX ou FLOOZ",
+          "synonyms": [
+            "Mixx by Yas",
+            "Flooz",
+            "Moov"
+          ]
+        },
+        {
+          "name": "min_amount",
+          "type": "bigint",
+          "description": "Montant minimum de la tranche, en FCFA"
+        },
+        {
+          "name": "max_amount",
+          "type": "bigint",
+          "description": "Montant maximum de la tranche, en FCFA"
+        },
+        {
+          "name": "fee_amount",
+          "type": "bigint",
+          "description": "Frais de retrait de la tranche, en FCFA"
+        },
+        {
+          "name": "visibility",
+          "type": "varchar",
+          "description": "ENABLED, DISABLED, DELETED"
+        }
       ]
     },
     {
       "name": "promoter",
       "description": "Personne physique pouvant utiliser un compte commercial. Distincte du compte de connexion.",
-      "synonyms": ["personnel commercial", "titulaire", "personne"],
+      "synonyms": [
+        "personnel commercial",
+        "titulaire",
+        "personne"
+      ],
       "columns": [
-        { "name": "id", "type": "bigint", "description": "Identifiant" },
-        { "name": "name", "type": "varchar", "description": "Nom de la personne" },
-        { "name": "phone_number", "type": "varchar", "description": "Téléphone, facultatif" },
-        { "name": "serial_number", "type": "varchar", "description": "Pièce d'identité, facultative" },
-        { "name": "date_of_birth", "type": "date", "description": "Date de naissance, facultative" },
-        { "name": "visibility", "type": "varchar", "description": "ENABLED, DISABLED, DELETED" }
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "name",
+          "type": "varchar",
+          "description": "Nom de la personne"
+        },
+        {
+          "name": "phone_number",
+          "type": "varchar",
+          "description": "Téléphone, facultatif"
+        },
+        {
+          "name": "serial_number",
+          "type": "varchar",
+          "description": "Pièce d'identité, facultative"
+        },
+        {
+          "name": "date_of_birth",
+          "type": "date",
+          "description": "Date de naissance, facultative"
+        },
+        {
+          "name": "visibility",
+          "type": "varchar",
+          "description": "ENABLED, DISABLED, DELETED"
+        }
       ]
     },
     {
       "name": "commercial_account_assignment",
       "description": "Période pendant laquelle une personne utilise un compte commercial. Les périodes ne se chevauchent pas. end_date vide = affectation en cours.",
-      "synonyms": ["affectation commercial", "titulaire du compte", "qui utilisait le compte"],
+      "synonyms": [
+        "affectation commercial",
+        "titulaire du compte",
+        "qui utilisait le compte"
+      ],
       "columns": [
-        { "name": "id", "type": "bigint", "description": "Identifiant" },
-        { "name": "user_id", "type": "bigint", "description": "Identifiant du compte commercial. Le username COM des ventes n'est pas stocké ici." },
-        { "name": "promoter_id", "type": "bigint", "description": "Personne (promoter.id)" },
-        { "name": "start_date", "type": "date", "description": "Début inclus" },
-        { "name": "end_date", "type": "date", "description": "Fin incluse, vide si l'affectation est en cours" },
-        { "name": "visibility", "type": "varchar", "description": "ENABLED, DISABLED, DELETED" }
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "user_id",
+          "type": "bigint",
+          "description": "Identifiant du compte commercial. Le username COM des ventes n'est pas stocké ici."
+        },
+        {
+          "name": "promoter_id",
+          "type": "bigint",
+          "description": "Personne (promoter.id)"
+        },
+        {
+          "name": "start_date",
+          "type": "date",
+          "description": "Début inclus"
+        },
+        {
+          "name": "end_date",
+          "type": "date",
+          "description": "Fin incluse, vide si l'affectation est en cours"
+        },
+        {
+          "name": "visibility",
+          "type": "varchar",
+          "description": "ENABLED, DISABLED, DELETED"
+        }
       ],
       "relations": [
-        { "column": "promoter_id", "refTable": "promoter", "refColumn": "id" }
+        {
+          "column": "promoter_id",
+          "refTable": "promoter",
+          "refColumn": "id"
+        }
       ]
     },
     {
@@ -2156,6 +2775,17 @@
           "name": "current_sale_unit_price",
           "type": "double",
           "description": "Prix de vente unitaire courant de référence"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ],
       "relations": [
@@ -2324,6 +2954,17 @@
         {
           "name": "performed_by",
           "type": "varchar"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ],
       "relations": [
@@ -2481,6 +3122,17 @@
           "name": "restated_at",
           "type": "timestamp",
           "description": "Renseigné si une régularisation antidatée a recalculé l'arrêté"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ],
       "relations": [
@@ -2564,6 +3216,17 @@
         {
           "name": "closed_by",
           "type": "varchar"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ]
     },
@@ -2630,6 +3293,17 @@
         {
           "name": "occurred_at",
           "type": "timestamp"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ],
       "relations": [
@@ -2697,6 +3371,17 @@
         {
           "name": "status_reason",
           "type": "varchar"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (cloisonnement multi-agences)",
+          "synonyms": [
+            "agence",
+            "agency",
+            "site",
+            "succursale"
+          ]
         }
       ],
       "relations": [
@@ -2832,6 +3517,129 @@
           "column": "tontine_member_id",
           "refTable": "tontine_member",
           "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "agency",
+      "description": "Agence / site organisationnel (référentiel multi-agences)",
+      "synonyms": [
+        "agence",
+        "site",
+        "succursale",
+        "filiale"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "code",
+          "type": "varchar",
+          "description": "Code unique de l'agence",
+          "synonyms": [
+            "code agence"
+          ]
+        },
+        {
+          "name": "name",
+          "type": "varchar",
+          "description": "Nom de l'agence",
+          "synonyms": [
+            "nom agence"
+          ]
+        },
+        {
+          "name": "phone",
+          "type": "varchar",
+          "description": "Téléphone"
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "description": "Agence active (source métier)",
+          "synonyms": [
+            "actif",
+            "ouverte"
+          ]
+        },
+        {
+          "name": "deactivated_at",
+          "type": "timestamp",
+          "description": "Date de désactivation"
+        },
+        {
+          "name": "deactivated_by",
+          "type": "varchar",
+          "description": "Utilisateur ayant désactivé"
+        },
+        {
+          "name": "visibility",
+          "type": "varchar",
+          "description": "État technique ENABLED/DISABLED/DELETED"
+        }
+      ]
+    },
+    {
+      "name": "agency_assignment",
+      "description": "Affectation d'un utilisateur (USERS.USEID) à une agence sur une période",
+      "synonyms": [
+        "affectation agence",
+        "mutation agence",
+        "transfert agence"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "user_id",
+          "type": "bigint",
+          "description": "Identifiant utilisateur USERS.USEID",
+          "synonyms": [
+            "utilisateur"
+          ]
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Agence d'affectation"
+        },
+        {
+          "name": "start_date",
+          "type": "date",
+          "description": "Début d'affectation"
+        },
+        {
+          "name": "end_date",
+          "type": "date",
+          "description": "Fin d'affectation (null = active)"
+        },
+        {
+          "name": "assigned_by",
+          "type": "varchar",
+          "description": "Auteur de l'affectation"
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "description": "Notes"
+        }
+      ],
+      "relations": [
+        {
+          "column": "agency_id",
+          "refTable": "agency",
+          "refColumn": "id"
+        },
+        {
+          "column": "user_id",
+          "refTable": "users",
+          "refColumn": "useid"
         }
       ]
     }

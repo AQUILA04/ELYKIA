@@ -10,7 +10,7 @@
     <div class="elyk-desktop-grid elyk-desktop-grid--2" *ngIf="showJoinHero()">
       <article class="desk-card" data-testid="e2e-tontine-session-card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-          <h2 style="margin:0;font-size:18px;">Session {{ session()?.year }} en cours</h2>
+          <h2 style="margin:0;font-size:18px;">{{ session()?.name || ('Session ' + session()?.year) }}</h2>
           <span class="elyk-chip elyk-chip--success" data-testid="e2e-tontine-session-chip">Ouverte</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
@@ -32,7 +32,7 @@
     </div>
 
     <div class="desk-card" *ngIf="showMemberBanner()" data-testid="e2e-tontine-member-banner" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-      <div><strong>Session {{ session()?.year }}</strong><p class="desk-muted">Fin prévue le {{ formatFrDate()(session()?.endDate) }}</p></div>
+      <div><strong>{{ session()?.name || ('Session ' + session()?.year) }}</strong><p class="desk-muted">Fin prévue le {{ formatFrDate()(session()?.endDate) }}</p></div>
       <span class="elyk-chip elyk-chip--gold">Inscrit</span>
     </div>
 
@@ -45,7 +45,7 @@
     <div class="tontine-grid">
       <a class="tontine-card-d" *ngFor="let t of tontines()" [routerLink]="['/tontines', t.memberId]" [attr.data-testid]="'e2e-tontine-row-' + t.memberId">
         <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-          <span>Session {{ t.sessionYear }}</span>
+          <span>{{ t.sessionName || ('Session ' + t.sessionYear) }}</span>
           <span class="elyk-chip elyk-chip--gold">{{ statusLabel()(t.deliveryStatus) }}</span>
         </div>
         <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;">{{ t.totalContribution | number:'1.0-0' }} FCFA</div>

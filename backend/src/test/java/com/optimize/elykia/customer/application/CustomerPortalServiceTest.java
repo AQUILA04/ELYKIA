@@ -21,6 +21,7 @@ import com.optimize.elykia.tontine.domain.TontineSession;
 import com.optimize.elykia.customer.domain.CustomerSubmissionStatus;
 import com.optimize.elykia.tontine.domain.TontineMemberFrequency;
 import com.optimize.elykia.tontine.domain.TontineMemberRegistrationSource;
+import com.optimize.elykia.tontine.domain.TontineSessionKind;
 import com.optimize.elykia.tontine.domain.TontineSessionStatus;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditArticlesRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
@@ -104,14 +105,14 @@ class CustomerPortalServiceTest {
     @Test
     void getCurrentTontineSession_returnsUnavailableWhenNoSession() {
         int year = LocalDate.now().getYear();
-        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.empty());
+        when(tontineSessionRepository.findByYearAndKind(year, TontineSessionKind.ANNUAL)).thenReturn(Optional.empty());
 
         CustomerTontineSessionDto dto = service().getCurrentTontineSession();
 
         assertFalse(dto.isAvailable());
         assertFalse(dto.isJoinable());
         assertEquals(100.0, dto.getMinDailyStake());
-        verify(tontineSessionRepository).findByYear(year);
+        verify(tontineSessionRepository).findByYearAndKind(year, TontineSessionKind.ANNUAL);
         verify(tontineSessionRepository, never()).save(any());
     }
 
@@ -120,8 +121,8 @@ class CustomerPortalServiceTest {
         int year = LocalDate.now().getYear();
         TontineSession session = activeSession(year);
         session.setStatus(TontineSessionStatus.CLOSED);
-        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(session));
-        when(tontineMemberRepository.findByTontineSession_YearAndClient_Id(year, 1L)).thenReturn(Optional.empty());
+        when(tontineSessionRepository.findByYearAndKind(year, TontineSessionKind.ANNUAL)).thenReturn(Optional.of(session));
+        when(tontineMemberRepository.findByTontineSession_IdAndClient_IdAndState(10L, 1L, State.ENABLED)).thenReturn(Optional.empty());
 
         CustomerTontineSessionDto dto = service().getCurrentTontineSession();
 
@@ -137,8 +138,8 @@ class CustomerPortalServiceTest {
         TontineMember member = new TontineMember();
         member.setId(42L);
         member.setState(State.ENABLED);
-        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(session));
-        when(tontineMemberRepository.findByTontineSession_YearAndClient_Id(year, 1L)).thenReturn(Optional.of(member));
+        when(tontineSessionRepository.findByYearAndKind(year, TontineSessionKind.ANNUAL)).thenReturn(Optional.of(session));
+        when(tontineMemberRepository.findByTontineSession_IdAndClient_IdAndState(10L, 1L, State.ENABLED)).thenReturn(Optional.of(member));
 
         CustomerTontineSessionDto dto = service().getCurrentTontineSession();
 
@@ -208,7 +209,7 @@ class CustomerPortalServiceTest {
     @Test
     void joinTontineSession_noOpenSession_throws() {
         int year = LocalDate.now().getYear();
-        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.empty());
+        when(tontineSessionRepository.findByYearAndKind(year, TontineSessionKind.ANNUAL)).thenReturn(Optional.empty());
 
         CustomerTontineJoinRequest request = new CustomerTontineJoinRequest();
         request.setDailyStake(100.0);
@@ -225,8 +226,8 @@ class CustomerPortalServiceTest {
         TontineMember member = new TontineMember();
         member.setId(3L);
         member.setState(State.ENABLED);
-        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(session));
-        when(tontineMemberRepository.findByTontineSession_YearAndClient_Id(year, 1L)).thenReturn(Optional.of(member));
+        when(tontineSessionRepository.findByYearAndKind(year, TontineSessionKind.ANNUAL)).thenReturn(Optional.of(session));
+        when(tontineMemberRepository.findByTontineSession_IdAndClient_IdAndState(10L, 1L, State.ENABLED)).thenReturn(Optional.of(member));
 
         CustomerTontineJoinRequest request = new CustomerTontineJoinRequest();
         request.setDailyStake(100.0);
@@ -338,8 +339,8 @@ class CustomerPortalServiceTest {
     }
 
     private void stubJoinableSession(int year) {
-        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(activeSession(year)));
-        when(tontineMemberRepository.findByTontineSession_YearAndClient_Id(year, 1L)).thenReturn(Optional.empty());
+        when(tontineSessionRepository.findByYearAndKind(year, TontineSessionKind.ANNUAL)).thenReturn(Optional.of(activeSession(year)));
+        when(tontineMemberRepository.findByTontineSession_IdAndClient_IdAndState(10L, 1L, State.ENABLED)).thenReturn(Optional.empty());
     }
 
     private TontineSession activeSession(int year) {
