@@ -1,0 +1,166 @@
+<div class="main-container warehouse-transfer-page a1">
+  <div class="breadcrumb-bar">
+    <a routerLink="/article/list" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Articles &amp; Stock Magasin
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">CHEF MAGASINIER MULTI-AGENCES (STOREKEEPER_MANAGER)</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="page-icon">
+          <path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/>
+        </svg>
+        <h1 class="page-title">Transferts de Stock Inter-Agences</h1>
+      </div>
+      <button class="btn-refresh" (click)="loadTransfers()">
+        Actualiser
+      </button>
+    </div>
+    <p class="page-subtitle">Cycle de transfert : Créé → Validé (Réservation source) → Expédié (Sortie FIFO source) → Réceptionné (Entrée FIFO cible avec filiation du lot)</p>
+  </div>
+
+  <div class="kpi-strip a3">
+    <div class="kpi-card kpi-total">
+      <div class="kpi-label">Créés</div>
+      <div class="kpi-value">{{ countCreated }}</div>
+    </div>
+    <div class="kpi-card kpi-amount">
+      <div class="kpi-label">Validés (Réservés)</div>
+      <div class="kpi-value">{{ countValidated }}</div>
+    </div>
+    <div class="kpi-card kpi-delai">
+      <div class="kpi-label">En transit (Expédiés)</div>
+      <div class="kpi-value">{{ countShipped }}</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Réceptionnés</div>
+      <div class="kpi-value">{{ countReceived }}</div>
+    </div>
+  </div>
+
+  <div class="toolbar a4">
+    <div class="filter-group">
+      <span class="toolbar-label">Statut</span>
+      <select class="filter-select" [(ngModel)]="statusFilter" (ngModelChange)="loadTransfers()">
+        <option value="">Tous les statuts</option>
+        <option value="CREATED">Créé</option>
+        <option value="VALIDATED">Validé</option>
+        <option value="SHIPPED">En transit (Expédié)</option>
+        <option value="RECEIVED">Réceptionné</option>
+        <option value="CANCELLED">Annulé</option>
+      </select>
+    </div>
+    <span class="result-count"><strong>{{ totalElements }}</strong> transfert(s)</span>
+    <div class="toolbar-actions">
+      <button class="btn-primary" (click)="showCreateForm = !showCreateForm">
+        {{ showCreateForm ? 'Fermer formulaire' : 'Nouveau transfert inter-agences' }}
+      </button>
+    </div>
+  </div>
+
+  @if (showCreateForm) {
+    <div class="transfer-create-box a4">
+      <h4>Nouveau Transfert de Stock Inter-Agences</h4>
+      <div class="form-grid">
+        <label>
+          ID Agence Source
+          <input type="number" [(ngModel)]="sourceAgencyId" min="1" />
+        </label>
+        <label>
+          ID Agence Cible
+          <input type="number" [(ngModel)]="targetAgencyId" min="1" />
+        </label>
+        <label>
+          ID Article
+          <input type="number" [(ngModel)]="articleIdInput" min="1" />
+        </label>
+        <label>
+          Quantité à transférer
+          <input type="number" [(ngModel)]="quantityInput" min="1" />
+        </label>
+        <label class="full-col">
+          Motif / Note
+          <input type="text" [(ngModel)]="transferNote" placeholder="Ex. Rééquilibrage stock magasin Agence A -> Agence B" />
+        </label>
+      </div>
+      <div class="form-actions">
+        <button class="btn-primary" (click)="createTransfer()">Enregistrer le transfert</button>
+      </div>
+    </div>
+  }
+
+  <div class="table-card a5">
+    <div class="table-wrapper">
+      @if (isLoading) {
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <div class="empty-title">Chargement des transferts inter-agences…</div>
+        </div>
+      }
+
+      @if (!isLoading && transfers.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">🚚</div>
+          <div class="empty-title">Aucun transfert inter-agences</div>
+          <div class="empty-sub">Créez un transfert pour déplacer du stock FIFO d'une agence à une autre.</div>
+        </div>
+      }
+
+      @if (!isLoading && transfers.length > 0) {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Référence</th>
+              <th>Agence Source</th>
+              <th>Agence Cible</th>
+              <th>Articles</th>
+              <th>Statut</th>
+              <th>Créé par / Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (t of transfers; track t.id) {
+              <tr class="table-row">
+                <td><strong>{{ t.reference }}</strong></td>
+                <td>Agence #{{ t.sourceAgencyId }}</td>
+                <td>Agence #{{ t.targetAgencyId }}</td>
+                <td>
+                  @for (item of t.items; track item.id) {
+                    <div>{{ item.articleName }} : <strong>{{ item.quantityRequested }}</strong> u.</div>
+                  }
+                </td>
+                <td>
+                  <span class="status-badge">{{ t.status }}</span>
+                </td>
+                <td>{{ t.createdBy }} · {{ t.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td class="col-actions">
+                  @if (t.status === 'CREATED') {
+                    <button class="btn-detail" (click)="validateTransfer(t)">Valider</button>
+                    <button class="btn-detail btn-danger" (click)="cancelTransfer(t)">Annuler</button>
+                  }
+                  @if (t.status === 'VALIDATED') {
+                    <button class="btn-detail" (click)="shipTransfer(t)">Expédier</button>
+                    <button class="btn-detail btn-danger" (click)="cancelTransfer(t)">Annuler</button>
+                  }
+                  @if (t.status === 'SHIPPED') {
+                    <button class="btn-detail" (click)="receiveTransfer(t)">Réceptionner</button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </div>
+</div>

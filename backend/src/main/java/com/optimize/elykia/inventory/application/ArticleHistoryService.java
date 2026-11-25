@@ -10,6 +10,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @deprecated Remplacé par {@link WarehouseStockService} et {@link com.optimize.elykia.inventory.domain.WarehouseStockLedgerEntry}.
+ * @see WarehouseStockService
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Service
 @Transactional(readOnly = true)
 public class ArticleHistoryService extends GenericService<ArticleHistory, Long> {

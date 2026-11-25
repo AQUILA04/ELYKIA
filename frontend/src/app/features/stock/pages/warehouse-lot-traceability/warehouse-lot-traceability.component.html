@@ -1,0 +1,175 @@
+<div class="main-container warehouse-lot-trace-page a1">
+  <div class="breadcrumb-bar">
+    <a routerLink="/article/list" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Articles &amp; Stock Magasin
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">TRAÇABILITÉ DE BOUT EN BOUT (FIFO)</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="page-icon">
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+        </svg>
+        <h1 class="page-title">Traçabilité &amp; Liquidation des Lots</h1>
+      </div>
+      <button class="btn-refresh" (click)="loadTraces()">
+        Actualiser
+      </button>
+    </div>
+    <p class="page-subtitle">Chaînage complet : Réception Fournisseur → Lot Magasin (Transferts Inter-Agences) → Couche Stock Commercial → Vente Client / Liquidation</p>
+  </div>
+
+  <div class="kpi-strip a3">
+    <div class="kpi-card kpi-total">
+      <div class="kpi-label">Entrées initiales (Lots)</div>
+      <div class="kpi-value">{{ totalInitialUnits }}</div>
+    </div>
+    <div class="kpi-card kpi-amount">
+      <div class="kpi-label">En rayon magasins</div>
+      <div class="kpi-value">{{ totalWarehouseUnits }}</div>
+    </div>
+    <div class="kpi-card kpi-delai">
+      <div class="kpi-label">Chez les commerciaux</div>
+      <div class="kpi-value">{{ totalCommercialUnits }}</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Vendu / Liquidé aux clients</div>
+      <div class="kpi-value">{{ totalLiquidatedUnits }}</div>
+    </div>
+  </div>
+
+  <div class="toolbar a4">
+    <div class="filter-group filter-group-search">
+      <span class="toolbar-label">Recherche</span>
+      <input
+        type="text"
+        class="search-input"
+        [(ngModel)]="searchTerm"
+        placeholder="Code lot (LOT-...), article, référence réception…" />
+    </div>
+    <button class="btn-clear" (click)="searchTerm = ''">Effacer</button>
+    <span class="result-count"><strong>{{ filteredTraces.length }}</strong> lot(s)</span>
+  </div>
+
+  <div class="table-card a5">
+    <div class="table-wrapper">
+      @if (isLoading) {
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <div class="empty-title">Chargement de la traçabilité des lots…</div>
+        </div>
+      }
+
+      @if (!isLoading && filteredTraces.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">📦</div>
+          <div class="empty-title">Aucun lot FIFO trouvé</div>
+          <div class="empty-sub">Les lots apparaissent dès la réception ou l'entrée en stock magasin.</div>
+        </div>
+      }
+
+      @if (!isLoading && filteredTraces.length > 0) {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Code Lot</th>
+              <th>Article</th>
+              <th>Origine / Réception</th>
+              <th>Date Entrée</th>
+              <th>P.U. Achat</th>
+              <th>Qté Initiale</th>
+              <th>En Magasin</th>
+              <th>Chez Commerciaux</th>
+              <th>Vendu / Liquidé</th>
+              <th>Pertes / Ajust.</th>
+              <th>Conservation</th>
+              <th>Détail</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (trace of filteredTraces; track trace.lotId) {
+              <tr class="table-row">
+                <td><strong>{{ trace.lotCode }}</strong></td>
+                <td>{{ trace.articleName }}</td>
+                <td>{{ trace.receptionReference || trace.sourceType }}</td>
+                <td>{{ trace.entryDate }}</td>
+                <td>{{ trace.unitPurchasePrice | number:'1.0-0' }} FCFA</td>
+                <td><strong>{{ trace.initialQuantity }}</strong></td>
+                <td>{{ trace.totalInWarehouses }}</td>
+                <td>{{ trace.totalWithCommercials }}</td>
+                <td>{{ trace.totalLiquidatedToClients }}</td>
+                <td>{{ trace.totalLostOrAdjusted }}</td>
+                <td>
+                  <span class="status-badge" [ngClass]="trace.conservationInvariantHolds ? 'status-delivered' : 'status-deleted'">
+                    {{ trace.conservationInvariantHolds ? 'Équilibré (100%)' : 'Écart' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn-detail" (click)="selectTrace(trace)">
+                    {{ selectedTrace?.lotId === trace.lotId ? 'Fermer' : 'Arbre' }}
+                  </button>
+                </td>
+              </tr>
+              @if (selectedTrace?.lotId === trace.lotId) {
+                <tr class="trace-detail-row">
+                  <td colspan="12">
+                    <div class="trace-tree-box">
+                      <h4>Décomposition du lot {{ trace.lotCode }} ({{ trace.articleName }})</h4>
+                      @if (trace.commercialAllocations.length > 0) {
+                        <div class="trace-subsection">
+                          <strong>Dotations Commerciaux ({{ trace.commercialAllocations.length }}) :</strong>
+                          <ul>
+                            @for (alloc of trace.commercialAllocations; track alloc.commercialLayerId) {
+                              <li>
+                                <strong>{{ alloc.commercialUsername }}</strong> [{{ alloc.activityType }}] :
+                                {{ alloc.quantityAllocated }} sorti(s) ·
+                                <strong>{{ alloc.quantityRemainingWithCommercial }} encore en main</strong>
+                                @if (alloc.liquidations.length > 0) {
+                                  <span>
+                                    — Liquidations :
+                                    @for (liq of alloc.liquidations; track liq.movementId) {
+                                      <span class="liq-pill">{{ liq.movementType }} ({{ liq.quantity }} u. · {{ liq.referenceCode || liq.referenceType }})</span>
+                                    }
+                                  </span>
+                                }
+                              </li>
+                            }
+                          </ul>
+                        </div>
+                      }
+                      @if (trace.childTransferLots.length > 0) {
+                        <div class="trace-subsection">
+                          <strong>Sous-lots transférés inter-agences ({{ trace.childTransferLots.length }}) :</strong>
+                          <ul>
+                            @for (child of trace.childTransferLots; track child.childLotId) {
+                              <li>
+                                Sous-lot <strong>{{ child.childLotCode }}</strong> (Agence #{{ child.targetAgencyId }}) :
+                                {{ child.quantityTransferred }} transféré(s) →
+                                {{ child.remainingInChildWarehouse }} en magasin,
+                                {{ child.withCommercialsFromChild }} chez commerciaux,
+                                {{ child.liquidatedFromChild }} vendu(s).
+                              </li>
+                            }
+                          </ul>
+                        </div>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </div>
+</div>

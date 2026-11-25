@@ -8,4 +8,6 @@ import java.util.List;
 public interface CommercialStockLayerConsumptionRepository extends JpaRepository<CommercialStockLayerConsumption, Long> {
 
     List<CommercialStockLayerConsumption> findByMovementId(Long movementId);
+
+    List<CommercialStockLayerConsumption> findByLayerIdOrderByIdAsc(Long layerId);
 }

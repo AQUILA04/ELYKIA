@@ -36,4 +36,7 @@ public class ArticleStockLotConsumption extends Auditable<String> {
 
     @Column(name = "source_id")
     private Long sourceId;
+
+    @Column(name = "ledger_entry_id")
+    private Long ledgerEntryId;
 }

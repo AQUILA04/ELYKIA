@@ -29,11 +29,14 @@ export class ArticleService {
         if (isOnline) {
           return this.fetchArticlesFromApi().pipe(
             tap(async (articles) => {
-              // Keep stockQuantity at 0 on seed; preserve state from API (ENABLED + DISABLED).
+              // Keep stockQuantity at 0 on seed (local field stock); preserve warehouse quantities & state from API.
               const articlesWithZeroStock = articles.map(article => ({
                 ...article,
                 id: String(article.id),
                 stockQuantity: 0,
+                warehouseOnHandQuantity: article.warehouseOnHandQuantity ?? article.stockQuantity ?? 0,
+                warehouseReservedQuantity: article.warehouseReservedQuantity ?? 0,
+                warehouseAvailableQuantity: article.warehouseAvailableQuantity ?? Math.max(0, (article.warehouseOnHandQuantity ?? article.stockQuantity ?? 0) - (article.warehouseReservedQuantity ?? 0)),
                 state: article.state || article.status || 'ENABLED'
               }));
               await this.articleRepository.saveAll(articlesWithZeroStock);

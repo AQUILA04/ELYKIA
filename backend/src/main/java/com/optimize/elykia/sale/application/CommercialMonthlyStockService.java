@@ -29,6 +29,10 @@ import java.time.LocalDate;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.application.CommercialStockLedgerService}.
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Service
 @Transactional(readOnly = true)
 public class CommercialMonthlyStockService extends GenericService<CommercialMonthlyStock, Long> {

@@ -14,12 +14,30 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * @deprecated Remplacé par {@link WarehouseStockService} et {@link com.optimize.elykia.inventory.domain.WarehouseStockLedgerEntry}.
+ * @see WarehouseStockService
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Service
 @Transactional
 public class StockMovementService extends GenericService<StockMovement, Long> {
 
     private final StockMovementRepository stockMovementRepository;
     private final ArticleHistoryService articleHistoryService;
+    private com.optimize.elykia.inventory.infrastructure.persistence.WarehouseStockLedgerEntryRepository warehouseLedgerRepository;
+    private WarehouseStockService warehouseStockService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setWarehouseLedgerRepository(
+            com.optimize.elykia.inventory.infrastructure.persistence.WarehouseStockLedgerEntryRepository warehouseLedgerRepository) {
+        this.warehouseLedgerRepository = warehouseLedgerRepository;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setWarehouseStockService(WarehouseStockService warehouseStockService) {
+        this.warehouseStockService = warehouseStockService;
+    }
 
     public StockMovementService(StockMovementRepository repository,
             StockMovementRepository stockMovementRepository,
@@ -90,6 +108,47 @@ public class StockMovementService extends GenericService<StockMovement, Long> {
             ArticleHistory history = buildArticleHistory(article, type, quantity, performedBy,
                     stockBefore, stockAfter, historyContext);
             articleHistoryService.create(history);
+        }
+
+        if (warehouseLedgerRepository != null && warehouseStockService != null && article != null && article.getId() != null) {
+            try {
+                Long agencyId = warehouseStockService.resolveAgencyId(null);
+                int before = stockBefore != null ? stockBefore : 0;
+                int after = stockAfter != null ? stockAfter : before;
+                com.optimize.elykia.inventory.domain.WarehouseStockLedgerEntry ledgerEntry =
+                        new com.optimize.elykia.inventory.domain.WarehouseStockLedgerEntry();
+                ledgerEntry.setAgencyId(agencyId);
+                ledgerEntry.setArticleId(article.getId());
+                ledgerEntry.setMovementType(type != null ? type.name() : "OTHER");
+                ledgerEntry.setQuantityDelta(after - before);
+                ledgerEntry.setOnHandBefore(Math.max(0, before));
+                ledgerEntry.setOnHandAfter(Math.max(0, after));
+                int reserved = article.getReservedQuantity() != null ? article.getReservedQuantity() : 0;
+                ledgerEntry.setReservedBefore(Math.max(0, reserved));
+                ledgerEntry.setReservedAfter(Math.max(0, reserved));
+                ledgerEntry.setUnitCost(movement.getUnitCost());
+                ledgerEntry.setTotalCost(movement.getUnitCost() != null && quantity != null
+                        ? movement.getUnitCost() * Math.abs(quantity)
+                        : null);
+                if (historyContext != null) {
+                    ledgerEntry.setReferenceType(historyContext.getReferenceType() != null
+                            ? historyContext.getReferenceType().name()
+                            : null);
+                    ledgerEntry.setReferenceId(historyContext.getReferenceId());
+                    ledgerEntry.setReferenceCode(historyContext.getReferenceLabel());
+                    ledgerEntry.setBeneficiary(historyContext.getBeneficiary());
+                } else if (relatedCreditId != null) {
+                    ledgerEntry.setReferenceType("CREDIT");
+                    ledgerEntry.setReferenceId(relatedCreditId);
+                }
+                ledgerEntry.setReason(reason);
+                ledgerEntry.setPerformedBy(performedBy);
+                ledgerEntry.setOperationDate(java.time.LocalDate.now());
+                ledgerEntry.setOccurredAt(LocalDateTime.now());
+                warehouseLedgerRepository.save(ledgerEntry);
+            } catch (Exception ignored) {
+                // Non bloquant
+            }
         }
 
         return saved;

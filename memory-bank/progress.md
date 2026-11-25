@@ -1,14 +1,14 @@
 # Avancement
 
-État au 2026-11-18 (GMT). « Ça marche » signifie : le parcours est dans le produit et le changelog, pas qu’un essai runtime a été refait pour cette note.
+État au 2026-11-25 (GMT). « Ça marche » signifie : le parcours est dans le produit et le changelog, pas qu’un essai runtime a été refait pour cette note.
 
 ## En place
 
-- Cycle agence : référentiels, stock commercial et tontine, crédits, comptant avec remise magasin, caisse, rapport journalier, BI, commandes.
-- Tontine : adhésion, collectes, session, livraison plafonnée, écarts de carnet, annulation des collectes d’un commercial (admin), ancien portefeuille. Sur la fiche membre mobile, **Commande de tontine** (session ouverte) et **Livraison Fin d’Année** (session clôturée) ne s’appuient que sur la livraison en cours de cette membre.
-- Mobile terrain local-first (commercial et chef de recouvrement), synchro, sauvegarde locale, contrôle de version APK au login.
+- Cycle agence : référentiels, stock magasin multi-agences (`En stock / Réservé / Disponible`, réservations Option A, transferts inter-agences 2 étapes, traçabilité de liquidation des lots FIFO, Bon de Commande Fournisseur PDF Navy Elykia, profil `STOREKEEPER_MANAGER`), stock commercial continu et demandes/retours unifiés (`CREDIT` & `TONTINE`, livraison partielle avec reliquat automatique), crédits, comptant avec remise magasin, caisse, rapport journalier, BI, commandes.
+- Tontine : adhésion multi-sessions (`ANNUAL` + `EXTRA`), collectes, session, livraison plafonnée, écarts de carnet, annulation des collectes d’un commercial (admin), ancien portefeuille et relais de carnet. Sur la fiche membre mobile, **Commande de tontine** (session ouverte) et **Livraison Fin d’Année** (session clôturée) ne s’appuient que sur la livraison en cours de cette membre.
+- Mobile terrain local-first (commercial et chef de recouvrement, SQLite v41 avec `warehouseAvailableQuantity` distinct du `stockQuantity` terrain), synchro, sauvegarde locale, contrôle de version APK au login.
 - Espace client Android et web : achats, catalogue, panier, tontine, Mobile Money, OTP, pages confidentialité et suppression de compte.
-- Elykia IA branchée (`/ai-chat`, API `api/v1/ai`), catalogue de schéma et index du guide. Fournisseur cloud optionnel.
+- Elykia IA branchée (`/ai-chat`, API `api/v1/ai`), catalogue de schéma et index du guide (362 chunks). Fournisseur cloud optionnel.
 - CI images, CD test/prod Contabo, E2E web après le test, APK mobile et espace client, gitleaks.
 - Guide utilisateur par profil, servi dans l’admin (`frontend/src/user-guide/`) et indexé pour l’IA.
 

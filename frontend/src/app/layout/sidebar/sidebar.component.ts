@@ -380,7 +380,8 @@ export class SidebarComponent implements OnInit {
   }
 
   isStorekeeper(): boolean {
-    return this.userService.hasProfile(UserProfile.STOREKEEPER);
+    return this.userService.hasProfile(UserProfile.STOREKEEPER)
+      || this.userService.hasProfile(UserProfile.STOREKEEPER_MANAGER);
   }
 
   isRecoveryManager(): boolean {
@@ -421,7 +422,7 @@ export class SidebarComponent implements OnInit {
     if (this.userService.hasProfile(UserProfile.PROMOTER)) {
       return '/user-guide/commercial/index.html';
     }
-    if (this.userService.hasProfile(UserProfile.STOREKEEPER)) {
+    if (this.userService.hasProfile(UserProfile.STOREKEEPER) || this.userService.hasProfile(UserProfile.STOREKEEPER_MANAGER)) {
       return '/user-guide/storekeeper/index.html';
     }
     return '/user-guide/index.html';

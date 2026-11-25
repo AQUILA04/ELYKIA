@@ -57,3 +57,25 @@ describe('MigrationService v32', () => {
         expect(executes.some(sql => sql.includes("UPDATE articles SET state = 'ENABLED'"))).toBe(true);
     });
 });
+
+describe('MigrationService v41', () => {
+    it('adds warehouse stock columns on articles and agency columns on users', async () => {
+        const executes: string[] = [];
+        const db = {
+            query: async () => ({ values: [] }),
+            execute: async (sql: string) => {
+                executes.push(sql);
+            }
+        } as any;
+
+        const service = new MigrationService({ log: () => undefined } as unknown as LoggerService);
+        await service.runMigrations(db, 40, 41);
+
+        expect(executes.some(sql => sql.includes('ALTER TABLE articles ADD COLUMN warehouseOnHandQuantity INTEGER DEFAULT 0'))).toBe(true);
+        expect(executes.some(sql => sql.includes('ALTER TABLE articles ADD COLUMN warehouseReservedQuantity INTEGER DEFAULT 0'))).toBe(true);
+        expect(executes.some(sql => sql.includes('ALTER TABLE articles ADD COLUMN warehouseAvailableQuantity INTEGER DEFAULT 0'))).toBe(true);
+        expect(executes.some(sql => sql.includes('ALTER TABLE users ADD COLUMN agencyId INTEGER'))).toBe(true);
+        expect(executes.some(sql => sql.includes('ALTER TABLE users ADD COLUMN agencyName TEXT'))).toBe(true);
+    });
+});
+

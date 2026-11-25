@@ -1,0 +1,54 @@
+.warehouse-lot-trace-page {
+  --navy: #003366;
+  --navy-dark: #002244;
+  --navy-pale: #e8eef6;
+  --navy-xpale: #f0f4f9;
+  --bg-page: #f2f4f8;
+  --bg-white: #ffffff;
+  --border: #dde3ec;
+  --text-muted: #6b7a99;
+  --text-light: #9aacc4;
+  --green: #1d8a3c;
+  --orange: #c75000;
+  --kpi-cyan: #0095c8;
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  padding: 20px;
+
+  .page-title {
+    margin: 0 !important;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--navy);
+  }
+
+  .trace-tree-box {
+    background: var(--navy-xpale);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 18px;
+    margin: 6px 0;
+
+    h4 {
+      margin: 0 0 10px 0;
+      color: var(--navy);
+      font-size: 14px;
+    }
+
+    .trace-subsection {
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .liq-pill {
+      display: inline-block;
+      background: var(--bg-white);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 8px;
+      margin-left: 6px;
+      font-size: 12px;
+    }
+  }
+}

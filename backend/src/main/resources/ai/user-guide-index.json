@@ -2307,7 +2307,7 @@
     "roles": [
       "manager"
     ],
-    "content": "Guide Gestionnaire\nVotre espace de pilotage\n\nLe menu peut notamment donner accès au Dashboard , aux Clients , aux Commerciaux , aux Articles , au Stock Commercial (sélecteur Crédit / Tontine ), aux Ventes , aux Tontines , aux Dépenses , à la Configuration , au Rapport Journalier et aux Inventaires . Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.\n\n Priorité Où intervenir Finalité \n --- --- --- \n Démarrer et contrôler l’activité Caisse, Clients, Ventes Sécuriser les opérations du jour et les portefeuilles. \n Garantir la disponibilité des articles Articles, Inventaires, Stock Commercial Suivre les réceptions, sorties, retours et écarts. \n Suivre et régler les dettes Dettes, Stock mensuel, Rapport journalier, Inventaires Constituer les dettes marchandise / caisse / inventaire et enregistrer les règlements. \n Contrôler l’argent et la performance Rapport Journalier, Dépenses Lire les indicateurs, les versements et les remises. \n Suivre l’espace client Inscriptions clients Valider les inscriptions de l’espace client. \n Paramétrer l’agence Configuration Maintenir les référentiels et les paramètres."
+    "content": "Guide Gestionnaire\nVotre espace de pilotage\n\nLe menu peut notamment donner accès au Dashboard , aux Clients , aux Commerciaux , aux Articles , au Stock Commercial (sélecteur Crédit / Tontine ), aux Ventes , aux Tontines , aux Dépenses , à la Configuration , au Rapport Journalier et aux Inventaires . Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.\n\n Priorité Où intervenir Finalité \n --- --- --- \n Démarrer et contrôler l’activité Caisse, Clients, Ventes Sécuriser les opérations du jour et les portefeuilles. \n Garantir la disponibilité des articles Articles, Inventaires, Stock Commercial, Traçabilité des Lots, Transferts Inter-Agences Suivre par agence le stock physique ( En stock ), les engagements ( Réservé ) et le disponible ( Disponible ), éditer le Bon de Commande Fournisseur (PDF) , tracer la liquidation de chaque lot et piloter les transferts inter-agences. \n Suivre et régler les dettes Dettes, Stock mensuel, Rapport journalier, Inventaires Constituer les dettes marchandise / caisse / inventaire et enregistrer les règlements. \n Contrôler l’argent et la performance Rapport Journalier, Dépenses Lire les indicateurs, les versements et les remises. \n Suivre l’espace client Inscriptions clients Valider les inscriptions de l’espace client. \n Paramétrer l’agence Configuration Maintenir les référentiels et les paramètres."
   },
   {
     "id": "manager__r_gles_de_travail",
@@ -2316,7 +2316,7 @@
     "roles": [
       "manager"
     ],
-    "content": "Guide Gestionnaire\nRègles de travail\n\nLa gestion d’une opération doit toujours suivre son statut. Une demande de sortie créée n’est pas encore livrable ; une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.\n\nConsultez les pages suivantes selon la tâche à accomplir :\nTableaux de bord pour lire les KPI sans confondre les périodes.\nOpérations quotidiennes pour les caisses, clients, comptes et versements.\nCommerciaux pour savoir qui utilise chaque compte commercial, et sur quelle période.\nInscriptions ( Services en ligne ) pour valider les demandes de l’espace client.\nStocks, ventes et commandes pour les flux de marchandises et de crédits.\nFinances et tontines pour les dépenses, remises et contrôles tontine.\nRapports et configuration pour l’analyse et les référentiels."
+    "content": "Guide Gestionnaire\nRègles de travail\n\nLa gestion d’une opération doit toujours suivre son statut. Dès qu’une demande de sortie est Validée , sa quantité est réservée au magasin de l’agence (et un éventuel manquant est automatiquement alloué en FIFO à la prochaine réception) ; en cas de livraison partielle, une demande reliquat enfant est créée automatiquement au statut Validée . Une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.\n\nConsultez les pages suivantes selon la tâche à accomplir :\nTableaux de bord pour lire les KPI sans confondre les périodes.\nOpérations quotidiennes pour les caisses, clients, comptes et versements.\nCommerciaux pour savoir qui utilise chaque compte commercial, et sur quelle période.\nInscriptions ( Services en ligne ) pour valider les demandes de l’espace client.\nStocks, ventes et commandes pour les flux de marchandises et de crédits.\nFinances et tontines pour les dépenses, remises et contrôles tontine.\nRapports et configuration pour l’analyse et les référentiels."
   },
   {
     "id": "manager_operations",
@@ -3325,7 +3325,27 @@
       "storekeeper",
       "manager"
     ],
-    "content": "Gestion des articles et seuils de stock (Guide Magasinier)\nSeuils logistiques et alertes de stock\n\nPour éviter toute rupture de distribution sur le terrain, chaque article dispose de paramètres de réapprovisionnement surveillés par le système :\n\n Paramètre Logistique Rôle dans l'Application Comportement en cas de franchissement \n --- --- --- \n Point de commande Seuil critique de sécurité physique (quantité minimale à conserver en réserve). Dès que le stock réel devient inférieur ou égal à cette valeur, l'article bascule dans la table « Rupture imminente » sur le Dashboard d'accueil avec une pastille orange. \n Niveau de stock optimal Quantité cible recommandée à détenir en réserve pour couvrir l'activité habituelle. Sert de référence pour calculer le volume des commandes à passer auprès des fournisseurs. \n Stock physique (0) Quantité nulle en magasin. L'article bascule dans la table « Rupture de stock » avec une pastille rouge d'alerte prioritaire. \n\nSur l'accueil, dans Alertes stock magasin , chaque ligne affiche le nom commercial suivi du nom de l'article.\nOuvrez Accueil .\nÀ droite du titre Rupture de stock , cliquez sur l'icône de téléchargement : le fichier reprend le nom commercial, le nom, le type et la quantité de tous les articles indisponibles, y compris ceux des autres pages.\nÀ droite du titre Rupture imminente , cliquez sur l'icône de téléchargement : le fichier reprend les mêmes informations pour tous les articles sous le seuil d'alerte.\n\n---"
+    "content": "Gestion des articles et seuils de stock (Guide Magasinier)\nSeuils logistiques et alertes de stock\n\nPour éviter toute rupture de distribution sur le terrain, chaque article dispose de paramètres de réapprovisionnement surveillés par le système :\n\n Paramètre Logistique Rôle dans l'Application Comportement en cas de franchissement \n --- --- --- \n Point de commande Seuil critique de sécurité physique (quantité minimale à conserver en réserve). Dès que le stock réel devient inférieur ou égal à cette valeur, l'article bascule dans la table « Rupture imminente » sur le Dashboard d'accueil avec une pastille orange. \n Niveau de stock optimal Quantité cible recommandée à détenir en réserve pour couvrir l'activité habituelle. Sert de référence pour calculer le volume des commandes à passer auprès des fournisseurs. \n Stock physique (0) Quantité nulle en magasin. L'article bascule dans la table « Rupture de stock » avec une pastille rouge d'alerte prioritaire. \n\nSur l'accueil, dans Alertes stock magasin , chaque ligne affiche le nom commercial suivi du nom de l'article.\nOuvrez Accueil .\nÀ droite du titre Rupture de stock , cliquez sur l'icône de téléchargement : le fichier reprend le nom commercial, le nom, le type et la quantité de tous les articles indisponibles, y compris ceux des autres pages.\nÀ droite du titre Rupture imminente , cliquez sur l'icône de téléchargement : le fichier reprend les mêmes informations pour tous les articles sous le seuil d'alerte."
+  },
+  {
+    "id": "storekeeper_articles__2_seuils_logistiques_et_alertes_de_stock_a_lectu",
+    "title": "Gestion des articles et seuils de stock (Guide Magasinier) — 2. Seuils logistiques et alertes de stock — A. Lecture des 3 colonnes Stock Magasin (En stock / Réservé / Disponible)",
+    "path": "/user-guide/storekeeper/articles.html",
+    "roles": [
+      "storekeeper",
+      "manager"
+    ],
+    "content": "Gestion des articles et seuils de stock (Guide Magasinier)\nSeuils logistiques et alertes de stock\nA. Lecture des 3 colonnes Stock Magasin (En stock / Réservé / Disponible)\n\nDans la liste Articles , le stock magasin de votre agence (ou de l'agence filtrée) est ventilé en trois colonnes :\n En stock : Quantité physique réellement présente dans le magasin de l'agence.\n Réservé : Quantité engagée par des demandes de sortie validées non encore livrées ou des ventes au comptant en attente de remise au client. Si les réservations dépassent le stock physique, un badge rouge « Manquant : X » signale le déficit à réapprovisionner.\n Disponible : Quantité librement disponible pour de nouvelles demandes ($\\max(0, \\text{En stock} - \\text{Réservé})$). Sur l'application Mobile, ce compteur s'affiche dans l'onglet Catalogue et dans le sélecteur de demande sous le libellé Dispo magasin : X unités."
+  },
+  {
+    "id": "storekeeper_articles__2_seuils_logistiques_et_alertes_de_stock_b_bon_d",
+    "title": "Gestion des articles et seuils de stock (Guide Magasinier) — 2. Seuils logistiques et alertes de stock — B. Bon de Commande Fournisseur (PDF)",
+    "path": "/user-guide/storekeeper/articles.html",
+    "roles": [
+      "storekeeper",
+      "manager"
+    ],
+    "content": "Gestion des articles et seuils de stock (Guide Magasinier)\nSeuils logistiques et alertes de stock\nB. Bon de Commande Fournisseur (PDF)\n\nDepuis la barre d'outils de la liste Articles , cliquez sur le bouton « Bon de Commande Fournisseur » pour générer instantanément la fiche PDF officielle (thème Navy Elykia) regroupant tous les articles de l'agence (ou de toutes les agences) qui présentent un déficit de réservation ou qui ont franchi leur point de commande, avec calcul automatique de la quantité recommandée à commander et du budget d'achat estimé.\n\n---"
   },
   {
     "id": "storekeeper_articles__3_r_gle_de_suppression_et_archivage",
@@ -3349,13 +3369,13 @@
   },
   {
     "id": "storekeeper",
-    "title": "Guide Magasinier",
+    "title": "Guide Magasinier & Responsable Magasinier",
     "path": "/user-guide/storekeeper/index.html",
     "roles": [
       "storekeeper",
       "manager"
     ],
-    "content": "Guide Magasinier\n\nLe magasinier sécurise la circulation physique de la marchandise : catalogue, réceptions, inventaires, sorties, retours et stock tontine. Il ne valide pas automatiquement chaque étape ; les boutons disponibles dans les listes indiquent les actions autorisées à son profil.\n\nVos priorités\n\n Priorité Objectif \n --- --- \n Préparer les articles Vérifier la référence, le type, le stock et les informations de la fiche article. \n Réceptionner correctement Créer une entrée puis attendre sa validation lorsqu’elle est requise. \n Servir les demandes validées Livrer les demandes au statut Validée, en Crédit ou en Tontine. \n Traiter les retours Réceptionner les retours autorisés et conserver leur traçabilité. \n Contrôler le physique Participer à l’inventaire, à la saisie et au traitement des écarts selon vos droits. \n Suivre vos dettes Consulter les montants d’inventaire enregistrés à votre nom. \n\nConsultez les pages dédiées pour les articles, les inventaires et entrées, les dettes et le stock."
+    "content": "Guide Magasinier & Responsable Magasinier\n\nLe magasinier sécurise la circulation physique de la marchandise au sein de son agence : catalogue, réceptions, réservations, inventaires, sorties, retours et stock tontine. Le profil Responsable Magasinier (STOREKEEPER_MANAGER) dispose en plus d'une visibilité multi-agences globale, de la création/expédition des transferts inter-agences et de l'édition du Bon de Commande Fournisseur consolidé.\n\nVos priorités\n\n Priorité Objectif \n --- --- \n Préparer les articles & quantités Contrôler les 3 compteurs temps réel par agence : En stock (physique), Réservé (demandes validées & ventes comptant en attente de retrait) et Disponible (libre). \n Réceptionner correctement Créer une entrée de stock par agence ; lors de la validation, les réservations en attente de réapprovisionnement sont allouées automatiquement en FIFO. \n Servir les demandes validées Livrer les demandes au statut Validée (totale ou partielle avec création automatique d'une demande reliquat). \n Piloter les lots & transferts Suivre la liquidation de chaque lot (Traçabilité des Lots) et exécuter les transferts inter-agences en 2 étapes (Expédition puis Réception). \n Traiter les retours Réceptionner les retours autorisés et réintégrer automatiquement les lots FIFO d'origine au magasin de l'agence. \n Contrôler le physique Participer à l’inventaire, à la saisie et au traitement des écarts selon vos droits. \n Suivre vos dettes Consulter les montants d’inventaire enregistrés à votre nom. \n\nConsultez les pages dédiées pour les articles, les inventaires et entrées, les dettes et le stock."
   },
   {
     "id": "storekeeper_inventory",
@@ -3408,7 +3428,7 @@
     "content": "Gestion physique du stock (Sorties & Retours)\nServir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie)\n\nChoisissez Crédit sur le sélecteur avant de préparer une sortie de vente.\n\nToutes les demandes de sortie validées par la gestion arrivent dans le menu Stock Commercial > Demandes Sortie (accessible si vous disposez des habilitations requises)."
   },
   {
-    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_352",
+    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_354",
     "title": "Gestion physique du stock (Sorties & Retours) — 1. Servir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie) — A. Contrôle avant remise physique",
     "path": "/user-guide/storekeeper/stock_commercial.html",
     "roles": [
@@ -3418,7 +3438,7 @@
     "content": "Gestion physique du stock (Sorties & Retours)\nServir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie)\nA. Contrôle avant remise physique\nFiltrez la liste des demandes par statut ou par commercial pour localiser la commande à préparer.\nCliquez sur « Voir » pour ouvrir le détail de la demande :\nLa référence s'affiche en haut de la fenêtre.\nVérifiez la liste exacte des articles et les quantités commandées.\nAssurez-vous que le statut est bien Validée .\nSi la sortie ne doit pas être remise, cliquez sur « Annuler » en bas de la fenêtre, puis confirmez. La demande passe au statut Annulée . La marchandise reste au magasin.\nCliquez sur « Télécharger » pour enregistrer la fiche de sortie de cette demande.\nPrélevez les articles en rayon et regroupez-les dans la zone de délivrance."
   },
   {
-    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_353",
+    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_355",
     "title": "Gestion physique du stock (Sorties & Retours) — 1. Servir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie) — B. Remise physique et validation du départ (`Livrer`)",
     "path": "/user-guide/storekeeper/stock_commercial.html",
     "roles": [
@@ -3428,7 +3448,7 @@
     "content": "Gestion physique du stock (Sorties & Retours)\nServir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie)\nB. Remise physique et validation du départ (Livrer)\nSur la liste, une demande Validée propose Livrer et Annuler . Choisissez Annuler puis confirmez si la sortie ne part pas. La demande passe au statut Annulée et le stock du magasin ne change pas.\nProcédez au comptage contradictoire avec le commercial présent au comptoir.\nCliquez sur le bouton bleu « Livrer » .\n Conséquences automatiques :\nLe statut de la demande passe définitivement à Livrée .\nLe stock physique du magasin est automatiquement débité.\nLe stock commercial du destinataire est automatiquement crédité.\nLa date et l'heure précises de livraison sont horodatées.\nCliquez sur l'icône de téléchargement pour imprimer la Fiche de sortie PDF signée par les deux parties."
   },
   {
-    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_354",
+    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_356",
     "title": "Gestion physique du stock (Sorties & Retours) — 1. Servir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie) — C. Vente au comptant",
     "path": "/user-guide/storekeeper/stock_commercial.html",
     "roles": [
@@ -3455,6 +3475,36 @@
       "storekeeper",
       "manager"
     ],
-    "content": "Gestion physique du stock (Sorties & Retours)\nSorties et retours tontine (sélecteur Tontine)\n\nÀ l'approche des fêtes de fin d'année et de la clôture des cycles de cotisation, les commerciaux reçoivent des dotations d'articles destinés aux membres tontine. Ces mouvements se traitent dans le même menu, avec le sélecteur Tontine .\n\nA. Délivrance\nOuvrez Stock Commercial > Demandes Sortie .\nCliquez sur Tontine .\nRepérez la demande au statut Validée .\nCliquez sur « Voir » pour examiner les articles et les quantités. La référence s'affiche en haut. « Télécharger » enregistre la fiche de cette demande.\nRassemblez les colis et vérifiez les références avec le commercial au guichet.\nSi la dotation ne doit pas partir, cliquez sur « Annuler » puis confirmez. La demande passe au statut Annulée et le stock tontine ne change pas.\nCliquez sur « Livrer » .\nLe stock dépôt tontine est débité.\nLe commercial est crédité de sa dotation tontine.\nLa demande passe au statut Livrée .\n\nLa remise au membre se fait ensuite dans le menu Tontines , sur la fiche du membre.\nB. Retour\nOuvrez Stock Commercial > Retours et cliquez sur Tontine .\nExaminez la ligne au statut En attente .\nAprès inspection des emballages, cliquez sur « Réceptionner » pour déduire les articles de la dotation tontine du commercial et réintégrer automatiquement les quantités et le lot FIFO dans le stock du magasin central.\n\nLe suivi des quantités annuelles se fait dans Stock Commercial > Stock , sélecteur Tontine ."
+    "content": "Gestion physique du stock (Sorties & Retours)\nSorties et retours tontine (sélecteur Tontine)\n\nÀ l'approche des fêtes de fin d'année et de la clôture des cycles de cotisation, les commerciaux reçoivent des dotations d'articles destinés aux membres tontine. Ces mouvements se traitent dans le même menu, avec le sélecteur Tontine .\n\nA. Délivrance\nOuvrez Stock Commercial > Demandes Sortie .\nCliquez sur Tontine .\nRepérez la demande au statut Validée .\nCliquez sur « Voir » pour examiner les articles et les quantités. La référence s'affiche en haut. « Télécharger » enregistre la fiche de cette demande.\nRassemblez les colis et vérifiez les références avec le commercial au guichet.\nSi la dotation ne doit pas partir, cliquez sur « Annuler » puis confirmez. La demande passe au statut Annulée et le stock tontine ne change pas.\nCliquez sur « Livrer » .\nLe stock dépôt tontine est débité.\nLe commercial est crédité de sa dotation tontine.\nLa demande passe au statut Livrée .\n\nLa remise au membre se fait ensuite dans le menu Tontines , sur la fiche du membre.\nB. Retour\nOuvrez Stock Commercial > Retours et cliquez sur Tontine .\nExaminez la ligne au statut En attente .\nAprès inspection des emballages, cliquez sur « Réceptionner » pour déduire les articles de la dotation tontine du commercial et réintégrer automatiquement les quantités et le lot FIFO dans le stock du magasin central.\n\nLe suivi des quantités annuelles se fait dans Stock Commercial > Stock , sélecteur Tontine .\n\n---"
+  },
+  {
+    "id": "storekeeper_stock_commercial__4_r_servation_la_validation_livraison_partielle_",
+    "title": "Gestion physique du stock (Sorties & Retours) — 4. Réservation à la validation, livraison partielle et reliquat automatique",
+    "path": "/user-guide/storekeeper/stock_commercial.html",
+    "roles": [
+      "storekeeper",
+      "manager"
+    ],
+    "content": "Gestion physique du stock (Sorties & Retours)\nRéservation à la validation, livraison partielle et reliquat automatique\n Réservation dès la validation : Dès qu'une demande de sortie est Validée , les quantités sont réservées dans le magasin de l'agence (Réservé augmente, Disponible diminue). Si le stock physique est insuffisant au moment de la validation, l'écart est enregistré en réservation prioritaire et sera automatiquement alloué en FIFO dès la prochaine réception fournisseur ou le prochain transfert entrant.\n Livraison partielle et demande reliquat : Lors de la remise physique au comptoir, si une partie seulement des quantités validées est disponible en magasin, la demande initiale passe au statut Partiellement livrée pour les quantités remises, et le système crée automatiquement une demande reliquat enfant déjà au statut Validée (liée à la demande parente) qui conserve la réservation active sur le reste à livrer.\n\n---"
+  },
+  {
+    "id": "storekeeper_stock_commercial__5_tra_abilit_liquidation_des_lots_menu_stock_com",
+    "title": "Gestion physique du stock (Sorties & Retours) — 5. Traçabilité & Liquidation des Lots (Menu Stock Commercial > Traçabilité des Lots)",
+    "path": "/user-guide/storekeeper/stock_commercial.html",
+    "roles": [
+      "storekeeper",
+      "manager"
+    ],
+    "content": "Gestion physique du stock (Sorties & Retours)\nTraçabilité & Liquidation des Lots (Menu Stock Commercial > Traçabilité des Lots)\n\nL'écran Traçabilité des Lots (/stock/lot-traceability) permet de suivre le cycle de vie complet de chaque lot d'articles entré en magasin :\n Restant en magasin : unités du lot toujours présentes dans les rayons de l'agence.\n Transféré inter-agences : unités expédiées vers une autre agence (conservant la filiation avec le lot parent).\n Doté aux commerciaux : unités remises aux commerciaux, avec le détail nominatif par commercial (Pris, Vendu / Livré client, Retourné, Restant en main).\n Statut de liquidation : indique si le lot est En cours d'écoulement ou 100 % Liquidé (plus aucune unité ni en magasin ni entre les mains des commerciaux).\n\n---"
+  },
+  {
+    "id": "storekeeper_stock_commercial__6_transferts_inter_agences_menu_stock_commercial",
+    "title": "Gestion physique du stock (Sorties & Retours) — 6. Transferts Inter-Agences (Menu Stock Commercial > Transferts Inter-Agences)",
+    "path": "/user-guide/storekeeper/stock_commercial.html",
+    "roles": [
+      "storekeeper",
+      "manager"
+    ],
+    "content": "Gestion physique du stock (Sorties & Retours)\nTransferts Inter-Agences (Menu Stock Commercial > Transferts Inter-Agences)\n\nLes utilisateurs habilités ( Responsable Magasinier , Gestionnaire , Administrateur ) peuvent équilibrer les stocks entre agences via un workflow sécurisé en 2 étapes (/stock/transfers) :\n Création & Expédition (Agence source) : Créez le bon de transfert en sélectionnant l'agence source, l'agence destination et les articles/quantités, puis cliquez sur « Expédier » . Le stock physique de l'agence source est débité en FIFO et les lots transférés passent au statut En transit .\n Réception (Agence destination) : À l'arrivée physique de la marchandise, le magasinier de l'agence destinataire clique sur « Réceptionner » . Les lots entrants sont créés dans l'agence de destination avec leur coût d'achat FIFO d'origine (et liés au lot parent), et toute réservation en attente dans l'agence de destination est immédiatement servie."
   }
 ]

@@ -9,6 +9,8 @@ export interface User {
   refreshToken: string;
   passwordHash?: string; // For local storage
   mustChangePassword?: boolean;
+  agencyId?: number;
+  agencyName?: string;
 }
 
 export interface AuthResponse {
@@ -22,6 +24,8 @@ export interface AuthResponse {
   refreshToken: string;
   deviceRestrictionActive?: boolean;
   mustChangePassword?: boolean;
+  agencyId?: number;
+  agencyName?: string;
 }
 
 export const RECOVERY_MANAGER_PROFIL = 'RECOVERY_MANAGER';

@@ -7,6 +7,6 @@
 @org.springframework.modulith.ApplicationModule(
         displayName = "Commercial Stock (Continuous Consignment)",
         type = org.springframework.modulith.ApplicationModule.Type.CLOSED,
-        allowedDependencies = {"entities", "securities", "shared"}
+        allowedDependencies = {"entities", "securities", "shared", "inventory", "organization"}
 )
 package com.optimize.elykia.commercialstock;

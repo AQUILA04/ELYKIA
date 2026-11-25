@@ -77,4 +77,11 @@ public class ArticlesDto {
 
     /** URL signée affichée : photo de l'article, sinon celle de son type. */
     private String displayPhotoUrl;
+
+    /** Champs multi-agences du stock magasin (position de l'agence courante). */
+    private Long agencyId;
+    private Integer warehouseOnHandQuantity;
+    private Integer warehouseReservedQuantity;
+    private Integer warehouseAvailableQuantity;
+    private Integer warehouseShortageQuantity;
 }

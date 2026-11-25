@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${pdfDocumentTitle}">Bon de Commande Fournisseur</title>
+    <th:block th:replace="~{pdf/fragments :: styles}"></th:block>
+</head>
+<body>
+    <div th:replace="~{pdf/fragments :: header}"></div>
+
+    <table class="pdf-meta">
+        <tr>
+            <td>
+                <span class="pdf-meta-label">Agence</span>
+                <span class="pdf-meta-value" th:text="${doc.agencyName}">Agence par défaut</span>
+            </td>
+            <td>
+                <span class="pdf-meta-label">Périmètre Demandes</span>
+                <span class="pdf-meta-value" th:text="${doc.activityFilter}">TOUTES (CRÉDIT + TONTINE)</span>
+            </td>
+            <td>
+                <span class="pdf-meta-label">Date de génération</span>
+                <span class="pdf-meta-value" th:text="${doc.generationDate}">25/11/2026 10:00</span>
+            </td>
+        </tr>
+    </table>
+
+    <table class="pdf-kpi">
+        <tr>
+            <td>
+                <div class="kpi-label">Articles en rupture</div>
+                <div class="kpi-value" th:text="${doc.totalArticlesToOrder}">0</div>
+            </td>
+            <td class="kpi-cyan">
+                <div class="kpi-label">Total demandé (Commerciaux)</div>
+                <div class="kpi-value" th:text="${doc.totalUnitsRequested}">0</div>
+            </td>
+            <td class="kpi-orange">
+                <div class="kpi-label">Manquant net à commander</div>
+                <div class="kpi-value" th:text="${doc.totalUnitsToOrder}">0</div>
+            </td>
+            <td class="kpi-green">
+                <div class="kpi-label">Coût d'achat estimé (FCFA)</div>
+                <div class="kpi-value" th:text="${#numbers.formatDecimal(doc.totalEstimatedCost, 1, 'WHITESPACE', 0, 'COMMA')}">0</div>
+            </td>
+        </tr>
+    </table>
+
+    <div th:if="${#lists.isEmpty(doc.lines)}" class="pdf-empty">
+        Aucun besoin de réapprovisionnement fournisseur détecté : le stock magasin couvre l'intégralité des demandes commerciales en cours.
+    </div>
+
+    <div th:if="${!#lists.isEmpty(doc.lines)}">
+        <div class="pdf-section-title"
+             th:text="${'Détail des Articles à Commander au Fournisseur  —  ' + #lists.size(doc.lines) + ' ligne(s)'}">
+            Détail des Articles
+        </div>
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th class="num">#</th>
+                <th>Code</th>
+                <th>Article</th>
+                <th class="num">Dem. Crédit</th>
+                <th class="num">Dem. Tontine</th>
+                <th class="num">Total Dem.</th>
+                <th class="num">En Stock</th>
+                <th class="num">Réservé / Dispo</th>
+                <th class="num">À Commander</th>
+                <th class="num">P.U. Achat</th>
+                <th class="num">Montant Est.</th>
+                <th>Références &amp; Commerciaux</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="line : ${doc.lines}">
+                <td class="num" th:text="${line.index}">1</td>
+                <td th:text="${line.articleCode != null ? line.articleCode : '—'}">ART-01</td>
+                <td th:text="${line.articleName}">Article</td>
+                <td class="num" th:text="${line.creditRequestedQty}">0</td>
+                <td class="num" th:text="${line.tontineRequestedQty}">0</td>
+                <td class="num" th:text="${line.totalRequestedQty}">0</td>
+                <td class="num" th:text="${line.warehouseOnHandQty}">0</td>
+                <td class="num" th:text="${line.alreadyReservedForRequestsQty + ' / ' + line.warehouseAvailableQty}">0 / 0</td>
+                <td class="num" style="font-weight: bold;" th:text="${line.quantityToOrder}">0</td>
+                <td class="num" th:text="${#numbers.formatDecimal(line.unitPurchasePrice, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
+                <td class="num" style="font-weight: bold;" th:text="${#numbers.formatDecimal(line.estimatedTotalCost, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
+                <td th:text="${#strings.listJoin(line.requestReferences, ', ') + ' (' + #strings.listJoin(line.requestingCommercials, ', ') + ')'}">REQ-1 (COM001)</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

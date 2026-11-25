@@ -12,6 +12,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.domain.CommercialStockRequest} (activité {@code CREDIT}).
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Entity
 @Getter
 @Setter

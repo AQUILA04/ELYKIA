@@ -56,6 +56,10 @@ import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.application.CommercialStockRequestService}.
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Service
 @Transactional
 public class StockTontineRequestService extends GenericService<StockTontineRequest, Long> {
@@ -72,6 +76,46 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     private InventoryWarehouseGuard inventoryWarehouseGuard;
     private StockTontineRequestDeliveryLinkRepository deliveryLinkRepository;
     private com.optimize.elykia.tontine.application.TontineStockLayerService tontineStockLayerService;
+    private com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade commercialStockRequestFacade;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setCommercialStockRequestFacade(
+            com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade commercialStockRequestFacade) {
+        this.commercialStockRequestFacade = commercialStockRequestFacade;
+    }
+
+    private void syncUnifiedRequest(StockTontineRequest request) {
+        if (commercialStockRequestFacade == null || request == null || request.getId() == null) {
+            return;
+        }
+        try {
+            List<com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade.RequestLineInput> lines =
+                    request.getItems() == null ? List.of()
+                            : request.getItems().stream()
+                            .filter(i -> i.getArticle() != null && i.getArticle().getId() != null && i.getQuantity() != null && i.getQuantity() > 0)
+                            .map(i -> new com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade.RequestLineInput(
+                                    i.getArticle().getId(),
+                                    i.getQuantity(),
+                                    i.getUnitPrice(),
+                                    i.getPurchasePrice()))
+                            .toList();
+            com.optimize.elykia.commercialstock.api.CommercialStockRequestStatus unifiedStatus =
+                    com.optimize.elykia.commercialstock.api.CommercialStockRequestStatus.valueOf(request.getStatus().name());
+            commercialStockRequestFacade.syncLegacyRequestState(
+                    request.getId(),
+                    com.optimize.elykia.commercialstock.api.StockActivityType.TONTINE,
+                    request.getReference(),
+                    request.getAgencyId(),
+                    request.getCommercialUsername(),
+                    unifiedStatus,
+                    request.getRequestDate(),
+                    request.getValidationDate(),
+                    request.getDeliveryDate(),
+                    request.getNote(),
+                    lines);
+        } catch (Exception ignored) {
+        }
+    }
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     public void setTontineStockLayerService(
@@ -167,7 +211,9 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
             request.setTotalPurchasePrice(totalPurchase);
         }
 
-        return super.create(request);
+        StockTontineRequest saved = super.create(request);
+        syncUnifiedRequest(saved != null ? saved : request);
+        return saved;
     }
 
     public StockTontineRequest validate(Long id) {
@@ -179,6 +225,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         request.setValidationDate(LocalDate.now());
         StockTontineRequest saved = update(request);
         StockTontineRequest result = saved != null ? saved : request;
+        syncUnifiedRequest(result);
         if (eventPublisher != null && result.getId() != null) {
             eventPublisher.publishEvent(new TontineStockRequestValidatedEvent(this, result.getId()));
         }
@@ -326,6 +373,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         request.setAccountingDate(LocalDate.now());
 
         StockTontineRequest savedRequest = update(request);
+        syncUnifiedRequest(savedRequest != null ? savedRequest : request);
 
         // Publication de l'événement pour le rapport journalier
         eventPublisher.publishEvent(new StockTontineRequestDeliveredEvent(
@@ -373,6 +421,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
             pendingRequest.setTotalPurchasePrice(pendTotalPurchase);
 
             StockTontineRequest savedPending = update(pendingRequest);
+            syncUnifiedRequest(savedPending != null ? savedPending : pendingRequest);
             response.setPendingRequestId(savedPending.getId());
             response.setPendingRequestReference(savedPending.getReference());
         }
@@ -404,7 +453,8 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         }
 
         request.setStatus(StockRequestStatus.CANCELLED);
-        update(request);
+        StockTontineRequest saved = update(request);
+        syncUnifiedRequest(saved != null ? saved : request);
     }
 
     private static boolean hasPermission(User user, String permission) {
@@ -431,7 +481,8 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         }
 
         request.setStatus(StockRequestStatus.REFUSED);
-        update(request);
+        StockTontineRequest saved = update(request);
+        syncUnifiedRequest(saved != null ? saved : request);
     }
 
     @Override

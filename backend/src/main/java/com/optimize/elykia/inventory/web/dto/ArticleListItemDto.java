@@ -36,17 +36,66 @@ public record ArticleListItemDto(
         Double halfWholesalePurchasePrice,
         Double wholesaleSalePrice,
         Double halfWholesaleSalePrice,
-        List<ArticleSalePackDto> salePacks) {
+        List<ArticleSalePackDto> salePacks,
+        Long agencyId,
+        Integer warehouseOnHandQuantity,
+        Integer warehouseReservedQuantity,
+        Integer warehouseAvailableQuantity,
+        Integer warehouseShortageQuantity) {
+
+    public ArticleListItemDto(
+            Long id,
+            String code,
+            String name,
+            String marque,
+            String model,
+            String type,
+            String commercialName,
+            Double purchasePrice,
+            Double sellingPrice,
+            Double creditSalePrice,
+            Integer stockQuantity,
+            State status,
+            State state,
+            String photoUrl,
+            String displayPhotoUrl,
+            ArticlePackagingType packagingType,
+            Integer unitsPerPackage,
+            Integer unitsPerHalfPackage,
+            Double wholesalePurchasePrice,
+            Double halfWholesalePurchasePrice,
+            Double wholesaleSalePrice,
+            Double halfWholesaleSalePrice,
+            List<ArticleSalePackDto> salePacks) {
+        this(id, code, name, marque, model, type, commercialName, purchasePrice, sellingPrice, creditSalePrice,
+                stockQuantity, status, state, photoUrl, displayPhotoUrl, packagingType, unitsPerPackage,
+                unitsPerHalfPackage, wholesalePurchasePrice, halfWholesalePurchasePrice, wholesaleSalePrice,
+                halfWholesaleSalePrice, salePacks, null, stockQuantity, 0, stockQuantity, 0);
+    }
 
     public static ArticleListItemDto fromEntity(Articles article) {
-        return fromEntity(article, null);
+        return fromEntity(article, null, null, null, null, null);
     }
 
     public static ArticleListItemDto fromEntity(Articles article, ArticlePhotoView photo) {
+        return fromEntity(article, photo, null, null, null, null);
+    }
+
+    public static ArticleListItemDto fromEntity(
+            Articles article,
+            ArticlePhotoView photo,
+            Long agencyId,
+            Integer onHandQty,
+            Integer reservedQty,
+            Integer shortageQty) {
         if (article == null) {
             return null;
         }
         State articleState = article.getState();
+        int effectiveOnHand = onHandQty != null ? onHandQty : (article.getStockQuantity() != null ? article.getStockQuantity() : 0);
+        int effectiveReserved = reservedQty != null ? reservedQty : (article.getReservedQuantity() != null ? article.getReservedQuantity() : 0);
+        int effectiveAvailable = Math.max(0, effectiveOnHand - effectiveReserved);
+        int effectiveShortage = shortageQty != null ? shortageQty : 0;
         return new ArticleListItemDto(
                 article.getId(),
                 article.getCode(),
@@ -58,7 +107,7 @@ public record ArticleListItemDto(
                 article.getPurchasePrice(),
                 article.getSellingPrice(),
                 article.getCreditSalePrice(),
-                article.getStockQuantity(),
+                effectiveOnHand,
                 articleState,
                 articleState,
                 photo != null ? photo.photoUrl() : null,
@@ -70,7 +119,12 @@ public record ArticleListItemDto(
                 article.getHalfWholesalePurchasePrice(),
                 article.getWholesaleSalePrice(),
                 article.getHalfWholesaleSalePrice(),
-                salePacksOf(article));
+                salePacksOf(article),
+                agencyId,
+                effectiveOnHand,
+                effectiveReserved,
+                effectiveAvailable,
+                effectiveShortage);
     }
 
     private static List<ArticleSalePackDto> salePacksOf(Articles article) {

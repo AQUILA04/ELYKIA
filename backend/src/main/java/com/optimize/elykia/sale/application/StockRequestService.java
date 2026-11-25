@@ -62,6 +62,10 @@ import com.optimize.elykia.shared.monitoring.BusinessMetricsPublisher;
 import com.optimize.elykia.sale.web.dto.StockRequestListDto;
 import com.optimize.elykia.sale.event.StockRequestValidatedEvent;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.application.CommercialStockRequestService}.
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Service
 @Transactional
 @Slf4j
@@ -83,6 +87,47 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private StockRequestOrderLinkService stockRequestOrderLinkService;
     private InventoryWarehouseGuard inventoryWarehouseGuard;
     private com.optimize.elykia.sale.application.CreditService creditService;
+    private com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade commercialStockRequestFacade;
+
+    @Autowired(required = false)
+    public void setCommercialStockRequestFacade(
+            com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade commercialStockRequestFacade) {
+        this.commercialStockRequestFacade = commercialStockRequestFacade;
+    }
+
+    private void syncUnifiedRequest(StockRequest request) {
+        if (commercialStockRequestFacade == null || request == null || request.getId() == null || request.getCredit() != null) {
+            return;
+        }
+        try {
+            List<com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade.RequestLineInput> lines =
+                    request.getItems() == null ? List.of()
+                            : request.getItems().stream()
+                            .filter(i -> i.getArticle() != null && i.getArticle().getId() != null && i.getQuantity() != null && i.getQuantity() > 0)
+                            .map(i -> new com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade.RequestLineInput(
+                                    i.getArticle().getId(),
+                                    i.getQuantity(),
+                                    i.getUnitPrice(),
+                                    i.getPurchasePrice()))
+                            .toList();
+            com.optimize.elykia.commercialstock.api.CommercialStockRequestStatus unifiedStatus =
+                    com.optimize.elykia.commercialstock.api.CommercialStockRequestStatus.valueOf(request.getStatus().name());
+            commercialStockRequestFacade.syncLegacyRequestState(
+                    request.getId(),
+                    com.optimize.elykia.commercialstock.api.StockActivityType.CREDIT,
+                    request.getReference(),
+                    request.getAgencyId(),
+                    request.getCommercialUsername(),
+                    unifiedStatus,
+                    request.getRequestDate(),
+                    request.getValidationDate(),
+                    request.getDeliveryDate(),
+                    request.getNote(),
+                    lines);
+        } catch (Exception e) {
+            log.warn("Unable to sync StockRequest {} to unified CommercialStockRequest: {}", request.getId(), e.getMessage());
+        }
+    }
 
     @Autowired
     public void setCreditService(
@@ -207,7 +252,9 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         request.setTotalCreditSalePrice(totalCreditSalePrice);
         request.setTotalPurchasePrice(totalPurchasePrice);
 
-        return repository.save(request);
+        StockRequest saved = repository.save(request);
+        syncUnifiedRequest(saved);
+        return saved;
     }
 
     public StockRequest createRequest(StockRequest request) {
@@ -343,7 +390,9 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         request.setTotalCreditSalePrice(totalCreditSalePrice);
         request.setTotalPurchasePrice(totalPurchasePrice);
 
-        return repository.save(request);
+        StockRequest saved = repository.save(request);
+        syncUnifiedRequest(saved);
+        return saved;
     }
 
     public StockRequest validateRequest(Long requestId) {
@@ -354,6 +403,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         request.setStatus(StockRequestStatus.VALIDATED);
         request.setValidationDate(LocalDate.now());
         StockRequest saved = repository.save(request);
+        syncUnifiedRequest(saved);
         if (eventPublisher != null) {
             eventPublisher.publishEvent(new StockRequestValidatedEvent(this, saved.getId()));
         }
@@ -509,6 +559,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
 
         request.setStatus(StockRequestStatus.DELIVERED);
         StockRequest savedRequest = repository.save(request);
+        syncUnifiedRequest(savedRequest);
 
         if (metricsPublisher != null) {
             metricsPublisher.stockRequestDelivered(request.getCollector(), !pendingRequestItems.isEmpty());
@@ -567,6 +618,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             pendingRequest.setTotalPurchasePrice(pendTotalPurchase);
 
             StockRequest savedPending = repository.save(pendingRequest);
+            syncUnifiedRequest(savedPending);
             if (stockRequestOrderLinkService != null) {
                 stockRequestOrderLinkService.copyLinksToRequest(savedRequest.getId(), savedPending);
             }
@@ -677,7 +729,8 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         }
 
         request.setStatus(StockRequestStatus.CANCELLED);
-        repository.save(request);
+        StockRequest saved = repository.save(request);
+        syncUnifiedRequest(saved);
     }
 
     private static boolean hasPermission(User user, String permission) {
@@ -704,7 +757,8 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         }
 
         request.setStatus(StockRequestStatus.REFUSED);
-        repository.save(request);
+        StockRequest saved = repository.save(request);
+        syncUnifiedRequest(saved);
     }
 
     /** Minuit GMT+4 — annulation automatique des demandes stock obsolètes (> 30 jours). */

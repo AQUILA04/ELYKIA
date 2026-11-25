@@ -38,6 +38,11 @@ export interface Article {
   sellingPrice: number;
   creditSalePrice?: number;
   stockQuantity?: number;
+  agencyId?: number;
+  warehouseOnHandQuantity?: number;
+  warehouseReservedQuantity?: number;
+  warehouseAvailableQuantity?: number;
+  warehouseShortageQuantity?: number;
   reorderPoint?: number;
   optimalStockLevel?: number;
   averageMonthlySales?: number;

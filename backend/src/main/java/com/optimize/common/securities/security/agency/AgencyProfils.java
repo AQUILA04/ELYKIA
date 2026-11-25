@@ -18,7 +18,8 @@ public final class AgencyProfils {
     public static final Set<String> GLOBAL = Set.of(
             "GESTIONNAIRE",
             "ADMIN",
-            "SUPER_ADMIN"
+            "SUPER_ADMIN",
+            "STOREKEEPER_MANAGER"
     );
 
     private AgencyProfils() {

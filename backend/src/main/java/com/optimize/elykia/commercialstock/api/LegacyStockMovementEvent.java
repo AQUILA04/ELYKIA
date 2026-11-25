@@ -19,7 +19,26 @@ public record LegacyStockMovementEvent(
         String referenceCode,
         Long tontineSessionId,
         LocalDate accountingDate,
-        String performedBy) {
+        String performedBy,
+        Long originWarehouseLotId) {
+
+    public LegacyStockMovementEvent(
+            Kind kind,
+            StockActivityType activityType,
+            String collector,
+            Long articleId,
+            int quantity,
+            Double unitPurchaseCost,
+            Double unitSalePrice,
+            CommercialStockReferenceType referenceType,
+            Long referenceId,
+            String referenceCode,
+            Long tontineSessionId,
+            LocalDate accountingDate,
+            String performedBy) {
+        this(kind, activityType, collector, articleId, quantity, unitPurchaseCost, unitSalePrice,
+                referenceType, referenceId, referenceCode, tontineSessionId, accountingDate, performedBy, null);
+    }
 
     public enum Kind {
         STOCK_IN,

@@ -21,6 +21,9 @@ public class    StockReception extends Auditable<String> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "agency_id")
+    private Long agencyId;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ReceptionStatus status = ReceptionStatus.PENDING;

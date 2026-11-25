@@ -48,6 +48,21 @@ public class FifoStockValuationService {
             ArticleStockLotSourceType sourceType,
             StockReceptionItem receptionItem,
             LocalDate entryDate) {
+        Long agencyId = receptionItem != null && receptionItem.getStockReception() != null
+                ? receptionItem.getStockReception().getAgencyId()
+                : com.optimize.common.securities.security.agency.AgencyContext.getCurrentAgencyId();
+        return registerEntryForAgency(agencyId, article, quantity, unitPurchasePrice, sourceType, receptionItem, null, entryDate);
+    }
+
+    public ArticleStockLot registerEntryForAgency(
+            Long agencyId,
+            Articles article,
+            int quantity,
+            double unitPurchasePrice,
+            ArticleStockLotSourceType sourceType,
+            StockReceptionItem receptionItem,
+            Long parentLotId,
+            LocalDate entryDate) {
         if (quantity <= 0) {
             throw new CustomValidationException("La quantité d'entrée doit être strictement positive.");
         }
@@ -56,6 +71,8 @@ public class FifoStockValuationService {
         }
 
         ArticleStockLot lot = new ArticleStockLot();
+        lot.setAgencyId(agencyId != null ? agencyId : com.optimize.common.securities.security.agency.AgencyContext.getCurrentAgencyId());
+        lot.setParentLotId(parentLotId);
         lot.setArticle(article);
         lot.setQuantityInitial(quantity);
         lot.setQuantityRemaining(quantity);
@@ -73,7 +90,12 @@ public class FifoStockValuationService {
         }
         stampSalePrices(lot, article, receptionItem);
 
-        return lotRepository.save(lot);
+        ArticleStockLot saved = lotRepository.save(lot);
+        if (saved.getLotCode() == null && saved.getId() != null) {
+            saved.setLotCode(String.format("LOT-%08d", saved.getId()));
+            saved = lotRepository.save(saved);
+        }
+        return saved;
     }
 
     public void cancelEntry(StockReceptionItem receptionItem) {
@@ -95,6 +117,17 @@ public class FifoStockValuationService {
             ArticleStockLotMovementType movementType,
             String sourceType,
             Long sourceId) {
+        return consumeForAgency(com.optimize.common.securities.security.agency.AgencyContext.getCurrentAgencyId(),
+                article, quantity, movementType, sourceType, sourceId);
+    }
+
+    public FifoConsumptionResult consumeForAgency(
+            Long agencyId,
+            Articles article,
+            int quantity,
+            ArticleStockLotMovementType movementType,
+            String sourceType,
+            Long sourceId) {
         if (quantity <= 0) {
             throw new CustomValidationException("La quantité à consommer doit être strictement positive.");
         }
@@ -109,7 +142,7 @@ public class FifoStockValuationService {
         }
 
         topUpUnlottedStock(locked, quantity, ArticleStockLotSourceType.MIGRATION);
-        return consumeFromOpenLots(locked, quantity, movementType, sourceType, sourceId);
+        return consumeFromOpenLotsForAgency(agencyId, locked, quantity, movementType, sourceType, sourceId);
     }
 
     /**
@@ -185,8 +218,22 @@ public class FifoStockValuationService {
             ArticleStockLotMovementType movementType,
             String sourceType,
             Long sourceId) {
-        List<ArticleStockLot> openLots = lotRepository.findOpenLotsForArticleOrderByFifo(
-                article.getId(), ArticleStockLotStatus.OPEN);
+        return consumeFromOpenLotsForAgency(null, article, quantity, movementType, sourceType, sourceId);
+    }
+
+    private FifoConsumptionResult consumeFromOpenLotsForAgency(
+            Long agencyId,
+            Articles article,
+            int quantity,
+            ArticleStockLotMovementType movementType,
+            String sourceType,
+            Long sourceId) {
+        List<ArticleStockLot> openLots = agencyId != null
+                ? lotRepository.findOpenLotsForArticleAndAgencyOrderByFifo(article.getId(), agencyId, ArticleStockLotStatus.OPEN)
+                : lotRepository.findOpenLotsForArticleOrderByFifo(article.getId(), ArticleStockLotStatus.OPEN);
+        if (openLots.isEmpty() && agencyId != null) {
+            openLots = lotRepository.findOpenLotsForArticleOrderByFifo(article.getId(), ArticleStockLotStatus.OPEN);
+        }
 
         int remainingToConsume = quantity;
         double totalCost = 0.0;

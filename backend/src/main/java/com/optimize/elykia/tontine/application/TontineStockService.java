@@ -30,6 +30,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.application.CommercialStockLedgerService} (activité {@code TONTINE}).
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Service
 @Transactional
 public class TontineStockService extends GenericService<TontineStock, Long> {

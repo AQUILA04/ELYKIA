@@ -36,15 +36,19 @@ export class ArticleRepository extends BaseRepository<Article, string> {
         }
 
         const keysToInclude = [
-            'id', 'name', 'commercialName', 'creditSalePrice', 'sellingPrice', 'stockQuantity', 'state'
+            'id', 'name', 'commercialName', 'creditSalePrice', 'sellingPrice', 'stockQuantity',
+            'warehouseOnHandQuantity', 'warehouseReservedQuantity', 'warehouseAvailableQuantity', 'state'
         ];
 
         const existingRows = await this.databaseService.query(
-            'SELECT id, syncHash, stockQuantity, state, sellingPrice FROM articles'
+            'SELECT id, syncHash, stockQuantity, warehouseOnHandQuantity, warehouseReservedQuantity, warehouseAvailableQuantity, state, sellingPrice FROM articles'
         );
         const existingArticleMap = new Map<string, {
             syncHash: string;
             stockQuantity: number;
+            warehouseOnHandQuantity: number;
+            warehouseReservedQuantity: number;
+            warehouseAvailableQuantity: number;
             state: string | null;
             sellingPrice: number;
         }>(
@@ -53,6 +57,9 @@ export class ArticleRepository extends BaseRepository<Article, string> {
                 {
                     syncHash: row.syncHash,
                     stockQuantity: row.stockQuantity ?? 0,
+                    warehouseOnHandQuantity: row.warehouseOnHandQuantity ?? 0,
+                    warehouseReservedQuantity: row.warehouseReservedQuantity ?? 0,
+                    warehouseAvailableQuantity: row.warehouseAvailableQuantity ?? 0,
                     state: row.state ?? null,
                     sellingPrice: row.sellingPrice ?? 0
                 }
@@ -80,12 +87,18 @@ export class ArticleRepository extends BaseRepository<Article, string> {
             const resolvedState = this.resolveState(article, existing?.state);
             const resolvedStock = article.stockQuantity ?? (existing?.stockQuantity ?? 0);
             const sellingPrice = article.sellingPrice ?? existing?.sellingPrice ?? 0;
+            const warehouseOnHand = article.warehouseOnHandQuantity ?? existing?.warehouseOnHandQuantity ?? 0;
+            const warehouseReserved = article.warehouseReservedQuantity ?? existing?.warehouseReservedQuantity ?? 0;
+            const warehouseAvailable = article.warehouseAvailableQuantity ?? existing?.warehouseAvailableQuantity ?? 0;
             const articleForHash: Article = {
                 ...article,
                 id: articleIdStr,
                 state: resolvedState,
                 stockQuantity: resolvedStock,
-                sellingPrice
+                sellingPrice,
+                warehouseOnHandQuantity: warehouseOnHand,
+                warehouseReservedQuantity: warehouseReserved,
+                warehouseAvailableQuantity: warehouseAvailable
             };
             const newHash = this.generateHash(articleForHash, keysToInclude);
             const needsUpdate = isExisting && existing!.syncHash !== newHash;
@@ -93,7 +106,8 @@ export class ArticleRepository extends BaseRepository<Article, string> {
             if (needsUpdate) {
                 const updateParams = [
                     article.name, article.commercialName, article.marque, article.model,
-                    article.type, article.creditSalePrice, sellingPrice, resolvedStock, resolvedState,
+                    article.type, article.creditSalePrice, sellingPrice, resolvedStock,
+                    warehouseOnHand, warehouseReserved, warehouseAvailable, resolvedState,
                     1, now, newHash, articleIdStr
                 ];
                 articlesToUpdate.push(updateParams);
@@ -102,7 +116,8 @@ export class ArticleRepository extends BaseRepository<Article, string> {
                 const insertParams = [
                     articleIdStr, article.name, article.commercialName, article.marque,
                     article.model, article.type, article.creditSalePrice, sellingPrice,
-                    resolvedStock, resolvedState, 1, now, newHash
+                    resolvedStock, warehouseOnHand, warehouseReserved, warehouseAvailable,
+                    resolvedState, 1, now, newHash
                 ];
                 articlesToInsert.push(insertParams);
                 processedIds.add(articleIdStr);
@@ -114,8 +129,9 @@ export class ArticleRepository extends BaseRepository<Article, string> {
                 const updateSet: capSQLiteSet[] = [];
                 const sql = `UPDATE articles SET
                     name = ?, commercialName = ?, marque = ?, model = ?,
-                    type = ?, creditSalePrice = ?, sellingPrice = ?, stockQuantity = ?, state = ?,
-                    isSync = ?, lastUpdate = ?, syncHash = ?
+                    type = ?, creditSalePrice = ?, sellingPrice = ?, stockQuantity = ?,
+                    warehouseOnHandQuantity = ?, warehouseReservedQuantity = ?, warehouseAvailableQuantity = ?,
+                    state = ?, isSync = ?, lastUpdate = ?, syncHash = ?
                    WHERE id = ?`;
                 for (const params of articlesToUpdate) {
                     updateSet.push({ statement: sql, values: params });
@@ -127,8 +143,10 @@ export class ArticleRepository extends BaseRepository<Article, string> {
                 const insertSet: capSQLiteSet[] = [];
                 const sql = `INSERT INTO articles (
                     id, name, commercialName, marque, model, type,
-                    creditSalePrice, sellingPrice, stockQuantity, state, isSync, lastUpdate, syncHash
-                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    creditSalePrice, sellingPrice, stockQuantity,
+                    warehouseOnHandQuantity, warehouseReservedQuantity, warehouseAvailableQuantity,
+                    state, isSync, lastUpdate, syncHash
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
                 for (const params of articlesToInsert) {
                     insertSet.push({ statement: sql, values: params });
                 }

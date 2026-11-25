@@ -11,6 +11,11 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * @deprecated Remplacé par {@link WarehouseStockLedgerEntryRepository}.
+ * @see WarehouseStockLedgerEntryRepository
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 public interface StockMovementRepository extends GenericRepository<StockMovement, Long> {
     
     List<StockMovement> findByArticleIdOrderByMovementDateDesc(Long articleId);

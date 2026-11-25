@@ -20,6 +20,10 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.domain.CommercialStockLayer}.
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Entity
 @Table(name = "tontine_stock_layer")
 @Getter

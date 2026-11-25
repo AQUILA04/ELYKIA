@@ -99,3 +99,29 @@ La remise au membre se fait ensuite dans le menu **Tontines**, sur la fiche du m
 
 Le suivi des quantités annuelles se fait dans **Stock Commercial > Stock**, sélecteur **Tontine**.
 
+---
+
+## 4. Réservation à la validation, livraison partielle et reliquat automatique
+
+1. **Réservation dès la validation** : Dès qu'une demande de sortie est **Validée**, les quantités sont réservées dans le magasin de l'agence (`Réservé` augmente, `Disponible` diminue). Si le stock physique est insuffisant au moment de la validation, l'écart est enregistré en réservation prioritaire et sera automatiquement alloué en FIFO dès la prochaine réception fournisseur ou le prochain transfert entrant.
+2. **Livraison partielle et demande reliquat** : Lors de la remise physique au comptoir, si une partie seulement des quantités validées est disponible en magasin, la demande initiale passe au statut **Partiellement livrée** pour les quantités remises, et le système crée automatiquement une **demande reliquat enfant** déjà au statut **Validée** (liée à la demande parente) qui conserve la réservation active sur le reste à livrer.
+
+---
+
+## 5. Traçabilité & Liquidation des Lots (Menu Stock Commercial > Traçabilité des Lots)
+
+L'écran **Traçabilité des Lots** (`/stock/lot-traceability`) permet de suivre le cycle de vie complet de chaque lot d'articles entré en magasin :
+* **Restant en magasin** : unités du lot toujours présentes dans les rayons de l'agence.
+* **Transféré inter-agences** : unités expédiées vers une autre agence (conservant la filiation avec le lot parent).
+* **Doté aux commerciaux** : unités remises aux commerciaux, avec le détail nominatif par commercial (`Pris`, `Vendu / Livré client`, `Retourné`, `Restant en main`).
+* **Statut de liquidation** : indique si le lot est **En cours d'écoulement** ou **100 % Liquidé** (plus aucune unité ni en magasin ni entre les mains des commerciaux).
+
+---
+
+## 6. Transferts Inter-Agences (Menu Stock Commercial > Transferts Inter-Agences)
+
+Les utilisateurs habilités (**Responsable Magasinier**, **Gestionnaire**, **Administrateur**) peuvent équilibrer les stocks entre agences via un workflow sécurisé en 2 étapes (`/stock/transfers`) :
+1. **Création & Expédition (Agence source)** : Créez le bon de transfert en sélectionnant l'agence source, l'agence destination et les articles/quantités, puis cliquez sur **« Expédier »**. Le stock physique de l'agence source est débité en FIFO et les lots transférés passent au statut **En transit**.
+2. **Réception (Agence destination)** : À l'arrivée physique de la marchandise, le magasinier de l'agence destinataire clique sur **« Réceptionner »**. Les lots entrants sont créés dans l'agence de destination avec leur coût d'achat FIFO d'origine (et liés au lot parent), et toute réservation en attente dans l'agence de destination est immédiatement servie.
+
+

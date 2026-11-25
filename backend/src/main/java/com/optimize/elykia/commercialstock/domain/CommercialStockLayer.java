@@ -72,6 +72,12 @@ public class CommercialStockLayer {
     @Column(name = "source_id")
     private Long sourceId;
 
+    @Column(name = "origin_warehouse_lot_id")
+    private Long originWarehouseLotId;
+
+    @Column(name = "origin_reception_item_id")
+    private Long originReceptionItemId;
+
     @Column(name = "acquired_at", nullable = false)
     private LocalDateTime acquiredAt;
 

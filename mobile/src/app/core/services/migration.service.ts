@@ -169,6 +169,9 @@ export class MigrationService {
       case 40:
         await this.migrateToV40(db);
         break;
+      case 41:
+        await this.migrateToV41(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -1011,6 +1014,14 @@ export class MigrationService {
       );
     `);
     await this.log.log('Migration to v36 successful.');
+  }
+
+  private async migrateToV41(db: SQLiteDBConnection): Promise<void> {
+    await this.migrateAddColumnIfMissing(db, 'v41', 'articles', 'warehouseOnHandQuantity', 'INTEGER DEFAULT 0');
+    await this.migrateAddColumnIfMissing(db, 'v41', 'articles', 'warehouseReservedQuantity', 'INTEGER DEFAULT 0');
+    await this.migrateAddColumnIfMissing(db, 'v41', 'articles', 'warehouseAvailableQuantity', 'INTEGER DEFAULT 0');
+    await this.migrateAddColumnIfMissing(db, 'v41', 'users', 'agencyId', 'INTEGER');
+    await this.migrateAddColumnIfMissing(db, 'v41', 'users', 'agencyName', 'TEXT');
   }
 
   private async migrateToV40(db: SQLiteDBConnection): Promise<void> {

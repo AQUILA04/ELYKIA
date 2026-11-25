@@ -69,6 +69,22 @@ const routes: Routes = [
     path: 'return/historique',
     component: StockReturnHistoriqueComponent,
     data: { title: 'Retour en stock historique' }
+  },
+  {
+    path: 'lot-traceability',
+    loadComponent: () =>
+      import('./pages/warehouse-lot-traceability/warehouse-lot-traceability.component').then(
+        (m) => m.WarehouseLotTraceabilityComponent
+      ),
+    data: { title: 'Traçabilité & Liquidation des Lots' }
+  },
+  {
+    path: 'transfers',
+    loadComponent: () =>
+      import('./pages/warehouse-transfer-list/warehouse-transfer-list.component').then(
+        (m) => m.WarehouseTransferListComponent
+      ),
+    data: { title: 'Transferts de Stock Inter-Agences' }
   }
 ];
 

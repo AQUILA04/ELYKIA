@@ -9,6 +9,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 // add unique constraint across commercial, article_id and year
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.domain.CommercialStockPosition} (activité {@code TONTINE}).
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Table(
         name = "tontine_stock",
         uniqueConstraints = @UniqueConstraint(

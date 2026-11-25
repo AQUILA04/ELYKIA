@@ -14,6 +14,10 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.infrastructure.persistence.CommercialStockRequestRepository}.
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 public interface StockRequestRepository extends GenericRepository<StockRequest, Long> {
     Page<StockRequest> findByCollector(String collector, Pageable pageable);
 

@@ -53,10 +53,20 @@ Sur l'accueil, dans **Alertes stock magasin**, chaque ligne affiche le nom comme
 2. À droite du titre **Rupture de stock**, cliquez sur l'icône de téléchargement : le fichier reprend le nom commercial, le nom, le type et la quantité de tous les articles indisponibles, y compris ceux des autres pages.
 3. À droite du titre **Rupture imminente**, cliquez sur l'icône de téléchargement : le fichier reprend les mêmes informations pour tous les articles sous le seuil d'alerte.
 
+### A. Lecture des 3 colonnes Stock Magasin (En stock / Réservé / Disponible)
+Dans la liste **Articles**, le stock magasin de votre agence (ou de l'agence filtrée) est ventilé en trois colonnes :
+* **En stock** : Quantité physique réellement présente dans le magasin de l'agence.
+* **Réservé** : Quantité engagée par des demandes de sortie validées non encore livrées ou des ventes au comptant en attente de remise au client. Si les réservations dépassent le stock physique, un badge rouge **« Manquant : X »** signale le déficit à réapprovisionner.
+* **Disponible** : Quantité librement disponible pour de nouvelles demandes ($\max(0, \text{En stock} - \text{Réservé})$). Sur l'application Mobile, ce compteur s'affiche dans l'onglet **Catalogue** et dans le sélecteur de demande sous le libellé `Dispo magasin : X unités`.
+
+### B. Bon de Commande Fournisseur (PDF)
+Depuis la barre d'outils de la liste **Articles**, cliquez sur le bouton **« Bon de Commande Fournisseur »** pour générer instantanément la fiche PDF officielle (thème Navy Elykia) regroupant tous les articles de l'agence (ou de toutes les agences) qui présentent un déficit de réservation ou qui ont franchi leur point de commande, avec calcul automatique de la quantité recommandée à commander et du budget d'achat estimé.
+
 ---
 
 ## 3. Règle de suppression et archivage
 
 * **Intégrité référentielle** : Il est formellement interdit de supprimer un article qui a déjà fait l'objet d'un mouvement de stock, d'une vente ou d'une distribution.
 * En cas d'arrêt de commercialisation d'une référence, modifiez son statut pour le passer à **Inactif** afin qu'il n'apparaisse plus dans les nouveaux formulaires de vente ou de demande de stock, tout en préservant l'historique comptable des opérations passées.
+
 
