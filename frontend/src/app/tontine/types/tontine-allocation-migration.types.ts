@@ -7,5 +7,4 @@ export interface TontineAllocationMigrationStatus {
   failedMembers: number;
   startedAt?: string | null;
   status?: string | null;
-  failureReport?: string | null;
 }

@@ -549,7 +549,7 @@
           </a>
         </li>
         <!-- MENU ADMINISTRATION (toujours en dernier) -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_AUDIT', 'ROLE_EDIT_USER', 'ROLE_DEL_USER']"
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_AUDIT', 'ROLE_EDIT_USER', 'ROLE_DEL_USER', 'ROLE_ADMIN']"
             data-testid="e2e-sidebar-administration">
           <a class="sidebar-link has-arrow" (click)="onAdministrationClick()" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/administration') }">
@@ -565,6 +565,14 @@
                  data-testid="e2e-sidebar-audit">
                 <span class="material-icons">fact_check</span>
                 <span class="hide-menu">Audit</span>
+              </a>
+            </li>
+            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_ADMIN']">
+              <a class="sidebar-link" routerLink="/admin/allocation-migration"
+                 [ngClass]="{ 'active': isSubRouteActive('/admin/allocation-migration') }"
+                 data-testid="e2e-sidebar-allocation-migration">
+                <span class="material-icons">sync_alt</span>
+                <span class="hide-menu">Recalcul parts société</span>
               </a>
             </li>
             <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_EDIT_USER','ROLE_DEL_USER']">

@@ -4,12 +4,14 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.util.TontineParameterConstant;
 import com.optimize.common.securities.event.ParameterUpdatedEvent;
+import com.optimize.elykia.core.entity.report.TontineAllocationMigrationFailure;
 import com.optimize.elykia.core.entity.report.TontineAllocationMigrationRun;
 import com.optimize.elykia.core.entity.report.TontineMemberAllocationSnapshot;
 import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineAllocationMigrationRunStatus;
+import com.optimize.elykia.core.repository.TontineAllocationMigrationFailureRepository;
 import com.optimize.elykia.core.repository.TontineAllocationMigrationRunRepository;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberAllocationSnapshotRepository;
@@ -21,8 +23,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,9 +47,11 @@ import java.util.Objects;
 public class TontineAllocationMigrationService {
 
     private static final int BATCH_SIZE = 50;
-    private static final int MAX_REPORT_LENGTH = 20_000;
+    private static final int MAX_DETAIL_LENGTH = 4_000;
+    private static final int MAX_MESSAGE_LENGTH = 2_000;
 
     private final TontineAllocationMigrationRunRepository runRepository;
+    private final TontineAllocationMigrationFailureRepository failureRepository;
     private final TontineMemberAllocationSnapshotRepository snapshotRepository;
     private final TontineMemberRepository memberRepository;
     private final TontineCollectionRepository collectionRepository;
@@ -92,32 +98,84 @@ public class TontineAllocationMigrationService {
         }
     }
 
-    @Transactional
+    /**
+     * Crée le run dans sa propre transaction (commitée avant le lancement du job asynchrone, qui doit le relire),
+     * puis lance le job. Volontairement non {@code @Transactional} : appelée depuis un listener AFTER_COMMIT,
+     * aucune transaction n'est active et Hibernate différerait l'INSERT (id nul, rien en base).
+     */
     public TontineAllocationMigrationRun startMigration(String fromVersion, String toVersion, String triggeredBy) {
         if (isMigrationRunning()) {
             throw new CustomValidationException("Un recalcul de parts société est déjà en cours.");
         }
 
-        TontineSession session = resolveActiveSession();
-        long totalMembers = memberRepository.countEnabledBySessionId(session.getId());
+        TontineAllocationMigrationRun run = requiresNew().execute(status -> {
+            TontineSession session = resolveActiveSession();
+            long totalMembers = memberRepository.countEnabledBySessionId(session.getId());
 
-        TontineAllocationMigrationRun run = new TontineAllocationMigrationRun();
-        run.setSessionId(session.getId());
-        run.setFromVersion(fromVersion);
-        run.setToVersion(toVersion);
-        run.setStatus(TontineAllocationMigrationRunStatus.PENDING);
-        run.setTriggeredBy(triggeredBy);
-        run.setTotalMembers((int) totalMembers);
-        run.setProcessedMembers(0);
-        run.setFailedMembers(0);
-        run.setLastProcessedMemberId(0L);
-        run = runRepository.save(run);
+            TontineAllocationMigrationRun created = new TontineAllocationMigrationRun();
+            created.setSessionId(session.getId());
+            created.setFromVersion(fromVersion);
+            created.setToVersion(toVersion);
+            created.setStatus(TontineAllocationMigrationRunStatus.PENDING);
+            created.setTriggeredBy(triggeredBy);
+            created.setTotalMembers((int) totalMembers);
+            created.setProcessedMembers(0);
+            created.setFailedMembers(0);
+            created.setLastProcessedMemberId(0L);
+            return runRepository.saveAndFlush(created);
+        });
+        if (run == null || run.getId() == null) {
+            throw new IllegalStateException("Le run de recalcul n'a pas pu être enregistré.");
+        }
 
         jobRunner.runAsync(run.getId());
         return run;
     }
 
+    /** Reprend un run échoué là où il s'est arrêté (les membres déjà traités ne sont pas rejoués). */
+    public TontineAllocationMigrationRun retryRun(Long runId) {
+        if (isMigrationRunning()) {
+            throw new CustomValidationException("Un recalcul de parts société est déjà en cours.");
+        }
+        TontineAllocationMigrationRun run = requiresNew().execute(status -> {
+            TontineAllocationMigrationRun existing = runRepository.findById(runId)
+                    .orElseThrow(() -> new CustomValidationException("Run de recalcul introuvable : " + runId));
+            if (existing.getStatus() != TontineAllocationMigrationRunStatus.FAILED) {
+                throw new CustomValidationException("Seul un recalcul échoué peut être repris.");
+            }
+            existing.setStatus(TontineAllocationMigrationRunStatus.PENDING);
+            existing.setErrorMessage(null);
+            existing.setFinishedAt(null);
+            return runRepository.saveAndFlush(existing);
+        });
+        jobRunner.runAsync(run.getId());
+        return run;
+    }
+
+    public Page<TontineAllocationMigrationRun> listRuns(int page, int size) {
+        return runRepository.findAll(PageRequest.of(page, size, Sort.by("id").descending()));
+    }
+
+    public TontineAllocationMigrationRun getRun(Long runId) {
+        return runRepository.findById(runId)
+                .orElseThrow(() -> new CustomValidationException("Run de recalcul introuvable : " + runId));
+    }
+
+    public Page<TontineAllocationMigrationFailure> listFailures(Long runId, int page, int size) {
+        return failureRepository.findByRunIdOrderByIdAsc(runId, PageRequest.of(page, size));
+    }
+
+    private TransactionTemplate requiresNew() {
+        TransactionTemplate template = new TransactionTemplate(transactionManager);
+        template.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        return template;
+    }
+
     public void executeMigration(Long runId) {
+        if (runId == null) {
+            log.error("Job de migration allocation tontine lancé sans identifiant de run : abandon");
+            return;
+        }
         try {
             processMigration(runId);
         } catch (Exception e) {
@@ -135,7 +193,7 @@ public class TontineAllocationMigrationService {
         Long lastId = run.getLastProcessedMemberId() != null ? run.getLastProcessedMemberId() : 0L;
         // Une transaction par membre : un membre en erreur est annulé seul, rapporté, et la boucle continue.
         TransactionTemplate perMember = new TransactionTemplate(transactionManager);
-        perMember.setPropagationBehavior(org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        perMember.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         Page<TontineMember> page;
 
         do {
@@ -150,14 +208,14 @@ public class TontineAllocationMigrationService {
             }
 
             int processed = 0;
-            List<String> failures = new ArrayList<>();
+            List<TontineAllocationMigrationFailure> failures = new ArrayList<>();
             for (TontineMember member : page.getContent()) {
                 Long memberId = member.getId();
                 try {
                     perMember.executeWithoutResult(status -> processMemberInNewTransaction(runId, memberId));
                 } catch (Exception e) {
                     log.error("Échec recalcul membre {} pour run {}", memberId, runId, e);
-                    failures.add(describeFailure(memberId, e));
+                    failures.add(describeFailure(runId, member, e));
                 }
                 processed++;
                 lastId = memberId;
@@ -214,24 +272,52 @@ public class TontineAllocationMigrationService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void recordBatchProgress(Long runId, Long lastProcessedMemberId, int processed, List<String> failures) {
+    public void recordBatchProgress(Long runId, Long lastProcessedMemberId, int processed,
+                                    List<TontineAllocationMigrationFailure> failures) {
         runRepository.findById(runId).ifPresent(run -> {
             run.setLastProcessedMemberId(lastProcessedMemberId);
             run.setProcessedMembers(run.getProcessedMembers() + processed);
             if (failures != null && !failures.isEmpty()) {
                 run.setFailedMembers(run.getFailedMembers() + failures.size());
-                String existing = run.getFailureReport() != null ? run.getFailureReport() + "\n" : "";
-                String merged = existing + String.join("\n", failures);
-                run.setFailureReport(merged.length() > MAX_REPORT_LENGTH
-                        ? merged.substring(0, MAX_REPORT_LENGTH) + "\n..." : merged);
+                failureRepository.saveAll(failures);
             }
             runRepository.save(run);
         });
     }
 
-    private static String describeFailure(Long memberId, Exception e) {
-        String message = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
-        return "Membre " + memberId + " : " + message;
+    private static TontineAllocationMigrationFailure describeFailure(Long runId, TontineMember member, Exception e) {
+        TontineAllocationMigrationFailure failure = new TontineAllocationMigrationFailure();
+        failure.setRunId(runId);
+        failure.setMemberId(member.getId());
+        failure.setMemberName(memberName(member));
+        failure.setErrorType(e.getClass().getSimpleName());
+        failure.setMessage(truncate(e.getMessage() != null ? e.getMessage() : e.getClass().getName(), MAX_MESSAGE_LENGTH));
+        StringBuilder detail = new StringBuilder();
+        for (StackTraceElement element : e.getStackTrace()) {
+            if (detail.length() > MAX_DETAIL_LENGTH) {
+                break;
+            }
+            detail.append("at ").append(element).append('\n');
+        }
+        failure.setDetail(truncate(detail.toString(), MAX_DETAIL_LENGTH));
+        return failure;
+    }
+
+    private static String memberName(TontineMember member) {
+        try {
+            if (member.getClient() == null) {
+                return null;
+            }
+            String first = member.getClient().getFirstname() != null ? member.getClient().getFirstname() : "";
+            String last = member.getClient().getLastname() != null ? member.getClient().getLastname() : "";
+            return (first + " " + last).trim();
+        } catch (RuntimeException lazyOrDetached) {
+            return null;
+        }
+    }
+
+    private static String truncate(String value, int max) {
+        return value != null && value.length() > max ? value.substring(0, max) : value;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
