@@ -136,18 +136,19 @@ export class AllocationMigrationAdminComponent implements OnInit, OnDestroy {
     if (run.status !== 'FAILED') {
       return;
     }
-    this.alertService
+    void this.alertService
       .showConfirmation('Relancer le recalcul',
         `Reprendre le recalcul #${run.id} là où il s'est arrêté ?`, 'Relancer', 'Annuler')
       .then(confirmed => {
         if (confirmed) {
           this.runAction(this.api.retry(run.id), 'Reprise du recalcul lancée.');
         }
-      });
+      })
+      .catch(() => this.alertService.toastError('Confirmation impossible.'));
   }
 
   startFull(): void {
-    this.alertService
+    void this.alertService
       .showConfirmation('Recalcul complet',
         'Lancer un recalcul complet des parts société de tous les membres actifs ? Les opérations tontine seront suspendues pendant l\'exécution.',
         'Lancer', 'Annuler')
@@ -155,7 +156,8 @@ export class AllocationMigrationAdminComponent implements OnInit, OnDestroy {
         if (confirmed) {
           this.runAction(this.api.startFullRecalculation(), 'Recalcul complet lancé.');
         }
-      });
+      })
+      .catch(() => this.alertService.toastError('Confirmation impossible.'));
   }
 
   private runAction(action: Observable<unknown>, successMessage: string): void {
