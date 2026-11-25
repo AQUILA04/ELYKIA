@@ -1,92 +1,167 @@
-<div class="main-container allocation-admin" data-testid="e2e-allocation-migration-admin">
-  <div class="page-head">
-    <div>
-      <h1>Recalcul des parts société</h1>
-      <p class="subtitle">Suivi des recalculs déclenchés par le changement de version (V1 / V2 / V3) et des membres en erreur.</p>
+<div class="main-container alloc-migration-page a1" data-testid="e2e-allocation-migration-admin">
+  <div class="breadcrumb-bar">
+    <a class="breadcrumb-link" routerLink="/home">Tableau de bord</a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">Administration · Tontine</span>
+      <span class="last-update">MAJ {{ lastUpdate | date:'HH:mm:ss' }}</span>
     </div>
-    <div class="head-actions">
-      <button type="button" class="btn" (click)="loadRuns()" [disabled]="loading">Actualiser</button>
-      <button type="button" class="btn btn-primary" (click)="startFull()" [disabled]="actionBusy || anyRunning"
-              data-testid="e2e-allocation-start-full">Recalcul complet</button>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg class="page-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 12a8 8 0 0113.7-5.6L20 8.7M20 4v4.7h-4.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M20 12a8 8 0 01-13.7 5.6L4 15.3M4 20v-4.7h4.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h1 class="page-title">Recalcul des parts société</h1>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="loading">Actualiser</button>
+        <button type="button" class="btn-primary" (click)="startFull()" [disabled]="actionBusy || anyRunning"
+                data-testid="e2e-allocation-start-full">Recalcul complet</button>
+      </div>
+    </div>
+    <p class="page-subtitle">
+      Suivi des recalculs déclenchés par le changement de version (V1 / V2 / V3) et des membres en erreur.
+    </p>
+  </div>
+
+  <div class="kpi-strip a3" *ngIf="selected">
+    <div class="kpi-card" [ngClass]="statusKpiClass(selected)">
+      <span class="kpi-label">Statut du recalcul #{{ selected.id }}</span>
+      <span class="kpi-value kpi-text">{{ statusLabel(selected.status) }}</span>
+    </div>
+    <div class="kpi-card kpi-amount">
+      <span class="kpi-label">Progression</span>
+      <span class="kpi-value">{{ progress(selected) }} %</span>
+      <div class="progress"><div class="bar" [style.width.%]="progress(selected)"></div></div>
+    </div>
+    <div class="kpi-card kpi-total">
+      <span class="kpi-label">Membres traités</span>
+      <span class="kpi-value">{{ selected.processedMembers }} / {{ selected.totalMembers }}</span>
+    </div>
+    <div class="kpi-card kpi-delai">
+      <span class="kpi-label">Membres en erreur</span>
+      <span class="kpi-value">{{ selected.failedMembers }}</span>
     </div>
   </div>
 
-  <div class="alert alert-error" *ngIf="error">{{ error }}</div>
-  <div class="alert alert-info" *ngIf="info">{{ info }}</div>
-
-  <div class="layout">
-    <section class="card runs">
-      <h2>Historique</h2>
-      <p class="empty" *ngIf="!loading && !runs.length">Aucun recalcul n'a encore été lancé.</p>
-      <ul class="run-list">
-        <li *ngFor="let run of runs" [class.active]="selected?.id === run.id" (click)="select(run)"
-            [attr.data-testid]="'e2e-allocation-run-' + run.id">
-          <div class="run-line">
-            <strong>#{{ run.id }} · {{ run.fromVersion }} → {{ run.toVersion }}</strong>
-            <span class="badge" [ngClass]="'st-' + run.status.toLowerCase()">{{ statusLabel(run.status) }}</span>
-          </div>
-          <div class="run-meta">{{ run.startedAt ? (run.startedAt | date:'dd/MM/yyyy HH:mm') : 'Pas encore démarré' }}
-            · {{ run.processedMembers }}/{{ run.totalMembers }} membres
-            <span class="fail" *ngIf="run.failedMembers"> · {{ run.failedMembers }} en erreur</span></div>
-        </li>
-      </ul>
-      <div class="pager" *ngIf="runsTotalPages > 1">
-        <button type="button" class="btn" (click)="pageRuns(-1)" [disabled]="runsPage === 0">‹</button>
-        <span>{{ runsPage + 1 }} / {{ runsTotalPages }}</span>
-        <button type="button" class="btn" (click)="pageRuns(1)" [disabled]="runsPage >= runsTotalPages - 1">›</button>
+  <div class="alert-banner alert-danger a3" *ngIf="selected?.errorMessage">
+    <div>
+      <strong>Erreur fatale :</strong> {{ selected?.errorMessage }}
+      <div class="alert-hint" *ngIf="selected?.status === 'FAILED'">
+        « Relancer ce recalcul » reprend là où le job s'est arrêté, sans rejouer les membres déjà traités.
       </div>
-    </section>
+    </div>
+    <button type="button" class="btn-primary" *ngIf="selected?.status === 'FAILED'" (click)="retry()"
+            [disabled]="actionBusy || anyRunning" data-testid="e2e-allocation-retry">Relancer ce recalcul</button>
+  </div>
 
-    <section class="card detail" *ngIf="selected">
-      <div class="detail-head">
-        <h2>Recalcul #{{ selected.id }}</h2>
-        <span class="badge" [ngClass]="'st-' + selected.status.toLowerCase()">{{ statusLabel(selected.status) }}</span>
-        <button type="button" class="btn btn-primary" *ngIf="selected.status === 'FAILED'" (click)="retry()"
-                [disabled]="actionBusy || anyRunning" data-testid="e2e-allocation-retry">Relancer ce recalcul</button>
+  <div class="table-card a4">
+    <div class="card-title">Historique des recalculs</div>
+    <div class="table-wrapper" *ngIf="loading && !runs.length">
+      <div class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-title">Chargement…</div>
+        <div class="empty-sub">Récupération de l'historique des recalculs</div>
       </div>
-
-      <div class="progress" aria-label="Progression">
-        <div class="bar" [style.width.%]="progress(selected)"></div>
+    </div>
+    <div class="table-wrapper" *ngIf="!loading && !runs.length">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">Aucun recalcul enregistré</div>
+        <div class="empty-sub">Un recalcul est créé à chaque changement de TONTINE_SOCIETY_SHARE_VERSION ou via « Recalcul complet ».</div>
       </div>
-      <dl class="facts">
-        <div><dt>Progression</dt><dd>{{ selected.processedMembers }} / {{ selected.totalMembers }} ({{ progress(selected) }} %)</dd></div>
-        <div><dt>Membres en erreur</dt><dd>{{ selected.failedMembers }}</dd></div>
-        <div><dt>Déclenché par</dt><dd>{{ selected.triggeredBy || '—' }}</dd></div>
-        <div><dt>Début</dt><dd>{{ selected.startedAt ? (selected.startedAt | date:'dd/MM/yyyy HH:mm:ss') : '—' }}</dd></div>
-        <div><dt>Fin</dt><dd>{{ selected.finishedAt ? (selected.finishedAt | date:'dd/MM/yyyy HH:mm:ss') : '—' }}</dd></div>
-      </dl>
-
-      <div class="alert alert-error" *ngIf="selected.errorMessage">
-        <strong>Erreur fatale :</strong> {{ selected.errorMessage }}
-        <div class="hint" *ngIf="selected.status === 'FAILED'">« Relancer ce recalcul » reprend là où le job s'est arrêté.</div>
-      </div>
-
-      <h3>Membres en erreur ({{ failuresTotal }})</h3>
-      <p class="empty" *ngIf="!failures.length">Aucune erreur enregistrée pour ce recalcul.</p>
-      <table class="failures" *ngIf="failures.length">
-        <thead><tr><th>Membre</th><th>Type</th><th>Message</th><th></th></tr></thead>
+    </div>
+    <div class="table-wrapper" *ngIf="runs.length">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th><th>Bascule</th><th>Statut</th><th>Début</th><th>Fin</th>
+            <th>Traités</th><th>Erreurs</th><th>Déclenché par</th><th></th>
+          </tr>
+        </thead>
         <tbody>
-          <ng-container *ngFor="let f of failures">
-            <tr (click)="toggle(f)" class="clickable">
-              <td>{{ f.memberName || ('Membre #' + f.memberId) }}<small> (#{{ f.memberId }})</small></td>
-              <td>{{ f.errorType }}</td>
-              <td class="msg">{{ f.message }}</td>
-              <td>{{ expandedFailureId === f.id ? '▾' : '▸' }}</td>
-            </tr>
-            <tr *ngIf="expandedFailureId === f.id" class="detail-row">
-              <td colspan="4">
-                <div><strong>Survenue le</strong> {{ f.occurredAt | date:'dd/MM/yyyy HH:mm:ss' }}</div>
-                <pre>{{ f.detail || 'Pas de détail technique.' }}</pre>
-              </td>
-            </tr>
-          </ng-container>
+          <tr *ngFor="let run of runs" [class.row-selected]="selected?.id === run.id"
+              [attr.data-testid]="'e2e-allocation-run-' + run.id">
+            <td class="mono">{{ run.id }}</td>
+            <td><span class="chip">{{ run.fromVersion }} → {{ run.toVersion }}</span></td>
+            <td><span class="chip" [attr.data-status]="run.status">{{ statusLabel(run.status) }}</span></td>
+            <td class="mono">{{ run.startedAt ? (run.startedAt | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+            <td class="mono">{{ run.finishedAt ? (run.finishedAt | date:'dd/MM/yyyy HH:mm') : '—' }}</td>
+            <td class="mono">{{ run.processedMembers }} / {{ run.totalMembers }}</td>
+            <td class="mono" [class.text-danger]="run.failedMembers > 0">{{ run.failedMembers }}</td>
+            <td>{{ run.triggeredBy || '—' }}</td>
+            <td class="cell-actions">
+              <button type="button" class="btn-detail" (click)="select(run)">Détail</button>
+              <button type="button" class="btn-detail" *ngIf="run.status === 'FAILED'" (click)="retryRun(run)"
+                      [disabled]="actionBusy || anyRunning">Relancer</button>
+            </td>
+          </tr>
         </tbody>
       </table>
-      <div class="pager" *ngIf="failuresTotalPages > 1">
-        <button type="button" class="btn" (click)="pageFailures(-1)" [disabled]="failuresPage === 0">‹</button>
-        <span>{{ failuresPage + 1 }} / {{ failuresTotalPages }}</span>
-        <button type="button" class="btn" (click)="pageFailures(1)" [disabled]="failuresPage >= failuresTotalPages - 1">›</button>
+    </div>
+    <div class="pager" *ngIf="runsTotalPages > 1">
+      <button type="button" class="btn-filter" (click)="pageRuns(-1)" [disabled]="runsPage === 0">Précédent</button>
+      <span class="result-count">Page {{ runsPage + 1 }} / {{ runsTotalPages }}</span>
+      <button type="button" class="btn-filter" (click)="pageRuns(1)" [disabled]="runsPage >= runsTotalPages - 1">Suivant</button>
+    </div>
+  </div>
+
+  <div class="table-card a5" *ngIf="selected">
+    <div class="card-title">
+      Membres en erreur — recalcul #{{ selected.id }}
+      <span class="result-count"><strong>{{ failuresTotal }}</strong> membre(s)</span>
+    </div>
+    <div class="table-wrapper" *ngIf="!failures.length">
+      <div class="empty-state">
+        <div class="empty-icon">✅</div>
+        <div class="empty-title">Aucune erreur enregistrée</div>
+        <div class="empty-sub">Tous les membres traités par ce recalcul l'ont été sans incident.</div>
       </div>
-    </section>
+    </div>
+    <div class="table-wrapper" *ngIf="failures.length">
+      <table class="data-table">
+        <thead>
+          <tr><th>Membre</th><th>Type d'erreur</th><th>Message</th><th>Survenue le</th><th></th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of failures" class="row-danger">
+            <td>{{ f.memberName || 'Membre' }} <span class="mono muted">#{{ f.memberId }}</span></td>
+            <td><span class="chip" data-status="FAILED">{{ f.errorType || 'Erreur' }}</span></td>
+            <td class="msg-cell" [title]="f.message || ''">{{ f.message }}</td>
+            <td class="mono">{{ f.occurredAt | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+            <td class="cell-actions"><button type="button" class="btn-detail" (click)="openFailure(f)">Détail</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pager" *ngIf="failuresTotalPages > 1">
+      <button type="button" class="btn-filter" (click)="pageFailures(-1)" [disabled]="failuresPage === 0">Précédent</button>
+      <span class="result-count">Page {{ failuresPage + 1 }} / {{ failuresTotalPages }}</span>
+      <button type="button" class="btn-filter" (click)="pageFailures(1)" [disabled]="failuresPage >= failuresTotalPages - 1">Suivant</button>
+    </div>
+  </div>
+
+  <div class="detail-panel" *ngIf="openedFailure">
+    <div class="detail-backdrop" (click)="closeFailure()"></div>
+    <div class="detail-card">
+      <div class="detail-header">
+        <div>
+          <h2>{{ openedFailure.memberName || 'Membre' }} <span class="mono muted">#{{ openedFailure.memberId }}</span></h2>
+          <p class="detail-sub">Recalcul #{{ openedFailure.runId }} · {{ openedFailure.occurredAt | date:'dd/MM/yyyy HH:mm:ss' }}</p>
+        </div>
+        <button type="button" class="btn-refresh" (click)="closeFailure()">Fermer</button>
+      </div>
+      <div class="detail-grid">
+        <div><span class="lbl">Type d'erreur</span><span class="chip" data-status="FAILED">{{ openedFailure.errorType || 'Erreur' }}</span></div>
+        <div class="full"><span class="lbl">Message</span><div>{{ openedFailure.message }}</div></div>
+        <div class="full"><span class="lbl">Détail technique</span>
+          <pre class="meta-block">{{ openedFailure.detail || 'Pas de détail technique.' }}</pre>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

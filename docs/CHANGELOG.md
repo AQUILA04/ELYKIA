@@ -26,6 +26,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Fixed
 
+- **Backend → recalcul des parts société →** un démarrage qui échoue est désormais tracé dans l'historique (run `FAILED` avec le motif) et peut être repris depuis la page d'administration ; la page suit la charte UI du frontend (header, KPI, tableaux, panneau de détail, confirmations `AlertService`).
 - **Backend → recalcul des parts société →** le changement du paramètre n'enregistrait aucun run (`run=null`, `findById(null)`) : `startMigration` était appelée depuis un listener `AFTER_COMMIT`, sans transaction active, donc l'INSERT `IDENTITY` était différé et l'id restait nul. Le run est désormais créé dans une transaction `REQUIRES_NEW` commitée avant le lancement du job asynchrone ; un job sans identifiant est refusé.
 - **Backend → recalcul des parts société →** `processMemberInNewTransaction` était appelée par auto-invocation : le `REQUIRES_NEW` ne s'appliquait pas. Elle passe maintenant par un `TransactionTemplate`.
 
