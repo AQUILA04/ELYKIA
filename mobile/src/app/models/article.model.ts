@@ -17,4 +17,9 @@ export interface Article {
   lastUpdate?: string;
   syncHash?: string;
   reference?: string;
+  agencyId?: number;
+  warehouseOnHandQuantity?: number;
+  warehouseReservedQuantity?: number;
+  warehouseAvailableQuantity?: number;
+  warehouseShortageQuantity?: number;
 }

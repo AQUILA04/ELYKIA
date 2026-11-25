@@ -10,6 +10,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.infrastructure.persistence.CommercialStockPositionRepository}.
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 public interface CommercialMonthlyStockItemRepository extends GenericRepository<CommercialMonthlyStockItem, Long> {
 
     @Query("SELECT cmsi.weightedAverageUnitPrice FROM CommercialMonthlyStockItem cmsi " +

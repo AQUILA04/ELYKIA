@@ -243,11 +243,56 @@ public class ArticlesController {
     }
 
     private Page<ArticleListItemDto> withPhotos(Page<Articles> page) {
+        if (page == null) {
+            return Page.empty();
+        }
         Map<Long, ArticlePhotoView> views = articlePhotoService.viewForArticles(page.getContent());
-        return ArticleListItemDto.fromPage(page, views);
+        if (warehouseStockService == null) {
+            return ArticleListItemDto.fromPage(page, views);
+        }
+        Long agencyId = warehouseStockService.resolveAgencyId(null);
+        Map<Long, Integer> shortages = warehouseStockService.getShortagesByArticle(agencyId);
+        return page.map(article -> {
+            var pos = warehouseStockService.getOrBuildPositionView(agencyId, article);
+            return ArticleListItemDto.fromEntity(
+                    article,
+                    views != null ? views.get(article.getId()) : null,
+                    agencyId,
+                    pos.getOnHandQuantity(),
+                    pos.getReservedQuantity(),
+                    shortages.getOrDefault(article.getId(), 0));
+        });
     }
 
     private List<ArticleListItemDto> withPhotos(List<Articles> articles) {
-        return ArticleListItemDto.fromList(articles, articlePhotoService.viewForArticles(articles));
+        if (articles == null || articles.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, ArticlePhotoView> views = articlePhotoService.viewForArticles(articles);
+        if (warehouseStockService == null) {
+            return ArticleListItemDto.fromList(articles, views);
+        }
+        Long agencyId = warehouseStockService.resolveAgencyId(null);
+        Map<Long, Integer> shortages = warehouseStockService.getShortagesByArticle(agencyId);
+        return articles.stream()
+                .map(article -> {
+                    var pos = warehouseStockService.getOrBuildPositionView(agencyId, article);
+                    return ArticleListItemDto.fromEntity(
+                            article,
+                            views != null ? views.get(article.getId()) : null,
+                            agencyId,
+                            pos.getOnHandQuantity(),
+                            pos.getReservedQuantity(),
+                            shortages.getOrDefault(article.getId(), 0));
+                })
+                .toList();
+    }
+
+    private com.optimize.elykia.inventory.application.WarehouseStockService warehouseStockService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setWarehouseStockService(
+            com.optimize.elykia.inventory.application.WarehouseStockService warehouseStockService) {
+        this.warehouseStockService = warehouseStockService;
     }
 }

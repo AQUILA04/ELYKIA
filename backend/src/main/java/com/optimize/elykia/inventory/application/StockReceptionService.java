@@ -56,10 +56,16 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
     private final UserService userService;
     private final StockReceptionItemRepository stockReceptionItemRepository;
     private InventoryWarehouseGuard inventoryWarehouseGuard;
+    private WarehouseStockService warehouseStockService;
 
     @org.springframework.beans.factory.annotation.Autowired
     public void setInventoryWarehouseGuard(InventoryWarehouseGuard inventoryWarehouseGuard) {
         this.inventoryWarehouseGuard = inventoryWarehouseGuard;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setWarehouseStockService(WarehouseStockService warehouseStockService) {
+        this.warehouseStockService = warehouseStockService;
     }
 
     private void assertWarehouseStockMutable() {
@@ -509,6 +515,21 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
             article.setLastRestockDate(LocalDate.now());
             articlesService.update(article);
 
+            if (warehouseStockService != null) {
+                warehouseStockService.recordStockEntry(
+                        reception.getAgencyId(),
+                        article,
+                        quantity,
+                        unitPrice,
+                        "ENTREE",
+                        "STOCK_RECEPTION",
+                        reception.getId(),
+                        reception.getReference(),
+                        connectedUser,
+                        "Réception fournisseur " + reception.getReference(),
+                        connectedUser);
+            }
+
             double totalLinePrice = unitPrice * quantity;
             recalculatedTotal += totalLinePrice;
             if (descriptionBuilder.length() > 0) {
@@ -550,6 +571,22 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
 
             article.makeRelease(item.getQuantity());
             articlesService.update(article);
+
+            if (warehouseStockService != null) {
+                warehouseStockService.recordStockRelease(
+                        reception.getAgencyId(),
+                        article,
+                        item.getQuantity(),
+                        0,
+                        item.getUnitPrice(),
+                        "CANCEL_RECEPTION",
+                        "STOCK_RECEPTION",
+                        reception.getId(),
+                        reception.getReference(),
+                        connectedUser,
+                        "Annulation réception " + reception.getReference(),
+                        connectedUser);
+            }
         }
 
         if (reception.getTotalAmount() != null && reception.getTotalAmount() > 0) {

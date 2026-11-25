@@ -30,6 +30,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.application.CommercialStockRequestService} (retours unifiés).
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Service
 @Transactional
 public class StockTontineReturnService extends GenericService<StockTontineReturn, Long> {
@@ -41,6 +45,48 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
     private final StockMovementService stockMovementService;
     private final StockValuationFacade stockValuationFacade;
     private InventoryWarehouseGuard inventoryWarehouseGuard;
+    private com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade commercialStockRequestFacade;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setCommercialStockRequestFacade(
+            com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade commercialStockRequestFacade) {
+        this.commercialStockRequestFacade = commercialStockRequestFacade;
+    }
+
+    private void syncUnifiedReturn(StockTontineReturn stockReturn) {
+        if (commercialStockRequestFacade == null || stockReturn == null || stockReturn.getId() == null) {
+            return;
+        }
+        try {
+            List<com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade.RequestLineInput> lines =
+                    stockReturn.getItems() == null ? List.of()
+                            : stockReturn.getItems().stream()
+                            .filter(i -> i.getArticle() != null && i.getArticle().getId() != null && i.getQuantity() != null && i.getQuantity() > 0)
+                            .map(i -> new com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade.RequestLineInput(
+                                    i.getArticle().getId(),
+                                    i.getQuantity(),
+                                    i.getArticle().getSellingPrice(),
+                                    i.getArticle().getPurchasePrice()))
+                            .toList();
+            com.optimize.elykia.commercialstock.api.CommercialStockReturnStatus unifiedStatus =
+                    stockReturn.getStatus() == StockReturnStatus.RECEIVED
+                            ? com.optimize.elykia.commercialstock.api.CommercialStockReturnStatus.VALIDATED
+                            : com.optimize.elykia.commercialstock.api.CommercialStockReturnStatus.valueOf(stockReturn.getStatus().name());
+            commercialStockRequestFacade.syncLegacyReturnState(
+                    stockReturn.getId(),
+                    com.optimize.elykia.commercialstock.api.StockActivityType.TONTINE,
+                    "RET-TONTINE-" + stockReturn.getId(),
+                    stockReturn.getAgencyId(),
+                    stockReturn.getCommercialUsername(),
+                    unifiedStatus,
+                    stockReturn.getReturnDate(),
+                    stockReturn.getReceivedDate(),
+                    stockReturn.getReceivedBy(),
+                    stockReturn.getComment(),
+                    lines);
+        } catch (Exception ignored) {
+        }
+    }
 
     @org.springframework.beans.factory.annotation.Autowired
     public void setInventoryWarehouseGuard(InventoryWarehouseGuard inventoryWarehouseGuard) {
@@ -97,6 +143,7 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
             }
 
             StockTontineReturn saved = super.create(entity);
+            syncUnifiedReturn(saved != null ? saved : entity);
 
             if (isStoreKeeper) {
                 processValidationLogic(saved);
@@ -105,7 +152,9 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
 
             return saved;
         }
-        return super.create(entity);
+        StockTontineReturn saved = super.create(entity);
+        syncUnifiedReturn(saved != null ? saved : entity);
+        return saved;
     }
 
     /**
@@ -138,6 +187,7 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
 
         StockTontineReturn saved = super.create(entity);
         processValidationLogic(saved);
+        syncUnifiedReturn(saved != null ? saved : entity);
 
         if (reintegrateToWarehouse) {
             reintegrateToWarehouse(saved, actingUsername, "Réalignement prix — retour tontine ");
@@ -159,7 +209,9 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
         returnRequest.setStatus(StockReturnStatus.RECEIVED);
         returnRequest.setReceivedDate(LocalDate.now());
         returnRequest.setReceivedBy(userService.getCurrentUser().getUsername());
-        return update(returnRequest);
+        StockTontineReturn saved = update(returnRequest);
+        syncUnifiedReturn(saved != null ? saved : returnRequest);
+        return saved;
     }
 
     public void cancelReturn(Long returnId) {
@@ -180,7 +232,8 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
         returnRequest.setStatus(StockReturnStatus.CANCELLED);
         returnRequest.setCanceledDate(LocalDate.now());
         returnRequest.setCanceledBy(userService.getCurrentUser().getUsername());
-        super.update(returnRequest);
+        StockTontineReturn saved = super.update(returnRequest);
+        syncUnifiedReturn(saved != null ? saved : returnRequest);
     }
 
     public void refuseReturn(Long returnId) {
@@ -200,7 +253,8 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
         returnRequest.setStatus(StockReturnStatus.REFUSED);
         returnRequest.setCanceledDate(LocalDate.now());
         returnRequest.setCanceledBy(userService.getCurrentUser().getUsername());
-        super.update(returnRequest);
+        StockTontineReturn saved = super.update(returnRequest);
+        syncUnifiedReturn(saved != null ? saved : returnRequest);
     }
 
     private void processValidationLogic(StockTontineReturn returnRequest) {

@@ -15,5 +15,24 @@ public record StockInCommand(
         String referenceCode,
         Long tontineSessionId,
         LocalDate accountingDate,
-        String performedBy) {
+        String performedBy,
+        Long originWarehouseLotId,
+        Long originReceptionItemId) {
+
+    public StockInCommand(
+            String collector,
+            Long articleId,
+            StockActivityType activityType,
+            int quantity,
+            double unitPurchaseCost,
+            Double salePrice,
+            CommercialStockReferenceType referenceType,
+            Long referenceId,
+            String referenceCode,
+            Long tontineSessionId,
+            LocalDate accountingDate,
+            String performedBy) {
+        this(collector, articleId, activityType, quantity, unitPurchaseCost, salePrice,
+                referenceType, referenceId, referenceCode, tontineSessionId, accountingDate, performedBy, null, null);
+    }
 }

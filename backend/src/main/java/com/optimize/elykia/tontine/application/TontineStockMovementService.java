@@ -11,6 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.application.CommercialStockLedgerService}.
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Service
 @Slf4j
 public class TontineStockMovementService {

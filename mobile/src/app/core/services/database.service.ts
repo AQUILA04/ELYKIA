@@ -105,7 +105,7 @@ export class DatabaseService {
     // 2. Migrations incrémentielles (natif uniquement).
     // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
     const currentVersion = await this.db.getVersion();
-    const targetVersion = 40; // tontine session name, code and kind
+    const targetVersion = 41; // warehouse stock quantities on articles + agencyId/agencyName on users
     const dbVersion = currentVersion.version ?? 2;
     const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -190,7 +190,9 @@ export class DatabaseService {
             refreshToken TEXT,
             lastLogin DATETIME,
             isActive BOOLEAN DEFAULT 1,
-            syncHash TEXT
+            syncHash TEXT,
+            agencyId INTEGER,
+            agencyName TEXT
         );
 
         -- Table des paramètres globaux
@@ -225,6 +227,9 @@ export class DatabaseService {
             creditSalePrice REAL,
             sellingPrice REAL DEFAULT 0,
             stockQuantity INTEGER,
+            warehouseOnHandQuantity INTEGER DEFAULT 0,
+            warehouseReservedQuantity INTEGER DEFAULT 0,
+            warehouseAvailableQuantity INTEGER DEFAULT 0,
             state TEXT DEFAULT 'ENABLED',
             isSync BOOLEAN DEFAULT 0,
             lastUpdate DATETIME,
@@ -874,7 +879,8 @@ export class DatabaseService {
     }
 
     const keysToInclude = [
-      'id', 'name', 'commercialName', 'creditSalePrice', 'sellingPrice', 'stockQuantity', 'state'
+      'id', 'name', 'commercialName', 'creditSalePrice', 'sellingPrice', 'stockQuantity',
+      'warehouseOnHandQuantity', 'warehouseReservedQuantity', 'warehouseAvailableQuantity', 'state'
     ];
 
     const existingRows = await this.db.query('SELECT id, syncHash, state FROM articles');
@@ -905,7 +911,18 @@ export class DatabaseService {
       const existing = existingArticleMap.get(articleIdStr);
       const resolvedState = article.state || article.status || existing?.state || 'ENABLED';
       const sellingPrice = article.sellingPrice ?? 0;
-      const articleForHash = { ...article, id: articleIdStr, state: resolvedState, sellingPrice };
+      const warehouseOnHand = article.warehouseOnHandQuantity ?? 0;
+      const warehouseReserved = article.warehouseReservedQuantity ?? 0;
+      const warehouseAvailable = article.warehouseAvailableQuantity ?? 0;
+      const articleForHash = {
+        ...article,
+        id: articleIdStr,
+        state: resolvedState,
+        sellingPrice,
+        warehouseOnHandQuantity: warehouseOnHand,
+        warehouseReservedQuantity: warehouseReserved,
+        warehouseAvailableQuantity: warehouseAvailable
+      };
       const newHash = this.generateHash(articleForHash, keysToInclude);
       const isExisting = !!existing;
       const needsUpdate = isExisting && existing!.syncHash !== newHash;
@@ -913,7 +930,8 @@ export class DatabaseService {
       if (needsUpdate) {
         const updateParams = [
           article.name, article.commercialName, article.marque, article.model,
-          article.type, article.creditSalePrice, sellingPrice, article.stockQuantity, resolvedState,
+          article.type, article.creditSalePrice, sellingPrice, article.stockQuantity,
+          warehouseOnHand, warehouseReserved, warehouseAvailable, resolvedState,
           1, now, newHash, articleIdStr
         ];
         articlesToUpdate.push(updateParams);
@@ -922,7 +940,8 @@ export class DatabaseService {
         const insertParams = [
           articleIdStr, article.name, article.commercialName, article.marque,
           article.model, article.type, article.creditSalePrice, sellingPrice,
-          article.stockQuantity, resolvedState, 1, now, newHash
+          article.stockQuantity, warehouseOnHand, warehouseReserved, warehouseAvailable,
+          resolvedState, 1, now, newHash
         ];
         articlesToInsert.push(insertParams);
         processedIds.add(articleIdStr);
@@ -934,8 +953,9 @@ export class DatabaseService {
         const updateSet: capSQLiteSet[] = [];
         const sql = `UPDATE articles SET
                     name = ?, commercialName = ?, marque = ?, model = ?,
-                    type = ?, creditSalePrice = ?, sellingPrice = ?, stockQuantity = ?, state = ?,
-                    isSync = ?, lastUpdate = ?, syncHash = ?
+                    type = ?, creditSalePrice = ?, sellingPrice = ?, stockQuantity = ?,
+                    warehouseOnHandQuantity = ?, warehouseReservedQuantity = ?, warehouseAvailableQuantity = ?,
+                    state = ?, isSync = ?, lastUpdate = ?, syncHash = ?
                    WHERE id = ?`;
         for (const params of articlesToUpdate) {
           updateSet.push({ statement: sql, values: params });
@@ -947,8 +967,10 @@ export class DatabaseService {
         const insertSet: capSQLiteSet[] = [];
         const sql = `INSERT INTO articles (
                     id, name, commercialName, marque, model, type,
-                    creditSalePrice, sellingPrice, stockQuantity, state, isSync, lastUpdate, syncHash
-                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    creditSalePrice, sellingPrice, stockQuantity,
+                    warehouseOnHandQuantity, warehouseReservedQuantity, warehouseAvailableQuantity,
+                    state, isSync, lastUpdate, syncHash
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         for (const params of articlesToInsert) {
           insertSet.push({ statement: sql, values: params });
         }

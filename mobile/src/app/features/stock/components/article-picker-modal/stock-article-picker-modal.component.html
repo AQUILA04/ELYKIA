@@ -35,6 +35,7 @@
         <h2>{{ displayName(article) }}</h2>
         <p *ngIf="article.reference">REF: {{ article.reference }}</p>
         <p *ngIf="!article.reference">ID: {{ article.id }}</p>
+        <p class="warehouse-dispo-info">Dispo magasin : {{ article.warehouseAvailableQuantity ?? 0 }} unités</p>
       </ion-label>
     </ion-item>
   </ion-list>

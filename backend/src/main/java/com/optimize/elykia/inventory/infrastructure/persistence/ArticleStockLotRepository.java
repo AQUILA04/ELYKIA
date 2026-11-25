@@ -65,4 +65,31 @@ public interface ArticleStockLotRepository extends GenericRepository<ArticleStoc
     long countByArticleId(Long articleId);
 
     java.util.Optional<ArticleStockLot> findByStockReceptionItemId(Long stockReceptionItemId);
+
+    @Query("""
+            SELECT l FROM ArticleStockLot l
+            WHERE l.article.id = :articleId
+              AND (:agencyId IS NULL OR l.agencyId = :agencyId OR l.agencyId IS NULL)
+              AND l.status = :status
+              AND l.quantityRemaining > 0
+            ORDER BY l.entryDate ASC, l.id ASC
+            """)
+    List<ArticleStockLot> findOpenLotsForArticleAndAgencyOrderByFifo(
+            @Param("articleId") Long articleId,
+            @Param("agencyId") Long agencyId,
+            @Param("status") ArticleStockLotStatus status);
+
+    List<ArticleStockLot> findByParentLotIdOrderByIdAsc(Long parentLotId);
+
+    List<ArticleStockLot> findByArticleIdOrderByEntryDateDescIdDesc(Long articleId);
+
+    @Query("""
+            SELECT l FROM ArticleStockLot l
+            WHERE (:agencyId IS NULL OR l.agencyId = :agencyId)
+              AND (:articleId IS NULL OR l.article.id = :articleId)
+            ORDER BY l.entryDate DESC, l.id DESC
+            """)
+    List<ArticleStockLot> findLotsByAgencyAndArticle(
+            @Param("agencyId") Long agencyId,
+            @Param("articleId") Long articleId);
 }

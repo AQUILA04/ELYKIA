@@ -11,7 +11,7 @@ Le menu peut notamment donner accès au **Dashboard**, aux **Clients**, aux **Co
 | Priorité | Où intervenir | Finalité |
 |---|---|---|
 | Démarrer et contrôler l’activité | Caisse, Clients, Ventes | Sécuriser les opérations du jour et les portefeuilles. |
-| Garantir la disponibilité des articles | Articles, Inventaires, Stock Commercial | Suivre les réceptions, sorties, retours et écarts. |
+| Garantir la disponibilité des articles | Articles, Inventaires, Stock Commercial, Traçabilité des Lots, Transferts Inter-Agences | Suivre par agence le stock physique (**En stock**), les engagements (**Réservé**) et le disponible (**Disponible**), éditer le **Bon de Commande Fournisseur (PDF)**, tracer la liquidation de chaque lot et piloter les transferts inter-agences. |
 | Suivre et régler les dettes | Dettes, Stock mensuel, Rapport journalier, Inventaires | Constituer les dettes marchandise / caisse / inventaire et enregistrer les règlements. |
 | Contrôler l’argent et la performance | Rapport Journalier, Dépenses | Lire les indicateurs, les versements et les remises. |
 | Suivre l’espace client | Inscriptions clients | Valider les inscriptions de l’espace client. |
@@ -19,7 +19,7 @@ Le menu peut notamment donner accès au **Dashboard**, aux **Clients**, aux **Co
 
 ## Règles de travail
 
-La gestion d’une opération doit toujours suivre son statut. Une demande de sortie créée n’est pas encore livrable ; une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.
+La gestion d’une opération doit toujours suivre son statut. Dès qu’une demande de sortie est **Validée**, sa quantité est réservée au magasin de l’agence (et un éventuel manquant est automatiquement alloué en FIFO à la prochaine réception) ; en cas de livraison partielle, une demande reliquat enfant est créée automatiquement au statut **Validée**. Une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.
 
 Consultez les pages suivantes selon la tâche à accomplir :
 

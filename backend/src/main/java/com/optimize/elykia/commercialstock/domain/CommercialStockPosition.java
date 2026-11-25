@@ -114,6 +114,14 @@ public class CommercialStockPosition {
     public CommercialStockLayer receive(int quantity, double unitPurchaseCost, Double salePrice,
                                         CommercialStockLayerSourceType sourceType, Long sourceId,
                                         LocalDateTime acquiredAt) {
+        return receive(quantity, unitPurchaseCost, salePrice, sourceType, sourceId, null, null, acquiredAt);
+    }
+
+    /** Ajoute une couche FIFO avec traçabilité du lot magasin d'origine. */
+    public CommercialStockLayer receive(int quantity, double unitPurchaseCost, Double salePrice,
+                                        CommercialStockLayerSourceType sourceType, Long sourceId,
+                                        Long originWarehouseLotId, Long originReceptionItemId,
+                                        LocalDateTime acquiredAt) {
         requirePositive(quantity);
         if (unitPurchaseCost < 0) {
             throw new IllegalArgumentException("Le coût d'achat ne peut pas être négatif.");
@@ -127,6 +135,8 @@ public class CommercialStockPosition {
         layer.setEffectiveSalePrice(salePrice);
         layer.setSourceType(sourceType);
         layer.setSourceId(sourceId);
+        layer.setOriginWarehouseLotId(originWarehouseLotId);
+        layer.setOriginReceptionItemId(originReceptionItemId);
         layer.setAcquiredAt(acquiredAt != null ? acquiredAt : nowUtc());
         layers.add(layer);
         refreshCache();

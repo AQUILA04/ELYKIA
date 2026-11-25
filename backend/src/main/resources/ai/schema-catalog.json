@@ -3642,6 +3642,533 @@
           "refColumn": "useid"
         }
       ]
+    },
+    {
+      "name": "warehouse_stock_position",
+      "description": "Position courante du stock magasin par agence et par article (En stock physique, Réservé, Disponible, Manquant)",
+      "synonyms": [
+        "stock magasin",
+        "stock entrepôt",
+        "stock agence",
+        "disponible magasin",
+        "stock réservé"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Identifiant de l'agence (FK agency.id)"
+        },
+        {
+          "name": "article_id",
+          "type": "bigint",
+          "description": "Identifiant de l'article (FK articles.id)"
+        },
+        {
+          "name": "on_hand_quantity",
+          "type": "integer",
+          "description": "Quantité physique réellement en stock au magasin de l'agence (En stock)"
+        },
+        {
+          "name": "reserved_quantity",
+          "type": "integer",
+          "description": "Quantité réservée par des demandes validées ou ventes comptant en attente de retrait (Réservé)"
+        },
+        {
+          "name": "available_quantity",
+          "type": "integer",
+          "description": "Quantité disponible libre = GREATEST(0, on_hand_quantity - reserved_quantity) (Disponible)"
+        },
+        {
+          "name": "shortage_quantity",
+          "type": "integer",
+          "description": "Manquant réservé en attente d'approvisionnement (Option A : réservé > en stock)"
+        }
+      ],
+      "relations": [
+        {
+          "column": "agency_id",
+          "refTable": "agency",
+          "refColumn": "id"
+        },
+        {
+          "column": "article_id",
+          "refTable": "articles",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "warehouse_stock_reservation",
+      "description": "Réservation de stock magasin par agence et article (Option A : allocation FIFO automatique au réapprovisionnement)",
+      "synonyms": [
+        "réservation magasin",
+        "stock réservé",
+        "reliquat réservé"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Agence"
+        },
+        {
+          "name": "article_id",
+          "type": "bigint",
+          "description": "Article"
+        },
+        {
+          "name": "reservation_type",
+          "type": "varchar",
+          "description": "COMMERCIAL_REQUEST, TONTINE_REQUEST, CASH_SALE_PENDING_DELIVERY, INTER_AGENCY_TRANSFER"
+        },
+        {
+          "name": "source_reference_type",
+          "type": "varchar",
+          "description": "Type d'entité source"
+        },
+        {
+          "name": "source_reference_id",
+          "type": "bigint",
+          "description": "ID de l'entité source"
+        },
+        {
+          "name": "commercial_username",
+          "type": "varchar",
+          "description": "Commercial bénéficiaire (si applicable)"
+        },
+        {
+          "name": "reserved_quantity",
+          "type": "integer",
+          "description": "Quantité réservée initiale"
+        },
+        {
+          "name": "allocated_quantity",
+          "type": "integer",
+          "description": "Quantité physiquement couverte par le stock en main"
+        },
+        {
+          "name": "delivered_quantity",
+          "type": "integer",
+          "description": "Quantité déjà livrée"
+        },
+        {
+          "name": "remaining_quantity",
+          "type": "integer",
+          "description": "Quantité restant à livrer"
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "description": "ACTIVE, PARTIALLY_FULFILLED, FULFILLED, RELEASED"
+        }
+      ],
+      "relations": [
+        {
+          "column": "agency_id",
+          "refTable": "agency",
+          "refColumn": "id"
+        },
+        {
+          "column": "article_id",
+          "refTable": "articles",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "warehouse_stock_ledger_entry",
+      "description": "Grand-livre immuable (append-only) de tous les mouvements physiques et réservations du stock magasin par agence",
+      "synonyms": [
+        "journal stock magasin",
+        "grand-livre magasin",
+        "mouvement magasin"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Agence"
+        },
+        {
+          "name": "article_id",
+          "type": "bigint",
+          "description": "Article"
+        },
+        {
+          "name": "lot_id",
+          "type": "bigint",
+          "description": "Lot FIFO article_stock_lot concerné"
+        },
+        {
+          "name": "movement_type",
+          "type": "varchar",
+          "description": "RECEPTION_IN, RESERVATION_HOLD, RESERVATION_RELEASE, COMMERCIAL_DELIVERY_OUT, COMMERCIAL_RETURN_IN, CASH_SALE_DELIVERY_OUT, TRANSFER_OUT, TRANSFER_IN, INVENTORY_SURPLUS_IN, INVENTORY_SHORTAGE_OUT, MANUAL_ADJUSTMENT"
+        },
+        {
+          "name": "quantity_delta",
+          "type": "integer",
+          "description": "Variation signée du stock physique en main"
+        },
+        {
+          "name": "reserved_delta",
+          "type": "integer",
+          "description": "Variation signée du stock réservé"
+        },
+        {
+          "name": "balance_on_hand_after",
+          "type": "integer",
+          "description": "Solde physique après mouvement"
+        },
+        {
+          "name": "balance_reserved_after",
+          "type": "integer",
+          "description": "Solde réservé après mouvement"
+        },
+        {
+          "name": "unit_cost",
+          "type": "double",
+          "description": "Coût unitaire d'achat du lot"
+        },
+        {
+          "name": "commercial_username",
+          "type": "varchar",
+          "description": "Commercial associé (sortie/retour)"
+        },
+        {
+          "name": "occurred_at",
+          "type": "timestamp",
+          "description": "Date/heure du mouvement"
+        },
+        {
+          "name": "accounting_date",
+          "type": "date",
+          "description": "Date comptable"
+        }
+      ],
+      "relations": [
+        {
+          "column": "agency_id",
+          "refTable": "agency",
+          "refColumn": "id"
+        },
+        {
+          "column": "article_id",
+          "refTable": "articles",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "warehouse_stock_transfer",
+      "description": "Bon de transfert de stock inter-agences en 2 étapes (expédition source -> réception destination) avec conservation FIFO",
+      "synonyms": [
+        "transfert inter-agences",
+        "transfert magasin",
+        "mutation stock"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "reference",
+          "type": "varchar",
+          "description": "Référence unique du transfert (ex: TRF-...)"
+        },
+        {
+          "name": "source_agency_id",
+          "type": "bigint",
+          "description": "Agence expéditrice"
+        },
+        {
+          "name": "destination_agency_id",
+          "type": "bigint",
+          "description": "Agence destinataire"
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "description": "DRAFT, VALIDATED, IN_TRANSIT, RECEIVED, CANCELLED"
+        },
+        {
+          "name": "shipped_at",
+          "type": "timestamp",
+          "description": "Date d'expédition"
+        },
+        {
+          "name": "received_at",
+          "type": "timestamp",
+          "description": "Date de réception"
+        }
+      ],
+      "relations": [
+        {
+          "column": "source_agency_id",
+          "refTable": "agency",
+          "refColumn": "id"
+        },
+        {
+          "column": "destination_agency_id",
+          "refTable": "agency",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "warehouse_stock_transfer_item",
+      "description": "Ligne d'article d'un transfert de stock inter-agences",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "transfer_id",
+          "type": "bigint",
+          "description": "FK warehouse_stock_transfer"
+        },
+        {
+          "name": "article_id",
+          "type": "bigint",
+          "description": "FK articles"
+        },
+        {
+          "name": "requested_quantity",
+          "type": "integer",
+          "description": "Quantité demandée"
+        },
+        {
+          "name": "shipped_quantity",
+          "type": "integer",
+          "description": "Quantité expédiée"
+        },
+        {
+          "name": "received_quantity",
+          "type": "integer",
+          "description": "Quantité reçue"
+        }
+      ],
+      "relations": [
+        {
+          "column": "transfer_id",
+          "refTable": "warehouse_stock_transfer",
+          "refColumn": "id"
+        },
+        {
+          "column": "article_id",
+          "refTable": "articles",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "commercial_stock_request",
+      "description": "Demande de sortie de stock commercial unifiée (remplace stock_request et stock_tontine_request) avec support de livraison partielle et reliquat automatique (parent_request_id)",
+      "synonyms": [
+        "demande sortie stock",
+        "demande stock commercial",
+        "reliquat sortie"
+      ],
+      "rowLevelFilter": "commercial_username",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "reference",
+          "type": "varchar",
+          "description": "Référence de la demande"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Agence du magasin"
+        },
+        {
+          "name": "commercial_username",
+          "type": "varchar",
+          "description": "Commercial demandeur"
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "description": "CREATED, VALIDATED, PARTIALLY_DELIVERED, DELIVERED, CANCELLED"
+        },
+        {
+          "name": "parent_request_id",
+          "type": "bigint",
+          "description": "Demande parente si cette demande est un reliquat généré après livraison partielle"
+        },
+        {
+          "name": "legacy_source_type",
+          "type": "varchar",
+          "description": "CREDIT_STOCK_REQUEST ou TONTINE_STOCK_REQUEST (compatibilité)"
+        },
+        {
+          "name": "validated_at",
+          "type": "timestamp",
+          "description": "Date de validation (déclenche la réservation magasin)"
+        },
+        {
+          "name": "delivered_at",
+          "type": "timestamp",
+          "description": "Date de livraison physique"
+        }
+      ],
+      "relations": [
+        {
+          "column": "agency_id",
+          "refTable": "agency",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "commercial_stock_request_item",
+      "description": "Ligne d'article d'une demande de sortie commercial_stock_request",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "request_id",
+          "type": "bigint",
+          "description": "FK commercial_stock_request"
+        },
+        {
+          "name": "article_id",
+          "type": "bigint",
+          "description": "FK articles"
+        },
+        {
+          "name": "requested_quantity",
+          "type": "integer",
+          "description": "Quantité demandée"
+        },
+        {
+          "name": "validated_quantity",
+          "type": "integer",
+          "description": "Quantité validée et réservée"
+        },
+        {
+          "name": "delivered_quantity",
+          "type": "integer",
+          "description": "Quantité effectivement livrée"
+        },
+        {
+          "name": "remaining_quantity",
+          "type": "integer",
+          "description": "Reliquat non livré"
+        },
+        {
+          "name": "unit_price",
+          "type": "double",
+          "description": "Prix unitaire"
+        }
+      ],
+      "relations": [
+        {
+          "column": "request_id",
+          "refTable": "commercial_stock_request",
+          "refColumn": "id"
+        },
+        {
+          "column": "article_id",
+          "refTable": "articles",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "commercial_stock_return",
+      "description": "Retour de stock commercial unifié vers le magasin de l'agence (remplace stock_return et stock_tontine_return)",
+      "rowLevelFilter": "commercial_username",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "reference",
+          "type": "varchar",
+          "description": "Référence du retour"
+        },
+        {
+          "name": "agency_id",
+          "type": "bigint",
+          "description": "Agence de réception"
+        },
+        {
+          "name": "commercial_username",
+          "type": "varchar",
+          "description": "Commercial"
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "description": "CREATED, RECEIVED, REJECTED, CANCELLED"
+        },
+        {
+          "name": "received_at",
+          "type": "timestamp",
+          "description": "Date de réception en magasin"
+        }
+      ]
+    },
+    {
+      "name": "commercial_stock_return_item",
+      "description": "Ligne d'article d'un retour commercial_stock_return",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "return_id",
+          "type": "bigint",
+          "description": "FK commercial_stock_return"
+        },
+        {
+          "name": "article_id",
+          "type": "bigint",
+          "description": "FK articles"
+        },
+        {
+          "name": "quantity",
+          "type": "integer",
+          "description": "Quantité retournée"
+        },
+        {
+          "name": "origin_warehouse_lot_id",
+          "type": "bigint",
+          "description": "Lot magasin FIFO d'origine réintégré"
+        }
+      ]
     }
   ],
   "views": [
@@ -3658,10 +4185,11 @@
     "quantity_remaining = quantity_taken - quantity_sold - quantity_returned - quantity_debt sur commercial_monthly_stock_item",
     "Dettes unifiées = debt_document (MERCHANDISE, CASH_SHORTAGE, CASH_SURPLUS, INVENTORY_SHORTAGE) + debt_line + debt_settlement / debt_allocation",
     "Valeur due stock mensuel = valeur vendue + valeur dette (quantity_debt * debt_unit_price) + valeur restante",
-    "Demande sortie magasin = stock_request + stock_request_item ; livraison effective quand status = DELIVERED",
-    "Retour terrain = stock_return + stock_return_item vers commercial_monthly_stock",
-    "Mouvements terrain détaillés = commercial_stock_movement lié à stock_item_id et optionnellement credit_id",
-    "Stock magasin central = articles.stock_quantity ; historique = article_history (ENTREE/SORTIE/RETURN)",
+    "Demande sortie magasin = commercial_stock_request + commercial_stock_request_item (unifié) ou legacy stock_request ; livraison effective quand status = DELIVERED ou PARTIALLY_DELIVERED",
+    "Retour terrain = commercial_stock_return + commercial_stock_return_item (unifié) ou legacy stock_return",
+    "Mouvements terrain détaillés = commercial_stock_ledger_entry (continu) ou legacy commercial_stock_movement",
+    "Stock magasin multi-agences = warehouse_stock_position (agency_id, article_id, on_hand_quantity = En stock, reserved_quantity = Réservé, available_quantity = Disponible, shortage_quantity = Manquant réservé) ; journal immuable = warehouse_stock_ledger_entry ; réservations = warehouse_stock_reservation ; transferts inter-agences = warehouse_stock_transfer. Les colonnes globales articles.stock_quantity et articles.reserved_quantity sont synchronisées pour rétrocompatibilité mais dépréciées (@Deprecated 2.16.0).",
+    "Traçabilité de bout en bout des lots (article_stock_lot) : chaque lot est rattaché à agency_id et possède un lot_code (et parent_lot_id lors d'un transfert inter-agences). Lors d'une livraison magasin à un commercial, commercial_stock_layer.origin_warehouse_lot_id conserve l'ID du lot magasin d'origine pour suivre quelles quantités du lot ont été livrées à quels commerciaux, vendues aux clients ou retournées.",
     "Versements caisse = cash_deposit lié à daily_commercial_report via daily_report_id",
     "Pour filtrer stock commercial d'un user PROMOTER : utiliser collector ou commercial_username selon la table",
     "Qui utilisait un compte commercial à une date : commercial_account_assignment joint à promoter. user_id identifie le compte ; le username COM des ventes reste collector ou commercial_username.",

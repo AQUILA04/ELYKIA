@@ -47,7 +47,7 @@
               <ion-select-option
                 *ngFor="let article of availableArticles"
                 [value]="article.id">
-                {{ article.name }}
+                {{ article.name }} (Dispo magasin : {{ article.warehouseAvailableQuantity ?? 0 }})
               </ion-select-option>
             </ion-select>
           </ion-item>

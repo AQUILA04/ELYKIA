@@ -58,13 +58,53 @@ public class Articles extends Auditable<String> {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String displayPhotoUrl;
 
+    /**
+     * @deprecated Utiliser {@link WarehouseStockPosition} pour le stock magasin par agence.
+     */
+    @Deprecated(since = "2.16.0", forRemoval = true)
     @PositiveOrZero
     private Integer stockQuantity = 0;
 
-    /** Quantité encore en rayon, déjà promise à une vente comptant non livrée. */
+    /**
+     * Quantité encore en rayon, déjà promise à une vente comptant non livrée.
+     * @deprecated Utiliser {@link WarehouseStockPosition} et {@link WarehouseStockReservation}.
+     */
+    @Deprecated(since = "2.16.0", forRemoval = true)
     @PositiveOrZero
     @Column(name = "reserved_quantity", nullable = false, columnDefinition = "integer default 0")
     private Integer reservedQuantity = 0;
+
+    /**
+     * @deprecated Utiliser {@link WarehouseStockPosition#getOnHandQuantity()}.
+     */
+    @Deprecated(since = "2.16.0", forRemoval = true)
+    public Integer getStockQuantity() {
+        return stockQuantity;
+    }
+
+    /**
+     * @deprecated Utiliser {@link WarehouseStockPosition#setOnHandQuantity(Integer)}.
+     */
+    @Deprecated(since = "2.16.0", forRemoval = true)
+    public void setStockQuantity(Integer stockQuantity) {
+        this.stockQuantity = stockQuantity;
+    }
+
+    /**
+     * @deprecated Utiliser {@link WarehouseStockPosition#getReservedQuantity()}.
+     */
+    @Deprecated(since = "2.16.0", forRemoval = true)
+    public Integer getReservedQuantity() {
+        return reservedQuantity;
+    }
+
+    /**
+     * @deprecated Utiliser {@link WarehouseStockPosition#setReservedQuantity(Integer)}.
+     */
+    @Deprecated(since = "2.16.0", forRemoval = true)
+    public void setReservedQuantity(Integer reservedQuantity) {
+        this.reservedQuantity = reservedQuantity;
+    }
 
     // ===== NOUVEAUX CHAMPS POUR BI DASHBOARD =====
     @PositiveOrZero
@@ -117,25 +157,35 @@ public class Articles extends Auditable<String> {
         this.id = articleId;
     }
 
+    /** @deprecated Utiliser {@link WarehouseStockPosition#addOnHand(int)}. */
+    @Deprecated(since = "2.16.0", forRemoval = true)
     public void makeEntry(Integer newQuantity) {
-        this.stockQuantity += newQuantity;
+        this.stockQuantity = (this.stockQuantity != null ? this.stockQuantity : 0) + newQuantity;
     }
 
+    /** @deprecated Utiliser {@link WarehouseStockPosition#deductOnHand(int)}. */
+    @Deprecated(since = "2.16.0", forRemoval = true)
     public void makeRelease(Integer newQuantity) {
-        this.stockQuantity -= newQuantity;
+        this.stockQuantity = (this.stockQuantity != null ? this.stockQuantity : 0) - newQuantity;
     }
 
+    /** @deprecated Utiliser {@link WarehouseStockPosition#availableQuantity()}. */
+    @Deprecated(since = "2.16.0", forRemoval = true)
     public int availableQuantity() {
         int stock = stockQuantity == null ? 0 : stockQuantity;
         int reserved = reservedQuantity == null ? 0 : reservedQuantity;
         return Math.max(0, stock - reserved);
     }
 
+    /** @deprecated Utiliser {@link WarehouseStockPosition#reserveAvailableUpTo(int)}. */
+    @Deprecated(since = "2.16.0", forRemoval = true)
     public void addReservation(int quantity) {
         int current = reservedQuantity == null ? 0 : reservedQuantity;
         this.reservedQuantity = current + Math.max(quantity, 0);
     }
 
+    /** @deprecated Utiliser {@link WarehouseStockPosition#releaseReserved(int)}. */
+    @Deprecated(since = "2.16.0", forRemoval = true)
     public void releaseReservation(int quantity) {
         int current = reservedQuantity == null ? 0 : reservedQuantity;
         this.reservedQuantity = Math.max(0, current - Math.max(quantity, 0));

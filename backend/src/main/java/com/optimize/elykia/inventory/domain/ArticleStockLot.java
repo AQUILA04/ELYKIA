@@ -21,6 +21,15 @@ public class ArticleStockLot extends Auditable<String> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "agency_id")
+    private Long agencyId;
+
+    @Column(name = "lot_code", length = 100)
+    private String lotCode;
+
+    @Column(name = "parent_lot_id")
+    private Long parentLotId;
+
     @ManyToOne(optional = false)
     @JoinColumn(name = "article_id", nullable = false)
     private Articles article;

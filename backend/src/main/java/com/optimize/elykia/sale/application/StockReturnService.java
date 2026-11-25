@@ -41,6 +41,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.application.CommercialStockRequestService} (retours unifiés).
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Service
 @Transactional
 public class StockReturnService extends GenericService<StockReturn, Long> {
@@ -56,6 +60,48 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     private BusinessMetricsPublisher metricsPublisher;
     private DebtDocumentRepository debtDocumentRepository;
     private InventoryWarehouseGuard inventoryWarehouseGuard;
+    private com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade commercialStockRequestFacade;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setCommercialStockRequestFacade(
+            com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade commercialStockRequestFacade) {
+        this.commercialStockRequestFacade = commercialStockRequestFacade;
+    }
+
+    private void syncUnifiedReturn(StockReturn stockReturn) {
+        if (commercialStockRequestFacade == null || stockReturn == null || stockReturn.getId() == null) {
+            return;
+        }
+        try {
+            List<com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade.RequestLineInput> lines =
+                    stockReturn.getItems() == null ? List.of()
+                            : stockReturn.getItems().stream()
+                            .filter(i -> i.getArticle() != null && i.getArticle().getId() != null && i.getQuantity() != null && i.getQuantity() > 0)
+                            .map(i -> new com.optimize.elykia.commercialstock.api.CommercialStockRequestFacade.RequestLineInput(
+                                    i.getArticle().getId(),
+                                    i.getQuantity(),
+                                    i.getUnitPrice(),
+                                    i.getArticle().getPurchasePrice()))
+                            .toList();
+            com.optimize.elykia.commercialstock.api.CommercialStockReturnStatus unifiedStatus =
+                    stockReturn.getStatus() == StockReturnStatus.RECEIVED
+                            ? com.optimize.elykia.commercialstock.api.CommercialStockReturnStatus.VALIDATED
+                            : com.optimize.elykia.commercialstock.api.CommercialStockReturnStatus.valueOf(stockReturn.getStatus().name());
+            commercialStockRequestFacade.syncLegacyReturnState(
+                    stockReturn.getId(),
+                    com.optimize.elykia.commercialstock.api.StockActivityType.CREDIT,
+                    stockReturn.getReference(),
+                    stockReturn.getAgencyId(),
+                    stockReturn.getCommercialUsername(),
+                    unifiedStatus,
+                    stockReturn.getReturnDate(),
+                    stockReturn.getReceivedDate(),
+                    null,
+                    stockReturn.getNote(),
+                    lines);
+        } catch (Exception ignored) {
+        }
+    }
 
     @org.springframework.beans.factory.annotation.Autowired
     public void setInventoryWarehouseGuard(InventoryWarehouseGuard inventoryWarehouseGuard) {
@@ -126,6 +172,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
             }
         }
         repository.save(stockReturn);
+        syncUnifiedReturn(stockReturn);
         if (metricsPublisher != null) {
             metricsPublisher.stockReturnCreated(stockReturn.getCollector());
         }
@@ -157,6 +204,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         stockReturn.addItem(item);
 
         repository.save(stockReturn);
+        syncUnifiedReturn(stockReturn);
         if (metricsPublisher != null) {
             metricsPublisher.stockReturnCreated(collector);
         }
@@ -185,6 +233,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
 
         stockReturn.setStatus(StockReturnStatus.RECEIVED);
         StockReturn saved = repository.save(stockReturn);
+        syncUnifiedReturn(saved);
         if (metricsPublisher != null) {
             metricsPublisher.stockReturnProcessed(stockReturn.getCollector());
         }
@@ -225,7 +274,8 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         }
 
         returnRequest.setStatus(StockReturnStatus.CANCELLED);
-        repository.save(returnRequest);
+        StockReturn saved = repository.save(returnRequest);
+        syncUnifiedReturn(saved);
     }
 
     public void refuseReturn(Long returnId) {
@@ -243,7 +293,8 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         }
 
         returnRequest.setStatus(StockReturnStatus.REFUSED);
-        repository.save(returnRequest);
+        StockReturn saved = repository.save(returnRequest);
+        syncUnifiedReturn(saved);
     }
 
     private double updateCommercialMonthlyStock(StockReturn stockReturn) {

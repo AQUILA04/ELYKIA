@@ -52,7 +52,7 @@ public class LegacyStockShadowSync {
             case STOCK_IN -> facade.stockIn(new StockInCommand(event.collector(), event.articleId(),
                     event.activityType(), event.quantity(), event.unitPurchaseCost() != null ? event.unitPurchaseCost() : 0d,
                     event.unitSalePrice(), event.referenceType(), event.referenceId(), event.referenceCode(),
-                    event.tontineSessionId(), event.accountingDate(), actor));
+                    event.tontineSessionId(), event.accountingDate(), actor, event.originWarehouseLotId(), null));
             case SALE -> facade.consume(consume(event, saleType(event.activityType()), actor));
             case RETURN -> facade.consume(consume(event, CommercialStockMovementType.RETURN, actor));
             case SALE_CANCELLATION -> {

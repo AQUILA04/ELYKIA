@@ -10,6 +10,10 @@ import lombok.Setter;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.domain.CommercialStockPosition} (activité {@code CREDIT}).
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Entity
 @Getter
 @Setter

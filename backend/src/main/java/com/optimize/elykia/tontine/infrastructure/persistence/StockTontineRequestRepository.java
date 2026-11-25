@@ -16,6 +16,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.infrastructure.persistence.CommercialStockRequestRepository}.
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 public interface StockTontineRequestRepository extends GenericRepository<StockTontineRequest, Long> {
     List<StockTontineRequest> findByCollector(String collector);
 

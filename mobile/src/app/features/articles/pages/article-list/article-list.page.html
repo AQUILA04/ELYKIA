@@ -62,6 +62,12 @@
           <p *ngIf="activeSegment === 'stock'" class="stock-info">
             Stock disponible: {{ article.stockQuantity }} unités
           </p>
+          <p *ngIf="activeSegment === 'catalogue'" class="stock-info warehouse-dispo-badge">
+            Dispo magasin : {{ article.warehouseAvailableQuantity ?? 0 }} unités
+            <span *ngIf="(article.warehouseReservedQuantity ?? 0) > 0">
+              (Réservé : {{ article.warehouseReservedQuantity }})
+            </span>
+          </p>
           <span class="unit-price elyk-amount" *appIfUnitPrice>{{ article.creditSalePrice | number:'1.0-0' }} FCFA</span>
         </div>
       </ion-card-content>

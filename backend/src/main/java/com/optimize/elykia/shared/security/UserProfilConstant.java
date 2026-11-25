@@ -9,6 +9,7 @@ public class UserProfilConstant {
     public static final String ADMIN = "ADMIN";
     public static final String PROMOTER = "PROMOTER";
     public static final String MAGASINIER = "STOREKEEPER";
+    public static final String STOREKEEPER_MANAGER = "STOREKEEPER_MANAGER";
     public static final String SECRETARY = "SECRETARY";
     public static final String GESTIONNAIRE = "GESTIONNAIRE";
     public static final String CASHIER = "CASHIER";

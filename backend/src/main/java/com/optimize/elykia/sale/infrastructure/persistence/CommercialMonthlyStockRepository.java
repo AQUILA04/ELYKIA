@@ -13,6 +13,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.infrastructure.persistence.CommercialStockPositionRepository}.
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 public interface CommercialMonthlyStockRepository extends GenericRepository<CommercialMonthlyStock, Long> {
     Optional<CommercialMonthlyStock> findByCollectorAndMonthAndYear(String collector, Integer month, Integer year);
 

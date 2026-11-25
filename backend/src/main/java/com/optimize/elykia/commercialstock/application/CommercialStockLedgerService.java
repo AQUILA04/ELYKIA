@@ -74,7 +74,8 @@ public class CommercialStockLedgerService implements CommercialStockFacade {
         CommercialStockPosition position = lockOrCreate(command.collector(), command.articleId(), command.activityType());
         int before = position.getQuantityOnHand();
         CommercialStockLayer layer = position.receive(command.quantity(), command.unitPurchaseCost(), command.salePrice(),
-                CommercialStockLayerSourceType.STOCK_REQUEST, command.referenceId(), null);
+                CommercialStockLayerSourceType.STOCK_REQUEST, command.referenceId(),
+                command.originWarehouseLotId(), command.originReceptionItemId(), null);
         positionRepository.saveAndFlush(position);
 
         CommercialStockLedgerEntry movement = baseMovement(position, CommercialStockMovementType.STOCK_IN, command.quantity(),
@@ -244,7 +245,9 @@ public class CommercialStockLedgerService implements CommercialStockFacade {
         for (ConsumptionLine line : plan.lines()) {
             Double price = targetSalePrice != null ? targetSalePrice : line.unitSalePrice();
             target.receive(line.quantity(), line.unitPurchaseCost(), price,
-                    CommercialStockLayerSourceType.ACTIVITY_TRANSFER, out.getId(), line.layer().getAcquiredAt());
+                    CommercialStockLayerSourceType.ACTIVITY_TRANSFER, out.getId(),
+                    line.layer().getOriginWarehouseLotId(), line.layer().getOriginReceptionItemId(),
+                    line.layer().getAcquiredAt());
         }
         positionRepository.saveAndFlush(target);
         CommercialStockLedgerEntry in = baseMovement(target, CommercialStockMovementType.ACTIVITY_TRANSFER_IN, quantity,

@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-25 (refonte DDD du stock magasin multi-agences, traçabilité des lots & bon de commande fournisseur)
+
+### Changed
+
+- **Guide utilisateur & RAG (`user-guide/docs/storekeeper/index.md`, `user-guide/docs/storekeeper/articles.md`, `user-guide/docs/storekeeper/stock_commercial.md`, `user-guide/docs/manager/index.md`, `backend/src/main/resources/ai/user-guide-index.json`) —** documentation des 3 compteurs magasin par agence (**En stock / Réservé / Disponible**), du profil global **Responsable Magasinier (`STOREKEEPER_MANAGER`)**, de la réservation à la validation avec livraison partielle et création automatique d'une demande reliquat, du **Bon de Commande Fournisseur (PDF)**, de la **Traçabilité & Liquidation des Lots** (`/stock/lot-traceability`) et des **Transferts Inter-Agences** (`/stock/transfers`) ; régénération de l'index RAG (362 chunks).
+- **Catalogue IA (`backend/src/main/resources/ai/schema-catalog.json`) —** ajout des tables `warehouse_stock_position`, `warehouse_stock_reservation`, `warehouse_stock_ledger_entry`, `warehouse_stock_transfer`, `warehouse_stock_transfer_item`, `commercial_stock_request`, `commercial_stock_request_item`, `commercial_stock_return`, `commercial_stock_return_item` et des règles métier de traçabilité des lots FIFO.
+
 ## Docs & Infra — 2026-11-24 (adaptation DDD multi-agences PR #113 & multi-sessions Tontine PR #184)
 
 ### Changed
@@ -217,6 +224,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [3.5.0] — 2026-11-25
+
+### Added
+
+- **Stock magasin multi-agences & Bon de Commande Fournisseur (`@features/article`, `@features/stock`) —** ventilation du stock magasin par agence en 3 colonnes dans la liste des articles (**En stock**, **Réservé** avec badge de manquant réservé, **Disponible**), bouton **« Bon de Commande Fournisseur »** téléchargeant le PDF officiel Navy Elykia (`/api/v2/warehouse-stocks/restock-order/pdf`), et prise en charge du profil global `UserProfile.STOREKEEPER_MANAGER` (`Responsable Magasinier`) dans la navigation et les permissions de livraison/annulation de demandes de sortie.
+- **Traçabilité & Liquidation des Lots (`/stock/lot-traceability`) —** composant standalone lazy-loaded `WarehouseLotTraceabilityComponent` affichant pour chaque lot FIFO son agence, sa source (`RECEPTION`, `INTER_AGENCY_TRANSFER`, `COMMERCIAL_RETURN`), les quantités restantes en magasin, transférées inter-agences, dotées aux commerciaux, vendues/livrées aux clients, le statut de liquidation (`En cours` / `100 % Liquidé`) et une modale de détail nominatif par commercial.
+- **Transferts Inter-Agences (`/stock/transfers`) —** composant standalone lazy-loaded `WarehouseTransferListComponent` permettant de créer un bon de transfert inter-agences, d'expédier les lots FIFO depuis l'agence source (`IN_TRANSIT`), de réceptionner la marchandise à l'agence de destination (`RECEIVED`) ou d'annuler un transfert.
 
 ## Frontend — [3.4.0] — 2026-11-24
 
@@ -666,6 +681,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [3.2.0] — 2026-11-25
+
+### Added
+
+- **Disponibilité magasin par agence (local-first SQLite v41) —** migration SQLite `v41` ajoutant `warehouseOnHandQuantity`, `warehouseReservedQuantity` et `warehouseAvailableQuantity` sur `articles` ainsi que `agencyId` et `agencyName` sur `users`. `ArticleService.initializeArticles()`, `ArticleRepository.saveAll()` et `DatabaseService.saveArticles()` persistent les quantités magasin de l'agence du commercial tout en préservant strictement `stockQuantity` (initialisé à `0` au seed) pour le stock terrain local du commercial.
+- **Affichage `Dispo magasin` Catalogue & Demandes de sortie —** affichage du badge `Dispo magasin : X unités` (et du réservé éventuel) dans l'onglet **Catalogue** (`article-list.page.html`), dans la modale de sélection d'articles (`stock-article-picker-modal.component.html`) et dans le formulaire de demande de sortie (`stock-request-form.component.html`).
+
 ## Mobile — [3.1.0] — 2026-11-24
 
 ### Added
@@ -979,6 +1001,19 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [2.16.0] — 2026-11-25
+
+### Added
+
+- **Refonte DDD du Stock Magasin Multi-Agences, Réservations & Transferts Inter-Agences (`V054__warehouse_stock_multi_agency_and_lot_traceability.sql`) :**
+  - **Profil `STOREKEEPER_MANAGER` & permissions —** nouveau profil global `STOREKEEPER_MANAGER` (inclus dans `AgencyProfils.GLOBAL`), permissions `ROLE_STOREKEEPER_MANAGER` et `ROLE_INTER_AGENCY_STOCK_TRANSFER`, et `StorekeeperManagerPermissionsInit`.
+  - **Positions, Réservations & Grand-Livre Magasin par Agence (`com.optimize.elykia.inventory`) —** entités `WarehouseStockPosition` (`onHandQuantity`, `reservedQuantity`, `availableQuantity`, `shortageQuantity` par `(agency_id, article_id)`), `WarehouseStockReservation` (Option A : réservation dès la validation avec allocation FIFO automatique au réapprovisionnement) et `WarehouseStockLedgerEntry` (journal immuable append-only).
+  - **Transferts Inter-Agences en 2 étapes (`WarehouseStockTransferService`) —** entités `WarehouseStockTransfer`, `WarehouseStockTransferItem`, `WarehouseStockTransferLotSlice` ; expédition FIFO depuis l'agence source (`IN_TRANSIT`) et réception à l'agence de destination (`RECEIVED`) créant les lots enfants (`parent_lot_id`) au coût d'achat FIFO d'origine et allouant automatiquement les réservations en attente.
+  - **Unification des demandes et retours de stock commercial (`com.optimize.elykia.commercialstock`) —** entités `CommercialStockRequest`, `CommercialStockRequestItem`, `CommercialStockReturn`, `CommercialStockReturnItem`, port SPI `WarehouseCommercialStockPort` (zéro cycle Modulith `inventory` ↔ `commercialstock`), `CommercialStockRequestService` (réservation Option A à la validation, livraison partielle Scénario B avec génération automatique d'une demande reliquat enfant `VALIDATED` liée par `parent_request_id`, et chaînage `originWarehouseLotId` sur `CommercialStockLayer`).
+  - **Traçabilité de bout en bout des lots (`WarehouseLotTraceabilityService`) —** suivi complet Réception / Transfert / Retour → `ArticleStockLot` → `CommercialStockLayer` (`origin_warehouse_lot_id`) → Ventes & Livraisons clients (`LotLifecycleTraceDto`).
+  - **Bon de Commande Fournisseur PDF (`SupplierRestockOrderService`) —** calcul des besoins d'approvisionnement par agence ou consolidés (déficit de réservation + écart au point de commande / stock optimal) et export PDF Navy Elykia (`supplier-purchase-order-sheet.html`, pagination `n/N`).
+  - **API REST v2 & Rétrocompatibilité v1 —** contrôleurs `WarehouseStockController` (`/api/v2/warehouse-stocks/**`) et `CommercialStockRequestController` (`/api/v2/commercial-stock-requests/**`), enrichissement de `ArticlesController` (`GET /api/v1/articles` expose `agencyId`, `warehouseOnHandQuantity`, `warehouseReservedQuantity`, `warehouseAvailableQuantity`, `warehouseShortageQuantity`), hooks transparents sur `StockReceptionService`, `StockMovementService`, `StockRequestService`, `StockTontineRequestService`, `StockReturnService`, `StockTontineReturnService`, et annotation `@Deprecated(since = "2.16.0", forRemoval = true)` sur les silos legacy.
 
 ## Backend — [2.15.0] — 2026-11-24
 

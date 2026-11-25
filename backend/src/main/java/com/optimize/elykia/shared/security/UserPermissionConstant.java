@@ -143,4 +143,9 @@ public class UserPermissionConstant {
     public static final String CASH_REGISTER_SALE = "ROLE_CASH_REGISTER_SALE";
     /** Ouverture et clôture d'une session de caisse ventes comptant (CASHIER, GESTIONNAIRE, ADMIN, SUPER_ADMIN par défaut). */
     public static final String CASH_REGISTER_MANAGE = "ROLE_CASH_REGISTER_MANAGE";
+
+    /** Chef Magasinier multi-agences (intervention sur le stock magasin de toutes les agences). */
+    public static final String STOREKEEPER_MANAGER = "ROLE_STOREKEEPER_MANAGER";
+    /** Pilotage des transferts de stock inter-agences (création, validation, expédition, réception, annulation). */
+    public static final String INTER_AGENCY_STOCK_TRANSFER = "ROLE_INTER_AGENCY_STOCK_TRANSFER";
 }

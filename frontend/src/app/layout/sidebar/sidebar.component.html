@@ -170,6 +170,20 @@
                   <span class="hide-menu">Retours</span>
                 </a>
               </li>
+              <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER', 'ROLE_STOREKEEPER_MANAGER', 'ROLE_REPORT', 'ROLE_ADMIN']">
+                <a class="sidebar-link" routerLink="/stock/lot-traceability"
+                  [ngClass]="{ 'active': isSubRouteActive('/stock/lot-traceability') }">
+                  <span class="material-icons">account_tree</span>
+                  <span class="hide-menu">Traçabilité des Lots</span>
+                </a>
+              </li>
+              <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER_MANAGER', 'ROLE_INTER_AGENCY_STOCK_TRANSFER', 'ROLE_ADMIN']">
+                <a class="sidebar-link" routerLink="/stock/transfers"
+                  [ngClass]="{ 'active': isSubRouteActive('/stock/transfers') }">
+                  <span class="material-icons">swap_horiz</span>
+                  <span class="hide-menu">Transferts Inter-Agences</span>
+                </a>
+              </li>
             </ul>
           </li>
           <!-- MENU VENTES -->

@@ -11,6 +11,10 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.domain.CommercialStockReturn} (activité {@code TONTINE}).
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Entity
 @Getter
 @Setter

@@ -7,6 +7,7 @@ import { AlertService } from '@shared/service/alert.service';
 import { AuthService } from '@features/auth/service/auth.service';
 import { UserService } from '@features/user/service/user.service';
 import { UserProfile } from '@shared/models/user-profile.enum';
+import { WarehouseStockService } from '@features/stock/services/warehouse-stock.service';
 
 interface ArticleListState {
   searchTerm: string;
@@ -37,6 +38,7 @@ export class ListComponent implements OnInit, OnDestroy {
   isAllSelected = false;
   isGestionnaire = false;
   showCreditKpis = false;
+  isExportingRestockPdf = false;
 
   currentDate = new Date();
   lastUpdate = new Date();
@@ -48,7 +50,8 @@ export class ListComponent implements OnInit, OnDestroy {
     private tokenStorage: TokenStorageService,
     private alertService: AlertService,
     private authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    private warehouseStockService: WarehouseStockService
   ) {
     this.tokenStorage.checkConnectedUser();
     this.showCreditKpis = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
@@ -276,6 +279,25 @@ export class ListComponent implements OnInit, OnDestroy {
   editArticle(articleId: number): void {
     this.saveState();
     this.router.navigate(['/article/add', articleId]);
+  }
+
+  exportSupplierRestockOrderPdf(): void {
+    this.isExportingRestockPdf = true;
+    this.warehouseStockService.downloadRestockOrderPdf(null, 'ALL').subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `bon-commande-fournisseur-${new Date().toISOString().slice(0, 10)}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.isExportingRestockPdf = false;
+      },
+      error: () => {
+        this.alertService.showError('Erreur lors de la génération du Bon de Commande Fournisseur.');
+        this.isExportingRestockPdf = false;
+      }
+    });
   }
 
   private saveState(): void {

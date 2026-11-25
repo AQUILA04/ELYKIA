@@ -9,6 +9,11 @@ import lombok.ToString;
 
 import java.time.LocalDateTime;
 
+/**
+ * @deprecated Remplacé par {@link WarehouseStockLedgerEntry} (Grand livre magasin unifié par agence).
+ * @see WarehouseStockLedgerEntry
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Entity
 @Getter
 @Setter

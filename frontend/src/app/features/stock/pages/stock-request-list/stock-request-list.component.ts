@@ -109,7 +109,8 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE)
       || this.userService.hasProfile(UserProfile.ADMIN)
       || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
-    this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER);
+    this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER)
+      || this.userService.hasProfile(UserProfile.STOREKEEPER_MANAGER);
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
     const hasEditRole = this.authService.hasRole('ROLE_EDIT_STOCK_REQUEST');

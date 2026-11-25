@@ -8,6 +8,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * @deprecated Remplacé par {@code com.optimize.elykia.commercialstock.domain.CommercialStockReturnItem}.
+ */
+@Deprecated(since = "2.16.0", forRemoval = true)
 @Entity
 @Getter
 @Setter

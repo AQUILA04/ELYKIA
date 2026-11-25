@@ -3,18 +3,28 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgxPermissionsModule } from 'ngx-permissions';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { of } from 'rxjs';
 
 import { ListComponent } from './list.component';
+import { WarehouseStockService } from '../../stock/services/warehouse-stock.service';
 
 describe('ListComponent', () => {
   let component: ListComponent;
   let fixture: ComponentFixture<ListComponent>;
+  let warehouseStockServiceSpy: { downloadSupplierPurchaseOrderPdf: ReturnType<typeof vi.fn> };
 
   beforeEach(async () => {
+    warehouseStockServiceSpy = {
+      downloadSupplierPurchaseOrderPdf: vi.fn().mockReturnValue(of(new Blob(['pdf'])))
+    };
+
     await TestBed.configureTestingModule({
-      imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPermissionsModule],
+      imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPermissionsModule.forRoot()],
       schemas: [NO_ERRORS_SCHEMA],
-      declarations: [ ListComponent ]
+      declarations: [ ListComponent ],
+      providers: [
+        { provide: WarehouseStockService, useValue: warehouseStockServiceSpy }
+      ]
     })
     .compileComponents();
 
@@ -27,3 +37,4 @@ describe('ListComponent', () => {
     expect(component).toBeTruthy();
   });
 });
+
