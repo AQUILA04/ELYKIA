@@ -32,7 +32,7 @@
   </section>
 
   <p class="hint" *ngIf="!legacyMode">
-    Cochez les mois, puis touchez le dernier jour coché. Pour un mois encore à zéro, choisissez le commercial et corrigez la mise si le carnet en indique une autre. Sur un mois déjà cotisé, le bouton + ajoute une ligne carnet pour un autre commercial (mise inchangée, jusqu'à deux ajouts).
+    Cochez les mois, puis touchez le dernier jour coché. Pour un mois encore à zéro, choisissez le commercial et corrigez la mise si le carnet en indique une autre. Sur un mois déjà cotisé, corrigez la mise si le carnet en indique une autre ; le bouton + ajoute une ligne carnet pour un autre commercial (mise inchangée, jusqu'à deux ajouts).
   </p>
   <p class="hint legacy" *ngIf="legacyMode">
     Ce pack ne découpe pas encore les montants par commercial. Retéléchargez le pack du jour pour contrôler COM par COM.
@@ -121,6 +121,22 @@
               class="amount-input">
             </ion-input>
           </div>
+          <div class="attribution" *ngIf="canEditStake(row)">
+            <label [attr.for]="'mise-' + row.uid">Mise du mois (système : {{ formatAmount(row.applicableMise) }} FCFA)</label>
+            <ion-input
+              [id]="'mise-' + row.uid"
+              type="number"
+              inputmode="decimal"
+              [ngModel]="row.dailyMise"
+              (ngModelChange)="onMiseChange(row, $event)"
+              [disabled]="submitting"
+              class="amount-input"
+              data-testid="e2e-rm-tontine-stake-correction">
+            </ion-input>
+            <p class="mise-readonly" *ngIf="stakeCorrected(row)">
+              Mise corrigée : {{ formatAmount(row.applicableMise) }} → {{ formatAmount(row.dailyMise) }} FCFA.
+            </p>
+          </div>
           <div class="attribution" *ngIf="isExtraCarnet(row)">
             <label [attr.for]="'commercial-extra-' + row.uid">Collecté par</label>
             <ion-select
@@ -139,7 +155,7 @@
             <p class="mise-readonly">Mise : {{ formatAmount(row.dailyMise) }} FCFA</p>
           </div>
           <ng-container *ngIf="!row.useManual">
-            <p class="mise-readonly" *ngIf="!canEditAttribution(row) && !isExtraCarnet(row)">
+            <p class="mise-readonly" *ngIf="!canEditAttribution(row) && !canEditStake(row) && !isExtraCarnet(row)">
               Mise : {{ formatAmount(row.dailyMise) }} FCFA
             </p>
             <app-mise-day-pills

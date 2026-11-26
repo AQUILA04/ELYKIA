@@ -23,6 +23,7 @@ import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRules;
 import com.optimize.elykia.core.event.CarnetEcartDetectedEvent;
 import com.optimize.elykia.core.service.carnet.CarnetVerificationSupport;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
@@ -75,6 +76,7 @@ public class TontineMemberFieldControlService {
     private final ApplicationEventPublisher eventPublisher;
     private final UserService userService;
     private final TontineAmountHistoryHelper amountHistoryHelper;
+    private final TontineService tontineService;
 
     @Transactional
     public TontineMemberFieldControlDto create(Long memberId, CreateTontineMemberFieldControlDto dto) {
@@ -140,9 +142,29 @@ public class TontineMemberFieldControlService {
             saved = repository.save(entity);
         }
 
+        applyStakeOnlyCorrections(saved, memberId);
         maybeAutoVerify(member, observedBy);
         publishEcart(saved, member);
         return toDto(saved, memberId);
+    }
+
+    /**
+     * Une mise corrigée sur une ligne sans écart de montant n'apparaît pas dans la file des écarts :
+     * il n'y a rien à accepter. Elle est donc appliquée dès l'enregistrement du contrôle.
+     * Les lignes avec écart gardent leur mise jusqu'à la décision.
+     */
+    private void applyStakeOnlyCorrections(TontineMemberFieldControl control, Long memberId) {
+        if (tontineService == null || control.getLines() == null) {
+            return;
+        }
+        control.getLines().stream()
+                .filter(line -> line.getDeclaredDailyAmount() != null
+                        && line.getDeclaredDailyAmount() > 0d
+                        && !CarnetEcartRules.isMaterial(line.getDifferenceAmount() != null ? line.getDifferenceAmount() : 0d))
+                .sorted(Comparator.comparing(TontineMemberFieldControlLine::getYear)
+                        .thenComparing(TontineMemberFieldControlLine::getMonth))
+                .forEach(line -> tontineService.correctFieldControlMonthStake(
+                        memberId, LocalDate.of(line.getYear(), line.getMonth(), 1), line.getDeclaredDailyAmount()));
     }
 
     /**
@@ -541,7 +563,7 @@ public class TontineMemberFieldControlService {
             TontineMember member,
             CreateTontineMemberFieldControlMonthDto monthDto,
             double systemAmount) {
-        if (systemAmount > EPSILON || monthDto.getDeclaredDailyAmount() == null) {
+        if (monthDto.getDeclaredDailyAmount() == null) {
             return null;
         }
         double requested = monthDto.getDeclaredDailyAmount();

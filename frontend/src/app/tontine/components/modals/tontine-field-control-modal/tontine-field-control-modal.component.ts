@@ -118,7 +118,8 @@ export class TontineFieldControlModalComponent implements OnInit {
       !!r.commercialUsername
       && r.notebookAmount !== null
       && r.notebookAmount >= 0
-      && (!this.canEditAttribution(r) || (r.declaredDailyAmount != null && r.declaredDailyAmount > 0)));
+      && (!(this.canEditAttribution(r) || this.canEditStake(r))
+        || (r.declaredDailyAmount != null && r.declaredDailyAmount > 0)));
   }
 
   blockSelected(block: TontineFieldControlCollectorBlock): TontineFieldControlMonthRow[] {
@@ -134,6 +135,11 @@ export class TontineFieldControlModalComponent implements OnInit {
 
   canEditAttribution(row: TontineFieldControlMonthRow): boolean {
     return row.systemAmount <= 0 && !this.monthCollectedElsewhere(row);
+  }
+
+  /** Mois déjà cotisé : le commercial reste figé, la mise peut être corrigée d'après le carnet. */
+  canEditStake(row: TontineFieldControlMonthRow): boolean {
+    return row.systemAmount > 0;
   }
 
   promotersFor(row: TontineFieldControlMonthRow): TontineFieldControlPromoter[] {
@@ -205,7 +211,7 @@ export class TontineFieldControlModalComponent implements OnInit {
   }
 
   private stakeToSend(row: TontineFieldControlMonthRow): number | undefined {
-    if (!this.canEditAttribution(row) || row.declaredDailyAmount == null) {
+    if (!(this.canEditAttribution(row) || this.canEditStake(row)) || row.declaredDailyAmount == null) {
       return undefined;
     }
     if (Math.abs(row.declaredDailyAmount - row.applicableDailyAmount) < 0.0001) {

@@ -88,6 +88,21 @@
               </div>
             </div>
           </div>
+          <div class="month-extra" *ngIf="row.selected && canEditStake(row)">
+            <div class="month-input">
+              <label [attr.for]="'mise-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername">Mise du mois (système : {{ row.applicableDailyAmount }} FCFA)</label>
+              <div class="input-wrap">
+                <input
+                  [id]="'mise-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername"
+                  type="number"
+                  min="1"
+                  [(ngModel)]="row.declaredDailyAmount"
+                  [disabled]="isSubmitting"
+                />
+                <span class="input-suffix">FCFA</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

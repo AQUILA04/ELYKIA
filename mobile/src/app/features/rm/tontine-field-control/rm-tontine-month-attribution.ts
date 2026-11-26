@@ -71,6 +71,15 @@ export function canEditMonthAttribution(
   return amountOf(row) <= 0 && !isMonthCollectedElsewhere(row, allRows);
 }
 
+/**
+ * Mois déjà cotisé (système > 0) : le commercial reste figé mais le chef peut corriger
+ * la mise lorsque le carnet physique en indique une autre. La correction est appliquée
+ * côté serveur sans toucher aux montants collectés.
+ */
+export function canEditMonthStake(row: AttributionMonthRow): boolean {
+  return !row.duplicatedFromSystemMonth && amountOf(row) > 0;
+}
+
 /** Ligne carnet additionnelle (autre commercial, mise figée, système 0). */
 export function isExtraCarnetAttribution(row: AttributionMonthRow): boolean {
   return row.duplicatedFromSystemMonth === true;

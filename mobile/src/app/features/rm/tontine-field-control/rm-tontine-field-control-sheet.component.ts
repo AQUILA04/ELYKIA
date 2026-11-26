@@ -10,6 +10,7 @@ import { fitNotebookDays, maxDaysAfterSelection, MISE_DAY_STEP } from '../../../
 import {
   canAddExtraCarnetRow,
   canEditMonthAttribution,
+  canEditMonthStake,
   commercialsUsedOnMonth,
   isExtraCarnetAttribution,
   isMonthCollectedElsewhere,
@@ -189,6 +190,15 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
 
   canEditAttribution(row: MonthRow): boolean {
     return canEditMonthAttribution(row, this.allRows);
+  }
+
+  canEditStake(row: MonthRow): boolean {
+    return canEditMonthStake(row);
+  }
+
+  /** Mise du carnet différente de celle du système sur ce mois. */
+  stakeCorrected(row: MonthRow): boolean {
+    return Math.abs(row.dailyMise - row.applicableMise) >= 0.0001;
   }
 
   isExtraCarnet(row: MonthRow): boolean {
@@ -387,6 +397,9 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
         continue;
       }
       row.selected = true;
+      if (line.declaredDailyAmount != null && line.declaredDailyAmount > 0 && !row.duplicatedFromSystemMonth) {
+        row.dailyMise = line.declaredDailyAmount;
+      }
       this.applyNotebook(row, line.notebookAmount);
     }
   }
@@ -433,7 +446,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
     if (!row.commercialUsername || row.notebookAmount === null || Number(row.notebookAmount) < 0) {
       return false;
     }
-    if (this.canEditAttribution(row) && !(row.dailyMise > 0)) {
+    if ((this.canEditAttribution(row) || this.canEditStake(row)) && !(row.dailyMise > 0)) {
       return false;
     }
     if (row.duplicatedFromSystemMonth && !(row.dailyMise > 0) && !row.useManual) {
@@ -446,7 +459,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
   }
 
   private stakeToSend(row: MonthRow): number | undefined {
-    if (!this.canEditAttribution(row) || row.duplicatedFromSystemMonth) {
+    if (!(this.canEditAttribution(row) || this.canEditStake(row)) || row.duplicatedFromSystemMonth) {
       return undefined;
     }
     if (Math.abs(row.dailyMise - row.applicableMise) < 0.0001) {

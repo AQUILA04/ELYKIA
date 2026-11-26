@@ -173,7 +173,7 @@ class CarnetEcartDecisionServiceTest {
         assertEquals(1, result.getSucceeded().size());
         assertTrue(result.getSucceeded().get(0).getMessage().contains("01/02/2026"));
         verify(tontineService).alignAdhesionForFieldControl(9L, LocalDate.of(2026, 2, 1));
-        verify(tontineService).applyFieldControlMonthStake(9L, LocalDate.of(2026, 2, 1), 300d);
+        verify(tontineService).correctFieldControlMonthStake(9L, LocalDate.of(2026, 2, 1), 300d);
     }
 
     @Test
@@ -192,6 +192,25 @@ class CarnetEcartDecisionServiceTest {
         assertEquals(0d, result.getSucceeded().get(0).getAmount());
         verify(tontineService, never()).recordFieldControlCollection(anyLong(), anyDouble(), any(), any(), any());
         verify(debtService, never()).createFieldControlShortage(any(), any(), anyDouble(), any(), any(), any());
+    }
+
+    @Test
+    void accept_tontineInverseAppliesDeclaredStakeOnAnAlreadyCollectedMonth() {
+        TontineMemberFieldControlLine line = line(2L, 2026, 8, 31_000d, 0d);
+        line.setDeclaredDailyAmount(1_000d);
+        TontineMemberFieldControl control = controlWith(line);
+        when(tontineFieldControlRepository.findById(4L)).thenReturn(Optional.of(control));
+        when(tontineFieldControlRepository.findFirstByTontineMember_idAndStateOrderByObservedAtDesc(9L, State.ENABLED))
+                .thenReturn(Optional.of(control));
+        when(decisionRepository.findByTontineLineId(anyLong())).thenReturn(Optional.empty());
+        when(tontineService.reduceFieldControlExcess(eq(9L), eq("com"), eq(2026), eq(8), eq(31_000d), any())).thenReturn(31_000d);
+        when(decisionRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        CarnetEcartBulkResultDto result = service.accept(List.of("TONTINE|4|com"));
+
+        assertEquals(1, result.getSucceeded().size());
+        verify(tontineService).correctFieldControlMonthStake(9L, LocalDate.of(2026, 8, 1), 1_000d);
+        verify(tontineService, never()).alignAdhesionForFieldControl(anyLong(), any());
     }
 
     @Test

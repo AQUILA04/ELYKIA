@@ -278,7 +278,7 @@ public class CarnetEcartDecisionService {
             throw new CustomValidationException("Aucune ligne à accepter pour ce commercial.");
         }
         Long memberId = control.getTontineMember().getId();
-        String acceptanceNote = prepareFieldControlAdjustments(control.getTontineMember(), memberId, positive);
+        String acceptanceNote = prepareFieldControlAdjustments(control.getTontineMember(), memberId, positive, negative);
         for (TontineMemberFieldControlLine line : negative) {
             double excess = -safe(line.getDifferenceAmount());
             tontineService.reduceFieldControlExcess(
@@ -360,8 +360,9 @@ public class CarnetEcartDecisionService {
     private String prepareFieldControlAdjustments(
             TontineMember member,
             Long memberId,
-            List<TontineMemberFieldControlLine> positive) {
-        if (positive.isEmpty()) {
+            List<TontineMemberFieldControlLine> positive,
+            List<TontineMemberFieldControlLine> negative) {
+        if (positive.isEmpty() && negative.isEmpty()) {
             return "";
         }
         List<TontineMemberFieldControlLine> ordered = positive.stream()
@@ -375,7 +376,7 @@ public class CarnetEcartDecisionService {
         LocalDate sessionStart = member != null && member.getTontineSession() != null
                 ? member.getTontineSession().getStartDate()
                 : null;
-        LocalDate moveTo = CarnetEcartRules.fieldControlAdhesionMove(
+        LocalDate moveTo = positive.isEmpty() ? null : CarnetEcartRules.fieldControlAdhesionMove(
                 tontineService.participationStart(member), months, today, sessionStart);
         StringBuilder note = new StringBuilder();
         if (moveTo != null) {
@@ -383,12 +384,16 @@ public class CarnetEcartDecisionService {
             note.append(" Adhésion reculée au ").append(FR_DATE.format(moveTo)).append('.');
         }
         List<String> stakes = new ArrayList<>();
-        for (TontineMemberFieldControlLine line : ordered) {
+        List<TontineMemberFieldControlLine> stakeLines = java.util.stream.Stream.concat(positive.stream(), negative.stream())
+                .sorted(Comparator.comparing(TontineMemberFieldControlLine::getYear)
+                        .thenComparing(TontineMemberFieldControlLine::getMonth))
+                .toList();
+        for (TontineMemberFieldControlLine line : stakeLines) {
             Double declared = line.getDeclaredDailyAmount();
             if (declared == null || declared <= 0d) {
                 continue;
             }
-            tontineService.applyFieldControlMonthStake(
+            tontineService.correctFieldControlMonthStake(
                     memberId, LocalDate.of(line.getYear(), line.getMonth(), 1), declared);
             stakes.add(line.getMonth() + "/" + line.getYear());
         }
