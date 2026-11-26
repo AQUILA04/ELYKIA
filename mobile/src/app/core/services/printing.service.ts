@@ -255,7 +255,8 @@ export class PrintingService {
   constructor(private unitPriceVisibility: UnitPriceVisibilityService) { }
 
   async printReceipt(printableDistribution: PrintableDistribution): Promise<void> {
-    const htmlContent = this.generateReceiptHTML(printableDistribution);
+    const qrDataUrl = await this.buildReceiptQrDataUrl(printableDistribution);
+    const htmlContent = this.generateReceiptHTML(printableDistribution, qrDataUrl);
     await Printer.print({
       content: htmlContent,
       name: `recu_${printableDistribution.distribution.reference}`
@@ -412,143 +413,139 @@ export class PrintingService {
     `;
   }
 
-  private generateReceiptHTML(printableDistribution: PrintableDistribution): string {
+  private generateReceiptHTML(printableDistribution: PrintableDistribution, qrDataUrl = ''): string {
     const { distribution, client, articles, commercial } = printableDistribution;
     const uniqueId = `#EL${new Date(distribution.createdAt).getTime().toString()}`;
+    const showUnitPrice = this.unitPriceVisibility.receiptSnapshot;
+    const createdAt = new Date(distribution.createdAt);
+    const clientCode = client.code?.trim();
+
+    const articlesHTML = articles.map(item => `
+      <div class="article-item">
+        <div class="article-name">${escapeReceiptText(item.article.commercialName || item.article.name)}</div>
+        <div class="row article-details">
+          ${showUnitPrice
+            ? `<span>${item.quantity} x ${formatReceiptAmount(item.unitPrice)}</span><span class="value">${formatReceiptAmount(item.totalPrice)} F</span>`
+            : `<span>Qté ${item.quantity}</span>`}
+        </div>
+      </div>
+    `).join('');
 
     return `
       <!DOCTYPE html>
       <html>
       <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <title>Recu de Distribution</title>
+        <title>Recu d'Achat (Credit)</title>
         <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
+          * { box-sizing: border-box; margin: 0; padding: 0; color: #000; }
           @media print { @page { margin: 1mm; } }
           body {
-            font-family: 'Arial', sans-serif;
-            font-size: 6px;
-            line-height: 1.4;
-            /* SOLUTION 1: Largeur réduite. Essayez 56mm ou 55mm */
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 11px;
+            font-weight: bold;
+            line-height: 1.35;
             width: 56mm;
           }
-          .header, .separator, .footer { text-align: center; }
-          .header { font-size: 7px; margin-bottom: 20px; }
-          .separator { border-top: 1px dashed #000; margin: 10px 0; }
-          .footer { margin-top: 20px; font-size: 8px; }
+          .header { text-align: center; font-size: 13px; margin-bottom: 8px; }
+          .header .shop { font-size: 14px; }
+          .separator { border-top: 1px dashed #000; margin: 8px 0; }
           .content-wrapper { margin: 0 2mm; }
-
-          .row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-          }
-          /* SOLUTION 2: Forcer la valeur à ne pas être coupée */
-          .row .value {
-            white-space: nowrap;
-            padding-left: 5px; /* Ajoute un petit espace de sécurité */
-          }
-
+          .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+          .row .value { white-space: nowrap; padding-left: 6px; text-align: right; }
+          .block { margin-bottom: 6px; word-wrap: break-word; }
+          .block .label { font-size: 10px; }
+          .block .big { font-size: 12px; }
           .article-item { margin-bottom: 8px; }
-          .article-name { margin-bottom: 2px; }
-          .article-details {
-            font-size: 6px;
-            color: #333;
-          }
-          .article-total {
-          }
+          .article-name { font-size: 12px; word-wrap: break-word; }
+          .article-details { font-size: 11px; padding-left: 8px; }
+          .total-box { border: 2px solid #000; padding: 4px 5px; margin: 8px 0; }
+          .total-box .row { font-size: 13px; margin-bottom: 2px; }
+          .total-box .row.sub { font-size: 12px; }
+          .footer { text-align: center; margin-top: 8px; font-size: 11px; }
+          .qr { text-align: center; margin: 8px 0 4px; }
+          .qr img { width: 30mm; height: 30mm; }
         </style>
       </head>
       <body>
         <div class="header">
-          AMENOUVEVE-YAVEH<br>
-          RECU DE DISTRIBUTION
+          <div class="shop">AMENOUVEVE-YAVEH</div>
+          RECU D'ACHAT (Credit)
         </div>
-        <p>----------------------------</p>
         <div class="separator"></div>
 
         <div class="content-wrapper">
-          <div class="row">
-            <span>Reference:</span>
-            <span class="value">${distribution.reference || 'N/A'}</span>
-          </div>
-          <div class="row">
-            <span>Date:</span>
-            <span class="value">${new Date(distribution.createdAt).toLocaleDateString('fr-FR')}</span>
-          </div>
-          <div class="row">
-            <span>Heure:</span>
-            <span class="value">${new Date(distribution.createdAt).toLocaleTimeString('fr-FR')}</span>
-          </div>
+          <div class="row"><span>Ref:</span><span class="value">${escapeReceiptText(distribution.reference || 'N/A')}</span></div>
+          <div class="row"><span>Date:</span><span class="value">${createdAt.toLocaleDateString('fr-FR')}</span></div>
+          <div class="row"><span>Heure:</span><span class="value">${createdAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span></div>
         </div>
 
         <div class="separator"></div>
         <div class="content-wrapper">
-         <div style="margin-bottom: 10px;">
-            CLIENT:<br>
-            ${client.code ? `${client.code}<br>` : ''}
-            ${formatClientDisplayName(client)}<br>
-            ${client.address || ''}<br>
-            ${client.phone || ''}
-          </div>
-
-          <div style="margin-bottom: 10px;">
-            COMMERCIAL: ${commercial.name}
-
-          </div>
-        </div><br>
-        <div class="separator"></div>
-
-        <div class="content-wrapper">
-          <div style="margin-bottom: 10px;">ARTICLES:</div>
-          ${articles.map(item => `
-            <div class="article-item">
-              <div class="article-name">${item.article.commercialName || item.article.name}</div>
-              <div class="row article-details">
-                ${this.unitPriceVisibility.snapshot
-                  ? `<span>${item.quantity} x ${item.unitPrice.toLocaleString('fr-FR')}</span><span class="article-total">${item.totalPrice.toLocaleString('fr-FR')} FCFA</span>`
-                  : `<span>Qté ${item.quantity}</span>`}
-              </div>
+          <div class="block">
+            <div class="label">CLIENT:</div>
+            <div class="big">
+              ${clientCode ? `${escapeReceiptText(clientCode)}<br>` : ''}
+              ${escapeReceiptText(formatClientDisplayName(client))}<br>
+              ${client.address ? `${escapeReceiptText(client.address)}<br>` : ''}
+              ${escapeReceiptText(client.phone || '')}
             </div>
-          `).join('')}
+          </div>
+          <div class="block">
+            <div class="label">COMMERCIAL:</div>
+            <div class="big">${escapeReceiptText(commercial.name)}</div>
+          </div>
         </div>
 
         <div class="separator"></div>
-        <p>----------------------------</p>
-
         <div class="content-wrapper">
-          <div class="row total-row">
+          <div class="block label">ARTICLES:</div>
+          ${articlesHTML}
+        </div>
 
-            <span>TOTAL:</span>
-            <span class="value">${distribution.totalAmount.toLocaleString('fr-FR')} FCFA</span>
-          </div>
-          <p>----------------------------</p>
-          <div class="row total-row">
-            <span>MISE JOURNALIERE:</span>
-            <span class="value">${distribution.dailyPayment.toLocaleString('fr-FR')} FCFA</span>
-          </div>
-          <div class="row">
-            <span>AVANCE:</span>
-            <span class="value">${(distribution.advance || 0).toLocaleString('fr-FR')} FCFA</span>
-          </div>
-          <div class="row total-row">
-            <span>NOUVEAU SOLDE:</span>
-            <span class="value">${(distribution.remainingAmount || 0).toLocaleString('fr-FR')} FCFA</span>
-          </div>
-        </div><br>
-        <p>----------------------------</p>
+        <div class="total-box">
+          <div class="row"><span>TOTAL:</span><span class="value">${formatReceiptAmount(distribution.totalAmount)} F</span></div>
+          <div class="row sub"><span>AVANCE:</span><span class="value">${formatReceiptAmount(distribution.advance || 0)} F</span></div>
+          <div class="row"><span>SOLDE:</span><span class="value">${formatReceiptAmount(distribution.remainingAmount || 0)} F</span></div>
+          <div class="row sub"><span>MISE/JOUR:</span><span class="value">${formatReceiptAmount(distribution.dailyPayment)} F</span></div>
+        </div>
+
+        ${qrDataUrl ? `<div class="qr"><img src="${qrDataUrl}" alt="QR" /></div>` : ''}
 
         <div class="separator"></div>
         <div class="footer">
           <p>Merci pour votre confiance!</p>
           <p>Payez regulierement vos mises</p>
-                !!!AMENOUVEVE-YAHVE!!!<br>
-                  <p>${uniqueId}</p>
+          <p>AMENOUVEVE-YAVEH</p>
+          <p>${uniqueId}</p>
         </div>
-
       </body>
       </html>
     `;
+  }
+
+  private async buildReceiptQrDataUrl(printable: PrintableDistribution): Promise<string> {
+    try {
+      const { distribution, client } = printable;
+      const payload = JSON.stringify({
+        type: 'Distribution',
+        distributionId: distribution.id,
+        reference: distribution.reference,
+        clientId: client.id,
+        clientName: formatClientDisplayName(client),
+        totalAmount: distribution.totalAmount,
+        advance: distribution.advance,
+        remainingAmount: distribution.remainingAmount,
+        dailyPayment: distribution.dailyPayment,
+        date: distribution.createdAt
+      });
+      // @ts-ignore qrcode n'a pas de typage ; dépendance d'angularx-qrcode
+      const qrModule: any = await import('qrcode');
+      const toDataURL = qrModule.toDataURL ?? qrModule.default?.toDataURL;
+      return await toDataURL(payload, { errorCorrectionLevel: 'M', margin: 1, width: 240 });
+    } catch {
+      return '';
+    }
   }
 
   private generateTontineReceiptHTML(data: PrintableTontineCollection): string {
@@ -683,12 +680,12 @@ export class PrintingService {
     const deliveryDate = new Date(deliveryDateStr);
 
     const itemsHTML = items.map(item => `
-      <div style="margin-bottom: 6px; padding: 4px; background: #f5f5f5; border-left: 2px solid #000;">
+      <div style="margin-bottom: 6px; padding: 4px; border-left: 2px solid #000;">
         <div style="display: flex; justify-content: space-between; font-weight: bold;">
           <span>${item.articleName}</span>
           <span>x${item.quantity}</span>
         </div>
-        ${this.unitPriceVisibility.snapshot ? `<div style="display: flex; justify-content: space-between; font-size: 7px; margin-top: 2px;">
+        ${this.unitPriceVisibility.receiptSnapshot ? `<div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 2px;">
           <span>${item.unitPrice.toLocaleString('fr-FR')} FCFA/u</span>
           <span style="font-weight: bold;">${item.totalPrice.toLocaleString('fr-FR')} FCFA</span>
         </div>` : ''}
@@ -702,16 +699,17 @@ export class PrintingService {
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>Reçu Livraison Tontine</title>
         <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
+          * { box-sizing: border-box; margin: 0; padding: 0; color: #000; }
           @media print { @page { margin: 1mm; } }
           body {
-            font-family: 'Arial', sans-serif;
-            font-size: 8px;
-            line-height: 1.4;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 11px;
+            font-weight: bold;
+            line-height: 1.35;
             width: 56mm;
           }
           .header, .separator, .footer { text-align: center; }
-          .header { font-size: 9px; font-weight: bold; margin-bottom: 10px; }
+          .header { font-size: 13px; font-weight: bold; margin-bottom: 10px; }
           .separator { border-top: 1px dashed #000; margin: 8px 0; }
           .footer { margin-top: 15px; font-size: 8px; }
           .content-wrapper { margin: 0 2mm; }
@@ -732,13 +730,13 @@ export class PrintingService {
             margin: 10px 0;
             text-align: center;
           }
-          .total-label { font-size: 7px; }
-          .total-value { font-size: 12px; font-weight: bold; }
+          .total-label { font-size: 11px; }
+          .total-value { font-size: 15px; font-weight: bold; }
           .budget-row { 
             display: flex; 
             justify-content: space-between; 
             padding: 3px 0;
-            border-bottom: 1px dashed #ccc;
+            border-bottom: 1px dashed #000;
           }
           .budget-row.highlight {
             font-weight: bold;
@@ -755,7 +753,7 @@ export class PrintingService {
           RECU DE LIVRAISON<br>
           TONTINE FIN D'ANNEE
         </div>
-        <div style="text-align: center; font-size: 7px;">
+        <div style="text-align: center; font-size: 11px;">
           Session ${session.year}
         </div>
         
@@ -791,7 +789,7 @@ export class PrintingService {
         <div class="separator"></div>
 
         <div class="content-wrapper">
-          <div style="background: #f5f5f5; padding: 6px; margin-bottom: 8px;">
+          <div style="padding: 6px; margin-bottom: 8px;">
             <div class="budget-row">
               <span>Total cotise (net):</span>
               <span>${totalBudget.toLocaleString('fr-FR')} FCFA</span>
@@ -972,7 +970,7 @@ export class PrintingService {
   /** Soldes du ticket : solde net, montant, reste à payer ou reliquat (total seul si le solde est inconnu). */
   private tontineOrderBalanceRowsHTML(order: PrintableTontineOrder): string {
     if (order.netContribution === null || order.netContribution === undefined) {
-      return `<div class="row"><span>TOTAL:</span><span>${formatReceiptAmount(order.totalAmount)} FCFA</span></div>`;
+      return `<div class="row big"><span>TOTAL:</span><span class="value">${formatReceiptAmount(order.totalAmount)} F</span></div>`;
     }
     const balance = computeTontineOrderBalance(order.netContribution, order.totalAmount);
     // Le ticket thermique s'imprime sans accents, comme ses autres libellés.
@@ -980,11 +978,11 @@ export class PrintingService {
     const raw = tontineOrderBalanceLabels(order.status === 'DELIVERED');
     const labels = { net: ascii(raw.net), total: ascii(raw.total), due: ascii(raw.due), refundable: ascii(raw.refundable) };
     const last = balance.amountDue > 0
-      ? `<div class="row"><b>${escapeReceiptText(labels.due).toUpperCase()}:</b><b>${formatReceiptAmount(balance.amountDue)} FCFA</b></div>`
-      : `<div class="row"><b>${escapeReceiptText(labels.refundable).toUpperCase()}:</b><b>${formatReceiptAmount(balance.refundableBalance)} FCFA</b></div>`;
+      ? `<div class="row big"><span>${escapeReceiptText(labels.due).toUpperCase()}:</span><span class="value">${formatReceiptAmount(balance.amountDue)} F</span></div>`
+      : `<div class="row big"><span>${escapeReceiptText(labels.refundable).toUpperCase()}:</span><span class="value">${formatReceiptAmount(balance.refundableBalance)} F</span></div>`;
     return `
-          <div class="row"><span>${escapeReceiptText(labels.net)}:</span><span>${formatReceiptAmount(balance.netContribution)} FCFA</span></div>
-          <div class="row"><span>${escapeReceiptText(labels.total)}:</span><span>${formatReceiptAmount(balance.orderTotal)} FCFA</span></div>
+          <div class="row"><span>${escapeReceiptText(labels.net)}:</span><span class="value">${formatReceiptAmount(balance.netContribution)} F</span></div>
+          <div class="row"><span>${escapeReceiptText(labels.total)}:</span><span class="value">${formatReceiptAmount(balance.orderTotal)} F</span></div>
           ${last}`;
   }
 
@@ -995,14 +993,14 @@ export class PrintingService {
     const timeLabel = hasDate
       ? createdAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
       : '';
-    // Commande tontine : même règle que les ventes comptant.
-    const showUnitPrice = this.unitPriceVisibility.cashSnapshot;
+    // Paramètre SHOW_RECEIPT_UNIT_PRICE : désactivé, seul le total est imprimé.
+    const showUnitPrice = this.unitPriceVisibility.receiptSnapshot;
     const itemsHTML = (order.items || []).map(item => `
       <div class="article-item">
         <div class="article-name">${escapeReceiptText(item.articleName || 'Article')}</div>
         <div class="row article-details">
           ${showUnitPrice
-            ? `<span>${item.quantity} x ${formatReceiptAmount(item.unitPrice)}</span><span class="article-total">${formatReceiptAmount(item.totalPrice)} FCFA</span>`
+            ? `<span>${item.quantity} x ${formatReceiptAmount(item.unitPrice)}</span><span class="value">${formatReceiptAmount(item.totalPrice)} F</span>`
             : `<span>Qté ${item.quantity}</span>`}
         </div>
       </div>
@@ -1016,43 +1014,59 @@ export class PrintingService {
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
         <title>Recu de commande tontine</title>
         <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
+          * { box-sizing: border-box; margin: 0; padding: 0; color: #000; }
           @media print { @page { margin: 1mm; } }
-          body { font-family: 'Arial', sans-serif; font-size: 6px; line-height: 1.4; width: 56mm; }
-          .header, .separator, .footer { text-align: center; }
-          .header { font-size: 7px; margin-bottom: 12px; }
+          body { font-family: 'Courier New', Courier, monospace; font-size: 11px; font-weight: bold; line-height: 1.35; width: 56mm; }
+          .header { text-align: center; font-size: 13px; margin-bottom: 8px; }
+          .header .shop { font-size: 14px; }
           .separator { border-top: 1px dashed #000; margin: 8px 0; }
-          .footer { margin-top: 12px; font-size: 8px; }
+          .footer { text-align: center; margin-top: 8px; font-size: 11px; }
           .content-wrapper { margin: 0 2mm; }
-          .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
-          .article-item { margin-bottom: 6px; }
-          .auth-corner { text-align: right; margin-top: 10px; font-size: 5px; color: #555; line-height: 1.3; }
-          .auth-code { font-size: 6px; font-weight: bold; letter-spacing: 0.5px; }
+          .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; word-wrap: break-word; }
+          .row .value { white-space: nowrap; padding-left: 6px; text-align: right; }
+          .row.big { font-size: 13px; }
+          .block { margin-bottom: 6px; word-wrap: break-word; }
+          .block .label { font-size: 10px; }
+          .block .big { font-size: 12px; }
+          .article-item { margin-bottom: 8px; }
+          .article-name { font-size: 12px; word-wrap: break-word; }
+          .article-details { padding-left: 8px; }
+          .total-box { border: 2px solid #000; padding: 4px 5px; margin: 8px 0; }
+          .total-box .row { margin-bottom: 2px; }
+          .auth-corner { text-align: right; margin-top: 8px; font-size: 9px; line-height: 1.3; }
+          .auth-code { font-size: 10px; letter-spacing: 0.5px; }
         </style>
       </head>
       <body>
         <div class="header">
-          AMENOUVEVE-YAVEH<br>
-          RECU DE COMMANDE
+          <div class="shop">AMENOUVEVE-YAVEH</div>
+          RECU DE COMMANDE TONTINE
         </div>
         <div class="separator"></div>
         <div class="content-wrapper">
-          <div class="row"><span>Reference:</span><span>${escapeReceiptText(order.reference || 'N/A')}</span></div>
-          <div class="row"><span>Date:</span><span>${escapeReceiptText(dateLabel)}</span></div>
-          <div class="row"><span>Heure:</span><span>${escapeReceiptText(timeLabel)}</span></div>
-          <div class="row"><span>Statut:</span><span>${escapeReceiptText(getTontineDeliveryStatusLabel(order.status))}</span></div>
-          ${order.plannedDeliveryDate ? `<div class="row"><span>Livraison prevue:</span><span>${escapeReceiptText(formatPlannedDate(order.plannedDeliveryDate))}</span></div>` : ''}
-          <div class="row"><span>Membre:</span><span>${escapeReceiptText(order.clientName || 'Client')}</span></div>
-          <div class="row"><span>Telephone:</span><span>${escapeReceiptText(order.clientPhone || '')}</span></div>
-          <div class="row"><span>Commercial:</span><span>${escapeReceiptText(order.commercialName || 'N/A')}</span></div>
+          <div class="row"><span>Ref:</span><span class="value">${escapeReceiptText(order.reference || 'N/A')}</span></div>
+          <div class="row"><span>Date:</span><span class="value">${escapeReceiptText(dateLabel)}</span></div>
+          <div class="row"><span>Heure:</span><span class="value">${escapeReceiptText(timeLabel)}</span></div>
+          <div class="row"><span>Statut:</span><span class="value">${escapeReceiptText(getTontineDeliveryStatusLabel(order.status))}</span></div>
+          ${order.plannedDeliveryDate ? `<div class="row"><span>Livraison prevue:</span><span class="value">${escapeReceiptText(formatPlannedDate(order.plannedDeliveryDate))}</span></div>` : ''}
         </div>
         <div class="separator"></div>
         <div class="content-wrapper">
-          <div style="margin-bottom: 6px;">ARTICLES:</div>
+          <div class="block">
+            <div class="label">MEMBRE:</div>
+            <div class="big">${escapeReceiptText(order.clientName || 'Client')}<br>${escapeReceiptText(order.clientPhone || '')}</div>
+          </div>
+          <div class="block">
+            <div class="label">COMMERCIAL:</div>
+            <div class="big">${escapeReceiptText(order.commercialName || 'N/A')}</div>
+          </div>
+        </div>
+        <div class="separator"></div>
+        <div class="content-wrapper">
+          <div class="block label">ARTICLES:</div>
           ${itemsHTML || '<div>Aucun article</div>'}
         </div>
-        <div class="separator"></div>
-        <div class="content-wrapper">
+        <div class="total-box">
           ${this.tontineOrderBalanceRowsHTML(order)}
         </div>
         <div class="separator"></div>

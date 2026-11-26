@@ -523,6 +523,10 @@ app:
         key: RECOVERY_COVERAGE_TARGET
         value: "30"
         description: "Recouvrement terrain. Part du portefeuille en cours (crédit et tontine) que chaque chef de recouvrement contrôle dans le mois, en %. Repère du board et alerte au prorata du mois. Vide : pas d’objectif."
+      init-data[17]:
+        key: SHOW_RECEIPT_UNIT_PRICE
+        value: false
+        description: "Reçus mobiles. Activé : le reçu de crédit et le reçu de livraison tontine impriment le prix unitaire et le montant de ligne, pour tous les profils. Désactivé : seul le total est imprimé."
 
 loki:
   url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}
