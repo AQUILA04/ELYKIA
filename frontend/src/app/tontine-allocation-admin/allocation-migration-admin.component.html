@@ -95,7 +95,7 @@
             <td class="mono" [class.text-danger]="run.failedMembers > 0">{{ run.failedMembers }}</td>
             <td>{{ run.triggeredBy || '—' }}</td>
             <td class="cell-actions">
-              <button type="button" class="btn-detail" (click)="select(run)">Détail</button>
+              <button type="button" class="btn-detail" (click)="open(run)">Détail</button>
               <button type="button" class="btn-detail" *ngIf="run.status === 'FAILED'" (click)="retryRun(run)"
                       [disabled]="actionBusy || anyRunning">Relancer</button>
             </td>
