@@ -9,6 +9,16 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — 2026-11-26 (synthèse mensuelle, suivi des recalculs)
+
+### Changed
+
+- **Frontend → fiche membre → synthèse des collectes par mois →** les collectes de livraison n'ouvrent plus de mois : elles sont présentées sur une ligne « À la livraison » à part (exemptée de la part société) et ne sont plus comptées dans les jours et le total de la synthèse.
+
+### Fixed
+
+- **Frontend → Administration → Recalcul parts société →** les KPI suivent le recalcul le plus récent au lieu de rester sur le run sélectionné au chargement (tant qu'aucun ancien run n'est ouvert explicitement).
+
 ## Backend, Frontend & Mobile — 2026-11-26 (collectes de livraison exemptées, bascule en file)
 
 ### Changed

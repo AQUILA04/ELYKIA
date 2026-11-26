@@ -594,6 +594,10 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     }
 
     for (const collection of this.collectionsDataSource.data) {
+      // Les collectes de livraison sont exemptées de la part société : elles n'ouvrent aucun mois de cotisation.
+      if (collection.isDeliveryCollection) {
+        continue;
+      }
       const date = new Date(collection.collectionDate);
       const jsMonth = date.getMonth();
       if (date.getFullYear() === sessionYear && buckets.has(jsMonth)) {
@@ -653,6 +657,16 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   getDayPastilles(count: number): number[] {
     const total = Math.max(0, Math.floor(count));
     return Array.from({ length: total }, (_, index) => index + 1);
+  }
+
+  /** Collectes faites à la livraison, présentées à part de la synthèse mensuelle. */
+  get deliveryCollectionsSummary(): { count: number; amount: number } {
+    return this.collectionsDataSource.data
+      .filter(collection => collection.isDeliveryCollection)
+      .reduce(
+        (acc, collection) => ({ count: acc.count + 1, amount: acc.amount + collection.amount }),
+        { count: 0, amount: 0 }
+      );
   }
 
   get monthlyCollectionsTotals(): { count: number; amount: number; equivalentDays: number } {
