@@ -26,6 +26,8 @@ export class AllocationMigrationAdminComponent implements OnInit, OnDestroy {
   openedFailure: MigrationFailure | null = null;
   loading = false;
   actionBusy = false;
+  /** Tant que l'utilisateur n'a pas ouvert un ancien run, les KPI suivent le recalcul le plus récent. */
+  private followLatest = true;
 
   private readonly pageSize = 10;
   private readonly failuresPageSize = 20;
@@ -63,8 +65,9 @@ export class AllocationMigrationAdminComponent implements OnInit, OnDestroy {
         this.runsTotalPages = page.totalPages;
         this.loading = false;
         this.lastUpdate = new Date();
-        if (selectLatest && this.runs.length) {
-          this.select(this.runs[0]);
+        const latest = this.runsPage === 0 ? this.runs[0] : undefined;
+        if (latest && (selectLatest || (this.followLatest && latest.id !== this.selected?.id))) {
+          this.select(latest);
         } else if (this.selected) {
           const fresh = this.runs.find(r => r.id === this.selected!.id);
           if (fresh) {
@@ -77,6 +80,12 @@ export class AllocationMigrationAdminComponent implements OnInit, OnDestroy {
         this.alertService.toastError('Impossible de charger les recalculs.');
       }
     });
+  }
+
+  /** Ouverture explicite d'un run depuis l'historique : on arrête de suivre automatiquement le dernier. */
+  open(run: MigrationRun): void {
+    this.followLatest = this.runs.length > 0 && this.runsPage === 0 && run.id === this.runs[0].id;
+    this.select(run);
   }
 
   select(run: MigrationRun): void {
@@ -167,6 +176,7 @@ export class AllocationMigrationAdminComponent implements OnInit, OnDestroy {
         this.actionBusy = false;
         this.alertService.toastSuccess(successMessage);
         this.runsPage = 0;
+        this.followLatest = true;
         this.loadRuns(true);
       },
       error: err => {
