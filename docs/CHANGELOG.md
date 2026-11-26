@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend & Mobile — 2026-11-26 (reçu de crédit lisible, prix unitaire sur les reçus)
+
+### Added
+
+- **Backend 1.66.0 → paramètre `SHOW_RECEIPT_UNIT_PRICE` →** (défaut désactivé) règle le prix unitaire sur le reçu de crédit et le reçu de livraison tontine, pour tous les profils. Désactivé : seul le total est imprimé.
+
+### Changed
+
+- **Mobile 2.51.0 → reçu de commande tontine (écran Livraison fin d'année) →** réécrit en 11–14 px gras noir, membre / commercial en blocs, soldes dans un encadré ; prix unitaire selon `SHOW_RECEIPT_UNIT_PRICE` (impression et aperçu), sinon quantités et total seulement.
+- **Mobile 2.51.0 → reçu de crédit →** réécrit pour l'imprimante thermique 56 mm : texte 11–14 px en gras, noir pur (plus de gris pâle), articles sur deux lignes, bloc Total / Avance / Solde / Mise dans un encadré, QR code. Titre « REÇU D'ACHAT (Crédit) ».
+- **Mobile → reçu de livraison tontine →** texte agrandi et noir ; prix unitaire selon `SHOW_RECEIPT_UNIT_PRICE` (type `RECEIPT` de `UnitPriceVisibilityService`, aussi dans les aperçus).
+
 ## Backend, Frontend & Mobile — 2026-11-26 (correction de la mise d'un mois déjà cotisé)
 
 ### Added
