@@ -150,6 +150,7 @@ export interface RmPackTontineFieldControlToday {
     notebookAmount: number;
     systemAmount: number;
     differenceAmount: number;
+    declaredDailyAmount?: number | null;
   }[];
   collectors?: {
     commercialUsername: string;

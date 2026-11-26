@@ -380,6 +380,35 @@ public class TontineService extends GenericService<TontineMember, Long> {
         update(member);
     }
 
+    /**
+     * Corrige la mise d'un mois déjà cotisé, lue sur le carnet par le chef de recouvrement.
+     * Les montants collectés ne bougent pas : seule l'allocation (jours, part société) est
+     * recalculée. Aucune collecte ni dette n'est créée. Sans cotisation sur le mois,
+     * se comporte comme {@link #applyFieldControlMonthStake}.
+     */
+    public void correctFieldControlMonthStake(Long memberId, LocalDate monthDate, Double dailyStake) {
+        if (dailyStake == null || dailyStake <= 0) {
+            return;
+        }
+        TontineMember member = getById(memberId);
+        LocalDate monthStart = monthDate.withDayOfMonth(1);
+        LocalDate monthEnd = monthDate.withDayOfMonth(monthDate.lengthOfMonth());
+        if (sameAmount(getApplicableAmountForDate(member, monthDate, monthDate), dailyStake)) {
+            return;
+        }
+        long existing = tontineCollectionRepository.countByTontineMember_IdAndCollectionDateBetweenAndState(
+                memberId, monthStart.atStartOfDay(), monthEnd.atTime(23, 59, 59), State.ENABLED);
+        if (existing == 0) {
+            applyCatchupDailyStakeIfNeeded(member, monthDate, dailyStake);
+            update(member);
+            return;
+        }
+        rewriteMonthStake(member, monthStart, monthEnd, dailyStake);
+        recalculateMemberFromCollections(member);
+        updateSessionRevenue(member.getTontineSession());
+        update(member);
+    }
+
     private TontineMemberRespDto updateAdhesionDate(Long id, LocalDate registrationDate, boolean allowClosed) {
         assertTontineWritesAllowed();
         if (registrationDate == null) {
@@ -937,6 +966,11 @@ public class TontineService extends GenericService<TontineMember, Long> {
                     "Impossible de modifier la mise pour ce mois : des collectes existent déjà sur la période.");
         }
 
+        rewriteMonthStake(member, monthStart, monthEnd, catchupDailyStake);
+    }
+
+    private void rewriteMonthStake(
+            TontineMember member, LocalDate monthStart, LocalDate monthEnd, Double catchupDailyStake) {
         List<TontineMemberAmountHistory> history = member.getAmountHistory();
         if (history == null) {
             history = new ArrayList<>();

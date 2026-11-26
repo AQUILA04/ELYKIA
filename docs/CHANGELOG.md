@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend, Frontend & Mobile — 2026-11-26 (correction de la mise d'un mois déjà cotisé)
+
+### Added
+
+- **Mobile → contrôle de carnet tontine (RM) →** sur un mois déjà cotisé, le champ « Mise du mois » est modifiable (avec la mise du système en repère) quand le carnet physique indique une autre mise. Le commercial reste figé. La mise corrigée est restaurée en modification d'un contrôle.
+- **Frontend → modal de contrôle terrain →** même correction de mise sur un mois déjà cotisé.
+- **Backend → `TontineService.correctFieldControlMonthStake` →** corrige la mise d'un mois déjà cotisé : la tranche d'historique du mois est remplacée et l'allocation du membre recalculée, sans collecte ni dette créée.
+
+### Changed
+
+- **Backend → contrôle terrain tontine →** la mise déclarée n'est plus ignorée quand le mois a des cotisations. Sans écart de montant (rien à accepter), elle est appliquée à l'enregistrement du contrôle ; avec un écart, à l'acceptation, y compris pour un écart « système au-dessus du carnet ».
+
 ## Frontend — 2026-11-26 (synthèse mensuelle, suivi des recalculs)
 
 ### Changed

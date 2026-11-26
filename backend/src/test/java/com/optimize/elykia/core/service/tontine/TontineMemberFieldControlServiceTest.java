@@ -74,6 +74,8 @@ class TontineMemberFieldControlServiceTest {
     private UserService userService;
     @Mock
     private TontineAmountHistoryHelper amountHistoryHelper;
+    @Mock
+    private TontineService tontineService;
     @InjectMocks
     private TontineMemberFieldControlService service;
 
@@ -495,6 +497,49 @@ class TontineMemberFieldControlServiceTest {
 
         assertEquals(300.0, result.getLines().get(0).getDeclaredDailyAmount());
         assertNull(result.getLines().get(1).getDeclaredDailyAmount());
+    }
+
+    @Test
+    void create_keepsDeclaredStakeOnAMonthAlreadyCollectedAndAppliesItWhenAmountsMatch() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("field.agent", "n/a"));
+        CreateTontineMemberFieldControlMonthDto march = month(2026, 3, "COM003", 15_000.0);
+        march.setDeclaredDailyAmount(1_000.0);
+        CreateTontineMemberFieldControlDto request = request("CTRL-MISE-COTISE", march);
+        when(repository.existsByReference("CTRL-MISE-COTISE")).thenReturn(false);
+        when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member(10L, "COM003")));
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(10L, State.ENABLED))
+                .thenReturn(List.of(collection(15_000.0, LocalDateTime.of(2026, 3, 12, 9, 0), "COM003")));
+        when(amountHistoryHelper.getDailyAmountForMonth(any(), anyList(), eq(YearMonth.of(2026, 3)))).thenReturn(500.0);
+        when(repository.save(any(TontineMemberFieldControl.class))).thenAnswer(invocation -> {
+            TontineMemberFieldControl control = invocation.getArgument(0);
+            control.setId(95L);
+            return control;
+        });
+
+        TontineMemberFieldControlDto result = service.create(10L, request);
+
+        assertEquals(1_000.0, result.getLines().get(0).getDeclaredDailyAmount());
+        verify(tontineService).correctFieldControlMonthStake(10L, java.time.LocalDate.of(2026, 3, 1), 1_000.0);
+    }
+
+    @Test
+    void create_doesNotApplyStakeYetWhenTheMonthHasAnAmountGap() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("field.agent", "n/a"));
+        CreateTontineMemberFieldControlMonthDto march = month(2026, 3, "COM003", 20_000.0);
+        march.setDeclaredDailyAmount(1_000.0);
+        CreateTontineMemberFieldControlDto request = request("CTRL-MISE-ECART", march);
+        when(repository.existsByReference("CTRL-MISE-ECART")).thenReturn(false);
+        when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member(10L, "COM003")));
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(10L, State.ENABLED))
+                .thenReturn(List.of(collection(15_000.0, LocalDateTime.of(2026, 3, 12, 9, 0), "COM003")));
+        when(amountHistoryHelper.getDailyAmountForMonth(any(), anyList(), eq(YearMonth.of(2026, 3)))).thenReturn(500.0);
+        when(repository.save(any(TontineMemberFieldControl.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.create(10L, request);
+
+        verify(tontineService, never()).correctFieldControlMonthStake(any(), any(), any());
     }
 
     @Test

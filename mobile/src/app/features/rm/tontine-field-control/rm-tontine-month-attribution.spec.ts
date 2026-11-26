@@ -1,6 +1,7 @@
 import {
   canAddExtraCarnetRow,
   canEditMonthAttribution,
+  canEditMonthStake,
   commercialsUsedOnMonth,
   countCalendarMonthRows,
   isExtraCarnetAttribution,
@@ -191,5 +192,16 @@ describe('omitClaimedEmptyMonthRows', () => {
     omitClaimedEmptyMonthRows([block]);
     expect(block.rows.length).toBe(2);
     expect(block.rows[1].duplicatedFromSystemMonth).toBeTrue();
+  });
+});
+
+describe('canEditMonthStake', () => {
+  it('allows the mise correction on an already funded month only', () => {
+    const funded = row(3, 9300, 'COM003');
+    const empty = row(4, 0, 'COM003');
+    const extra = { ...row(3, 0, 'COM015'), duplicatedFromSystemMonth: true };
+    expect(canEditMonthStake(funded)).toBeTrue();
+    expect(canEditMonthStake(empty)).toBeFalse();
+    expect(canEditMonthStake(extra)).toBeFalse();
   });
 });
