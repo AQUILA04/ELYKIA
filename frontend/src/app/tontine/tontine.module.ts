@@ -59,6 +59,7 @@ import { SessionSettingsModalComponent } from './components/modals/session-setti
 import { DeliveryArticleSelectionModalComponent } from './components/modals/delivery-article-selection-modal/delivery-article-selection-modal.component';
 import { TontineFieldControlModalComponent } from './components/modals/tontine-field-control-modal/tontine-field-control-modal.component';
 import { EditAdhesionDateModalComponent } from './components/modals/edit-adhesion-date-modal/edit-adhesion-date-modal.component';
+import { AdjustSocietyShareModalComponent } from './components/modals/adjust-society-share-modal/adjust-society-share-modal.component';
 
 // Collectes
 import { TontineCollecteComponent } from './collecte/tontine-collecte.component';
@@ -104,6 +105,7 @@ import { TontineSessionService } from './services/tontine-session.service';
     TontineDeliverPreviewDialogComponent,
     TontineFieldControlModalComponent,
     EditAdhesionDateModalComponent,
+    AdjustSocietyShareModalComponent,
 
     // Collectes
     TontineCollecteComponent,

@@ -1,12 +1,14 @@
 # Contexte actif
 
-Arrêt au **2026-11-21** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de chaque bloc) et `git log --oneline -20`.
+Arrêt au **2026-11-27** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de chaque bloc) et `git log --oneline -20`.
 
 ## Versions en tête
 
-- Frontend **2.66.1** — Backend **1.64.1** — Mobile **2.49.3** — Espace client **0.17.4** (dernier incrément espace client : 2026-11-20).
+- Frontend **2.68.0** — Backend **1.67.0** — Mobile **2.52.0** — Espace client **0.17.4** (dernier incrément espace client : 2026-11-20).
 
 ## Focus récent (changelog et PR)
+
+- **Réajustement de la part société** (2026-11-27, Backend 1.67.0, Frontend 2.68.0, Mobile 2.52.0, non fusionné). `TontineSocietyShareAdjustmentService` : montant saisi égal à la part en place = validée sans mise à jour ; différent = `society_share_override` puis `TontineService.recalculateMemberAfterSocietyShareChange`. `TontineSocietyShareOverride.apply` est appelé par les trois politiques avant `TontineBalanceTopUp` (donc par tous les recalculs, restauration JDBC comprise). Chef de recouvrement / admin = `society_share_locked`, la saisie commerciale est alors refusée. Commande : `CreateDeliveryDto.societyShareAdjustment`, appliqué avant le plafond ; le plafond retire la hausse de part (`societyShareIncrease`). KPI : `sum(delta)` de `tontine_society_share_adjustment` ajouté. Mobile : saisie fiche hors ligne dans `tontine_society_share_pending` (v41), saisie commande portée par la commande, file RM `rm_tontine_society_shares`. Non géré : collectes ajoutées après la saisie (la part reste figée, voulu par le métier) ; le pack RM en ligne n'a pas la part en place.
 
 - **Reçu de crédit lisible + `SHOW_RECEIPT_UNIT_PRICE`** (2026-11-26, Backend 1.66.0, Mobile 2.51.0, non fusionné). `generateReceiptHTML` réécrit (11 px gras noir, QR via `qrcode`). Le reçu de commande tontine (`generateTontineOrderReceiptHTML`, écran delivery-creation) est aussi réécrit. Le paramètre (défaut `false`, `init-data[17]`) règle le prix unitaire des reçus de commande tontine, de crédit et de livraison tontine pour tous les profils (`UnitPriceVisibilityService.receiptSnapshot`, type `RECEIPT` des directives). Reçus de commande classique et de recouvrement non touchés. Non testé sur imprimante.
 

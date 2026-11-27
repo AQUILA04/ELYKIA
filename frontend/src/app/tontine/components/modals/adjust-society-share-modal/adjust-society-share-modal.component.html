@@ -1,0 +1,86 @@
+<div class="society-share-modal" data-testid="e2e-tontine-society-share-modal">
+  <div class="modal-header">
+    <div class="modal-header-text">
+      <span class="modal-surtitle">TONTINE · PART SOCIÉTÉ</span>
+      <h2 class="modal-title">Réajuster la part société</h2>
+    </div>
+    <button type="button" class="modal-close" (click)="onCancel()" [disabled]="loading" aria-label="Fermer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+  </div>
+
+  <div class="modal-body">
+    <div class="member-summary">
+      <div class="summary-row">
+        <span class="summary-label">Membre</span>
+        <span class="summary-value">{{ getClientName() }}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Cotisé (hors livraison)</span>
+        <span class="summary-value">{{ formatCurrency(regularContribution) }}</span>
+      </div>
+      <ng-container *ngIf="data.canViewShare">
+        <div class="summary-row">
+          <span class="summary-label">Part société actuelle</span>
+          <span class="summary-value">{{ formatCurrency(data.member.societyShare) }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Solde disponible</span>
+          <span class="summary-value">{{ formatCurrency(data.member.availableContribution) }}</span>
+        </div>
+      </ng-container>
+    </div>
+
+    <div class="info-banner">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+      <p>
+        Saisissez la part société que ce membre doit sur <strong>toute l'année</strong>.
+        Si elle est égale à la part en place, elle est simplement validée. Sinon, elle remplace le calcul
+        de l'application et le solde disponible est recalculé tout de suite. Le calcul d'origine reste dans l'historique.
+      </p>
+    </div>
+
+    <div class="error-banner" *ngIf="data.member.societyShareLocked" role="note">
+      Part déjà validée par le chef de recouvrement : seule une saisie du chef de recouvrement ou d'un administrateur sera retenue.
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-field">
+        <label class="field-label" for="declared-society-share">Part société de l'année (FCFA) *</label>
+        <mat-form-field appearance="outline" class="elykia-field">
+          <input matInput id="declared-society-share" type="number" min="0" step="1"
+                 formControlName="declaredSocietyShare" placeholder="Ex. 12 000"
+                 data-testid="e2e-tontine-society-share-input">
+          <mat-error *ngIf="form.get('declaredSocietyShare')?.hasError('required')">Le montant est requis</mat-error>
+          <mat-error *ngIf="form.get('declaredSocietyShare')?.hasError('min')">Le montant ne peut pas être négatif</mat-error>
+          <mat-error *ngIf="form.get('declaredSocietyShare')?.hasError('max')">
+            Ne peut pas dépasser le total cotisé ({{ formatCurrency(regularContribution) }})
+          </mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="form-field">
+        <label class="field-label" for="society-share-comment">Commentaire (facultatif)</label>
+        <mat-form-field appearance="outline" class="elykia-field">
+          <textarea matInput id="society-share-comment" rows="2" formControlName="comment"
+                    data-testid="e2e-tontine-society-share-comment"></textarea>
+        </mat-form-field>
+      </div>
+
+      <div class="error-banner" *ngIf="error" role="alert">{{ error }}</div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-outline" *ngIf="data.canReset && isAdjusted" (click)="onReset()"
+                [disabled]="loading" data-testid="e2e-tontine-society-share-reset">
+          Revenir au calcul automatique
+        </button>
+        <button type="button" class="btn-outline" (click)="onCancel()" [disabled]="loading">Annuler</button>
+        <button type="submit" class="btn-primary" [disabled]="loading || form.invalid"
+                data-testid="e2e-tontine-society-share-submit">
+          <span class="btn-spinner" *ngIf="loading" aria-hidden="true"></span>
+          Enregistrer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

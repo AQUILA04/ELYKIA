@@ -34,6 +34,7 @@ import com.optimize.elykia.core.service.tontine.allocation.TontineProjectedBalan
 import com.optimize.elykia.core.service.tontine.conflict.TontineDeliveryConflictService;
 import com.optimize.elykia.core.service.tontine.conflict.TontineDeliveryDuplicateException;
 import org.springframework.beans.factory.annotation.Autowired;
+import com.optimize.elykia.core.dto.TontineSocietyShareAdjustmentDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -79,6 +80,10 @@ public class TontineDeliveryService {
 
     @Autowired(required = false)
     private CashSalePricingService cashSalePricingService;
+
+    @Autowired(required = false)
+    @org.springframework.context.annotation.Lazy
+    private TontineSocietyShareAdjustmentService societyShareAdjustmentService;
     private BusinessMetricsPublisher metricsPublisher;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -97,11 +102,27 @@ public class TontineDeliveryService {
                 "La commande tontine n'est possible que tant que la session est ouverte ou clôturée.",
                 TontineSessionStatus.ACTIVE, TontineSessionStatus.CLOSED);
 
+        // La part société saisie avec la commande passe avant le plafond, qui en dépend.
+        TontineSocietyShareAdjustmentDto adjustment = applySocietyShareAdjustment(member, dto);
+
         Optional<TontineDelivery> existing = deliveryRepository.findByTontineMemberId(member.getId());
-        if (existing.isPresent()) {
-            return handleSecondOrder(member, existing.get(), dto);
+        TontineDeliveryDto result = existing.isPresent()
+                ? handleSecondOrder(member, existing.get(), dto)
+                : persistNewDelivery(member, dto);
+        result.setSocietyShareAdjustment(adjustment);
+        return result;
+    }
+
+    private TontineSocietyShareAdjustmentDto applySocietyShareAdjustment(TontineMember member, CreateDeliveryDto dto) {
+        if (societyShareAdjustmentService == null || dto.getSocietyShareAdjustment() == null
+                || dto.getSocietyShareAdjustment().getDeclaredSocietyShare() == null) {
+            return null;
         }
-        return persistNewDelivery(member, dto);
+        if (isDelivered(member)) {
+            // Membre livré : lecture seule. Le rejeu de la remise est traité plus loin.
+            return null;
+        }
+        return societyShareAdjustmentService.adjustForDelivery(member, dto.getSocietyShareAdjustment(), dto.getReference());
     }
 
     public TontineDeliveryDto distributeTontineDelivery(CreateDeliveryDto dto) {
@@ -125,9 +146,12 @@ public class TontineDeliveryService {
                     incomingOf(member, TontineDeliveryConflictOperation.DIRECT_DELIVERY, dto), reason);
         }
 
+        TontineSocietyShareAdjustmentDto adjustment = applySocietyShareAdjustment(member, dto);
         TontineDeliveryDto resp = persistNewDelivery(member, dto);
         this.validateDelivery(resp.getId());
-        return this.deliverDelivery(resp.getId());
+        TontineDeliveryDto delivered = this.deliverDelivery(resp.getId());
+        delivered.setSocietyShareAdjustment(adjustment);
+        return delivered;
     }
 
     /**

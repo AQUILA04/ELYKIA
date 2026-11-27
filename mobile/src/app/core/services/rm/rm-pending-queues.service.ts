@@ -1,5 +1,5 @@
-import { Injectable } from '@angular/core';
-import { Observable, combineLatest } from 'rxjs';
+import { Injectable, Optional } from '@angular/core';
+import { Observable, combineLatest, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RmCarnetVerificationQueueService } from './rm-carnet-verification-queue.service';
 import { RmCloseQueueService } from './rm-close-queue.service';
@@ -8,6 +8,7 @@ import { RmContactQueueService } from './rm-contact-queue.service';
 import { RmCreditCarnetVerificationQueueService } from './rm-credit-carnet-verification-queue.service';
 import { RmFieldControlQueueService } from './rm-field-control-queue.service';
 import { RmTontineFieldControlQueueService } from './rm-tontine-field-control-queue.service';
+import { RmSocietyShareQueueService } from './rm-society-share-queue.service';
 
 /**
  * Vue unique sur les files hors ligne du chef de recouvrement (isSync=false).
@@ -22,7 +23,8 @@ export class RmPendingQueuesService {
     private readonly tontineFieldControlQueue: RmTontineFieldControlQueueService,
     private readonly carnetQueue: RmCarnetVerificationQueueService,
     private readonly creditCarnetQueue: RmCreditCarnetVerificationQueueService,
-    private readonly assignQueue: RmCollectorAssignQueueService
+    private readonly assignQueue: RmCollectorAssignQueueService,
+    @Optional() private readonly societyShareQueue?: RmSocietyShareQueueService
   ) {}
 
   /** Nombre d'opérations en attente, mis à jour en continu (badge). */
@@ -34,6 +36,7 @@ export class RmPendingQueuesService {
     this.carnetQueue.ops$,
     this.creditCarnetQueue.ops$,
     this.assignQueue.ops$,
+    this.societyShareQueue ? this.societyShareQueue.ops$ : of([]),
   ]).pipe(
     map(lists => lists.reduce((total, ops) => total + ops.filter(op => !op.isSync).length, 0))
   );
@@ -48,6 +51,7 @@ export class RmPendingQueuesService {
       this.carnetQueue.listPending(),
       this.creditCarnetQueue.listPending(),
       this.assignQueue.listPending(),
+      this.societyShareQueue ? this.societyShareQueue.listPending() : Promise.resolve([]),
     ]);
     return lists.reduce((total, list) => total + list.length, 0);
   }

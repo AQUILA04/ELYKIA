@@ -50,7 +50,10 @@ export function mapApiMemberToLocal(
     societyShare: member.societyShare ?? 0,
     availableContribution: member.availableContribution ?? Math.max(0, serverTotal - (member.societyShare ?? 0)),
     validatedMonths: member.validatedMonths ?? 0,
-    currentMonthDays: member.currentMonthDays ?? 0
+    currentMonthDays: member.currentMonthDays ?? 0,
+    societyShareOverride: member.societyShareOverride ?? null,
+    societyShareStatus: member.societyShareStatus ?? 'AUTO',
+    societyShareLocked: member.societyShareLocked === true
   };
 }
 

@@ -27,4 +27,11 @@ public class CreateDeliveryDto {
     
     private String operationConsentCode;
     private String syncConsentCode;
+
+    /**
+     * Part société réelle saisie pendant la commande (facultatif). Appliquée avant le contrôle du plafond,
+     * dans la même transaction que la commande.
+     */
+    @Valid
+    private AdjustTontineSocietyShareDto societyShareAdjustment;
 }

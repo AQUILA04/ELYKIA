@@ -47,6 +47,52 @@ export interface TontineMember {
   /** STAFF | CUSTOMER_SPACE — origine d'inscription du membre */
   readonly registrationSource?: 'STAFF' | 'CUSTOMER_SPACE';
   readonly selfRegistered?: boolean;
+  /** Part société saisie (réajustement) ; null = calcul automatique. */
+  readonly societyShareOverride?: number | null;
+  /** AUTO | CONFIRMED (saisie conforme) | ADJUSTED (saisie différente) */
+  readonly societyShareStatus?: TontineSocietyShareStatus;
+  /** Validée ou corrigée par le chef de recouvrement : le commercial ne peut plus la changer. */
+  readonly societyShareLocked?: boolean;
+}
+
+export type TontineSocietyShareStatus = 'AUTO' | 'CONFIRMED' | 'ADJUSTED';
+export type TontineSocietyShareAdjustmentOutcome = 'ADJUSTED' | 'VALIDATED' | 'REJECTED' | 'RESET';
+export type TontineSocietyShareAdjustmentSource =
+  'WEB_MEMBER' | 'MOBILE_MEMBER' | 'DELIVERY_CREATION' | 'RM_CONTROL' | 'ADMIN_RESET';
+
+export interface AdjustTontineSocietyShareRequest {
+  readonly reference?: string;
+  readonly declaredSocietyShare: number;
+  readonly comment?: string | null;
+  readonly source?: TontineSocietyShareAdjustmentSource;
+}
+
+/** Une saisie de part société (historique) ; en réponse à une saisie, porte aussi l'état du membre après. */
+export interface TontineSocietyShareAdjustment {
+  readonly id?: number;
+  readonly tontineMemberId: number;
+  readonly reference?: string | null;
+  readonly deliveryReference?: string | null;
+  readonly source: TontineSocietyShareAdjustmentSource;
+  readonly outcome: TontineSocietyShareAdjustmentOutcome;
+  readonly supervisor?: boolean;
+  readonly regularContribution?: number;
+  readonly computedSocietyShare?: number;
+  readonly previousSocietyShare?: number;
+  readonly declaredSocietyShare?: number | null;
+  readonly newSocietyShare?: number;
+  readonly delta?: number;
+  readonly previousAvailable?: number;
+  readonly newAvailable?: number;
+  readonly comment?: string | null;
+  readonly adjustedBy?: string | null;
+  readonly adjustedAt?: string;
+  readonly memberSocietyShareStatus?: TontineSocietyShareStatus;
+  readonly memberSocietyShareLocked?: boolean;
+  readonly memberSocietyShare?: number;
+  readonly memberAvailableContribution?: number;
+  readonly memberProjectedBalance?: number;
+  readonly message?: string;
 }
 
 export interface TontineCollection {

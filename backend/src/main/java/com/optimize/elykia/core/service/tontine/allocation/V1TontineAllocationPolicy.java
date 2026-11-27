@@ -68,6 +68,7 @@ public class V1TontineAllocationPolicy implements TontineAllocationPolicy {
                 collection.setContributionMonth(allocationDate.withDayOfMonth(1));
             }
         }
+        TontineSocietyShareOverride.apply(member);
         TontineBalanceTopUp.apply(member, collections);
     }
 

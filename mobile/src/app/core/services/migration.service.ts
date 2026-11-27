@@ -169,6 +169,9 @@ export class MigrationService {
       case 40:
         await this.migrateToV40(db);
         break;
+      case 41:
+        await this.migrateToV41(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -1017,6 +1020,29 @@ export class MigrationService {
   private async migrateToV40(db: SQLiteDBConnection): Promise<void> {
     await this.migrateAddColumnIfMissing(db, 'v40', 'articles', 'warehouseStock', 'INTEGER');
     await this.addColumnIfNotExists(db, 'articles', 'warehouseStockAt', 'TEXT');
+  }
+
+  /**
+   * Part société réajustée : état serveur sur le membre, part saisie avec une commande,
+   * et saisies de la fiche membre faites hors ligne (envoyées à la synchronisation).
+   */
+  private async migrateToV41(db: SQLiteDBConnection): Promise<void> {
+    await this.migrateAddColumnIfMissing(db, 'v41', 'tontine_members', 'societyShareOverride', 'REAL');
+    await this.addColumnIfNotExists(db, 'tontine_members', 'societyShareStatus', 'TEXT');
+    await this.addColumnIfNotExists(db, 'tontine_members', 'societyShareLocked', 'INTEGER DEFAULT 0');
+    await this.addColumnIfNotExists(db, 'tontine_deliveries', 'declaredSocietyShare', 'REAL');
+    await this.addColumnIfNotExists(db, 'tontine_deliveries', 'societyShareReference', 'TEXT');
+    await this.addColumnIfNotExists(db, 'tontine_deliveries', 'societyShareComment', 'TEXT');
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS tontine_society_share_pending (
+        tontineMemberId TEXT PRIMARY KEY NOT NULL,
+        declaredSocietyShare REAL NOT NULL,
+        reference TEXT NOT NULL,
+        comment TEXT,
+        createdAt TEXT NOT NULL,
+        lastError TEXT
+      );
+    `);
   }
 
   private async migrateToV39(db: SQLiteDBConnection): Promise<void> {

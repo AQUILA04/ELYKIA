@@ -33,6 +33,12 @@ export interface TontineMember {
     availableContribution?: number;
     validatedMonths?: number;
     currentMonthDays?: number;
+    /** Part société saisie (réajustement) ; null = calcul automatique. */
+    societyShareOverride?: number | null;
+    /** AUTO | CONFIRMED (saisie conforme) | ADJUSTED (saisie différente). */
+    societyShareStatus?: 'AUTO' | 'CONFIRMED' | 'ADJUSTED' | null;
+    /** Validée ou corrigée par le chef de recouvrement : la saisie du commercial est refusée. */
+    societyShareLocked?: boolean;
 }
 
 export interface TontineMemberView extends TontineMember {
@@ -116,6 +122,10 @@ export interface TontineDelivery {
     needsDeliverSync?: boolean;
     /** Non persisté : la saisie a été ajoutée par le serveur à une commande déjà enregistrée. */
     mergedIntoExisting?: boolean;
+    /** Part société réelle saisie pendant la commande : envoyée avec elle, appliquée avant le plafond. */
+    declaredSocietyShare?: number | null;
+    societyShareReference?: string | null;
+    societyShareComment?: string | null;
 }
 
 export interface TontineDeliveryView extends TontineDelivery {

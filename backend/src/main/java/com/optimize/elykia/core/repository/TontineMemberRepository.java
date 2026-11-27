@@ -111,7 +111,10 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
 
         @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
         @Query("UPDATE TontineMember tm SET tm.totalContribution = 0, tm.societyShare = 0, " +
-                "tm.availableContribution = 0, tm.validatedMonths = 0, tm.currentMonthDays = 0 " +
+                "tm.availableContribution = 0, tm.validatedMonths = 0, tm.currentMonthDays = 0, " +
+                "tm.societyShareOverride = NULL, tm.societyShareComputed = 0, " +
+                "tm.societyShareStatus = com.optimize.elykia.core.enumaration.TontineSocietyShareStatus.AUTO, " +
+                "tm.societyShareLocked = false " +
                 "WHERE tm.tontineSession.id = :sessionId AND tm.state = com.optimize.common.entities.enums.State.ENABLED")
         int resetContributionsBySessionId(@Param("sessionId") Long sessionId);
 
@@ -125,6 +128,10 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 WHERE tm.id = :id
                 """)
         java.util.Optional<TontineMember> findByIdWithClient(@Param("id") Long id);
+
+        @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+        @Query("SELECT tm FROM TontineMember tm WHERE tm.id = :id")
+        java.util.Optional<TontineMember> findByIdForUpdate(@Param("id") Long id);
 
         Page<TontineMember> findByDeliveryStatus(TontineMemberDeliveryStatus status, Pageable pageable);
 
@@ -236,7 +243,10 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.registrationSource,
             CASE WHEN tm.registrationSource = com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE THEN true ELSE false END,
             false,
-            null
+            null,
+            tm.societyShareOverride,
+            tm.societyShareStatus,
+            tm.societyShareLocked
         )
         FROM TontineMember tm
         LEFT JOIN tm.tontineSession s
@@ -297,7 +307,10 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.registrationSource,
             CASE WHEN tm.registrationSource = com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE THEN true ELSE false END,
             false,
-            null
+            null,
+            tm.societyShareOverride,
+            tm.societyShareStatus,
+            tm.societyShareLocked
         )
         FROM TontineMember tm
         LEFT JOIN tm.tontineSession s

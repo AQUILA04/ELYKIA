@@ -6,6 +6,7 @@ import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
 import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
+import com.optimize.elykia.core.enumaration.TontineSocietyShareStatus;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
@@ -32,7 +33,10 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                                    TontineMemberRegistrationSource registrationSource,
                                    Boolean selfRegistered,
                                    Boolean fieldControlled,
-                                   Double projectedBalance
+                                   Double projectedBalance,
+                                   Double societyShareOverride,
+                                   TontineSocietyShareStatus societyShareStatus,
+                                   Boolean societyShareLocked
                                    ) {
 
     public static TontineMemberRespDto fromId(Long id) {
@@ -40,7 +44,7 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
             return null;
         }
 
-        return new TontineMemberRespDto(id, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        return new TontineMemberRespDto(id, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public static TontineMemberRespDto fromTontineMember(TontineMember member) {
@@ -61,7 +65,10 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                 source,
                 source == TontineMemberRegistrationSource.CUSTOMER_SPACE,
                 null,
-                null);
+                null,
+                member.getSocietyShareOverride(),
+                member.getSocietyShareStatus() != null ? member.getSocietyShareStatus() : TontineSocietyShareStatus.AUTO,
+                Boolean.TRUE.equals(member.getSocietyShareLocked()));
     }
 
     public TontineMemberRespDto withFieldControlled(Boolean controlled) {
@@ -70,7 +77,7 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                 frequency, amount, notes, societyShare, availableContribution, validatedMonths, currentMonthDays,
                 operationConsentCode, syncConsentCode, totalDeliveryCollections,
                 carnetVerified, carnetVerifiedAt, carnetVerifiedBy, registrationSource, selfRegistered,
-                controlled, projectedBalance);
+                controlled, projectedBalance, societyShareOverride, societyShareStatus, societyShareLocked);
     }
 
     public TontineMemberRespDto withProjectedBalance(Double balance) {
@@ -79,7 +86,7 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                 frequency, amount, notes, societyShare, availableContribution, validatedMonths, currentMonthDays,
                 operationConsentCode, syncConsentCode, totalDeliveryCollections,
                 carnetVerified, carnetVerifiedAt, carnetVerifiedBy, registrationSource, selfRegistered,
-                fieldControlled, balance);
+                fieldControlled, balance, societyShareOverride, societyShareStatus, societyShareLocked);
     }
 
     /**
@@ -95,7 +102,7 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                 frequency, amount, notes, societyShare, availableContribution, validatedMonths, currentMonthDays,
                 operationConsentCode, syncConsentCode, totalDeliveryCollections,
                 carnetVerified, carnetVerifiedAt, carnetVerifiedBy, registrationSource, selfRegistered,
-                fieldControlled, projectedBalance);
+                fieldControlled, projectedBalance, societyShareOverride, societyShareStatus, societyShareLocked);
     }
 
     public static Page<TontineMemberRespDto> fromTontineMembers(Page<TontineMember> members) {

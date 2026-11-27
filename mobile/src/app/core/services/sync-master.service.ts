@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { TontineSocietyShareService } from './tontine-society-share.service';
+import { Injectable, Optional } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Store } from '@ngrx/store';
 
@@ -67,7 +68,8 @@ export class SyncMasterService {
     private readonly reliquatSyncService: ReliquatSyncService,
     private readonly reliquatService: ReliquatService,
     private readonly syncConsentPresenter: SyncConsentPresenterService,
-    private readonly clientService: ClientService
+    private readonly clientService: ClientService,
+    @Optional() private readonly societyShareService?: TontineSocietyShareService
   ) { }
 
   /**
@@ -218,6 +220,15 @@ export class SyncMasterService {
       batchResult.tontineCollectionsSync = { success: tcResult.success, errors: tcResult.errors };
       processedItems += (tcResult.success + tcResult.errors);
       this.updateProgress(processedItems, totalItems);
+
+      // 11b. Parts société saisies hors ligne sur la fiche membre (avant les commandes, dont le plafond dépend).
+      if (this.societyShareService) {
+        try {
+          await this.societyShareService.syncPending();
+        } catch (error) {
+          console.error('SyncMaster: envoi des parts société en attente impossible', error);
+        }
+      }
 
       // 12. Sync Tontine Deliveries (Depends on Tontine Members)
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'tontine-deliveries' } }));

@@ -414,6 +414,13 @@ export interface TontineDeliverySyncRequest {
   items: TontineDeliveryItemSyncRequest[];
   operationConsentCode?: string | null;
   syncConsentCode?: string | null;
+  /** Part société réelle saisie avec la commande. */
+  societyShareAdjustment?: {
+    reference: string;
+    declaredSocietyShare: number;
+    comment?: string | null;
+    source: 'DELIVERY_CREATION';
+  } | null;
 }
 
 export interface TontineDeliveryItemSyncRequest {
@@ -464,4 +471,13 @@ export interface TontineDeliverySyncResponse {
   mergedIntoExisting?: boolean;
   /** Articles de la commande serveur complète (renvoyés lors d'une fusion). */
   items?: Array<{ articleId: number | string; quantity: number; unitPrice: number; totalPrice: number; articleName?: string }>;
+  /** Résultat de la part société saisie avec la commande (validée, corrigée ou refusée). */
+  societyShareAdjustment?: {
+    outcome: 'ADJUSTED' | 'VALIDATED' | 'REJECTED' | 'RESET';
+    message?: string;
+    memberSocietyShare?: number;
+    memberAvailableContribution?: number;
+    memberSocietyShareStatus?: 'AUTO' | 'CONFIRMED' | 'ADJUSTED';
+    memberSocietyShareLocked?: boolean;
+  } | null;
 }

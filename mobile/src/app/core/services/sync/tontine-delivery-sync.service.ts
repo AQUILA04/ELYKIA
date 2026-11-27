@@ -258,7 +258,8 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
             deliveryDate: data.deliveryDate,
             deliveryStatus: data.deliveryStatus || data.status,
             mergedIntoExisting: data.mergedIntoExisting === true,
-            items: Array.isArray(data.items) ? data.items : undefined
+            items: Array.isArray(data.items) ? data.items : undefined,
+            societyShareAdjustment: data.societyShareAdjustment ?? null
         };
     }
 
@@ -291,7 +292,15 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
                 unitsPerPack: item.unitsPerPack
             })),
             operationConsentCode: delivery.operationConsentCode ?? null,
-            syncConsentCode: this.syncConsentCode ?? null
+            syncConsentCode: this.syncConsentCode ?? null,
+            societyShareAdjustment: delivery.declaredSocietyShare != null && delivery.societyShareReference
+                ? {
+                    reference: delivery.societyShareReference,
+                    declaredSocietyShare: delivery.declaredSocietyShare,
+                    comment: delivery.societyShareComment ?? null,
+                    source: 'DELIVERY_CREATION'
+                }
+                : null
         };
     }
 }

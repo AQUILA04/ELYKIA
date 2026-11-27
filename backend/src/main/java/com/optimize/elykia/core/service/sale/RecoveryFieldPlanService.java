@@ -515,6 +515,9 @@ public class RecoveryFieldPlanService {
                 .carnetVerified(Boolean.TRUE.equals(member.getCarnetVerified()))
                 .carnetVerifiedAt(member.getCarnetVerifiedAt())
                 .carnetVerifiedBy(member.getCarnetVerifiedBy())
+                .societyShare(member.getSocietyShare())
+                .societyShareStatus(member.getSocietyShareStatus() != null ? member.getSocietyShareStatus().name() : "AUTO")
+                .societyShareLocked(Boolean.TRUE.equals(member.getSocietyShareLocked()))
                 .months(months)
                 .collectors(collectors)
                 .build();
@@ -625,6 +628,9 @@ public class RecoveryFieldPlanService {
                     .carnetVerified(Boolean.TRUE.equals(member.getCarnetVerified()))
                     .carnetVerifiedAt(member.getCarnetVerifiedAt())
                     .carnetVerifiedBy(member.getCarnetVerifiedBy())
+                    .societyShare(member.getSocietyShare())
+                    .societyShareStatus(member.getSocietyShareStatus() != null ? member.getSocietyShareStatus().name() : "AUTO")
+                    .societyShareLocked(Boolean.TRUE.equals(member.getSocietyShareLocked()))
                     .months(months)
                     .collectors(collectors)
                     .build());

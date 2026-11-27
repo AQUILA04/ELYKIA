@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Optional } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavController, AlertController, ActionSheetController, ToastController, LoadingController, ModalController } from '@ionic/angular';
 import { Subject, firstValueFrom } from 'rxjs';
@@ -48,6 +48,8 @@ import {
 } from 'src/app/core/utils/tontine-order-balance.util';
 import { FeedbackService } from 'src/app/core/services/feedback.service';
 import { TontineOrderCeilingService } from 'src/app/core/services/tontine-order-ceiling.service';
+import { TontineSocietyShareService } from 'src/app/core/services/tontine-society-share.service';
+import { promptSocietyShare, regularContributionOf } from 'src/app/core/utils/tontine-society-share-prompt.util';
 import {
     TontineOrderCeiling,
     tontineCeilingExcess
@@ -116,7 +118,8 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         private modalCtrl: ModalController,
         private feedback: FeedbackService,
         private ceilingService: TontineOrderCeilingService,
-        private orderEditOutcome: TontineOrderEditOutcomeService
+        private orderEditOutcome: TontineOrderEditOutcomeService,
+        @Optional() private societyShareService?: TontineSocietyShareService
     ) { }
 
     /** Plafond de la commande du membre affiché (null tant qu'il n'est pas calculé). */
@@ -220,6 +223,10 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                 return;
             }
             this.vm.member = members.find(m => String(m.id) === String(memberId)) || null;
+            if (this.vm.member && this.societyShareService) {
+                // Part société saisie hors ligne : appliquée au calcul local (plafond) jusqu'à son envoi.
+                this.vm.member = await this.societyShareService.withPendingOverride(this.vm.member);
+            }
 
             if (!this.vm.member) {
                 await this.showError('Membre non trouvé');
@@ -320,6 +327,69 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             this.vm.delivery = null;
             this.vm.deliveryItems = [];
             this.deliveryLookupFailed = true;
+        }
+    }
+
+    /** Bouton « Réajuster la part société » : membre non livré, session non terminée, avec des collectes. */
+    canAdjustSocietyShare(): boolean {
+        const member = this.vm.member;
+        if (!member || !this.societyShareService) {
+            return false;
+        }
+        if (String(member.deliveryStatus || '').toUpperCase() === 'DELIVERED') {
+            return false;
+        }
+        if (String(this.sessionStatus || '').toUpperCase() === 'ENDED') {
+            return false;
+        }
+        return regularContributionOf(this.vm.collections) > 0;
+    }
+
+    societyShareStatusLabel(): string | null {
+        const member = this.vm.member;
+        if (!member) {
+            return null;
+        }
+        if (member.societyShareStatus === 'ADJUSTED') {
+            return member.societyShareLocked ? 'Corrigée par le chef de recouvrement' : 'Réajustée';
+        }
+        if (member.societyShareStatus === 'CONFIRMED') {
+            return member.societyShareLocked ? 'Validée par le chef de recouvrement' : 'Validée';
+        }
+        return null;
+    }
+
+    async adjustSocietyShare(): Promise<void> {
+        if (!this.canAdjustSocietyShare() || !this.vm.member || !this.societyShareService) {
+            return;
+        }
+        if (this.vm.member.societyShareLocked) {
+            await this.feedback.warning(
+                'Le chef de recouvrement a déjà validé la part société de ce membre : elle ne peut plus être modifiée ici.',
+                { title: 'Part société validée' }
+            );
+            return;
+        }
+        const input = await promptSocietyShare(this.alertCtrl, regularContributionOf(this.vm.collections));
+        if (!input) {
+            return;
+        }
+        const loading = await this.loadingCtrl.create({ message: 'Enregistrement...' });
+        await loading.present();
+        try {
+            let session = null;
+            try {
+                session = await firstValueFrom(this.store.select(selectTontineSession).pipe(take(1)));
+            } catch {
+                session = null;
+            }
+            const result = await this.societyShareService.adjust(this.vm.member, session, input.amount, input.comment);
+            await loading.dismiss();
+            await this.feedback.success(result.message, { title: 'Part société' });
+            await this.loadMemberData();
+        } catch (error) {
+            await loading.dismiss();
+            await this.feedback.error(error, { title: 'Part société non enregistrée' });
         }
     }
 
@@ -842,6 +912,13 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                     icon: 'create-outline',
                     handler: () => {
                         this.openOrderEdit();
+                    }
+                }] : []),
+                ...(this.canAdjustSocietyShare() ? [{
+                    text: 'Réajuster la part société',
+                    icon: 'calculator-outline',
+                    handler: () => {
+                        void actionSheet.onDidDismiss().then(() => this.adjustSocietyShare());
                     }
                 }] : []),
                 {

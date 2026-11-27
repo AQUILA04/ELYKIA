@@ -872,7 +872,7 @@ class TontineServiceTest {
             Long id, com.optimize.elykia.core.dto.TontineDeliveryRespDto delivery) {
         return new TontineMemberRespDto(id, null, null, null,
                 TontineMemberDeliveryStatus.PENDING, null, delivery, null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @Test

@@ -59,6 +59,7 @@ public class TontineController {
     private final StockExportService stockExportService;
     private final TontineExportService tontineExportService;
     private final TontineMemberContributionService tontineMemberContributionService;
+    private final com.optimize.elykia.core.service.tontine.TontineSocietyShareAdjustmentService societyShareAdjustmentService;
 
     @GetMapping("/sessions/current")
     public ResponseEntity<Response> getCurrentSession() {
@@ -239,6 +240,38 @@ public class TontineController {
     public ResponseEntity<Response> getMemberAmountHistoryArchives(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(
                 tontineService.getMemberAmountHistoryArchives(id)), HttpStatus.OK);
+    }
+
+    @PostMapping("/members/{id}/society-share-adjustments")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.EDIT_TONTINE + "', 'RECOVERY_MANAGER', '"
+            + UserPermissionConstant.ADMIN + "')")
+    @Operation(summary = "Saisir la part société réelle de l'année d'un membre (valide si égale, sinon corrige)")
+    public ResponseEntity<Response> adjustMemberSocietyShare(
+            @PathVariable Long id,
+            @RequestBody @Valid com.optimize.elykia.core.dto.AdjustTontineSocietyShareDto dto) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(societyShareAdjustmentService.adjust(id, dto)),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/members/{id}/society-share-adjustments")
+    @Operation(summary = "Historique des saisies de part société d'un membre")
+    public ResponseEntity<Response> getMemberSocietyShareAdjustments(@PathVariable Long id) {
+        formerPortfolioService.assertFullTontineMember(id);
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(societyShareAdjustmentService.history(id)),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/members/{id}/society-share-adjustments/reset")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.RESET_TONTINE_SOCIETY_SHARE + "')")
+    @Operation(summary = "Rendre la part société d'un membre au calcul automatique")
+    public ResponseEntity<Response> resetMemberSocietyShare(
+            @PathVariable Long id,
+            @RequestBody(required = false) com.optimize.elykia.core.dto.AdjustTontineSocietyShareDto dto) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(societyShareAdjustmentService.reset(id, dto != null ? dto.getComment() : null)),
+                HttpStatus.OK);
     }
 
     @PostMapping("/members/{id}/field-controls")

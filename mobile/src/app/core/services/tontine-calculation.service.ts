@@ -15,6 +15,8 @@ export interface TontineMemberAllocationStatus {
   version: SocietyShareVersion;
   totalCollected: number;
   societyShare: number;
+  /** Part calculée par l'application avant un éventuel réajustement saisi. */
+  computedSocietyShare?: number;
   availableBudget: number;
   validatedMonths: number;
   currentMonthDays: number;
@@ -40,6 +42,36 @@ interface V2MonthBucket {
   societyShareTarget: number;
   societySharePaid: number;
   capital: number;
+}
+
+/**
+ * Part société saisie (réajustement), même règle que le serveur (`TontineSocietyShareOverride`) :
+ * elle remplace le calcul quelles que soient les collectes, plafonnée au total des collectes régulières ;
+ * sans collecte, pas de réajustement. A appeler avant d'ajouter les collectes de livraison.
+ */
+export function applySocietyShareOverride(
+  status: TontineMemberAllocationStatus,
+  override: number | null | undefined
+): void {
+  status.computedSocietyShare = status.societyShare;
+  if (override === null || override === undefined) {
+    return;
+  }
+  const regular = status.totalCollected || 0;
+  if (regular <= 0) {
+    status.societyShare = 0;
+    status.availableBudget = 0;
+    return;
+  }
+  const effective = Math.max(0, Math.min(override, regular));
+  status.societyShare = effective;
+  status.availableBudget = Math.max(0, regular - effective);
+}
+
+/** Hausse de la part société saisie par rapport au calcul (0 sans réajustement ou en cas de baisse). */
+export function societyShareIncreaseOf(status: TontineMemberAllocationStatus): number {
+  const computed = status.computedSocietyShare ?? status.societyShare;
+  return Math.max(0, status.societyShare - computed);
 }
 
 const DAYS_PER_MONTH = 31;
@@ -76,6 +108,7 @@ export class TontineCalculationService {
       : version === 'V2'
       ? this.calculateV2(member, regular, history, isOfflineEstimate, isExact)
       : this.calculateV1(member, session, regular, history, useRegistrationDate, isOfflineEstimate, isExact);
+    applySocietyShareOverride(status, member.societyShareOverride);
     const topUpAmount = topUps.reduce((sum, collection) => sum + (collection.amount || 0), 0);
     if (topUpAmount > 0) {
       status.totalCollected += topUpAmount;
@@ -85,10 +118,14 @@ export class TontineCalculationService {
     return status;
   }
 
-  async projectBalance(member: TontineMember, session: TontineSession): Promise<number> {
+  /**
+   * Solde prévisionnel. {@code societyShareIncrease} : hausse de la part société saisie par rapport au calcul
+   * (comme le serveur, elle est retirée de l'estimation ; une baisse ne relève pas le plafond).
+   */
+  async projectBalance(member: TontineMember, session: TontineSession, societyShareIncrease = 0): Promise<number> {
     const useRegistrationDate = await this.parameterService.isEnabled('USE_MEMBER_REGISTRATION_DATE_FOR_SHARE');
     const history = await this.historyRepo.getByMemberId(member.id);
-    return this.computeProjectedBalance(member, session, history, useRegistrationDate);
+    return this.computeProjectedBalance(member, session, history, useRegistrationDate) - Math.max(0, societyShareIncrease);
   }
 
   private computeProjectedBalance(

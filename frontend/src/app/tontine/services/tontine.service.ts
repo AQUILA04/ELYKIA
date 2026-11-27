@@ -24,7 +24,9 @@ import {
   TontineMemberQueryParams,
   SessionStats,
   TontineCatchupPreview,
-  TontineMemberContributionByCommercial
+  TontineMemberContributionByCommercial,
+  AdjustTontineSocietyShareRequest,
+  TontineSocietyShareAdjustment
 } from '../types/tontine.types';
 import { TontineAllocationMigrationStatus } from '../types/tontine-allocation-migration.types';
 import {AuthService} from "../../auth/service/auth.service";
@@ -240,6 +242,34 @@ export class TontineService {
       `${this.apiUrl}/members/${memberId}/adhesion-date`,
       { registrationDate },
       { headers }
+    ).pipe(catchError(this.handleApiError.bind(this)));
+  }
+
+  /** Saisit la part société réelle de l'année : égale, elle est validée ; différente, elle remplace le calcul. */
+  adjustMemberSocietyShare(
+    memberId: number,
+    request: AdjustTontineSocietyShareRequest
+  ): Observable<ApiResponse<TontineSocietyShareAdjustment>> {
+    return this.http.post<ApiResponse<TontineSocietyShareAdjustment>>(
+      `${this.apiUrl}/members/${memberId}/society-share-adjustments`,
+      request,
+      { headers: this.getHeaders() }
+    ).pipe(catchError(this.handleApiError.bind(this)));
+  }
+
+  getMemberSocietyShareAdjustments(memberId: number): Observable<ApiResponse<TontineSocietyShareAdjustment[]>> {
+    return this.http.get<ApiResponse<TontineSocietyShareAdjustment[]>>(
+      `${this.apiUrl}/members/${memberId}/society-share-adjustments`,
+      { headers: this.getHeaders() }
+    ).pipe(catchError(this.handleApiError.bind(this)));
+  }
+
+  /** Rend la part société au calcul automatique (administrateur). */
+  resetMemberSocietyShare(memberId: number, comment?: string | null): Observable<ApiResponse<TontineSocietyShareAdjustment>> {
+    return this.http.post<ApiResponse<TontineSocietyShareAdjustment>>(
+      `${this.apiUrl}/members/${memberId}/society-share-adjustments/reset`,
+      { comment: comment || null },
+      { headers: this.getHeaders() }
     ).pipe(catchError(this.handleApiError.bind(this)));
   }
 
