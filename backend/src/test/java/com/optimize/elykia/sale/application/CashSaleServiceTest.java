@@ -55,7 +55,7 @@ class CashSaleServiceTest {
     @Mock private CommercialMonthlyStockItemSoldValueHistoryService soldValueHistoryService;
     @Mock private BusinessMetricsPublisher metricsPublisher;
     @Mock private StockRequestService stockRequestService;
-    @Mock private CreditTimelineService creditTimelineService;
+    @Mock private com.optimize.elykia.sale.api.CreditRecoveryUseCase creditRecoveryUseCase;
 
     private CashSaleService service;
 
@@ -74,7 +74,7 @@ class CashSaleServiceTest {
                 Optional.empty(),
                 Optional.of(metricsPublisher),
                 stockRequestService,
-                creditTimelineService);
+                creditRecoveryUseCase);
     }
 
     @Test
@@ -121,7 +121,7 @@ class CashSaleServiceTest {
         assertEquals("AG_COM01", resp.collector());
         verify(articlesService).reserveWarehouseQuantity(5L, 2);
         verify(stockRequestService).createValidatedCashSaleRequest(any(Credit.class));
-        verify(creditTimelineService).recordInitialSaleRecovery(any(Credit.class), any());
+        verify(creditRecoveryUseCase).recordInitialSaleRecovery(any(Credit.class), any());
     }
 
     @Test
@@ -217,7 +217,7 @@ class CashSaleServiceTest {
         assertNull(sale.getEffectiveEndDate());
         verify(articlesService).releaseWarehouseReservation(8L, 3);
         verify(stockRequestService).cancelLinkedCashSaleRequest(60L);
-        verify(creditTimelineService).reverseCollectionsForCancelledCashSale(sale);
+        verify(creditRecoveryUseCase).reverseCollectionsForCancelledCashSale(sale);
         verify(creditRepository).saveAndFlush(sale);
     }
 

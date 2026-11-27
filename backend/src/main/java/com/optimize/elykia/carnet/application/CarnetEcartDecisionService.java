@@ -23,8 +23,9 @@ import com.optimize.elykia.carnet.infrastructure.persistence.CarnetEcartDecision
 import com.optimize.elykia.sale.infrastructure.persistence.CreditFieldControlRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberFieldControlRepository;
 import com.optimize.elykia.sale.application.DebtService;
-import com.optimize.elykia.sale.application.CreditTimelineService;
-import com.optimize.elykia.sale.application.CreditTimelineService.FieldControlCreditPosting;
+import com.optimize.elykia.sale.api.CreditRecoveryUseCase;
+import com.optimize.elykia.sale.api.FieldControlCreditPosting;
+import com.optimize.elykia.sale.api.FieldControlRecoveryCommand;
 import com.optimize.elykia.tontine.application.TontineService;
 import com.optimize.elykia.tontine.application.TontineService.FieldControlTontinePosting;
 import com.optimize.elykia.shared.security.UserProfilConstant;
@@ -61,7 +62,7 @@ public class CarnetEcartDecisionService {
     private final CarnetEcartDecisionRepository decisionRepository;
     private final CreditFieldControlRepository creditFieldControlRepository;
     private final TontineMemberFieldControlRepository tontineFieldControlRepository;
-    private final CreditTimelineService creditTimelineService;
+    private final CreditRecoveryUseCase creditRecoveryUseCase;
     private final TontineService tontineService;
     private final DebtService debtService;
     private final UserService userService;
@@ -171,8 +172,8 @@ public class CarnetEcartDecisionService {
                     "IGNORÉ — le carnet n'est pas supérieur au système. Vous pouvez rejeter cet écart.");
         }
         String reference = "FC-CREDIT-" + controlId;
-        FieldControlCreditPosting posting = creditTimelineService.postFieldControlRecovery(
-                control.getCredit().getId(), difference, reference);
+        FieldControlCreditPosting posting = creditRecoveryUseCase.recordFieldControlRecovery(
+                new FieldControlRecoveryCommand(control.getCredit().getId(), difference, reference));
         CarnetEcartDecision decision = baseDecision(
                 CarnetEcartDomain.CREDIT,
                 commercial,
@@ -196,7 +197,7 @@ public class CarnetEcartDecisionService {
                     "Manquant carnet vente " + nullToEmpty(posting.creditReference()));
             decision.setDebtDocumentId(debt.getId());
             decisionRepository.save(decision);
-            creditTimelineService.publishFieldControlCash(posting);
+            creditRecoveryUseCase.publishFieldControlCash(posting);
         }
         return success(creditKey(controlId), "Mise et manquant enregistrés", posting.cash());
     }

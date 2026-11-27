@@ -2,6 +2,7 @@ package com.optimize.elykia.sale.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.optimize.common.entities.entity.BaseEntity;
+import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.finance.domain.DailyAccountancy;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -62,35 +63,39 @@ public class CreditTimeline extends BaseEntity<String> {
     @JsonIgnore
     private DailyAccountancy dailyAccountancy;
 
+    public void markDeleted() {
+        this.setState(State.DELETED);
+    }
+
+    /**
+     * @deprecated Utiliser {@link Credit#applyRecovery(RecoveryPayment, DailyAccountancy)} qui dérive
+     *             automatiquement {@code normalStake} à titre purement informatif.
+     */
+    @Deprecated(since = "2.17.0")
     public void checkStakeValue(Double stake) {
-        // SUPPRIMÉ : Ancienne vérification qui obligeait à ce que la mise soit un multiple.
-        // if (amount % stake != 0) {
-        //     throw new ApplicationException("La valeur de la mise journalière doit être " + stake + " ou un de ces multiple !");
-        // }
-
-        // La nouvelle vérification (montant > mise normale) se fait maintenant dans le CreditTimelineService.
-        // On peut garder celle-ci comme sécurité additionnelle pour les mises spéciales.
-//        if (Boolean.FALSE.equals(normalStake) && amount <= stake) {
-//            throw new ApplicationException("La valeur de la mise journalière spéciale doit être supérieur à " + stake);
-//        }
-
-        if (Objects.isNull(normalStake) && Objects.equals(amount, stake)) {
+        if (Objects.nonNull(amount) && Objects.nonNull(stake) && Math.abs(amount - stake) < 0.001) {
             this.normalStake = Boolean.TRUE;
         } else {
             this.normalStake = Boolean.FALSE;
         }
     }
 
+    /**
+     * @deprecated Utiliser {@link Credit#applyRecovery(RecoveryPayment, DailyAccountancy)} qui calcule
+     *             {@code remainingDaysCount = ceil(totalAmountRemaining / dailyStake)} de manière déterministe.
+     */
+    @Deprecated(since = "2.17.0")
     public void dailyStakeOperation(Credit credit) {
-        this.remainingDaysCount = credit.getRemainingDaysCount();
-        totalAmountRemaining = credit.getTotalAmountRemaining();
-        if (remainingDaysCount > 0) {
-            if (Boolean.TRUE.equals(normalStake)) {
-                remainingDaysCount -= 1;
-            } else {
-                remainingDaysCount -= (int) (amount / credit.getDailyStake());
-            }
-            credit.setRemainingDaysCount(remainingDaysCount);
+        this.totalAmountRemaining = credit.getTotalAmountRemaining();
+        Double dailyStake = credit.getDailyStake();
+        if (this.totalAmountRemaining != null && this.totalAmountRemaining <= 0.001) {
+            this.remainingDaysCount = 0;
+            credit.setRemainingDaysCount(0);
+        } else if (dailyStake != null && dailyStake > 0 && this.totalAmountRemaining != null) {
+            this.remainingDaysCount = (int) Math.ceil(this.totalAmountRemaining / dailyStake);
+            credit.setRemainingDaysCount(this.remainingDaysCount);
+        } else {
+            this.remainingDaysCount = credit.getRemainingDaysCount();
         }
     }
 

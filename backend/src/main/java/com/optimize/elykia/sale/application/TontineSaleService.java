@@ -1,10 +1,12 @@
 package com.optimize.elykia.sale.application;
 
 import com.optimize.elykia.client.enumeration.ClientType;
+import com.optimize.elykia.sale.api.CreditRecoveryUseCase;
+import com.optimize.elykia.sale.api.RecordRecoveryCommand;
 import com.optimize.elykia.sale.domain.Credit;
+import com.optimize.elykia.sale.domain.RecoverySource;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.sale.web.dto.CreditRespDto;
-import com.optimize.elykia.sale.web.dto.CreditTimelineDto;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,17 +23,17 @@ public class TontineSaleService {
     private final CreditRepository creditRepository;
     private final CreditArticlesService creditArticlesService;
     private final SalePostStartPublisher postStartPublisher;
-    private final CreditTimelineService creditTimelineService;
+    private final CreditRecoveryUseCase creditRecoveryUseCase;
 
     public TontineSaleService(
             CreditRepository creditRepository,
             CreditArticlesService creditArticlesService,
             SalePostStartPublisher postStartPublisher,
-            @Lazy CreditTimelineService creditTimelineService) {
+            @Lazy CreditRecoveryUseCase creditRecoveryUseCase) {
         this.creditRepository = creditRepository;
         this.creditArticlesService = creditArticlesService;
         this.postStartPublisher = postStartPublisher;
-        this.creditTimelineService = creditTimelineService;
+        this.creditRecoveryUseCase = creditRecoveryUseCase;
     }
 
     public CreditRespDto createTontineSale(
@@ -62,11 +64,18 @@ public class TontineSaleService {
     }
 
     private void recordInitialRecovery(Credit credit) {
-        var timeline = new CreditTimelineDto();
-        timeline.setCreditId(credit.getId());
-        timeline.setCollector(credit.getCollector());
-        timeline.setAmount(credit.getTotalAmount());
-        timeline.setNormalStake(Boolean.FALSE);
-        creditTimelineService.recordInitialSaleRecovery(credit, timeline);
+        RecordRecoveryCommand command = new RecordRecoveryCommand(
+                credit.getId(),
+                credit.getTotalAmount(),
+                null,
+                credit.getCommercialUsername(),
+                0.0,
+                0.0,
+                null,
+                null,
+                null,
+                RecoverySource.INITIAL_SALE
+        );
+        creditRecoveryUseCase.recordInitialSaleRecovery(credit, command);
     }
 }

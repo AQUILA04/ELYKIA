@@ -7,7 +7,9 @@ import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.securities.models.User;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
-import com.optimize.elykia.sale.web.dto.CreditTimelineDto;
+import com.optimize.elykia.sale.api.CreditRecoveryUseCase;
+import com.optimize.elykia.sale.api.RecordRecoveryCommand;
+import com.optimize.elykia.sale.domain.RecoverySource;
 import com.optimize.elykia.customer.domain.CustomerMobileMoneySubmission;
 import com.optimize.elykia.sale.domain.Credit;
 import com.optimize.elykia.sale.domain.CreditTimeline;
@@ -15,7 +17,6 @@ import com.optimize.elykia.notification.api.AppNotificationType;
 import com.optimize.elykia.customer.domain.CustomerSubmissionStatus;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.customer.infrastructure.persistence.CustomerMobileMoneySubmissionRepository;
-import com.optimize.elykia.sale.application.CreditTimelineService;
 import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,7 +47,7 @@ class CustomerMobileMoneySubmissionAdminServiceTest {
     @Mock private CreditRepository creditRepository;
     @Mock private ClientService clientService;
     @Mock private AppNotificationFacade appNotificationService;
-    @Mock private CreditTimelineService creditTimelineService;
+    @Mock private CreditRecoveryUseCase creditRecoveryUseCase;
     @Mock private CustomerNotificationService customerNotificationService;
     @Mock private PaymentProofService paymentProofService;
 
@@ -77,7 +78,7 @@ class CustomerMobileMoneySubmissionAdminServiceTest {
         when(creditRepository.findById(1L)).thenReturn(Optional.of(credit));
 
         assertThrows(CustomValidationException.class, () -> service.validate(promoter, 5L));
-        verify(creditTimelineService, never()).makeDailyStake(any());
+        verify(creditRecoveryUseCase, never()).recordRecovery(any());
         verify(appNotificationService, never()).resolveByTypeAndEntityId(any(), any());
     }
 
@@ -106,7 +107,7 @@ class CustomerMobileMoneySubmissionAdminServiceTest {
 
         CreditTimeline timeline = new CreditTimeline();
         timeline.setId(77L);
-        when(creditTimelineService.makeDailyStake(any())).thenReturn(timeline);
+        when(creditRecoveryUseCase.recordRecovery(any())).thenReturn(timeline);
 
         var dto = service.validate(secretary, 5L);
 
@@ -116,14 +117,14 @@ class CustomerMobileMoneySubmissionAdminServiceTest {
         assertEquals("SEC", submission.getValidatedBy());
         assertNotNull(submission.getValidatedAt());
 
-        ArgumentCaptor<CreditTimelineDto> captor = ArgumentCaptor.forClass(CreditTimelineDto.class);
-        verify(creditTimelineService).makeDailyStake(captor.capture());
-        CreditTimelineDto timelineDto = captor.getValue();
-        assertEquals(1L, timelineDto.getCreditId());
-        assertEquals(1000.0, timelineDto.getAmount());
-        assertEquals("CS-CREDIT-5", timelineDto.getReference());
-        assertEquals(Boolean.TRUE, timelineDto.getNormalStake());
-        assertEquals("COM003", timelineDto.getCollector());
+        ArgumentCaptor<RecordRecoveryCommand> captor = ArgumentCaptor.forClass(RecordRecoveryCommand.class);
+        verify(creditRecoveryUseCase).recordRecovery(captor.capture());
+        RecordRecoveryCommand command = captor.getValue();
+        assertEquals(1L, command.creditId());
+        assertEquals(1000.0, command.amount());
+        assertEquals("CS-CREDIT-5", command.reference());
+        assertEquals("COM003", command.collector());
+        assertEquals(RecoverySource.MOBILE_MONEY, command.source());
 
         verify(appNotificationService).resolveByTypeAndEntityId(AppNotificationType.PAYMENT_DECLARATION, 5L);
     }
@@ -139,7 +140,7 @@ class CustomerMobileMoneySubmissionAdminServiceTest {
         when(creditRepository.findById(1L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> service.validate(secretary, 5L));
-        verify(creditTimelineService, never()).makeDailyStake(any());
+        verify(creditRecoveryUseCase, never()).recordRecovery(any());
     }
 
     @Test

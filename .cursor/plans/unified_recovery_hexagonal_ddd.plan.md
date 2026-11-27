@@ -4,19 +4,19 @@ overview: "Unification complète du flux de recouvrement des crédits autour d'u
 todos:
   - id: phase-1-domain-model
     content: "Phase 1 — Modèle du Domaine (`sale.domain`) : Value Objects `RecoveryPayment` & `RecoverySource`, refonte de `Credit.applyRecovery(...)`, `Credit.reverseRecovery(...)` et `CreditTimeline` (suppression de la bifurcation `normalStake`, calcul déterministe `remainingDaysCount = ceil(totalAmountRemaining / dailyStake)`)"
-    status: pending
+    status: completed
   - id: phase-2-hexagonal-ports-and-usecase
     content: "Phase 2 — Architecture Hexagonale (`sale.api` & `sale.application`) : Driving Port `CreditRecoveryUseCase` (`recordRecovery`, `recordRecoveryBatch`, `recordFieldControlRecovery`, `recordInitialSaleRecovery`, `cancelRecovery`, `reverseCashSaleRecoveries`), implémentation `CreditRecoveryApplicationService` et délégation de `CreditTimelineService`"
-    status: pending
+    status: completed
   - id: phase-3-adapters-rest-and-modules
     content: "Phase 3 — Adapters Primaires Backend (`sale.web`, `carnet`, `customer`) : Nouvel endpoint unifié `POST /api/v1/credits/recoveries/batch`, rétrocompatibilité `@Deprecated` de `/default-daily-stake` et `/special-daily-stake`, branchement de `RecoveryManagerService`, `CarnetEcartDecisionService`, `CustomerMobileMoneySubmissionAdminService`, `CashSaleService`, `TontineSaleService` sur `CreditRecoveryUseCase`, et dépréciation `@Deprecated` du silo mort `Recovery`/`RecoveryService`"
-    status: pending
+    status: completed
   - id: phase-4-frontend-tfj-and-mobile-sync
     content: "Phase 4 — Alignement sous le capot Frontend Web (`TFJComponent` / `CashDeskService`) & Mobile (`RecoverySyncService`) : Envoi d'un seul appel batch unifié `/api/v1/credits/recoveries/batch` avec `amount` explicite (suppression du split `defaultStakes`/`specialStakes`), UI 100 % inchangée"
-    status: pending
+    status: completed
   - id: phase-5-tests-and-docs
     content: "Phase 5 — Tests Unitaires / Modulith, Memory Bank & Changelog : Tests unitaires domaine + application + contrôleur + Vitest frontend/mobile, `ModularityTests`, mise à jour `memory-bank/` et `docs/CHANGELOG.md` (versions Backend `2.17.0`, Frontend `3.5.1`, Mobile `3.2.1`)"
-    status: pending
+    status: completed
 isProject: false
 ---
 

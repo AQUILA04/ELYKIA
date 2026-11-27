@@ -8,7 +8,9 @@ import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.securities.models.User;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
-import com.optimize.elykia.sale.web.dto.CreditTimelineDto;
+import com.optimize.elykia.sale.api.CreditRecoveryUseCase;
+import com.optimize.elykia.sale.api.RecordRecoveryCommand;
+import com.optimize.elykia.sale.domain.RecoverySource;
 import com.optimize.elykia.customer.web.dto.CustomerMobileMoneySubmissionDto;
 import com.optimize.elykia.customer.domain.CustomerMobileMoneySubmission;
 import com.optimize.elykia.customer.domain.CustomerPaymentProof;
@@ -19,7 +21,6 @@ import com.optimize.elykia.customer.domain.CustomerSubmissionStatus;
 import com.optimize.elykia.customer.domain.PaymentProofLinkedType;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.customer.infrastructure.persistence.CustomerMobileMoneySubmissionRepository;
-import com.optimize.elykia.sale.application.CreditTimelineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,7 +45,7 @@ public class CustomerMobileMoneySubmissionAdminService {
     private final CreditRepository creditRepository;
     private final ClientService clientService;
     private final AppNotificationFacade appNotificationService;
-    private final CreditTimelineService creditTimelineService;
+    private final CreditRecoveryUseCase creditRecoveryUseCase;
     private final CustomerNotificationService customerNotificationService;
     private final PaymentProofService paymentProofService;
 
@@ -95,7 +96,7 @@ public class CustomerMobileMoneySubmissionAdminService {
             throw new CustomValidationException("Le montant déclaré est invalide.");
         }
 
-        CreditTimeline timeline = creditTimelineService.makeDailyStake(buildTimelineDto(submission, credit));
+        CreditTimeline timeline = creditRecoveryUseCase.recordRecovery(buildRecoveryCommand(submission, credit));
 
         submission.setStatus(CustomerSubmissionStatus.VALIDE);
         submission.setValidatedBy(user.getUsername());
@@ -122,7 +123,7 @@ public class CustomerMobileMoneySubmissionAdminService {
         Credit credit = creditRepository.findById(submission.getCreditId())
                 .orElseThrow(() -> new ResourceNotFoundException("Crédit introuvable pour cette déclaration."));
         submission.setMobileMoneyAmount(submission.getExpectedAmount());
-        CreditTimeline timeline = creditTimelineService.makeDailyStake(buildTimelineDto(submission, credit));
+        CreditTimeline timeline = creditRecoveryUseCase.recordRecovery(buildRecoveryCommand(submission, credit));
         submission.setStatus(CustomerSubmissionStatus.VALIDE);
         submission.setValidatedBy("paygate");
         submission.setValidatedAt(LocalDateTime.now());
@@ -198,18 +199,19 @@ public class CustomerMobileMoneySubmissionAdminService {
         }
     }
 
-    private static CreditTimelineDto buildTimelineDto(CustomerMobileMoneySubmission submission, Credit credit) {
-        CreditTimelineDto dto = new CreditTimelineDto();
-        dto.setCreditId(credit.getId());
-        dto.setAmount(submission.getMobileMoneyAmount());
-        dto.setCollector(credit.getCollector());
-        dto.setConfirmedAmount(submission.getMobileMoneyAmount());
-        dto.setReference("CS-CREDIT-" + submission.getId());
-        Double dailyStake = credit.getDailyStake();
-        boolean normal = dailyStake != null
-                && Math.abs(dailyStake - submission.getMobileMoneyAmount()) < 0.01;
-        dto.setNormalStake(normal);
-        return dto;
+    private static RecordRecoveryCommand buildRecoveryCommand(CustomerMobileMoneySubmission submission, Credit credit) {
+        return new RecordRecoveryCommand(
+                credit.getId(),
+                submission.getMobileMoneyAmount(),
+                "CS-CREDIT-" + submission.getId(),
+                credit.getCommercialUsername(),
+                0.0,
+                0.0,
+                null,
+                submission.getMobileMoneyAmount(),
+                null,
+                RecoverySource.MOBILE_MONEY
+        );
     }
 
     private Map<Long, Credit> loadCredits(List<CustomerMobileMoneySubmission> submissions) {

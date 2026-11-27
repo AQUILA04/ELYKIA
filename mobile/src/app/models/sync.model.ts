@@ -265,6 +265,32 @@ export interface SpecialDailyStakeResponse {
   }>;
 }
 
+export interface UnifiedRecoveryUnit {
+  creditId: number;
+  clientId?: number;
+  amount: number;
+  recoveryId: string;
+  reliquatGeneratedAmount?: number;
+  reliquatUsedAmount?: number;
+  operationConsentCode?: string | null;
+  confirmedAmount?: number | null;
+}
+
+export interface UnifiedRecoveryBatchRequest {
+  collector: string;
+  syncConsentCode?: string | null;
+  source?: 'MOBILE_SYNC' | 'WEB_TFJ_BATCH';
+  recoveries: UnifiedRecoveryUnit[];
+}
+
+export interface UnifiedRecoveryBatchResponse {
+  successRecoveryIds: string[];
+  failedRecoveries: Array<{
+    recoveryId: string;
+    errorMessage: string;
+  }>;
+}
+
 // Reliquat Sync
 export interface ReliquatSyncUnit {
   clientId: number;

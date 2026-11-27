@@ -1,8 +1,8 @@
 package com.optimize.elykia.carnet.application;
 
+import com.optimize.elykia.sale.api.CreditRecoveryUseCase;
 import com.optimize.elykia.sale.application.ClientReliquatService;
 import com.optimize.elykia.sale.application.CreditService;
-import com.optimize.elykia.sale.application.CreditTimelineService;
 import com.optimize.elykia.sale.web.dto.CreditLateSummaryDTO;
 import com.optimize.elykia.carnet.web.dto.CloseCreditsRequestDto;
 import com.optimize.elykia.carnet.web.dto.CloseCreditsResponseDto;
@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 class RecoveryManagerServiceTest {
 
     @Mock
-    private CreditTimelineService creditTimelineService;
+    private CreditRecoveryUseCase creditRecoveryUseCase;
     @Mock
     private CreditService creditService;
     @Mock

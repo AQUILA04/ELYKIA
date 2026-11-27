@@ -2,12 +2,14 @@ package com.optimize.elykia.sale.application;
 
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
+import com.optimize.elykia.sale.api.CreditRecoveryUseCase;
+import com.optimize.elykia.sale.api.RecordRecoveryCommand;
 import com.optimize.elykia.sale.domain.Credit;
 import com.optimize.elykia.sale.domain.CreditArticles;
 import com.optimize.elykia.sale.domain.CreditStatus;
+import com.optimize.elykia.sale.domain.RecoverySource;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.sale.web.dto.CreditRespDto;
-import com.optimize.elykia.sale.web.dto.CreditTimelineDto;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -31,12 +33,12 @@ class TontineSaleServiceTest {
     @Mock private CreditRepository creditRepository;
     @Mock private CreditArticlesService creditArticlesService;
     @Mock private SalePostStartPublisher postStartPublisher;
-    @Mock private CreditTimelineService creditTimelineService;
+    @Mock private CreditRecoveryUseCase creditRecoveryUseCase;
 
     @Test
     void createTontineSale_generatesReferenceRunsCallbacksAndRecordsInitialRecovery() {
         TontineSaleService service = new TontineSaleService(
-                creditRepository, creditArticlesService, postStartPublisher, creditTimelineService);
+                creditRepository, creditArticlesService, postStartPublisher, creditRecoveryUseCase);
 
         Client client = new Client();
         client.setId(8L);
@@ -75,10 +77,10 @@ class TontineSaleServiceTest {
         verify(creditArticlesService).create(line);
         verify(creditArticlesService).update(line);
 
-        ArgumentCaptor<CreditTimelineDto> timelineCaptor = ArgumentCaptor.forClass(CreditTimelineDto.class);
-        verify(creditTimelineService).recordInitialSaleRecovery(eq(credit), timelineCaptor.capture());
-        assertEquals(6_000.0, timelineCaptor.getValue().getAmount());
-        assertEquals("COM005", timelineCaptor.getValue().getCollector());
-        assertEquals(Boolean.FALSE, timelineCaptor.getValue().getNormalStake());
+        ArgumentCaptor<RecordRecoveryCommand> commandCaptor = ArgumentCaptor.forClass(RecordRecoveryCommand.class);
+        verify(creditRecoveryUseCase).recordInitialSaleRecovery(eq(credit), commandCaptor.capture());
+        assertEquals(6_000.0, commandCaptor.getValue().amount());
+        assertEquals("COM005", commandCaptor.getValue().collector());
+        assertEquals(RecoverySource.INITIAL_SALE, commandCaptor.getValue().source());
     }
 }

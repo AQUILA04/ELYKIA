@@ -24,10 +24,15 @@ import com.optimize.elykia.sale.application.CreditCarnetVerificationService;
 import com.optimize.elykia.sale.application.CreditFieldControlService;
 import com.optimize.elykia.sale.application.CreditReturnHistoryService;
 import com.optimize.elykia.sale.application.CreditListSummaryService;
+import com.optimize.elykia.sale.api.BatchRecoveryResult;
+import com.optimize.elykia.sale.api.CreditRecoveryUseCase;
 import com.optimize.elykia.sale.api.FormerPortfolioCreditPort;
+import com.optimize.elykia.sale.api.RecordRecoveryBatchCommand;
+import com.optimize.elykia.sale.api.RecordRecoveryCommand;
 import com.optimize.elykia.sale.api.SalePdfExportPort;
 import com.optimize.elykia.sale.application.CreditService;
 import com.optimize.elykia.sale.application.CreditTimelineService;
+import com.optimize.elykia.sale.domain.RecoverySource;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -44,6 +49,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import com.optimize.elykia.sale.web.dto.BulkChangeCollectorDto;
+import com.optimize.elykia.sale.web.dto.UnifiedRecoveryBatchDto;
 
 @RestController
 @RequiredArgsConstructor
@@ -57,6 +63,7 @@ public class CreditController {
     private final CreditService creditService;
     private final FormerPortfolioCreditPort formerPortfolioService;
     private final CreditTimelineService creditTimelineService;
+    private final CreditRecoveryUseCase creditRecoveryUseCase;
     private final SalePdfExportPort salePdfExportPort;
     private final CreditReturnHistoryService creditReturnHistoryService;
     private final CreditArticlesService creditArticlesService;
@@ -171,14 +178,50 @@ public class CreditController {
 
     @PostMapping(value = "daily-stake")
     public ResponseEntity<Response> dailyStake(@RequestBody @Valid CreditTimelineDto dto) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditTimelineService.makeDailyStake(dto)),
+        RecordRecoveryCommand command = new RecordRecoveryCommand(
+                dto.getCreditId(),
+                dto.getAmount(),
+                dto.getReference(),
+                dto.getCollector(),
+                dto.getReliquatGeneratedAmount(),
+                dto.getReliquatUsedAmount(),
+                dto.getOperationConsentCode(),
+                dto.getConfirmedAmount(),
+                dto.getSyncConsentCode(),
+                RecoverySource.WEB_SINGLE
+        );
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditRecoveryUseCase.recordRecovery(command)),
+                HttpStatus.CREATED);
+    }
+
+    @PostMapping(value = "recoveries/batch")
+    public ResponseEntity<Response> recordRecoveryBatch(@RequestBody @Valid UnifiedRecoveryBatchDto dto) {
+        RecoverySource source = RecoverySource.fromStringOrDefault(dto.getSource(), RecoverySource.MOBILE_SYNC);
+        List<RecordRecoveryCommand> items = dto.getRecoveries().stream()
+                .map(unit -> new RecordRecoveryCommand(
+                        unit.getCreditId(),
+                        unit.getAmount(),
+                        unit.getRecoveryId(),
+                        dto.getCollector(),
+                        unit.getReliquatGeneratedAmount(),
+                        unit.getReliquatUsedAmount(),
+                        unit.getOperationConsentCode(),
+                        unit.getConfirmedAmount(),
+                        dto.getSyncConsentCode(),
+                        source
+                ))
+                .toList();
+        BatchRecoveryResult result = creditRecoveryUseCase.recordRecoveryBatch(
+                new RecordRecoveryBatchCommand(dto.getCollector(), dto.getSyncConsentCode(), items, false));
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(CreditTimelineService.toLegacyResponse(result)),
                 HttpStatus.CREATED);
     }
 
     @DeleteMapping(value = "timelines/{id}")
     @PreAuthorize("hasAnyRole('" + UserPermissionConstant.CANCEL_RECOVERY + "', '" + UserPermissionConstant.ADMIN + "')")
     public ResponseEntity<Response> cancelRecovery(@PathVariable Long id) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditTimelineService.cancelRecovery(id)),
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditRecoveryUseCase.cancelRecovery(id)),
                 HttpStatus.OK);
     }
 
@@ -211,6 +254,10 @@ public class CreditController {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getDailyStakeHistory(id)), HttpStatus.OK);
     }
 
+    /**
+     * @deprecated Utiliser {@code POST /api/v1/credits/recoveries/batch}. Conservé pour rétrocompatibilité APK.
+     */
+    @Deprecated(since = "2.17.0")
     @PostMapping(value = "default-daily-stake")
     public ResponseEntity<Response> defaultDailyStake(@RequestBody @Valid CollectorDailyStakeDto dto) {
         return new ResponseEntity<>(
@@ -218,6 +265,10 @@ public class CreditController {
                 HttpStatus.CREATED);
     }
 
+    /**
+     * @deprecated Utiliser {@code POST /api/v1/credits/recoveries/batch}. Conservé pour rétrocompatibilité APK.
+     */
+    @Deprecated(since = "2.17.0")
     @PostMapping(value = "special-daily-stake")
     public ResponseEntity<Response> specialDailyStake(@RequestBody @Valid SpecialDailyStakeDto dto) {
         return new ResponseEntity<>(

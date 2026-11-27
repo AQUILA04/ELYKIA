@@ -1,10 +1,11 @@
 package com.optimize.elykia.carnet.application;
 
+import com.optimize.elykia.sale.api.CreditRecoveryUseCase;
+import com.optimize.elykia.sale.api.RecordRecoveryCommand;
 import com.optimize.elykia.sale.application.ClientReliquatService;
 import com.optimize.elykia.sale.application.CreditService;
-import com.optimize.elykia.sale.application.CreditTimelineService;
+import com.optimize.elykia.sale.domain.RecoverySource;
 import com.optimize.elykia.sale.web.dto.CreditLateSummaryDTO;
-import com.optimize.elykia.sale.web.dto.CreditTimelineDto;
 import com.optimize.elykia.carnet.web.dto.CloseCreditsRequestDto;
 import com.optimize.elykia.carnet.web.dto.CreditCloseItemDto;
 import com.optimize.elykia.carnet.web.dto.CloseCreditsResponseDto;
@@ -42,7 +43,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RecoveryManagerService {
 
-    private final CreditTimelineService creditTimelineService;
+    private final CreditRecoveryUseCase creditRecoveryUseCase;
     private final CreditService creditService;
     private final ClientReliquatService clientReliquatService;
     private final RecoveryManagerOperationRepository operationRepository;
@@ -141,8 +142,8 @@ public class RecoveryManagerService {
                                                           String recoveryManagerUsername,
                                                           String commercialUsername) {
         ClosureAmounts amounts = resolveClosureAmounts(credit, item);
-        CreditTimelineDto timelineDto = buildTimelineDto(item.getCreditId(), commercialUsername, amounts);
-        var creditTimeline = creditTimelineService.makeDailyStake(timelineDto);
+        RecordRecoveryCommand command = buildRecoveryCommand(item.getCreditId(), commercialUsername, amounts);
+        var creditTimeline = creditRecoveryUseCase.recordRecovery(command);
 
         RecoveryManagerOperation operation = buildOperation(credit, item, recoveryManagerUsername,
                 creditTimeline.getId(), amounts.cash());
@@ -174,16 +175,19 @@ public class RecoveryManagerService {
         return new ClosureAmounts(cash, reliquatUsed, remaining);
     }
 
-    private CreditTimelineDto buildTimelineDto(Long creditId, String commercialUsername, ClosureAmounts amounts) {
-        CreditTimelineDto timelineDto = new CreditTimelineDto();
-        timelineDto.setCreditId(creditId);
-        timelineDto.setCollector(commercialUsername);
-        timelineDto.setNormalStake(Boolean.FALSE);
-        timelineDto.setReference(generateTimelineReference());
-        timelineDto.setAmount(amounts.stakeAmount());
-        timelineDto.setReliquatUsedAmount(amounts.reliquatUsed());
-        timelineDto.setReliquatGeneratedAmount(0.0);
-        return timelineDto;
+    private RecordRecoveryCommand buildRecoveryCommand(Long creditId, String commercialUsername, ClosureAmounts amounts) {
+        return new RecordRecoveryCommand(
+                creditId,
+                amounts.stakeAmount(),
+                generateTimelineReference(),
+                commercialUsername,
+                0.0,
+                amounts.reliquatUsed(),
+                null,
+                null,
+                null,
+                RecoverySource.RECOVERY_MANAGER
+        );
     }
 
     private String generateTimelineReference() {

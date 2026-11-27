@@ -225,6 +225,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [3.5.1] — 2026-11-27
+
+### Changed
+
+- **TFJ Caisse (`TFJComponent`, `CashDeskService`) —** unification sous le capot de la soumission des collectes journalières vers le nouvel endpoint batch `POST /api/v1/credits/recoveries/batch` avec montant explicite par crédit (fin de la double requête `default-daily-stake` + `special-daily-stake` et correction du bug latent de format payload `creditIds` vs `stakeUnits`), sans aucun changement d'interface utilisateur ; ajout des tests unitaires Vitest (`cash-desk.service.spec.ts`, `tfj.component.spec.ts`).
+
 ## Frontend — [3.5.0] — 2026-11-25
 
 ### Added
@@ -681,6 +687,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [3.2.1] — 2026-11-27
+
+### Changed
+
+- **Synchronisation des recouvrements (`RecoverySyncService`, `sync.model.ts`) —** remplacement de la double logique `defaultStakes` / `specialStakes` (`/default-daily-stake` + `/special-daily-stake`) par un seul flux batch unifié `POST /api/v1/credits/recoveries/batch` (`syncBatch`, `syncSingle`, `postCreateRecovery`, `syncClosingRecoveries`) envoyant systématiquement le `amount` réel encaissé sur le terrain ; UI et architecture local-first SQLite intégralement préservées ; ajout de `recovery-sync.service.spec.ts`.
+
 ## Mobile — [3.2.0] — 2026-11-25
 
 ### Added
@@ -1001,6 +1013,25 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [2.17.0] — 2026-11-27
+
+### Added
+
+- **Architecture Hexagonale & DDD du recouvrement unifié (`sale.domain`, `sale.api`, `sale.application`) —** introduction du Driving Port `CreditRecoveryUseCase` (`recordRecovery`, `recordRecoveryBatch`, `recordFieldControlRecovery`, `publishFieldControlCash`, `recordInitialSaleRecovery`, `cancelRecovery`, `reverseCollectionsForCancelledCashSale`), des commandes `RecordRecoveryCommand`, `RecordRecoveryBatchCommand`, `BatchRecoveryResult`, `FieldControlRecoveryCommand`, `FieldControlCreditPosting`, des Value Objects domaine `RecoveryPayment` et `RecoverySource`, des méthodes riches d'agrégat `Credit.applyRecovery(...)` / `Credit.reverseRecovery(...)`, et du moteur applicatif unifié `CreditRecoveryApplicationService`.
+- **Endpoint REST batch unifié (`CreditController`) —** ajout de `POST /api/v1/credits/recoveries/batch` (`UnifiedRecoveryBatchDto` / `UnifiedRecoveryUnitDto`) avec isolation transactionnelle `REQUIRES_NEW` par unité et idempotence par référence.
+- **Tests —** ajout de `CreditRecoveryDomainTest`, `CreditRecoveryApplicationServiceTest` et `CreditControllerRecoveryBatchTest`, vérifiés avec `ModularityTests` (20 modules Spring Modulith).
+
+### Changed
+
+- **Suppression de la bifurcation « mise normale vs mise spéciale » —** calcul déterministe et symétrique de `remainingDaysCount = ceil(totalAmountRemaining / dailyStake)` dans `Credit.applyRecovery` et `Credit.reverseRecovery` ; la colonne `credit_timeline.normal_stake` est conservée en attribut dérivé purement informatif sans rupture SQL/REST.
+- **Découplage inter-modules —** `RecoveryManagerService`, `CarnetEcartDecisionService` (`carnet`), `CustomerMobileMoneySubmissionAdminService` (`customer`), `CashSaleService` et `TontineSaleService` (`sale`) consomment désormais le port `sale.api.CreditRecoveryUseCase` ; `CreditTimelineService` devient une façade délégante.
+- **Rétrocompatibilité legacy —** `CollectorDailyStakeDto` tolère l'ancien format TFJ `creditIds` sans `stakeUnits`, et le flux legacy sans `amount` plafonne désormais le montant à `min(dailyStake, totalAmountRemaining)`.
+
+### Deprecated
+
+- **Endpoints legacy —** `POST /api/v1/credits/default-daily-stake` et `POST /api/v1/credits/special-daily-stake` marqués `@Deprecated(since = "2.17.0")` (conservés fonctionnels pour les APK déjà déployés).
+- **Silo mort `Recovery` —** `Recovery`, `RecoveryRepository` et `RecoveryService` marqués `@Deprecated(since = "2.17.0", forRemoval = true)`.
 
 ## Backend — [2.16.0] — 2026-11-25
 

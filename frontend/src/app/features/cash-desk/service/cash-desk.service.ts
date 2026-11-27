@@ -3,9 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { environment } from '@env/environment';
-import { DefaultDailyStakeDto } from '../default-daily-stake-dto';
-import { SpecialDailyStakeDto } from '../default-daily-stake-dto';
-import { TicketingDto } from '../default-daily-stake-dto';
+import { DefaultDailyStakeDto, SpecialDailyStakeDto, TicketingDto, UnifiedRecoveryBatchDto } from '../default-daily-stake-dto';
 import { TokenStorageService } from '@shared/service/token-storage.service';
 
 
@@ -91,6 +89,11 @@ export class CashDeskService {
   }
 
 
+
+  submitUnifiedRecoveries(dto: UnifiedRecoveryBatchDto): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.post<any>(`${this.dailyStakeUrl}/recoveries/batch`, dto, { headers });
+  }
 
   submitOperations(dto: DefaultDailyStakeDto): Observable<any> {
     const headers= this.getHeader();

@@ -1,231 +1,206 @@
 package com.optimize.elykia.sale.application;
 
-import com.optimize.elykia.shared.security.CollectorAudienceSecurity;
 import com.optimize.common.entities.enums.State;
-import com.optimize.common.entities.exception.CustomValidationException;
-import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.service.ClientService;
+import com.optimize.elykia.finance.application.AccountingDayService;
+import com.optimize.elykia.finance.application.DailyAccountancyService;
+import com.optimize.elykia.finance.domain.DailyAccountancy;
+import com.optimize.elykia.sale.api.BatchRecoveryResult;
+import com.optimize.elykia.sale.api.FieldControlCreditPosting;
+import com.optimize.elykia.sale.api.FieldControlRecoveryCommand;
+import com.optimize.elykia.sale.api.RecordRecoveryBatchCommand;
+import com.optimize.elykia.sale.api.RecordRecoveryCommand;
+import com.optimize.elykia.sale.api.SaleBiAggregationPort;
+import com.optimize.elykia.sale.domain.Credit;
+import com.optimize.elykia.sale.domain.CreditStatus;
+import com.optimize.elykia.sale.domain.CreditTimeline;
+import com.optimize.elykia.sale.domain.RecoverySource;
+import com.optimize.elykia.sale.event.CreditCollectionEvent;
+import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
 import com.optimize.elykia.sale.web.dto.CollectorDailyStakeDto;
 import com.optimize.elykia.sale.web.dto.CreditTimelineDto;
 import com.optimize.elykia.sale.web.dto.CreditTimelineMobileDto;
 import com.optimize.elykia.sale.web.dto.CreditTimelineRespDto;
 import com.optimize.elykia.sale.web.dto.SpecialDailyStakeDto;
 import com.optimize.elykia.sale.web.dto.SpecialDailyStakeResponseDto;
-import com.optimize.elykia.sale.domain.Credit;
-import com.optimize.elykia.sale.domain.CreditTimeline;
-import com.optimize.elykia.finance.domain.DailyAccountancy;
-import com.optimize.elykia.sale.domain.CreditPurpose;
-import com.optimize.elykia.sale.domain.CreditStatus;
-import com.optimize.elykia.sale.domain.SolvencyStatus;
-import com.optimize.elykia.sale.event.CreditCollectionCancelledEvent;
-import com.optimize.elykia.sale.event.CreditCollectionEvent;
 import com.optimize.elykia.sale.web.mapper.CreditMapper;
-import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
-import com.optimize.elykia.finance.application.AccountingDayService;
-import com.optimize.elykia.finance.application.DailyAccountancyService;
-import com.optimize.elykia.sale.api.SaleBiAggregationPort;
 import com.optimize.elykia.shared.monitoring.BusinessMetricsPublisher;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Random;
 import java.util.stream.Collectors;
 
+/**
+ * Façade de compatibilité et service de lecture pour {@link CreditTimeline}.
+ * Toutes les opérations d'écriture de recouvrement délèguent au moteur hexagonal unifié
+ * {@link CreditRecoveryApplicationService} ({@link com.optimize.elykia.sale.api.CreditRecoveryUseCase}).
+ */
 @Service
 @Transactional
 @Slf4j
 public class CreditTimelineService extends GenericService<CreditTimeline, Long> {
-    private final CreditMapper creditMapper;
+
     private final CreditService creditService;
-    private final ClientService clientService;
     private final DailyAccountancyService dailyAccountancyService;
-    private final AccountingDayService accountingDayService;
-    private final org.springframework.context.ApplicationEventPublisher eventPublisher;
-    private final ClientReliquatService clientReliquatService;
-    private final UserService userService;
-    private final TransactionTemplate requiresNewTransactionTemplate;
+    private final ApplicationEventPublisher eventPublisher;
+    private final CreditRecoveryApplicationService recoveryApplicationService;
+
     private CreditPaymentEventService creditPaymentEventService;
     private CreditEnrichmentService creditEnrichmentService;
     private SaleBiAggregationPort biAggregationService;
     private BusinessMetricsPublisher metricsPublisher;
 
-    protected CreditTimelineService(CreditTimelineRepository repository,
+    @Autowired
+    protected CreditTimelineService(
+            CreditTimelineRepository repository,
+            CreditService creditService,
+            DailyAccountancyService dailyAccountancyService,
+            ApplicationEventPublisher eventPublisher,
+            CreditRecoveryApplicationService recoveryApplicationService) {
+        super(repository);
+        this.creditService = creditService;
+        this.dailyAccountancyService = dailyAccountancyService;
+        this.eventPublisher = eventPublisher;
+        this.recoveryApplicationService = recoveryApplicationService;
+    }
+
+    /**
+     * Constructeur de compatibilité pour les tests unitaires instanciant directement la façade.
+     */
+    protected CreditTimelineService(
+            CreditTimelineRepository repository,
             CreditMapper creditMapper,
             CreditService creditService,
             ClientService clientService,
             DailyAccountancyService dailyAccountancyService,
             AccountingDayService accountingDayService,
-            org.springframework.context.ApplicationEventPublisher eventPublisher,
+            ApplicationEventPublisher eventPublisher,
             ClientReliquatService clientReliquatService,
             UserService userService,
             PlatformTransactionManager transactionManager) {
-        super(repository);
-        this.creditMapper = creditMapper;
-        this.creditService = creditService;
-        this.clientService = clientService;
-        this.dailyAccountancyService = dailyAccountancyService;
-        this.accountingDayService = accountingDayService;
-        this.eventPublisher = eventPublisher;
-        this.clientReliquatService = clientReliquatService;
-        this.userService = userService;
-        this.requiresNewTransactionTemplate = new TransactionTemplate(transactionManager);
-        this.requiresNewTransactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this(
+                repository,
+                creditService,
+                dailyAccountancyService,
+                eventPublisher,
+                new CreditRecoveryApplicationService(
+                        repository,
+                        creditService,
+                        clientService,
+                        dailyAccountancyService,
+                        accountingDayService,
+                        eventPublisher,
+                        clientReliquatService,
+                        userService,
+                        transactionManager)
+        );
     }
 
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    @Autowired(required = false)
     public void setCreditPaymentEventService(CreditPaymentEventService creditPaymentEventService) {
         this.creditPaymentEventService = creditPaymentEventService;
     }
 
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    @Autowired(required = false)
     public void setCreditEnrichmentService(CreditEnrichmentService creditEnrichmentService) {
         this.creditEnrichmentService = creditEnrichmentService;
     }
 
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    @Autowired(required = false)
     public void setBiAggregationService(SaleBiAggregationPort biAggregationService) {
         this.biAggregationService = biAggregationService;
     }
 
-    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    @Autowired(required = false)
     public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
         this.metricsPublisher = metricsPublisher;
     }
 
     /**
-     * Recouvrement unitaire (web / recovery-manager).
-     * Prépare la journée comptable HORS transaction JPA, puis exécute la mise en REQUIRES_NEW
-     * pour éviter "Could not open JPA EntityManager" (suspend NOT_SUPPORTED au milieu d'une TX).
+     * Recouvrement unitaire (web / recovery-manager) — délègue à {@link CreditRecoveryApplicationService}.
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CreditTimeline makeDailyStake(CreditTimelineDto dto) {
-        try {
-            if (StringUtils.hasText(dto.getReference()) && getRepository().existsByReference(dto.getReference())) {
-                return getRepository().findByReference(dto.getReference()).orElseThrow();
-            }
-            ensureAccountingReadyOrFail("makeDailyStake");
-            return requiresNewTransactionTemplate.execute(status -> doMakeDailyStake(dto));
-        } catch (RuntimeException e) {
-            log.error("Échec recouvrement web creditId={} reference={}: {}",
-                    dto.getCreditId(), dto.getReference(), e.getMessage(), e);
-            throw e;
-        }
+        RecordRecoveryCommand command = new RecordRecoveryCommand(
+                dto.getCreditId(),
+                dto.getAmount(),
+                dto.getReference(),
+                dto.getCollector(),
+                dto.getReliquatGeneratedAmount(),
+                dto.getReliquatUsedAmount(),
+                dto.getOperationConsentCode(),
+                dto.getConfirmedAmount(),
+                dto.getSyncConsentCode(),
+                RecoverySource.WEB_SINGLE
+        );
+        return recoveryApplicationService.recordRecovery(command);
     }
 
-    private CreditTimeline doMakeDailyStake(CreditTimelineDto dto) {
-        Credit credit = creditService.getById(dto.getCreditId());
-        CollectorAudienceSecurity.assertPromoterOwnsCreditCollector(
-                userService.getCurrentUser(), credit.getCollector());
-        applyAutoReliquatForClosure(dto, credit);
-
-        CreditTimeline creditTimeline = creditMapper.toCreditTimeline(dto);
-        if (creditTimeline.getReliquatGeneratedAmount() == null) {
-            creditTimeline.setReliquatGeneratedAmount(
-                    dto.getReliquatGeneratedAmount() != null ? dto.getReliquatGeneratedAmount() : 0.0);
-        }
-        if (creditTimeline.getReliquatUsedAmount() == null) {
-            creditTimeline.setReliquatUsedAmount(
-                    dto.getReliquatUsedAmount() != null ? dto.getReliquatUsedAmount() : 0.0);
-        }
-        // Réaligner le montant timeline si l'auto-reliquat a relevé le montant de clôture
-        if (dto.getAmount() != null) {
-            creditTimeline.setAmount(dto.getAmount());
-        }
-        dailyStakeFactor(credit, creditTimeline);
-
-        Double reliquatGenerated = dto.getReliquatGeneratedAmount();
-        Double reliquatUsed = dto.getReliquatUsedAmount();
-        if (reliquatGenerated != null && reliquatGenerated > 0 && credit.getClientId() != null) {
-            clientReliquatService.addReliquat(credit.getClientId(), reliquatGenerated, creditTimeline.getReference(), null);
-        }
-        if (reliquatUsed != null && reliquatUsed > 0 && credit.getClientId() != null) {
-            clientReliquatService.consumeReliquat(credit.getClientId(), reliquatUsed, creditTimeline.getReference(), null);
-        }
-        return creditTimeline;
-    }
-
-    /**
-     * Si le cash saisi + le reliquat client suffisent à solder le crédit, consomme automatiquement
-     * le reliquat manquant et relève le montant de mise au restant (clôture).
-     * Ne remplace pas un {@code reliquatUsedAmount} déjà fourni (sync mobile).
-     */
     void applyAutoReliquatForClosure(CreditTimelineDto dto, Credit credit) {
-        if (dto == null || credit == null || credit.getClientId() == null) {
+        if (dto == null || credit == null) {
             return;
         }
-        double remaining = credit.getTotalAmountRemaining() != null ? credit.getTotalAmountRemaining() : 0.0;
-        if (remaining <= 0) {
-            return;
-        }
+        double requestedAmount = dto.getAmount() != null ? dto.getAmount() : 0.0;
+        double reliquatGenerated = dto.getReliquatGeneratedAmount() != null ? dto.getReliquatGeneratedAmount() : 0.0;
+        double reliquatUsed = dto.getReliquatUsedAmount() != null ? dto.getReliquatUsedAmount() : 0.0;
 
-        double alreadyUsed = dto.getReliquatUsedAmount() != null ? dto.getReliquatUsedAmount() : 0.0;
-        if (alreadyUsed > 0) {
-            return;
-        }
+        CreditRecoveryApplicationService.AutoReliquatResolution resolution =
+                recoveryApplicationService.resolveAutoReliquatForClosure(
+                        credit, requestedAmount, reliquatGenerated, reliquatUsed);
 
-        Double availableObj = clientReliquatService.getReliquatForClient(credit.getClientId());
-        double available = availableObj != null ? Math.max(0.0, availableObj) : 0.0;
-        if (available <= 0) {
-            return;
-        }
-
-        double cashOrAmount = dto.getAmount() != null ? Math.max(0.0, dto.getAmount()) : 0.0;
-
-        // Cas 1 : paiement (éventuellement 0) + reliquat >= restant → clôture auto
-        if (cashOrAmount < remaining && cashOrAmount + available >= remaining) {
-            double reliquatUsed = remaining - cashOrAmount;
-            dto.setReliquatUsedAmount(reliquatUsed);
-            dto.setAmount(remaining);
+        if (resolution.reliquatUsed() != reliquatUsed || resolution.amount() != requestedAmount) {
+            dto.setAmount(resolution.amount());
+            dto.setReliquatUsedAmount(resolution.reliquatUsed());
             if (dto.getReliquatGeneratedAmount() == null) {
-                dto.setReliquatGeneratedAmount(0.0);
+                dto.setReliquatGeneratedAmount(resolution.reliquatGenerated());
             }
-            log.info("Auto-reliquat clôture creditId={} remaining={} cash={} reliquatUsed={}",
-                    credit.getId(), remaining, cashOrAmount, reliquatUsed);
-            return;
         }
-
-        // Cas 2 : montant déjà = restant mais un reliquat existe — ne force pas la conso
-        // (le client / l'UI peut vouloir encaisser le cash plein). La clôture par reliquat seul
-        // passe par le cas 1 avec cashOrAmount = 0.
     }
 
     /**
      * Recouvrement initial (vente comptant / livraison tontine) dans la transaction appelante.
-     * Utilise le {@link Credit} déjà géré — ne recharge pas via {@code getById}, car le crédit
-     * n'est pas encore visible dans une TX {@code REQUIRES_NEW} tant que la création n'est pas commitée.
      */
     public void recordInitialSaleRecovery(Credit credit, CreditTimelineDto dto) {
-        CreditTimeline creditTimeline = creditMapper.toCreditTimeline(dto);
-        creditTimeline.setCredit(credit);
-        dailyStakeFactor(credit, creditTimeline);
+        RecordRecoveryCommand command = new RecordRecoveryCommand(
+                credit.getId(),
+                dto.getAmount(),
+                dto.getReference(),
+                dto.getCollector(),
+                dto.getReliquatGeneratedAmount(),
+                dto.getReliquatUsedAmount(),
+                dto.getOperationConsentCode(),
+                dto.getConfirmedAmount(),
+                dto.getSyncConsentCode(),
+                RecoverySource.INITIAL_SALE
+        );
+        recoveryApplicationService.recordInitialSaleRecovery(credit, command);
     }
 
     /**
-     * Enregistre la mise. Prérequis : journée comptable + DailyAccounting CURRENT déjà prêts
-     * (appeler {@link AccountingDayService#ensureAccountingReadyForOperations()} avant d'ouvrir la TX métier).
+     * @deprecated Utiliser {@link com.optimize.elykia.sale.api.CreditRecoveryUseCase}.
      */
+    @Deprecated(since = "2.17.0")
     public void dailyStakeFactor(Credit credit, CreditTimeline creditTimeline) {
         dailyStakeFactor(credit, creditTimeline, true);
     }
 
     /**
-     * @param publishEvent faux lorsque l'appelant publie l'événement après une écriture liée
-     *                     (manquant de carnet) pour rester dans la même transaction.
+     * @deprecated Utiliser {@link com.optimize.elykia.sale.api.CreditRecoveryUseCase}.
      */
+    @Deprecated(since = "2.17.0")
     public void dailyStakeFactor(Credit credit, CreditTimeline creditTimeline, boolean publishEvent) {
         try {
             DailyAccountancy dailyAccountancy = dailyAccountancyService.getByCollectorOrCreateNew(credit.getCollector());
@@ -243,7 +218,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
                 Random random = new Random();
                 int nombreAleatoire = random.nextInt();
                 String hexString = String.format("%08x", nombreAleatoire & 0xFFFFFFFFL);
-                creditTimeline.setReference("REC-"+ now.getYear() + now.getMonthValue()+ "-" + hexString);
+                creditTimeline.setReference("REC-" + now.getYear() + now.getMonthValue() + "-" + hexString);
             }
             creditService.update(credit);
             super.create(creditTimeline);
@@ -296,388 +271,106 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     }
 
     /**
-     * Sync mobile mises normales : chaque mise dans sa propre transaction (REQUIRES_NEW)
-     * pour éviter UnexpectedRollbackException quand une unité échoue dans le lot.
+     * Sync mobile mises normales (rétrocompatibilité) — délègue au moteur batch unifié.
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public SpecialDailyStakeResponseDto defaultDailyStakeByCollector(CollectorDailyStakeDto dto) {
-        ensureAccountingReadyOrFail("defaultDailyStake");
-        List<String> successRecoveryIds = new ArrayList<>();
-        List<SpecialDailyStakeResponseDto.FailedRecoveryDto> failedRecoveries = new ArrayList<>();
-        dto.getStakeUnits().forEach(stakeUnit -> {
-            try {
-                requiresNewTransactionTemplate.executeWithoutResult(status ->
-                        processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), null, true,
-                                successRecoveryIds, false, stakeUnit.getReliquatGeneratedAmount(),
-                                stakeUnit.getReliquatUsedAmount(), stakeUnit.getOperationConsentCode(),
-                                stakeUnit.getConfirmedAmount(), dto.getSyncConsentCode()));
-            } catch (Exception e) {
-                log.error("Échec mise quotidienne (sync) recoveryId={} creditId={}: {}",
-                        stakeUnit.getRecoveryId(), stakeUnit.getCreditId(), e.getMessage(), e);
-                failedRecoveries.add(new SpecialDailyStakeResponseDto.FailedRecoveryDto(
-                        stakeUnit.getRecoveryId(), rootMessage(e)));
-            }
-        });
-        return new SpecialDailyStakeResponseDto(successRecoveryIds, failedRecoveries);
+        List<RecordRecoveryCommand> items = dto.resolveEffectiveStakeUnits().stream()
+                .map(unit -> new RecordRecoveryCommand(
+                        unit.getCreditId(),
+                        null,
+                        unit.getRecoveryId(),
+                        dto.getCollector(),
+                        unit.getReliquatGeneratedAmount(),
+                        unit.getReliquatUsedAmount(),
+                        unit.getOperationConsentCode(),
+                        unit.getConfirmedAmount(),
+                        dto.getSyncConsentCode(),
+                        RecoverySource.MOBILE_SYNC
+                ))
+                .toList();
+
+        BatchRecoveryResult result = recoveryApplicationService.recordRecoveryBatch(
+                new RecordRecoveryBatchCommand(dto.getCollector(), dto.getSyncConsentCode(), items, true));
+        return toLegacyResponse(result);
     }
 
     /**
-     * Sync mobile mises spéciales : chaque mise dans sa propre transaction (REQUIRES_NEW).
+     * Sync mobile mises spéciales (rétrocompatibilité) — délègue au moteur batch unifié.
      */
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public SpecialDailyStakeResponseDto specialDailyStakeByCollector(SpecialDailyStakeDto dto) {
-        ensureAccountingReadyOrFail("specialDailyStake");
-        List<String> successRecoveryIds = new ArrayList<>();
-        List<SpecialDailyStakeResponseDto.FailedRecoveryDto> failedRecoveries = new ArrayList<>();
+        List<RecordRecoveryCommand> items = dto.getStakeUnits() == null
+                ? Collections.emptyList()
+                : dto.getStakeUnits().stream()
+                .map(unit -> new RecordRecoveryCommand(
+                        unit.getCreditId(),
+                        unit.getAmount(),
+                        unit.getRecoveryId(),
+                        dto.getCollector(),
+                        unit.getReliquatGeneratedAmount(),
+                        unit.getReliquatUsedAmount(),
+                        unit.getOperationConsentCode(),
+                        unit.getConfirmedAmount(),
+                        dto.getSyncConsentCode(),
+                        RecoverySource.MOBILE_SYNC
+                ))
+                .toList();
 
-        dto.getStakeUnits().forEach(stakeUnit -> {
-            try {
-                requiresNewTransactionTemplate.executeWithoutResult(status ->
-                        processDailyStake(stakeUnit.getCreditId(), stakeUnit.getRecoveryId(), stakeUnit.getAmount(),
-                                false, successRecoveryIds, true, stakeUnit.getReliquatGeneratedAmount(),
-                                stakeUnit.getReliquatUsedAmount(), stakeUnit.getOperationConsentCode(),
-                                stakeUnit.getConfirmedAmount(), dto.getSyncConsentCode()));
-            } catch (Exception e) {
-                log.error("Échec mise spéciale (sync) recoveryId={} creditId={} amount={}: {}",
-                        stakeUnit.getRecoveryId(), stakeUnit.getCreditId(), stakeUnit.getAmount(), e.getMessage(), e);
-                failedRecoveries.add(new SpecialDailyStakeResponseDto.FailedRecoveryDto(
-                        stakeUnit.getRecoveryId(), rootMessage(e)));
-            }
-        });
-        return new SpecialDailyStakeResponseDto(successRecoveryIds, failedRecoveries);
+        BatchRecoveryResult result = recoveryApplicationService.recordRecoveryBatch(
+                new RecordRecoveryBatchCommand(dto.getCollector(), dto.getSyncConsentCode(), items, false));
+        return toLegacyResponse(result);
     }
 
-    public record FieldControlCreditPosting(
-            double imputedOnCredit,
-            double reliquat,
-            double cash,
-            String reference,
-            String collector,
-            String creditReference,
-            boolean alreadyExisted) {
-    }
-
-    /**
-     * Mise interne d'un écart de carnet accepté. N'exige pas que l'opérateur soit le commercial du crédit.
-     * L'événement de caisse n'est pas publié : l'appelant le fait après la création du manquant.
-     */
     public FieldControlCreditPosting postFieldControlRecovery(Long creditId, double cashAmount, String reference) {
-        ensureAccountingReadyOrFail("fieldControlRecovery");
-        if (StringUtils.hasText(reference) && getRepository().existsByReference(reference)) {
-            CreditTimeline existing = getRepository().findByReference(reference).orElseThrow();
-            double imputed = existing.getAmount() != null ? existing.getAmount() : 0d;
-            double reliquat = existing.getReliquatGeneratedAmount() != null ? existing.getReliquatGeneratedAmount() : 0d;
-            return new FieldControlCreditPosting(
-                    imputed, reliquat, imputed + reliquat, reference, existing.getCollector(),
-                    existing.getCredit() != null ? existing.getCredit().getReference() : null,
-                    true);
-        }
-        Credit credit = creditService.getById(creditId);
-        double remaining = credit.getTotalAmountRemaining() != null ? credit.getTotalAmountRemaining() : 0d;
-        com.optimize.elykia.shared.carnet.CarnetEcartRules.CreditSplit split =
-                com.optimize.elykia.shared.carnet.CarnetEcartRules.creditSplit(cashAmount, remaining);
-        if (split.imputedOnCredit() > com.optimize.elykia.shared.carnet.CarnetEcartRules.MONEY_EPSILON) {
-            CreditTimeline timeline = new CreditTimeline();
-            timeline.setCredit(credit);
-            timeline.setAmount(split.imputedOnCredit());
-            timeline.setReliquatGeneratedAmount(split.reliquat());
-            timeline.setReliquatUsedAmount(0d);
-            timeline.setReference(reference);
-            timeline.setCollector(credit.getCollector());
-            timeline.setNormalStake(Boolean.FALSE);
-            dailyStakeFactor(credit, timeline, false);
-        }
-        if (split.reliquat() > com.optimize.elykia.shared.carnet.CarnetEcartRules.MONEY_EPSILON
-                && credit.getClientId() != null) {
-            clientReliquatService.addReliquat(credit.getClientId(), split.reliquat(), reference, null);
-        }
-        return new FieldControlCreditPosting(
-                split.imputedOnCredit(),
-                split.reliquat(),
-                split.cash(),
-                reference,
-                credit.getCollector(),
-                credit.getReference(),
-                false);
+        return recoveryApplicationService.recordFieldControlRecovery(
+                new FieldControlRecoveryCommand(creditId, cashAmount, reference));
     }
 
     public void publishFieldControlCash(FieldControlCreditPosting posting) {
-        if (posting == null || posting.alreadyExisted() || eventPublisher == null) {
-            return;
-        }
-        if (posting.cash() <= com.optimize.elykia.shared.carnet.CarnetEcartRules.MONEY_EPSILON) {
-            return;
-        }
-        eventPublisher.publishEvent(new CreditCollectionEvent(
-                this,
-                posting.imputedOnCredit(),
-                posting.collector(),
-                posting.creditReference(),
-                posting.reference(),
-                posting.reliquat(),
-                0d));
-    }
-
-    private void ensureAccountingReadyOrFail(String context) {
-        try {
-            LocalDate date = accountingDayService.ensureAccountingReadyForOperations();
-            log.info("Journée comptable prête ({}) : {}", context, date);
-        } catch (RuntimeException e) {
-            log.error("Impossible de préparer la journée comptable ({}): {}", context, e.getMessage(), e);
-            throw e;
-        }
-    }
-
-    private static String rootMessage(Throwable e) {
-        Throwable root = e;
-        while (root.getCause() != null && root.getCause() != root) {
-            root = root.getCause();
-        }
-        return root.getMessage() != null ? root.getMessage() : e.toString();
-    }
-
-    private void processDailyStake(Long creditId, String recoveryId, Double amount, boolean isNormalStake, List<String> successRecoveryIds, boolean throwOnNotFound, Double reliquatGenerated, Double reliquatUsed, String operationConsentCode, Double confirmedAmount, String syncConsentCode) {
-        if (getRepository().existsByReference(recoveryId)) {
-            successRecoveryIds.add(recoveryId);
-            return;
-        }
-
-        Optional<Credit> creditOptional = creditService.getRepository().findByIdAndStatus(creditId, CreditStatus.INPROGRESS);
-
-        if (!creditOptional.isPresent()) {
-            if (metricsPublisher != null) {
-                metricsPublisher.collectionFailed("unknown", "CREDIT_NOT_FOUND");
-            }
-            if (throwOnNotFound) {
-                throw new CustomValidationException("Crédit introuvable ou statut incorrect pour l'ID: " + creditId);
-            }
-            log.warn("Mise ignorée : crédit introuvable ou non INPROGRESS id={} recoveryId={}", creditId, recoveryId);
-            return;
-        }
-
-        Credit credit = creditOptional.get();
-        CollectorAudienceSecurity.assertPromoterOwnsCreditCollector(
-                userService.getCurrentUser(), credit.getCollector());
-        Double stakeAmount = amount;
-        if (isNormalStake) {
-            stakeAmount = credit.getDailyStake();
-        }
-        if (stakeAmount > credit.getTotalAmountRemaining()) {
-                throw new CustomValidationException(
-                        "Le montant de la mise spéciale ne peut pas dépasser le montant restant à payer ! Ref: " + credit.getReference() + " Montant restant: " + credit.getTotalAmountRemaining() + " Montant mise: " + stakeAmount);
-        }
-
-
-        CreditTimeline creditTimeline = new CreditTimeline();
-        creditTimeline.setCredit(credit);
-        creditTimeline.setCollector(credit.getCollector());
-        creditTimeline.setNormalStake(isNormalStake);
-        creditTimeline.setAmount(stakeAmount);
-        creditTimeline.setReference(recoveryId);
-        creditTimeline.setReliquatGeneratedAmount(reliquatGenerated != null ? reliquatGenerated : 0.0);
-        creditTimeline.setReliquatUsedAmount(reliquatUsed != null ? reliquatUsed : 0.0);
-        creditTimeline.setOperationConsentCode(operationConsentCode);
-        creditTimeline.setConfirmedAmount(confirmedAmount);
-        creditTimeline.setSyncConsentCode(syncConsentCode);
-        
-        dailyStakeFactor(credit, creditTimeline);
-
-        if (reliquatGenerated != null && reliquatGenerated > 0) {
-            clientReliquatService.addReliquat(credit.getClientId(), reliquatGenerated, recoveryId, null);
-        }
-        if (reliquatUsed != null && reliquatUsed > 0) {
-            clientReliquatService.consumeReliquat(credit.getClientId(), reliquatUsed, recoveryId, null);
-        }
-
-        successRecoveryIds.add(recoveryId);
+        recoveryApplicationService.publishFieldControlCash(posting);
     }
 
     public List<CreditTimelineRespDto> getAllByCredit(Long creditId) {
         return getRepository().findRespDtosByCreditIdAndState(creditId, State.ENABLED);
     }
 
-    /**
-     * Annule un recouvrement : soft-delete du timeline, reverse des montants crédit,
-     * reverse reliquats, et publication de {@link CreditCollectionCancelledEvent}
-     * pour DailyCommercialReport + DailyOperationLog.
-     */
     public CreditTimelineRespDto cancelRecovery(Long timelineId) {
-        CreditTimeline timeline = getRepository().findByIdWithCreditAndClient(timelineId)
-                .orElseThrow(() -> new ResourceNotFoundException("Recouvrement introuvable."));
-
-        if (State.DELETED.equals(timeline.getState())) {
-            throw new CustomValidationException("Ce recouvrement est déjà annulé.");
-        }
-
-        Credit credit = timeline.getCredit();
-        if (credit == null) {
-            throw new CustomValidationException("Crédit associé au recouvrement introuvable.");
-        }
-        if (credit.awaitingWarehouseDelivery()) {
-            throw new CustomValidationException(
-                    "Annulez la vente comptant : l'encaissement est extourné avec la demande de sortie.");
-        }
-
-        double amount = timeline.getAmount() != null ? timeline.getAmount() : 0.0;
-        double generated = timeline.getReliquatGeneratedAmount() != null ? timeline.getReliquatGeneratedAmount() : 0.0;
-        double used = timeline.getReliquatUsedAmount() != null ? timeline.getReliquatUsedAmount() : 0.0;
-
-        timeline.setState(State.DELETED);
-        getRepository().save(timeline);
-
-        boolean reopened = reverseCreditAmounts(credit, amount);
-        creditService.update(credit);
-
-        if (reopened && credit.getClientId() != null && ClientType.CLIENT.equals(credit.getClientType())) {
-            CreditPurpose purpose = credit.getCreditPurpose() != null
-                    ? credit.getCreditPurpose()
-                    : CreditPurpose.PERSONAL;
-            if (CreditPurpose.BUSINESS.equals(purpose)) {
-                clientService.updateBusinessCreditInProgress(credit.getClientId(), Boolean.TRUE);
-            } else {
-                clientService.updateCreditStatus(credit.getClientId(), Boolean.TRUE);
-            }
-        }
-
-        if (generated > 0 && credit.getClientId() != null) {
-            clientReliquatService.consumeReliquat(credit.getClientId(), generated, timeline.getReference(), null);
-        }
-        if (used > 0 && credit.getClientId() != null) {
-            clientReliquatService.addReliquat(credit.getClientId(), used, timeline.getReference(), null);
-        }
-
-        if (eventPublisher != null) {
-            String ref = credit.getReference() + " | Client : "
-                    + (credit.getClient() != null ? credit.getClient().getFullName() : "N/A");
-            java.time.LocalDate operationDate = timeline.getCreatedDate() != null
-                    ? timeline.getCreatedDate().toLocalDate()
-                    : java.time.LocalDate.now();
-            eventPublisher.publishEvent(new CreditCollectionCancelledEvent(
-                    this,
-                    amount,
-                    timeline.getCollector(),
-                    ref,
-                    timeline.getReference(),
-                    generated,
-                    used,
-                    operationDate));
-        }
-
-        log.info("Recouvrement annulé timelineId={} reference={} creditId={} amount={}",
-                timelineId, timeline.getReference(), credit.getId(), amount);
-        return CreditTimelineRespDto.fromEntity(timeline);
+        return recoveryApplicationService.cancelRecovery(timelineId);
     }
 
-    /**
-     * Extourne les encaissements d'une vente comptant annulée avant la remise,
-     * sans rouvrir la vente comme un crédit en cours.
-     */
     public void reverseCollectionsForCancelledCashSale(Credit credit) {
-        List<CreditTimeline> timelines = getRepository().findByCreditIdAndState(credit.getId(), State.ENABLED);
-        for (CreditTimeline timeline : timelines) {
-            double amount = timeline.getAmount() != null ? timeline.getAmount() : 0.0;
-            double generated = timeline.getReliquatGeneratedAmount() != null ? timeline.getReliquatGeneratedAmount() : 0.0;
-            double used = timeline.getReliquatUsedAmount() != null ? timeline.getReliquatUsedAmount() : 0.0;
-
-            timeline.setState(State.DELETED);
-            getRepository().save(timeline);
-            reverseCreditAmounts(credit, amount);
-            if (CreditStatus.INPROGRESS.equals(credit.getStatus())) {
-                credit.setStatus(CreditStatus.VALIDATED);
-                credit.setEffectiveEndDate(null);
-            }
-
-            if (generated > 0 && credit.getClientId() != null) {
-                clientReliquatService.consumeReliquat(credit.getClientId(), generated, timeline.getReference(), null);
-            }
-            if (used > 0 && credit.getClientId() != null) {
-                clientReliquatService.addReliquat(credit.getClientId(), used, timeline.getReference(), null);
-            }
-
-            if (eventPublisher != null) {
-                String ref = credit.getReference() + " | Client : "
-                        + (credit.getClient() != null ? credit.getClient().getFullName() : "N/A");
-                java.time.LocalDate operationDate = timeline.getCreatedDate() != null
-                        ? timeline.getCreatedDate().toLocalDate()
-                        : java.time.LocalDate.now();
-                eventPublisher.publishEvent(new CreditCollectionCancelledEvent(
-                        this,
-                        amount,
-                        timeline.getCollector(),
-                        ref,
-                        timeline.getReference(),
-                        generated,
-                        used,
-                        operationDate));
-            }
-        }
-        credit.setTotalAmountRemaining(0.0);
-        credit.setRemainingDaysCount(0);
-    }
-
-    private boolean reverseCreditAmounts(Credit credit, double amount) {
-        double paid = credit.getTotalAmountPaid() != null ? credit.getTotalAmountPaid() : 0.0;
-        double newPaid = Math.max(0.0, paid - amount);
-        credit.setTotalAmountPaid(newPaid);
-        credit.setTotalAmountRemaining(credit.getTotalAmount() - newPaid);
-
-        boolean reopened = false;
-        boolean wasSettled = CreditStatus.SETTLED.equals(credit.getStatus());
-        if (wasSettled && credit.getTotalAmountRemaining() > 0) {
-            credit.setStatus(CreditStatus.INPROGRESS);
-            credit.setEffectiveEndDate(null);
-            credit.setSolvencyNote(SolvencyStatus.ND);
-            credit.setLateDaysCount(0);
-            if (credit.getClient() != null) {
-                credit.getClient().setCreditInProgress(true);
-            }
-            reopened = true;
-        }
-
-        Double dailyStake = credit.getDailyStake();
-        if (dailyStake != null && dailyStake > 0 && credit.getTotalAmountRemaining() > 0) {
-            credit.setRemainingDaysCount((int) Math.ceil(credit.getTotalAmountRemaining() / dailyStake));
-        } else if (credit.getTotalAmountRemaining() == 0) {
-            credit.setRemainingDaysCount(0);
-        }
-
-        credit.setDailyPaid(Boolean.FALSE);
-        return reopened;
+        recoveryApplicationService.reverseCollectionsForCancelledCashSale(credit);
     }
 
     public CreditTimelineRepository getRepository() {
         return (CreditTimelineRepository) repository;
     }
 
-    /**
-     * Récupère les CreditTimeline des 30 derniers jours pour un collector
-     * Utilisé par l'application mobile pour l'initialisation
-     * @param collector Username du collector
-     * @return Liste des CreditTimeline des 30 derniers jours
-     */
     public List<CreditTimeline> getLast30DaysByCollector(String collector) {
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        java.time.LocalDateTime thirtyDaysAgo = now.minusDays(30);
-        
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime thirtyDaysAgo = now.minusDays(30);
+
         return getRepository()
                 .findByCollectorAndCreatedDateGreaterThanEqualAndCreatedDateLessThanEqual(
-                        collector, 
-                        thirtyDaysAgo, 
+                        collector,
+                        thirtyDaysAgo,
                         now
                 )
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Récupère les CreditTimelineMobileDto des 30 derniers jours pour un collector
-     * Optimisé avec une requête JPQL directe
-     * @param collector Username du collector
-     * @return Liste des CreditTimelineMobileDto
-     */
     public List<CreditTimelineMobileDto> getLast30DaysMobileDtosByCollector(String collector) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime thirtyDaysAgo = now.minusDays(30);
 
         return getRepository().findMobileDtosByCollectorAndDateRange(collector, thirtyDaysAgo, now);
+    }
+
+    public static SpecialDailyStakeResponseDto toLegacyResponse(BatchRecoveryResult result) {
+        List<SpecialDailyStakeResponseDto.FailedRecoveryDto> failed = result.failedRecoveries().stream()
+                .map(f -> new SpecialDailyStakeResponseDto.FailedRecoveryDto(f.recoveryId(), f.errorMessage()))
+                .toList();
+        return new SpecialDailyStakeResponseDto(result.successRecoveryIds(), failed);
     }
 }
