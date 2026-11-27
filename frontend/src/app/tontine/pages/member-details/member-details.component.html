@@ -94,6 +94,14 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
         Préparer la Livraison
       </button>
+      <ng-container *ngxPermissionsOnly="['ROLE_EDIT_TONTINE', 'ROLE_RECOVERY_MANAGER', 'ROLE_ADMIN']">
+        <button class="btn-outline" type="button" (click)="onAdjustSocietyShare()"
+                *ngIf="canAdjustSocietyShare"
+                data-testid="e2e-tontine-adjust-society-share-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Réajuster la part société
+        </button>
+      </ng-container>
       <button class="btn-outline" (click)="onEditMember()" *ngIf="isSessionActive">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
         Modifier
@@ -130,12 +138,56 @@
     <div class="kpi-card kpi-total" *ngxPermissionsOnly="['ROLE_VIEW_TONTINE_SOCIETY_SHARE', 'ROLE_ADMIN']" data-testid="e2e-tontine-society-share">
       <div class="kpi-label">Part Société</div>
       <div class="kpi-value">{{ formatCurrency(member.societyShare || 0) }}</div>
-      <div class="kpi-sub">Cotisation société prélevée</div>
+      <div class="kpi-sub">{{ societyShareStatusLabel() || 'Cotisation société prélevée' }}</div>
     </div>
     <div class="kpi-card kpi-total">
       <div class="kpi-label">Collectes à la livraison</div>
       <div class="kpi-value">{{ formatCurrency(member.totalDeliveryCollections || 0) }}</div>
       <div class="kpi-sub">Lors de la livraison</div>
+    </div>
+  </div>
+
+  <div class="section-card a3" *ngIf="canViewSocietyShare && societyShareAdjustments.length > 0"
+       data-testid="e2e-tontine-society-share-history">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Historique de la part société</h2>
+        <p class="section-description">
+          Chaque saisie garde ce que l'application avait calculé et la part retenue.
+        </p>
+      </div>
+    </div>
+    <div class="society-share-history">
+      <table class="society-share-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Par</th>
+            <th>Écran</th>
+            <th>Résultat</th>
+            <th class="num">Calculée</th>
+            <th class="num">Avant</th>
+            <th class="num">Saisie</th>
+            <th class="num">Retenue</th>
+            <th class="num">Solde après</th>
+            <th>Commentaire</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of societyShareAdjustments">
+            <td>{{ a.adjustedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>{{ a.adjustedBy || '—' }}</td>
+            <td>{{ adjustmentSourceLabel(a.source) }}</td>
+            <td>{{ adjustmentOutcomeLabel(a.outcome) }}</td>
+            <td class="num">{{ formatCurrency(a.computedSocietyShare || 0) }}</td>
+            <td class="num">{{ formatCurrency(a.previousSocietyShare || 0) }}</td>
+            <td class="num">{{ a.declaredSocietyShare != null ? formatCurrency(a.declaredSocietyShare) : '—' }}</td>
+            <td class="num">{{ formatCurrency(a.newSocietyShare || 0) }}</td>
+            <td class="num">{{ formatCurrency(a.newAvailable || 0) }}</td>
+            <td>{{ a.comment || '—' }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 

@@ -7,7 +7,8 @@ export const RM_SYNC_ENTITY = {
   tontineFieldControl: 'rm-tontine-field-control',
   carnet: 'rm-carnet',
   creditCarnet: 'rm-credit-carnet',
-  assign: 'rm-assign'
+  assign: 'rm-assign',
+  societyShare: 'rm-society-share'
 } as const;
 
 export type RmSyncEntityType = typeof RM_SYNC_ENTITY[keyof typeof RM_SYNC_ENTITY];
@@ -19,7 +20,8 @@ const RM_SYNC_ENTITY_LABELS: Record<string, string> = {
   [RM_SYNC_ENTITY.tontineFieldControl]: 'Contrôle tontine',
   [RM_SYNC_ENTITY.carnet]: 'Vérification carnet tontine',
   [RM_SYNC_ENTITY.creditCarnet]: 'Vérification carnet crédit',
-  [RM_SYNC_ENTITY.assign]: 'Transfert de commercial'
+  [RM_SYNC_ENTITY.assign]: 'Transfert de commercial',
+  [RM_SYNC_ENTITY.societyShare]: 'Part société tontine'
 };
 
 export function syncEntityLabel(entityType: string | null | undefined): string {

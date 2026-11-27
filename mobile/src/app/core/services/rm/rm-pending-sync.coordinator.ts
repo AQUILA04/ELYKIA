@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Optional } from '@angular/core';
 import { Platform } from '@ionic/angular';
 import { BehaviorSubject } from 'rxjs';
 import { AuthService } from '../auth.service';
@@ -13,6 +13,7 @@ import { RmCreditCarnetVerificationSyncService } from './rm-credit-carnet-verifi
 import { RmFieldControlSyncService } from './rm-field-control-sync.service';
 import { RmPendingQueuesService } from './rm-pending-queues.service';
 import { RmTontineFieldControlSyncService } from './rm-tontine-field-control-sync.service';
+import { RmSocietyShareSyncService } from './rm-society-share-sync.service';
 
 interface SyncWaveResult {
   synced: number;
@@ -59,7 +60,8 @@ export class RmPendingSyncCoordinator {
     private readonly tontineFieldControlSync: RmTontineFieldControlSyncService,
     private readonly carnetSync: RmCarnetVerificationSyncService,
     private readonly creditCarnetSync: RmCreditCarnetVerificationSyncService,
-    private readonly closeSync: RmCloseSyncService
+    private readonly closeSync: RmCloseSyncService,
+    @Optional() private readonly societyShareSync?: RmSocietyShareSyncService
   ) {}
 
   /** À appeler une fois au démarrage de l'application. */
@@ -141,6 +143,9 @@ export class RmPendingSyncCoordinator {
       ['contrôles tontine', () => this.tontineFieldControlSync.syncPending()],
       ['carnets tontine', () => this.carnetSync.syncPending()],
       ['carnets crédit', () => this.creditCarnetSync.syncPending()],
+      ['parts société', () => this.societyShareSync
+        ? this.societyShareSync.syncPending()
+        : Promise.resolve({ synced: 0, failed: 0, errors: [] })],
       ['clôtures', () => this.closeSync.syncPending()],
     ];
     const total: SyncWaveResult = { synced: 0, failed: 0, errors: [] };

@@ -105,7 +105,7 @@ export class DatabaseService {
     // 2. Migrations incrémentielles (natif uniquement).
     // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
     const currentVersion = await this.db.getVersion();
-    const targetVersion = 40; // warehouse stock snapshot on articles
+    const targetVersion = 41; // part société réajustée (membres, commandes, saisies en attente)
     const dbVersion = currentVersion.version ?? 2;
     const isWeb = Capacitor.getPlatform() === 'web';
 

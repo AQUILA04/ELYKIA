@@ -1515,3 +1515,34 @@
   background: #fff8e6;
   border-color: #f0d9a8;
 }
+
+.society-share-history {
+  overflow-x: auto;
+}
+
+.society-share-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th,
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  th {
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    opacity: 0.75;
+  }
+
+  .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+}

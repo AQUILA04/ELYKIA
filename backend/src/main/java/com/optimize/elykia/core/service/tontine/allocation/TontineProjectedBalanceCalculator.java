@@ -41,7 +41,20 @@ public class TontineProjectedBalanceCalculator {
             return 0.0;
         }
         double available = member.getAvailableContribution() != null ? member.getAvailableContribution() : 0.0;
-        return Math.max(estimate(member, asOf), available);
+        return Math.max(estimate(member, asOf) - societyShareIncrease(member), available);
+    }
+
+    /**
+     * L'estimation suppose une mise de part société par mois. Quand la part a été réajustée à la hausse,
+     * l'excédent saisi est retiré de l'estimation ; une baisse ne relève pas le plafond.
+     */
+    static double societyShareIncrease(TontineMember member) {
+        if (member.getSocietyShareOverride() == null) {
+            return 0.0;
+        }
+        double effective = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
+        double computed = member.getSocietyShareComputed() != null ? member.getSocietyShareComputed() : effective;
+        return Math.max(0.0, effective - computed);
     }
 
     private double estimate(TontineMember member, LocalDate asOf) {

@@ -43,6 +43,7 @@ public class V2TontineAllocationPolicy implements TontineAllocationPolicy {
             state.applyCollection(collection);
         }
         state.applyToMember(member);
+        TontineSocietyShareOverride.apply(member);
         TontineBalanceTopUp.apply(member, collections);
     }
 

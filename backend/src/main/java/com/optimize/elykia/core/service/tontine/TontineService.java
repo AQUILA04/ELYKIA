@@ -1256,6 +1256,18 @@ public class TontineService extends GenericService<TontineMember, Long> {
         }
     }
 
+    /**
+     * Rejoue le membre après une saisie de part société : la part saisie (ou son retrait) est appliquée
+     * par la politique d'allocation, puis le chiffre d'affaires de la session est recalculé.
+     */
+    public void recalculateMemberAfterSocietyShareChange(TontineMember member) {
+        recalculateMemberFromCollections(member);
+        getRepository().save(member);
+        if (member.getTontineSession() != null) {
+            updateSessionRevenue(member.getTontineSession());
+        }
+    }
+
     public void refreshSessionRevenue(Long sessionId) {
         TontineSession session = tontineSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new CustomValidationException("Session tontine introuvable."));

@@ -82,6 +82,12 @@ export interface RmPackTontineMember {
   carnetVerified?: boolean;
   carnetVerifiedAt?: string;
   carnetVerifiedBy?: string;
+  /** Part société en place (calculée ou réajustée). Absente des anciens packs. */
+  societyShare?: number;
+  /** AUTO, CONFIRMED (validée) ou ADJUSTED (corrigée). */
+  societyShareStatus?: 'AUTO' | 'CONFIRMED' | 'ADJUSTED';
+  /** Déjà validée ou corrigée par un chef de recouvrement. */
+  societyShareLocked?: boolean;
   /** Totaux mensuels agrégés (rétrocompat packs déjà téléchargés). */
   months: RmPackTontineMonth[];
   /** Répartition système par commercial collecteur (packs récents). */

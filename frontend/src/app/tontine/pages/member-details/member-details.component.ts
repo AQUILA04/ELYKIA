@@ -35,6 +35,8 @@ import { DeliveryArticleSelectionModalComponent } from '../../components/modals/
 import { AddMemberModalComponent } from '../../components/modals/add-member-modal/add-member-modal.component';
 import { TontineFieldControlModalComponent } from '../../components/modals/tontine-field-control-modal/tontine-field-control-modal.component';
 import { EditAdhesionDateModalComponent } from '../../components/modals/edit-adhesion-date-modal/edit-adhesion-date-modal.component';
+import { AdjustSocietyShareModalComponent } from '../../components/modals/adjust-society-share-modal/adjust-society-share-modal.component';
+import { TontineSocietyShareAdjustment } from '../../types/tontine.types';
 import { UserProfilConstant } from 'src/app/shared/constants/user-profil.constant';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
@@ -90,6 +92,8 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       || this.currentSessionStatus === TontineSessionStatus.CLOSED;
   }
   isAdmin = false;
+  societyShareAdjustments: TontineSocietyShareAdjustment[] = [];
+  loadingSocietyShareAdjustments = false;
   isRecoveryManager = false;
   fieldControlLatest: TontineMemberFieldControlDto | null = null;
   isFieldControlBusy = false;
@@ -125,6 +129,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       this.loadAmountHistoryArchives(memberId);
       this.loadContributionsByCommercial(memberId);
       this.loadFieldControl(memberId);
+      this.loadSocietyShareAdjustments(memberId);
     }
 
     // Subscribe to current session status
@@ -787,6 +792,93 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
         this.loadMemberDetails(this.member.id);
         this.loadAmountHistory(this.member.id);
         this.showSuccess('Date d\'adhésion mise à jour');
+      }
+    });
+  }
+
+  /** Bouton "Réajuster la part société" : membre non livré, session non terminée, avec des collectes. */
+  get canAdjustSocietyShare(): boolean {
+    if (!this.member || this.member.deliveryStatus === 'DELIVERED') {
+      return false;
+    }
+    if (this.currentSessionStatus === TontineSessionStatus.ENDED) {
+      return false;
+    }
+    return (this.member.totalContribution || 0) - (this.member.totalDeliveryCollections || 0) > 0;
+  }
+
+  get canViewSocietyShare(): boolean {
+    return this.authService.hasRole('ROLE_VIEW_TONTINE_SOCIETY_SHARE')
+      || this.authService.hasRole(UserProfilConstant.ADMIN)
+      || this.isRecoveryManager;
+  }
+
+  societyShareStatusLabel(): string | null {
+    const status = this.member?.societyShareStatus;
+    if (status === 'ADJUSTED') {
+      return this.member?.societyShareLocked ? 'Corrigée (chef de recouvrement)' : 'Corrigée';
+    }
+    if (status === 'CONFIRMED') {
+      return this.member?.societyShareLocked ? 'Validée (chef de recouvrement)' : 'Validée';
+    }
+    return null;
+  }
+
+  adjustmentOutcomeLabel(outcome: string): string {
+    switch (outcome) {
+      case 'ADJUSTED': return 'Corrigée';
+      case 'VALIDATED': return 'Validée';
+      case 'REJECTED': return 'Refusée';
+      case 'RESET': return 'Calcul automatique';
+      default: return outcome;
+    }
+  }
+
+  adjustmentSourceLabel(source: string): string {
+    switch (source) {
+      case 'WEB_MEMBER': return 'Fiche membre (web)';
+      case 'MOBILE_MEMBER': return 'Fiche membre (mobile)';
+      case 'DELIVERY_CREATION': return 'Commande tontine';
+      case 'RM_CONTROL': return 'Chef de recouvrement';
+      case 'ADMIN_RESET': return 'Administrateur';
+      default: return source;
+    }
+  }
+
+  onAdjustSocietyShare(): void {
+    if (!this.member || !this.canAdjustSocietyShare) {
+      return;
+    }
+    const dialogRef = this.dialog.open(AdjustSocietyShareModalComponent, {
+      width: '520px',
+      panelClass: 'elykia-tontine-dialog',
+      data: {
+        member: this.member,
+        canViewShare: this.canViewSocietyShare,
+        canReset: this.authService.hasRole('ROLE_RESET_TONTINE_SOCIETY_SHARE')
+      }
+    });
+    dialogRef.afterClosed().subscribe((result: TontineSocietyShareAdjustment | null | undefined) => {
+      if (result && this.member) {
+        this.loadMemberDetails(this.member.id);
+        this.loadSocietyShareAdjustments(this.member.id);
+        this.showSuccess(result.message || 'Part société enregistrée');
+      }
+    });
+  }
+
+  private loadSocietyShareAdjustments(memberId: number): void {
+    this.loadingSocietyShareAdjustments = true;
+    this.tontineService.getMemberSocietyShareAdjustments(memberId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        this.societyShareAdjustments = response.data ?? [];
+        this.loadingSocietyShareAdjustments = false;
+      },
+      error: () => {
+        this.societyShareAdjustments = [];
+        this.loadingSocietyShareAdjustments = false;
       }
     });
   }

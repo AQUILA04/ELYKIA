@@ -167,4 +167,55 @@ class V3TontineAllocationPolicyTest {
         org.junit.jupiter.api.Assertions.assertEquals(5_000d, member.getAvailableContribution());
         org.junit.jupiter.api.Assertions.assertEquals(0d, delivery.getSocietyShareAmount());
     }
+
+    @Test
+    void societyShareOverrideSurvivesNewCollectionsAndKeepsComputedValue() {
+        TontineMember member = buildMember(LocalDate.of(year, 2, 1), 1000.0);
+        member.setSocietyShareOverride(3000.0);
+        policy.recalculateMemberFromCollections(member, new ArrayList<>(List.of(
+                collection(member, LocalDate.of(year, 3, 5), 10000.0))));
+        assertEquals(1000.0, member.getSocietyShareComputed(), 0.01);
+        assertEquals(3000.0, member.getSocietyShare(), 0.01);
+        assertEquals(7000.0, member.getAvailableContribution(), 0.01);
+
+        // Une collecte de plus ne change pas une part déjà saisie (montant dû sur toute l'année).
+        policy.recalculateMemberFromCollections(member, new ArrayList<>(List.of(
+                collection(member, LocalDate.of(year, 3, 5), 10000.0),
+                collection(member, LocalDate.of(year, 4, 6), 5000.0))));
+        assertEquals(2000.0, member.getSocietyShareComputed(), 0.01);
+        assertEquals(3000.0, member.getSocietyShare(), 0.01);
+        assertEquals(12000.0, member.getAvailableContribution(), 0.01);
+    }
+
+    @Test
+    void societyShareOverrideIsCappedAtRegularContributions() {
+        TontineMember member = buildMember(LocalDate.of(year, 2, 1), 1000.0);
+        member.setSocietyShareOverride(50000.0);
+        policy.recalculateMemberFromCollections(member, new ArrayList<>(List.of(
+                collection(member, LocalDate.of(year, 3, 5), 10000.0))));
+        assertEquals(10000.0, member.getSocietyShare(), 0.01);
+        assertEquals(0.0, member.getAvailableContribution(), 0.01);
+    }
+
+    @Test
+    void societyShareOverrideWithoutCollectionsIsNotApplied() {
+        TontineMember member = buildMember(LocalDate.of(year, 2, 1), 1000.0);
+        member.setSocietyShareOverride(3000.0);
+        policy.recalculateMemberFromCollections(member, new ArrayList<>());
+        assertEquals(0.0, member.getSocietyShare(), 0.01);
+        assertEquals(0.0, member.getAvailableContribution(), 0.01);
+    }
+
+    @Test
+    void societyShareOverrideLeavesDeliveryTopUpOutOfTheShare() {
+        TontineMember member = buildMember(LocalDate.of(year, 2, 1), 1000.0);
+        member.setSocietyShareOverride(2500.0);
+        TontineCollection topUp = collection(member, LocalDate.of(year, 4, 2), 4000.0);
+        topUp.setIsDeliveryCollection(true);
+        policy.recalculateMemberFromCollections(member, new ArrayList<>(List.of(
+                collection(member, LocalDate.of(year, 3, 5), 10000.0), topUp)));
+        assertEquals(2500.0, member.getSocietyShare(), 0.01);
+        assertEquals(11500.0, member.getAvailableContribution(), 0.01);
+        assertEquals(14000.0, member.getTotalContribution(), 0.01);
+    }
 }

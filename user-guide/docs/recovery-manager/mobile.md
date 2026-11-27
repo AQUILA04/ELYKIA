@@ -93,6 +93,15 @@ Le contrôle tontine reste disponible après la clôture de la session. Il ouvre
 
 Lorsque l’agence a activé la vérification automatique, le badge **Vérifié** s’affiche dès l’enregistrement du contrôle, en ligne comme hors ligne. Le téléphone reprend ce réglage dans le pack du jour. S’il est désactivé, seul le contrôle est enregistré et le badge **Vérifié** ne change pas. Après un changement de ce réglage, utilisez **Actualiser le pack** pour que le téléphone hors ligne suive le nouveau choix. À la synchronisation, le carnet reprend l’état confirmé par l’agence.
 
+### Valider ou corriger la part société d’un membre tontine
+
+En haut du formulaire de contrôle tontine, le bloc **Part société** affiche la part en place et son état (**Calcul automatique, non validée**, **Confirmée par le commercial**, **Réajustée par le commercial**, **Validée** ou **Corrigée par le chef de recouvrement**). Saisissez la part société de toute l’année, un commentaire si besoin, puis touchez **Valider / corriger la part société** :
+
+- montant **égal** à la part en place : la part est validée, sans autre mise à jour ;
+- montant **différent** : la part du membre est corrigée et son solde disponible recalculé immédiatement, sans validation supplémentaire.
+
+Votre saisie prime sur celle du commercial : après vous, il ne peut plus modifier cette part. Le bloc n’apparaît pas pour un membre déjà livré. Hors ligne, la saisie est gardée dans la file **Parts société** et envoyée à la reconnexion ; actualisez le pack pour voir la part en place si elle affiche **Retéléchargez le pack**.
+
 Lorsqu’un écart est affiché, son montant apparaît à côté du badge, avec la mention **Déjà contrôlé**. Si cet écart n’a pas encore été accepté, le formulaire reprend les montants déjà saisis et le bouton **Modifier le contrôle** met à jour ce contrôle. Si le dernier contrôle est **CONFORME**, ou si l’écart a été accepté ou refusé, un nouveau contrôle peut être enregistré avec **Capturer le contrôle**. Ce choix entre modification et nouveau contrôle est le même pour un crédit et pour un membre tontine.
 
 <!-- CAPTURE À INSÉRER : Mobile Chef de recouvrement — onglet Terrain, liste Crédits avec badge Retard et bouton Contrôle. -->

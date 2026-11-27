@@ -64,6 +64,21 @@
           <span class="detail-label">Solde disponible</span>
           <span class="detail-value elyk-amount elyk-amount--green" data-testid="e2e-tontine-available-balance">{{ formatCurrency(vm.member.availableContribution) }}</span>
         </div>
+        <div class="detail-row" *ngIf="societyShareStatusLabel() as shareLabel">
+          <span class="detail-label">Part société</span>
+          <span class="detail-value" data-testid="e2e-tontine-society-share-status">{{ shareLabel }}</span>
+        </div>
+        <ion-button
+          *ngIf="canAdjustSocietyShare()"
+          expand="block"
+          fill="outline"
+          size="small"
+          class="elyk-btn-outline ion-margin-top"
+          (click)="adjustSocietyShare()"
+          data-testid="e2e-tontine-adjust-society-share">
+          <ion-icon slot="start" name="calculator-outline"></ion-icon>
+          Réajuster la part société
+        </ion-button>
         <div *ngIf="vm.member.notes" class="notes-section">
           <div class="notes-header">
             <ion-icon name="document-text-outline"></ion-icon>

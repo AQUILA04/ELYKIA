@@ -34,6 +34,10 @@ public class TontineSessionService {
         private final TontineCollectionRepository collectionRepository;
         private final UserService userService;
 
+        /** Ecarts des parts société réajustées, ajoutés au chiffre d'affaires du commercial. */
+        @org.springframework.beans.factory.annotation.Autowired(required = false)
+        private com.optimize.elykia.core.repository.TontineSocietyShareAdjustmentRepository adjustmentRepository;
+
         /**
          * Récupère toutes les sessions avec leurs statistiques de base
          */
@@ -115,7 +119,11 @@ public class TontineSessionService {
                                                         sessionId, State.ENABLED, commercialFilter);
                         Double societyShare = collectionRepository.sumSocietyShareBySessionAndCommercialUsername(
                                         sessionId, State.ENABLED, commercialFilter);
-                        totalRevenue = societyShare != null ? societyShare : 0.0;
+                        double adjustmentDelta = adjustmentRepository != null
+                                        ? java.util.Optional.ofNullable(adjustmentRepository.sumDeltaBySessionAndCommercial(
+                                                        sessionId, commercialFilter)).orElse(0.0)
+                                        : 0.0;
+                        totalRevenue = (societyShare != null ? societyShare : 0.0) + adjustmentDelta;
                         averageFromPortfolio = totalMembers > 0
                                         ? (portfolioCollected != null ? portfolioCollected : 0.0) / totalMembers
                                         : 0.0;

@@ -37,7 +37,7 @@ Autres enchaînements livrés récemment (voir `docs/CHANGELOG.md`, ne pas les f
 | Demande de sortie | Sortie de stock vers un commercial (crédit ou tontine) |
 | Solde disponible | Cotisations déjà en caisse, utilisables pour une remise tontine |
 | Solde prévisionnel | Plafond de commande tontine (historique + mise en cours sur les mois restants tant que la session est ouverte) |
-| Part société | Quote-part de la tontine revenant à la société |
+| Part société | Quote-part de la tontine revenant à la société ; peut être réajustée (saisie de la part de l'année), validée ou corrigée par le chef de recouvrement |
 | Ancien portefeuille | Dossiers clos, consultables (mobile : Plus > Ancien portefeuille) |
 | Gros / demi-gros / offre libre | Offres de vente d’un article conditionné (colis, éventuellement impair) |
 | Journée comptable | Période à laquelle sont rattachées les opérations d’argent |

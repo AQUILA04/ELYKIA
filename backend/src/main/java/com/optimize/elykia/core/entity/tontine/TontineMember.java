@@ -7,6 +7,7 @@ import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
 import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
+import com.optimize.elykia.core.enumaration.TontineSocietyShareStatus;
 import com.optimize.elykia.core.service.carnet.CarnetVerifiable;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -66,6 +67,31 @@ public class TontineMember extends BaseEntity<String> implements CarnetVerifiabl
 
     @Column(columnDefinition = "double precision default 0")
     private Double availableContribution = 0.0;
+
+    /**
+     * Part société saisie (réajustement). Non nulle : elle remplace le calcul automatique,
+     * quelles que soient les collectes qui suivent (voir {@code TontineSocietyShareOverride}).
+     */
+    @Column(name = "society_share_override")
+    private Double societyShareOverride;
+
+    /** Dernière part société calculée par l'application, gardée même quand elle est remplacée. */
+    @Column(name = "society_share_computed", columnDefinition = "double precision default 0")
+    private Double societyShareComputed = 0.0;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "society_share_status", length = 20)
+    private TontineSocietyShareStatus societyShareStatus = TontineSocietyShareStatus.AUTO;
+
+    /** Validée ou corrigée par le chef de recouvrement : la saisie d'un commercial est alors refusée. */
+    @Column(name = "society_share_locked")
+    private Boolean societyShareLocked = Boolean.FALSE;
+
+    @Column(name = "society_share_reviewed_at")
+    private LocalDateTime societyShareReviewedAt;
+
+    @Column(name = "society_share_reviewed_by", length = 100)
+    private String societyShareReviewedBy;
 
     @Column(columnDefinition = "integer default 0")
     private Integer validatedMonths = 0;

@@ -549,6 +549,99 @@
             "inscrit depuis l'espace client",
             "source d'inscription"
           ]
+        },
+        {
+          "name": "society_share",
+          "type": "double",
+          "description": "Part société retenue (calculée ou réajustée)"
+        },
+        {
+          "name": "available_contribution",
+          "type": "double",
+          "description": "Solde disponible du membre (cotisations moins la part société, compléments inclus)"
+        },
+        {
+          "name": "society_share_override",
+          "type": "double",
+          "description": "Part société saisie (réajustement) ; vide = calcul automatique"
+        },
+        {
+          "name": "society_share_computed",
+          "type": "double",
+          "description": "Dernière part société calculée par l'application"
+        },
+        {
+          "name": "society_share_status",
+          "type": "varchar",
+          "description": "AUTO (calcul), CONFIRMED (saisie conforme, validée) ou ADJUSTED (saisie différente, corrigée)"
+        },
+        {
+          "name": "society_share_locked",
+          "type": "boolean",
+          "description": "Part validée ou corrigée par le chef de recouvrement"
+        }
+      ]
+    },
+    {
+      "name": "tontine_society_share_adjustment",
+      "description": "Historique des saisies de part société d'un membre tontine : part calculée par l'application, part avant la saisie, montant saisi et part retenue.",
+      "synonyms": [
+        "réajustement part société",
+        "correction part société",
+        "validation part société"
+      ],
+      "rowLevelFilter": "commercial_username",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "tontine_member_id",
+          "type": "bigint"
+        },
+        {
+          "name": "commercial_username",
+          "type": "varchar"
+        },
+        {
+          "name": "source",
+          "type": "varchar",
+          "description": "WEB_MEMBER, MOBILE_MEMBER, DELIVERY_CREATION, RM_CONTROL ou ADMIN_RESET"
+        },
+        {
+          "name": "outcome",
+          "type": "varchar",
+          "description": "ADJUSTED (corrigée), VALIDATED (conforme), REJECTED (refusée : déjà validée par le chef de recouvrement) ou RESET"
+        },
+        {
+          "name": "computed_society_share",
+          "type": "double"
+        },
+        {
+          "name": "previous_society_share",
+          "type": "double"
+        },
+        {
+          "name": "declared_society_share",
+          "type": "double"
+        },
+        {
+          "name": "new_society_share",
+          "type": "double"
+        },
+        {
+          "name": "delta",
+          "type": "double",
+          "description": "Nouvelle part moins l'ancienne"
+        },
+        {
+          "name": "adjusted_by",
+          "type": "varchar"
+        },
+        {
+          "name": "adjusted_at",
+          "type": "date"
         }
       ]
     },

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { TontineCollection, TontineMember, TontineSession } from '../../models/tontine.model';
-import { TontineCalculationService } from './tontine-calculation.service';
+import { TontineCalculationService, societyShareIncreaseOf } from './tontine-calculation.service';
 import {
   TontineOrderCeiling,
   computeTontineOrderCeiling
@@ -22,18 +22,23 @@ export class TontineOrderCeilingService {
     let projected = 0;
     let available = member.availableContribution ?? 0;
     if (session) {
-      try {
-        projected = await this.calculation.projectBalance(member, session);
-      } catch (error) {
-        console.error('Solde prévisionnel indisponible', error);
-      }
+      let increase = 0;
       if (collections.length > 0) {
         try {
           const status = await this.calculation.calculateMemberStatus(member, session, collections);
-          available = Math.max(available, status.availableBudget ?? 0);
+          increase = societyShareIncreaseOf(status);
+          // Part réajustée : le solde recalculé fait foi (il peut être plus bas que l'ancien solde).
+          available = member.societyShareOverride != null
+            ? (status.availableBudget ?? 0)
+            : Math.max(available, status.availableBudget ?? 0);
         } catch (error) {
           console.error('Solde net indisponible', error);
         }
+      }
+      try {
+        projected = await this.calculation.projectBalance(member, session, increase);
+      } catch (error) {
+        console.error('Solde prévisionnel indisponible', error);
       }
     }
     return computeTontineOrderCeiling(projected, available);

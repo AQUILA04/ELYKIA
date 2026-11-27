@@ -1,4 +1,5 @@
-import { AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, Optional } from '@angular/core';
+import { RmSocietyShareWriteService } from '../../../core/services/rm/rm-society-share-write.service';
 import { ModalController, ToastController } from '@ionic/angular';
 import { LoggerService } from '../../../core/services/logger.service';
 import { RmCommercialRef, RmPackTontineCollector, RmPackTontineFieldControlToday, RmPackTontineMember } from '../../../core/services/rm/rm.models';
@@ -70,6 +71,10 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
   private readonly debug: TontineControlDebug;
 
   blocks: CollectorBlock[] = [];
+  /** Part société saisie par le chef de recouvrement (validation ou correction). */
+  societyShareAmount: number | null = null;
+  societyShareComment = '';
+  societyShareBusy = false;
   promoterOptions: RmCommercialRef[] = [];
   /** Pack ancien sans collectors : formulaire unique non découpé. */
   legacyMode = false;
@@ -83,7 +88,8 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
     private readonly toastCtrl: ToastController,
     private readonly host: ElementRef<HTMLElement>,
     log: LoggerService,
-    zone: NgZone
+    zone: NgZone,
+    @Optional() private readonly societyShareWrite?: RmSocietyShareWriteService
   ) {
     this.debug = new TontineControlDebug(log, zone);
   }
@@ -537,6 +543,56 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       maxDays: MISE_DAY_STEP,
       useManual: dailyMise <= 0
     };
+  }
+
+  /** Part société de l'année : membre non livré (un membre livré est en lecture seule). */
+  get canReviewSocietyShare(): boolean {
+    return !!this.societyShareWrite
+      && !!this.member
+      && String(this.member.deliveryStatus || '').toUpperCase() !== 'DELIVERED';
+  }
+
+  societyShareStatusText(): string {
+    const status = this.member?.societyShareStatus;
+    if (status === 'ADJUSTED') {
+      return this.member?.societyShareLocked ? 'Corrigée par le chef de recouvrement' : 'Réajustée par le commercial';
+    }
+    if (status === 'CONFIRMED') {
+      return this.member?.societyShareLocked ? 'Validée par le chef de recouvrement' : 'Confirmée par le commercial';
+    }
+    return 'Calcul automatique, non validée';
+  }
+
+  /** Egal à la part en place : validée sans mise à jour. Différent : corrigée sur le membre tout de suite. */
+  async submitSocietyShare(): Promise<void> {
+    if (!this.canReviewSocietyShare || this.societyShareBusy || !this.societyShareWrite) {
+      return;
+    }
+    const amount = Number(this.societyShareAmount);
+    if (this.societyShareAmount === null || this.societyShareAmount === undefined
+        || String(this.societyShareAmount) === '' || !Number.isFinite(amount) || amount < 0) {
+      await this.toast('Saisissez la part société de l\'année.', 'warning');
+      return;
+    }
+    this.societyShareBusy = true;
+    try {
+      const outcome = await this.societyShareWrite.submit(this.member, amount, this.societyShareComment);
+      this.member = {
+        ...this.member,
+        societyShare: outcome.result.memberSocietyShare ?? this.member.societyShare,
+        societyShareStatus: outcome.result.memberSocietyShareStatus ?? this.member.societyShareStatus,
+        societyShareLocked: true
+      };
+      const label = outcome.result.outcome === 'VALIDATED' ? 'Part société conforme : validée.' : 'Part société corrigée.';
+      await this.toast(outcome.offline ? `${label} Envoi à la reconnexion.` : (outcome.result.message || label), 'success');
+      this.societyShareAmount = null;
+      this.societyShareComment = '';
+    } catch (error) {
+      const message = error instanceof OnlineWriteError ? error.message : 'Part société non enregistrée.';
+      await this.toast(message, 'danger');
+    } finally {
+      this.societyShareBusy = false;
+    }
   }
 
   private async toast(message: string, color: 'success' | 'danger' | 'warning'): Promise<void> {

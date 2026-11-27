@@ -9,6 +9,26 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend, Frontend & Mobile — 2026-11-27 (réajustement de la part société tontine)
+
+### Added
+
+- **Backend 1.67.0 → réajustement de la part société →** `POST /api/v1/tontines/members/{id}/society-share-adjustments` : la part société réelle de l'année saisie pour un membre est validée si elle est égale à la part en place (à 1 FCFA près, aucune mise à jour), sinon elle remplace le calcul automatique (`society_share_override`) et le solde disponible est recalculé tout de suite. La part saisie survit à tous les recalculs (collectes, annulations, contrôle de carnet, migration V3, restauration commerciale) via `TontineSocietyShareOverride`, plafonnée au total des collectes régulières ; sans collecte, pas de réajustement. Les collectes à la livraison restent hors part société.
+- **Backend 1.67.0 → historique →** table `tontine_society_share_adjustment` (Flyway V050) : part calculée par l'application, part avant la saisie, montant saisi, part retenue, soldes avant / après, écran d'origine, auteur, commentaire. `GET …/society-share-adjustments`.
+- **Backend 1.67.0 → priorité du chef de recouvrement →** sa validation ou sa correction verrouille la part (`society_share_locked`) : la saisie d'un commercial est ensuite refusée (inscrite `REJECTED` quand elle arrive avec une commande, qui continue avec la part du chef de recouvrement).
+- **Backend 1.67.0 → commande tontine →** `CreateDeliveryDto.societyShareAdjustment` : la part saisie pendant la commande est appliquée dans la même transaction, avant le contrôle du plafond. Le plafond retire de l'estimation la hausse de part saisie (une baisse ne le relève pas). Une commande en attente suit la nouvelle part (reliquat, solde prévisionnel) et repasse en attente si elle dépasse le nouveau plafond.
+- **Backend 1.67.0 → retour au calcul automatique →** `POST …/society-share-adjustments/reset`, permission `ROLE_RESET_TONTINE_SOCIETY_SHARE` (super admin, admin).
+- **Frontend 2.68.0 → fiche membre tontine →** bouton **Réajuster la part société**, mention **Validée** / **Corrigée** sur l'indicateur Part Société, section **Historique de la part société**, retour au calcul automatique pour l'administrateur.
+- **Mobile 2.52.0 → fiche membre (commercial) →** **Réajuster la part société** (bouton et menu ⋮) : saisie sans voir la valeur calculée ; hors ligne, la saisie est gardée (`tontine_society_share_pending`, SQLite v41), appliquée au calcul local et envoyée à la synchronisation avant les commandes.
+- **Mobile 2.52.0 → commande tontine (delivery-creation) →** **Réajuster la part société** recalcule tout de suite le solde et le plafond ; la part part avec la commande, dans la même requête.
+- **Mobile 2.52.0 → chef de recouvrement →** bloc **Part société** dans le contrôle de carnet tontine : **Valider / corriger la part société**, file hors ligne `rm_tontine_society_shares` (pastille, synchro automatique). Le pack RM porte la part en place, son état et le verrou.
+
+### Changed
+
+- **Backend 1.67.0 → KPI de part société →** les totaux par période, par commercial et le revenu commercial de la session ajoutent l'écart des parts réajustées (date de la saisie).
+- **Backend 1.67.0 → réinitialisation des collectes d'une session →** efface aussi les réajustements de part société.
+- **Mobile 2.52.0 → calcul local →** `applySocietyShareOverride` applique la part saisie comme le serveur ; le plafond de la fiche et de la commande en tient compte.
+
 ## Backend & Mobile — 2026-11-26 (reçu de crédit lisible, prix unitaire sur les reçus)
 
 ### Added

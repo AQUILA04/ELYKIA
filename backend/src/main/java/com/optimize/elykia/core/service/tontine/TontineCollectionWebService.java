@@ -18,6 +18,10 @@ public class TontineCollectionWebService {
 
     private final TontineCollectionRepository tontineCollectionRepository;
 
+    /** Ecarts des parts société réajustées, ajoutés au total de la période. */
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.optimize.elykia.core.repository.TontineSocietyShareAdjustmentRepository adjustmentRepository;
+
     public Page<TontineCollectionWebDto> getCollectionsForWeb(LocalDateTime dateFrom, LocalDateTime dateTo, String commercial, Pageable pageable) {
         log.info("Fetching Tontine Collections between {} and {} for commercial: {}", dateFrom, dateTo, commercial != null ? commercial : "ALL");
 
@@ -40,10 +44,17 @@ public class TontineCollectionWebService {
             totalAmount = tontineCollectionRepository.sumAmountByCommercialAndDateRange(commercial, dateFrom, dateTo);
             totalMises = tontineCollectionRepository.countCollectionsByCommercialAndDateRange(commercial, dateFrom, dateTo);
             totalSocietyShare = tontineCollectionRepository.sumSocietyShareByCommercialAndDateRange(commercial, dateFrom, dateTo);
+            if (adjustmentRepository != null) {
+                totalSocietyShare = nz(totalSocietyShare)
+                        + nz(adjustmentRepository.sumDeltaByCommercialAndDateRange(commercial, dateFrom, dateTo));
+            }
         } else {
             totalAmount = tontineCollectionRepository.sumAmountByDateRange(dateFrom, dateTo);
             totalMises = tontineCollectionRepository.countCollectionsByDateRange(dateFrom, dateTo);
             totalSocietyShare = tontineCollectionRepository.sumSocietyShareByDateRange(dateFrom, dateTo);
+            if (adjustmentRepository != null) {
+                totalSocietyShare = nz(totalSocietyShare) + nz(adjustmentRepository.sumDeltaByDateRange(dateFrom, dateTo));
+            }
         }
 
         return TontineCollectionKpiDto.builder()
@@ -51,5 +62,9 @@ public class TontineCollectionWebService {
                 .totalMontant(totalAmount != null ? totalAmount : 0.0)
                 .totalSocietyShare(totalSocietyShare != null ? totalSocietyShare : 0.0)
                 .build();
+    }
+
+    private static double nz(Double value) {
+        return value != null ? value : 0.0;
     }
 }

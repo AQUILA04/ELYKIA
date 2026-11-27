@@ -37,4 +37,6 @@ public class TontineDeliveryDto {
     private Double amountDue;
     /** Reliquat à restituer quand la commande est inférieure au solde net, sinon 0. */
     private Double refundableBalance;
+    /** Résultat de la part société saisie avec la commande (validée, corrigée ou refusée), sinon null. */
+    private TontineSocietyShareAdjustmentDto societyShareAdjustment;
 }

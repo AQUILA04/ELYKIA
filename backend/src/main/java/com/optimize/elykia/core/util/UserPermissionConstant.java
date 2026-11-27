@@ -95,6 +95,8 @@ public class UserPermissionConstant {
 
     /** Annulation d'une demande de sortie déjà validée, tant qu'elle n'est pas livrée. GESTIONNAIRE et STOREKEEPER par défaut. */
     public static final String VIEW_TONTINE_SOCIETY_SHARE = "ROLE_VIEW_TONTINE_SOCIETY_SHARE";
+    /** Rendre une part société réajustée au calcul automatique. */
+    public static final String RESET_TONTINE_SOCIETY_SHARE = "ROLE_RESET_TONTINE_SOCIETY_SHARE";
     public static final String CANCEL_VALIDATED_STOCK_REQUEST = "ROLE_CANCEL_VALIDATED_STOCK_REQUEST";
 
     public static final String CREATE_INVENTORY = "ROLE_CREATE_INVENTORY";

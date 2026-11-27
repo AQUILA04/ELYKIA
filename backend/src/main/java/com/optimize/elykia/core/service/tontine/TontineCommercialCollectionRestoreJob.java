@@ -294,7 +294,7 @@ public final class TontineCommercialCollectionRestoreJob {
     private static Map<Long, MemberLines> loadLines(Connection connection) throws SQLException {
         Map<Long, MemberLines> members = new LinkedHashMap<>();
         String memberSql = """
-                SELECT tm.id, tm.amount
+                SELECT tm.id, tm.amount, tm.society_share_override
                 FROM tontine_member tm
                 JOIN restore_members m ON m.id = tm.id
                 ORDER BY tm.id
@@ -305,6 +305,8 @@ public final class TontineCommercialCollectionRestoreJob {
                 TontineMember member = new TontineMember();
                 member.setId(rows.getLong(1));
                 member.setAmount(rows.getObject(2) == null ? null : rows.getDouble(2));
+                // Part société saisie : elle survit à la restauration (TontineSocietyShareOverride).
+                member.setSocietyShareOverride(rows.getObject(3) == null ? null : rows.getDouble(3));
                 member.setAmountHistory(new ArrayList<>());
                 members.put(member.getId(), new MemberLines(member));
             }
@@ -363,6 +365,7 @@ public final class TontineCommercialCollectionRestoreJob {
                     available_contribution = ?,
                     validated_months = ?,
                     current_month_days = ?,
+                    society_share_computed = ?,
                     mod_user_id = ?,
                     date_mod = NOW()
                 WHERE id = ?
@@ -375,8 +378,9 @@ public final class TontineCommercialCollectionRestoreJob {
                 statement.setDouble(3, safe(member.getAvailableContribution()));
                 statement.setInt(4, member.getValidatedMonths() != null ? member.getValidatedMonths() : 0);
                 statement.setInt(5, member.getCurrentMonthDays() != null ? member.getCurrentMonthDays() : 0);
-                statement.setString(6, AUDIT_USER);
-                statement.setLong(7, member.getId());
+                statement.setDouble(6, safe(member.getSocietyShareComputed()));
+                statement.setString(7, AUDIT_USER);
+                statement.setLong(8, member.getId());
                 statement.addBatch();
             }
             statement.executeBatch();

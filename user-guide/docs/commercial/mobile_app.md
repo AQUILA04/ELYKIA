@@ -240,6 +240,13 @@ Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
   * **Voir le client** : pour voir la fiche générale de la cliente.
   * **Commande de tontine** : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle **Livraison Fin d'Année** : vous pouvez y enregistrer une **Commande** (catalogue) ou faire la remise en mains propres (**Livraison directe**, stock tontine).
   * **Modifier la commande** : si une commande est déjà enregistrée et pas encore livrée, pour ajuster les articles. Si la carte **Livraison** indique que les articles ne sont pas encore sur le téléphone, lancez d'abord une synchronisation : le bouton apparaît dès que les articles sont affichés.
+  * **Réajuster la part société** (aussi en bouton sous **Solde disponible**) : voir ci-dessous.
+* **Réajuster la part société** : quand le carnet ne tombe pas sur le montant attendu par l'agence, saisissez la **part société que la membre doit sur toute l'année**, et un commentaire si besoin. Vous n'avez pas besoin de connaître le chiffre calculé par l'application :
+  * si votre montant est le même que celui de l'application, la part est simplement **validée** ;
+  * sinon, votre montant remplace le calcul et le **Solde disponible** est recalculé tout de suite. Les cotisations suivantes ne changent plus cette part.
+  * Hors connexion, la saisie reste sur la tablette et part à la prochaine synchronisation.
+  * Le bouton n'apparaît pas pour une membre déjà livrée (sa fiche est en lecture seule) ni pour une membre sans cotisation.
+  * Si le chef de recouvrement a déjà validé ou corrigé cette part, votre saisie est refusée : c'est sa valeur qui compte. La ligne **Part société** de la fiche indique alors **Validée par le chef de recouvrement** ou **Corrigée par le chef de recouvrement**.
 
 ### D. Enregistrer une cotisation de tontine pas à pas
 1. **Ouvrez la saisie** :
@@ -269,6 +276,7 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
    * **Solde disponible** : ce qui est déjà encaissé pour la membre.
    * **Solde prévisionnel** : l'estimation de fin d'année si chaque mois de la session est cotisé en entier. C'est le plafond du panier, que la session soit encore ouverte ou déjà clôturée.
    * **Reste au plafond** : ce qu'il reste avant d'atteindre ce plafond.
+   * **Réajuster la part société** : si la part société de la membre est fausse, corrigez-la ici avant de choisir les articles. Saisissez la part de toute l'année : le solde disponible et le plafond se recalculent aussitôt, et la part est enregistrée avec la commande (dans le même envoi). Si elle est conforme, elle est simplement validée.
 3. **Choisissez les articles avec la cliente** :
    * En haut de la liste, choisissez **Mon stock tontine** (les articles reçus du magasin) ou **Catalogue général** (tous les articles de l'agence).
    * **Pendant la session ouverte** : l'écran s'ouvre sur le **Catalogue général**. Vous pouvez aussi passer sur **Mon stock tontine** pour commander ce que vous avez déjà en main : la commande ne sort rien de votre stock.
