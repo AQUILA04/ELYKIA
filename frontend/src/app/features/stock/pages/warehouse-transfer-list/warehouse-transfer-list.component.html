@@ -49,8 +49,8 @@
 
   <div class="toolbar a4">
     <div class="filter-group">
-      <span class="toolbar-label">Statut</span>
-      <select class="filter-select" [(ngModel)]="statusFilter" (ngModelChange)="loadTransfers()">
+      <label class="toolbar-label" for="transfer-status-filter">Statut</label>
+      <select id="transfer-status-filter" class="filter-select" [(ngModel)]="statusFilter" (ngModelChange)="loadTransfers()">
         <option value="">Tous les statuts</option>
         <option value="CREATED">Créé</option>
         <option value="VALIDATED">Validé</option>
@@ -71,25 +71,25 @@
     <div class="transfer-create-box a4">
       <h4>Nouveau Transfert de Stock Inter-Agences</h4>
       <div class="form-grid">
-        <label>
+        <label for="transfer-source-agency">
           ID Agence Source
-          <input type="number" [(ngModel)]="sourceAgencyId" min="1" />
+          <input id="transfer-source-agency" type="number" [(ngModel)]="sourceAgencyId" min="1" />
         </label>
-        <label>
+        <label for="transfer-target-agency">
           ID Agence Cible
-          <input type="number" [(ngModel)]="targetAgencyId" min="1" />
+          <input id="transfer-target-agency" type="number" [(ngModel)]="targetAgencyId" min="1" />
         </label>
-        <label>
+        <label for="transfer-article-id">
           ID Article
-          <input type="number" [(ngModel)]="articleIdInput" min="1" />
+          <input id="transfer-article-id" type="number" [(ngModel)]="articleIdInput" min="1" />
         </label>
-        <label>
+        <label for="transfer-quantity">
           Quantité à transférer
-          <input type="number" [(ngModel)]="quantityInput" min="1" />
+          <input id="transfer-quantity" type="number" [(ngModel)]="quantityInput" min="1" />
         </label>
-        <label class="full-col">
+        <label class="full-col" for="transfer-note">
           Motif / Note
-          <input type="text" [(ngModel)]="transferNote" placeholder="Ex. Rééquilibrage stock magasin Agence A -> Agence B" />
+          <input id="transfer-note" type="text" [(ngModel)]="transferNote" placeholder="Ex. Rééquilibrage stock magasin Agence A -> Agence B" />
         </label>
       </div>
       <div class="form-actions">
