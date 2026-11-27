@@ -571,6 +571,9 @@ export class DatabaseService {
             availableContribution REAL DEFAULT 0 CHECK(TYPEOF(availableContribution) IN ('integer', 'real') OR availableContribution IS NULL),
             validatedMonths INTEGER DEFAULT 0,
             currentMonthDays INTEGER DEFAULT 0,
+            societyShareOverride REAL,
+            societyShareStatus TEXT,
+            societyShareLocked INTEGER DEFAULT 0,
             FOREIGN KEY(tontineSessionId) REFERENCES tontine_sessions(id)
             -- IMPORTANT:
             -- On ne met plus de contrainte FOREIGN KEY(clientId) ici, car l'ID du client
@@ -636,9 +639,22 @@ export class DatabaseService {
             needsDeliverSync BOOLEAN DEFAULT 0,
             authenticityCode TEXT,
             plannedDeliveryDate TEXT,
+            declaredSocietyShare REAL,
+            societyShareReference TEXT,
+            societyShareComment TEXT,
             FOREIGN KEY(tontineMemberId) REFERENCES tontine_members(id)
             -- IMPORTANT:
             -- Pas de contrainte FOREIGN KEY(tontineMemberId) ici non plus, même raison que ci-dessus.
+        );
+
+        -- Parts société saisies hors ligne sur la fiche membre (envoyées à la synchronisation)
+        CREATE TABLE IF NOT EXISTS tontine_society_share_pending (
+            tontineMemberId TEXT PRIMARY KEY NOT NULL,
+            declaredSocietyShare REAL NOT NULL,
+            reference TEXT NOT NULL,
+            comment TEXT,
+            createdAt TEXT NOT NULL,
+            lastError TEXT
         );
 
         -- Table des articles de livraison de tontine
