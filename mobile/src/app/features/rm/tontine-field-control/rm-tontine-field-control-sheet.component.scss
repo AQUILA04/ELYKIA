@@ -345,3 +345,12 @@ ion-checkbox,
   margin-top: 2px;
   pointer-events: none;
 }
+
+/* Disponible réel recalculé pendant la saisie de la part société. */
+.row.available-after {
+  margin: 4px 0 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #e8f5ec;
+}
+.row.available-after strong { color: var(--rm-green); }

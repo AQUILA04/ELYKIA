@@ -36,7 +36,7 @@ import { AddMemberModalComponent } from '../../components/modals/add-member-moda
 import { TontineFieldControlModalComponent } from '../../components/modals/tontine-field-control-modal/tontine-field-control-modal.component';
 import { EditAdhesionDateModalComponent } from '../../components/modals/edit-adhesion-date-modal/edit-adhesion-date-modal.component';
 import { AdjustSocietyShareModalComponent } from '../../components/modals/adjust-society-share-modal/adjust-society-share-modal.component';
-import { TontineSocietyShareAdjustment } from '../../types/tontine.types';
+import { TontineSocietyShareAdjustment, TontineSocietyShareAdjustmentMode } from '../../types/tontine.types';
 import { UserProfilConstant } from 'src/app/shared/constants/user-profil.constant';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
@@ -85,6 +85,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   loadingContributionsByCommercial = false;
   loading: boolean = false;
   currentSessionStatus: TontineSessionStatus | null = null;
+  currentSessionMode: TontineSocietyShareAdjustmentMode | null = null;
   isSessionActive: boolean = false;
 
   get canVerifyCarnet(): boolean {
@@ -137,6 +138,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe(state => {
       this.currentSessionStatus = state.currentSession?.status || null;
+      this.currentSessionMode = state.currentSession?.societyShareAdjustmentMode ?? null;
       this.isSessionActive = this.currentSessionStatus === TontineSessionStatus.ACTIVE;
     });
 
@@ -801,10 +803,28 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     if (!this.member || this.member.deliveryStatus === 'DELIVERED') {
       return false;
     }
-    if (this.currentSessionStatus === TontineSessionStatus.ENDED) {
+    if (this.currentSessionStatus === TontineSessionStatus.ENDED || this.societyShareMode === 'DISABLED') {
       return false;
     }
-    return (this.member.totalContribution || 0) - (this.member.totalDeliveryCollections || 0) > 0;
+    return this.regularContribution > 0;
+  }
+
+  /** Mode de réajustement de la session du membre (Aucun par défaut). */
+  get societyShareMode(): TontineSocietyShareAdjustmentMode {
+    return this.member?.tontineSession?.societyShareAdjustmentMode
+      ?? this.currentSessionMode
+      ?? 'DISABLED';
+  }
+
+  private get regularContribution(): number {
+    return (this.member?.totalContribution || 0) - (this.member?.totalDeliveryCollections || 0);
+  }
+
+  /** Session obligatoire, part ni validée ni corrigée : l'étape passe avant la commande. */
+  private get societyShareStepRequired(): boolean {
+    return this.societyShareMode === 'MANDATORY'
+      && (this.member?.societyShareStatus ?? 'AUTO') === 'AUTO'
+      && this.regularContribution > 0;
   }
 
   get canViewSocietyShare(): boolean {
@@ -849,21 +869,40 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     if (!this.member || !this.canAdjustSocietyShare) {
       return;
     }
+    this.openSocietyShareDialog(false);
+  }
+
+  private openSocietyShareDialog(mandatory: boolean, then?: () => void): void {
+    if (!this.member) {
+      return;
+    }
     const dialogRef = this.dialog.open(AdjustSocietyShareModalComponent, {
       width: '520px',
       panelClass: 'elykia-tontine-dialog',
       data: {
         member: this.member,
-        canViewShare: this.canViewSocietyShare,
-        canReset: this.authService.hasRole('ROLE_RESET_TONTINE_SOCIETY_SHARE')
+        mandatory,
+        canReset: !mandatory && this.authService.hasRole('ROLE_RESET_TONTINE_SOCIETY_SHARE')
       }
     });
     dialogRef.afterClosed().subscribe((result: TontineSocietyShareAdjustment | null | undefined) => {
-      if (result && this.member) {
-        this.loadMemberDetails(this.member.id);
-        this.loadSocietyShareAdjustments(this.member.id);
-        this.showSuccess(result.message || 'Part société enregistrée');
+      if (!result || !this.member) {
+        return;
       }
+      const memberId = this.member.id;
+      this.loadSocietyShareAdjustments(memberId);
+      this.showSuccess(result.message || 'Part société enregistrée');
+      // Toutes les vues reprennent le disponible après réajustement renvoyé par le serveur.
+      this.tontineService.getMemberById(memberId).pipe(takeUntil(this.destroy$)).subscribe({
+        next: (response) => {
+          if (response.data) {
+            this.member = response.data;
+          }
+          this.loadMemberDetails(memberId);
+          then?.();
+        },
+        error: () => this.loadMemberDetails(memberId)
+      });
     });
   }
 
@@ -952,6 +991,11 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.societyShareStepRequired) {
+      // Session en mode obligatoire : la part société réelle est saisie avant le choix des articles.
+      this.openSocietyShareDialog(true, () => this.openDeliveryEditor());
+      return;
+    }
     this.openDeliveryEditor();
   }
 

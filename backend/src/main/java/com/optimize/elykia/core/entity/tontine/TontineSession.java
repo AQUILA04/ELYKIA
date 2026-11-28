@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.optimize.common.entities.entity.BaseEntity;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
+import com.optimize.elykia.core.enumaration.TontineSocietyShareAdjustmentMode;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,4 +43,9 @@ public class TontineSession extends BaseEntity<String> {
 
     @Column(columnDefinition = "double precision default 0")
     private Double totalRevenue = 0.0;
+
+    /** Réajustement de la part société : obligatoire, facultatif ou désactivé pour cette session. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "society_share_adjustment_mode", length = 20)
+    private TontineSocietyShareAdjustmentMode societyShareAdjustmentMode = TontineSocietyShareAdjustmentMode.DISABLED;
 }

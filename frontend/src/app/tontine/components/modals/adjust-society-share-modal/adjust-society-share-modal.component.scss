@@ -214,3 +214,16 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* Disponible réel recalculé pendant la saisie. */
+.available-after {
+  margin: -4px 0 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--green-light, #e8f5ee);
+
+  .summary-value {
+    font-size: 16px;
+    color: var(--green, #1a7f4b);
+  }
+}

@@ -608,7 +608,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Application mobile de terrain\nModule Tontine : l'épargne collective\nC. Consulter la fiche complète d'une membre tontine\nDans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :\nVous voyez le montant de sa mise, le total déjà cotisé en vert et son quartier.\nLe badge sous son nom (aussi visible dans la liste de tontine) :\nCommande ou Validée : une commande est enregistrée pour elle. La carte Livraison de la fiche liste ses articles et le total.\nLivré : ses articles lui ont été remis.\nÀ livrer : la session est clôturée et elle attend sa remise de fin d'année, sans commande enregistrée pour l'instant. Utilisez Livraison Fin d'Année dans le menu ⋮.\nL'historique des cotisations : la liste numérotée de tous ses versements passés.\nDroit à l'erreur : si vous venez d'enregistrer une cotisation par erreur avec le badge Local , touchez la petite corbeille rouge sur la ligne pour l'annuler aussitôt. Le total est recalculé sans aucune fausse note.\nLe menu d'options (trois petits points ⋮ en haut à droite) :\nCotiser / Enregistrer une cotisation : pour enregistrer un versement pendant la session ouverte. Après la clôture, cette action n'apparaît plus sur la fiche.\nVoir le client : pour voir la fiche générale de la cliente.\nCommande de tontine : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle Livraison Fin d'Année : vous pouvez y enregistrer une Commande (catalogue) ou faire la remise en mains propres ( Livraison directe , stock tontine).\nModifier la commande : si une commande est déjà enregistrée et pas encore livrée, pour ajuster les articles. Si la carte Livraison indique que les articles ne sont pas encore sur le téléphone, lancez d'abord une synchronisation : le bouton apparaît dès que les articles sont affichés.\nRéajuster la part société (aussi en bouton sous Solde disponible ) : voir ci-dessous.\nRéajuster la part société : quand le carnet ne tombe pas sur le montant attendu par l'agence, saisissez la part société que la membre doit sur toute l'année , et un commentaire si besoin. Vous n'avez pas besoin de connaître le chiffre calculé par l'application :"
+    "content": "Application mobile de terrain\nModule Tontine : l'épargne collective\nC. Consulter la fiche complète d'une membre tontine\nDans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :\nVous voyez le montant de sa mise, le total déjà cotisé en vert et son quartier.\nLe badge sous son nom (aussi visible dans la liste de tontine) :\nCommande ou Validée : une commande est enregistrée pour elle. La carte Livraison de la fiche liste ses articles et le total.\nLivré : ses articles lui ont été remis.\nÀ livrer : la session est clôturée et elle attend sa remise de fin d'année, sans commande enregistrée pour l'instant. Utilisez Livraison Fin d'Année dans le menu ⋮.\nL'historique des cotisations : la liste numérotée de tous ses versements passés.\nDroit à l'erreur : si vous venez d'enregistrer une cotisation par erreur avec le badge Local , touchez la petite corbeille rouge sur la ligne pour l'annuler aussitôt. Le total est recalculé sans aucune fausse note.\nLe menu d'options (trois petits points ⋮ en haut à droite) :\nCotiser / Enregistrer une cotisation : pour enregistrer un versement pendant la session ouverte. Après la clôture, cette action n'apparaît plus sur la fiche.\nVoir le client : pour voir la fiche générale de la cliente.\nCommande de tontine : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle Livraison Fin d'Année : vous pouvez y enregistrer une Commande (catalogue) ou faire la remise en mains propres ( Livraison directe , stock tontine).\nModifier la commande : si une commande est déjà enregistrée et pas encore livrée, pour ajuster les articles. Si la carte Livraison indique que les articles ne sont pas encore sur le téléphone, lancez d'abord une synchronisation : le bouton apparaît dès que les articles sont affichés.\nRéajuster la part société (aussi en bouton sous Solde disponible ) : voir ci-dessous."
   },
   {
     "id": "commercial_mobile_app__5_module_tontine_l_pargne_collective_c_consulter_63",
@@ -618,7 +618,7 @@
       "commercial",
       "manager"
     ],
-    "content": "si votre montant est le même que celui de l'application, la part est simplement validée ;\nsinon, votre montant remplace le calcul et le Solde disponible est recalculé tout de suite. Les cotisations suivantes ne changent plus cette part.\nHors connexion, la saisie reste sur la tablette et part à la prochaine synchronisation.\nLe bouton n'apparaît pas pour une membre déjà livrée (sa fiche est en lecture seule) ni pour une membre sans cotisation.\nSi le chef de recouvrement a déjà validé ou corrigé cette part, votre saisie est refusée : c'est sa valeur qui compte. La ligne Part société de la fiche indique alors Validée par le chef de recouvrement ou Corrigée par le chef de recouvrement ."
+    "content": "Réajuster la part société : quand le carnet ne tombe pas sur le montant attendu par l'agence, saisissez la part société que la membre doit sur toute l'année , et une note d'observation si besoin. Le formulaire affiche le total cotisé (hors livraison), la part société du système , le total disponible , puis le total disponible réel après saisie dès que vous tapez le montant :\nsi votre montant est le même que celui de l'application, la part est simplement validée ;\nsinon, votre montant remplace le calcul et le Solde disponible est recalculé tout de suite. Les cotisations suivantes ne changent plus cette part.\nHors connexion, la saisie reste sur la tablette et part à la prochaine synchronisation.\nLe bouton n'apparaît pas pour une membre déjà livrée (sa fiche est en lecture seule), pour une membre sans cotisation, ni quand le réajustement est désactivé pour la session.\nUne fois enregistrée, la fiche, la liste des membres et les reçus affichent le solde disponible après réajustement.\nSi le chef de recouvrement a déjà validé ou corrigé cette part, votre saisie est refusée : c'est sa valeur qui compte. La ligne Part société de la fiche indique alors Validée par le chef de recouvrement ou Corrigée par le chef de recouvrement ."
   },
   {
     "id": "commercial_mobile_app__5_module_tontine_l_pargne_collective_d_enregistr",
@@ -638,7 +638,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Application mobile de terrain\nModule Tontine : l'épargne collective\nE. Remettre les articles de fin d'année (Livraison tontine)\nPendant la campagne, la membre peut déjà choisir ses articles. La remise en mains propres se fait après la clôture de la session.\nOuvrez la commande ou la livraison :\nSur la fiche de la membre, touchez les trois petits points ( ⋮ ) en haut à droite.\nPendant la session ouverte, choisissez Commande de tontine .\nAprès la clôture, choisissez Livraison Fin d'Année .\nRegardez le bandeau en haut :\nSolde disponible : ce qui est déjà encaissé pour la membre.\nSolde prévisionnel : l'estimation de fin d'année si chaque mois de la session est cotisé en entier. C'est le plafond du panier, que la session soit encore ouverte ou déjà clôturée.\nReste au plafond : ce qu'il reste avant d'atteindre ce plafond.\nRéajuster la part société : si la part société de la membre est fausse, corrigez-la ici avant de choisir les articles. Saisissez la part de toute l'année : le solde disponible et le plafond se recalculent aussitôt, et la part est enregistrée avec la commande (dans le même envoi). Si elle est conforme, elle est simplement validée.\nChoisissez les articles avec la cliente :\nEn haut de la liste, choisissez Mon stock tontine (les articles reçus du magasin) ou Catalogue général (tous les articles de l'agence).\nPendant la session ouverte : l'écran s'ouvre sur le Catalogue général . Vous pouvez aussi passer sur Mon stock tontine pour commander ce que vous avez déjà en main : la commande ne sort rien de votre stock.\nAprès la clôture : l'écran s'ouvre sur Mon stock tontine . La Livraison directe ne se fait qu'à partir de votre stock, puisque la remise le décompte. Une Commande peut venir du stock ou du Catalogue général .\nDans Mon stock tontine , chaque article indique Disponible , puis Réservé (quantité déjà commandée par vos autres membres pas encore livrés) et Libre (ce qui reste après ces commandes). Ces chiffres sont indicatifs : ils ne bloquent rien. Libre : 0 en orange signale qu'il faudra une nouvelle demande de stock pour servir tout le monde."
+    "content": "Application mobile de terrain\nModule Tontine : l'épargne collective\nE. Remettre les articles de fin d'année (Livraison tontine)\nPendant la campagne, la membre peut déjà choisir ses articles. La remise en mains propres se fait après la clôture de la session.\nOuvrez la commande ou la livraison :\nSur la fiche de la membre, touchez les trois petits points ( ⋮ ) en haut à droite.\nPendant la session ouverte, choisissez Commande de tontine .\nAprès la clôture, choisissez Livraison Fin d'Année .\nRegardez le bandeau en haut :\nSolde disponible : ce qui est déjà encaissé pour la membre.\nSolde prévisionnel : l'estimation de fin d'année si chaque mois de la session est cotisé en entier. C'est le plafond du panier, que la session soit encore ouverte ou déjà clôturée.\nReste au plafond : ce qu'il reste avant d'atteindre ce plafond.\nRéajustement obligatoire : quand l'agence l'a rendu obligatoire pour la session, le formulaire de part société s'ouvre tout seul à l'arrivée sur l'écran, avant les articles, pour une commande comme pour une livraison directe. Touchez Enregistrer et continuer . Si vous annulez, l'écran se ferme. L'étape est sautée si la part est déjà validée ou corrigée (par vous ou le chef de recouvrement).\nRéajuster la part société : si la part société de la membre est fausse, corrigez-la ici avant de choisir les articles. Saisissez la part de toute l'année : le solde disponible et le plafond se recalculent aussitôt, et la part est enregistrée avec la commande (dans le même envoi). Si elle est conforme, elle est simplement validée.\nChoisissez les articles avec la cliente :\nEn haut de la liste, choisissez Mon stock tontine (les articles reçus du magasin) ou Catalogue général (tous les articles de l'agence).\nPendant la session ouverte : l'écran s'ouvre sur le Catalogue général . Vous pouvez aussi passer sur Mon stock tontine pour commander ce que vous avez déjà en main : la commande ne sort rien de votre stock.\nAprès la clôture : l'écran s'ouvre sur Mon stock tontine . La Livraison directe ne se fait qu'à partir de votre stock, puisque la remise le décompte. Une Commande peut venir du stock ou du Catalogue général ."
   },
   {
     "id": "commercial_mobile_app__5_module_tontine_l_pargne_collective_e_remettre__66",
@@ -648,7 +648,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Touchez + pour ajouter les articles. Si l'article a plusieurs offres (unité, gros, demi-gros ou une offre libre), choisissez-la dans la liste avant d'augmenter la quantité.\nPour revoir ce que vous avez choisi, touchez Panier en bas de l'écran : la liste affiche chaque article avec sa quantité et le total. Vous pouvez y ajouter ou retirer une unité, ou supprimer une ligne.\nLe panier peut dépasser le solde déjà encaissé. Il ne peut pas dépasser le plafond : le solde prévisionnel , ou le solde disponible s'il est plus élevé (par exemple une membre qui a déjà cotisé 40 000 alors que l'estimation est de 39 000 peut commander jusqu'à 40 000). Au-delà, Valider reste indisponible : retirez ou diminuez des articles.\nSi le solde déjà encaissé ne couvre pas le panier :\nPendant la session ouverte, vous pouvez quand même enregistrer la Commande . Compléter le solde est proposé, sans être obligatoire.\nAu moment de la remise, deux possibilités :\nCompléter le solde : l'écran de cotisation s'ouvre avec le montant manquant (ou le montant que la cliente souhaite verser). Ce complément n'est pas limité par le solde prévisionnel : vous pouvez encaisser le montant convenu, même s'il est élevé. Revenez ensuite sur le panier.\nModifier la commande / Modifier le panier : diminuez les quantités ou retirez des articles, puis enregistrez."
+    "content": "Dans Mon stock tontine , chaque article indique Disponible , puis Réservé (quantité déjà commandée par vos autres membres pas encore livrés) et Libre (ce qui reste après ces commandes). Ces chiffres sont indicatifs : ils ne bloquent rien. Libre : 0 en orange signale qu'il faudra une nouvelle demande de stock pour servir tout le monde.\nTouchez + pour ajouter les articles. Si l'article a plusieurs offres (unité, gros, demi-gros ou une offre libre), choisissez-la dans la liste avant d'augmenter la quantité.\nPour revoir ce que vous avez choisi, touchez Panier en bas de l'écran : la liste affiche chaque article avec sa quantité et le total. Vous pouvez y ajouter ou retirer une unité, ou supprimer une ligne.\nLe panier peut dépasser le solde déjà encaissé. Il ne peut pas dépasser le plafond : le solde prévisionnel , ou le solde disponible s'il est plus élevé (par exemple une membre qui a déjà cotisé 40 000 alors que l'estimation est de 39 000 peut commander jusqu'à 40 000). Au-delà, Valider reste indisponible : retirez ou diminuez des articles.\nSi le solde déjà encaissé ne couvre pas le panier :\nPendant la session ouverte, vous pouvez quand même enregistrer la Commande . Compléter le solde est proposé, sans être obligatoire.\nAu moment de la remise, deux possibilités :\nCompléter le solde : l'écran de cotisation s'ouvre avec le montant manquant (ou le montant que la cliente souhaite verser). Ce complément n'est pas limité par le solde prévisionnel : vous pouvez encaisser le montant convenu, même s'il est élevé. Revenez ensuite sur le panier.\nModifier la commande / Modifier le panier : diminuez les quantités ou retirez des articles, puis enregistrez."
   },
   {
     "id": "commercial_mobile_app__5_module_tontine_l_pargne_collective_e_remettre__67",
@@ -1348,7 +1348,17 @@
       "commercial",
       "manager"
     ],
-    "content": "Guide Tontines\nFiche détaillée d'un membre\nRéajuster la part société\n\nLe bouton Réajuster la part société (en-tête de la fiche) corrige la part société quand les collectes mal enregistrées donnent un montant différent de celui attendu par l'entreprise. Il est visible pour les commerciaux, les gestionnaires, le chef de recouvrement et les administrateurs, tant que le membre n'est pas livré et qu'il a des cotisations.\nSaisissez la part société réelle de toute l'année et, si besoin, un commentaire.\nMontant égal à la part en place : rien ne change, la part est marquée Validée .\nMontant différent : il remplace le calcul de l'application. Le Solde Disponible et le plafond de la commande en attente sont recalculés tout de suite. Les collectes qui suivent ne modifient plus cette part.\nLa part ne peut pas dépasser le total cotisé hors collectes à la livraison. Ces collectes restent exclues de la part société.\nLe chef de recouvrement est prioritaire : après sa validation ou sa correction, la saisie d'un commercial est refusée. Une commande en attente qui dépasse le nouveau plafond repasse En attente et doit être réduite avant la remise.\nUn membre déjà livré est en lecture seule.\nL'indicateur Part Société affiche Validée ou Corrigée , avec la mention du chef de recouvrement lorsque c'est lui qui a statué.\nLa section Historique de la part société liste chaque saisie : date, auteur, écran d'origine, résultat, part calculée par l'application, part avant la saisie, montant saisi , part retenue , solde après et commentaire.\nLes administrateurs (permission ROLE_RESET_TONTINE_SOCIETY_SHARE) peuvent cliquer sur Revenir au calcul automatique dans la même fenêtre : la saisie est retirée et l'application reprend son calcul.\nLes KPI de part société (par période et par commercial) intègrent l'écart des parts réajustées, à la date de la saisie."
+    "content": "Guide Tontines\nFiche détaillée d'un membre\nRéajuster la part société\nLe bouton Réajuster la part société (en-tête de la fiche) corrige la part société quand les collectes mal enregistrées donnent un montant différent de celui attendu par l'entreprise. Il est visible pour les commerciaux, les gestionnaires, le chef de recouvrement et les administrateurs, tant que le membre n'est pas livré et qu'il a des cotisations.\nLa fenêtre affiche le total cotisé (hors collectes à la livraison), la part société du système , le total disponible , puis le total disponible réel après saisie dès que le montant est tapé.\nSaisissez la part société réelle de toute l'année et, si besoin, une note d'observation.\nMontant égal à la part en place : rien ne change, la part est marquée Validée .\nMontant différent : il remplace le calcul de l'application. Le Solde Disponible et le plafond de la commande en attente sont recalculés tout de suite. Les collectes qui suivent ne modifient plus cette part.\nLa part ne peut pas dépasser le total cotisé hors collectes à la livraison. Ces collectes restent exclues de la part société.\nLe chef de recouvrement est prioritaire : après sa validation ou sa correction, la saisie d'un commercial est refusée. Une commande en attente qui dépasse le nouveau plafond repasse En attente et doit être réduite avant la remise.\nUn membre déjà livré est en lecture seule.\nLe réajustement se règle par session, dans Paramètres de la session (tableau de bord tontine) : Obligatoire , Facultatif ou Aucun . Le réglage reste modifiable après la clôture, mais plus une fois la session terminée.\nObligatoire : Préparer la livraison ouvre d'abord la fenêtre de part société si elle n'est ni validée ni corrigée ; la commande n'est possible qu'après l'enregistrement. Le serveur refuse aussi une commande ou une livraison directe faite sans cette étape.\nFacultatif : le bouton est disponible, sans être imposé.\nAucun : le bouton est caché et aucune saisie n'est acceptée ; les parts déjà saisies restent appliquées.\nL'indicateur Part Société affiche Validée ou Corrigée , avec la mention du chef de recouvrement lorsque c'est lui qui a statué."
+  },
+  {
+    "id": "commercial_tontine__4_fiche_d_taill_e_d_un_membre_r_ajuster_la_part__137",
+    "title": "Guide Tontines — 4. Fiche détaillée d'un membre — Réajuster la part société (suite 1)",
+    "path": "/user-guide/commercial/tontine.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "La section Historique de la part société liste chaque saisie : date, auteur, écran d'origine, résultat, part calculée par l'application, part avant la saisie, montant saisi , part retenue , solde après et commentaire.\nLes administrateurs (permission ROLE_RESET_TONTINE_SOCIETY_SHARE) peuvent cliquer sur Revenir au calcul automatique dans la même fenêtre : la saisie est retirée et l'application reprend son calcul.\nLes KPI de part société (par période et par commercial) intègrent l'écart des parts réajustées, à la date de la saisie."
   },
   {
     "id": "commercial_tontine__4_fiche_d_taill_e_d_un_membre_3_r_partition_des_",
@@ -1451,7 +1461,7 @@
     "content": "Guide Tontines\nLivraisons de fin d'année\nLe cycle d'une livraison\nPréparer la Livraison :\nTant que la session est ouverte, le bouton Préparer la Livraison est disponible sur la fiche du membre.\nLa fenêtre affiche le Solde disponible (déjà encaissé) et le Solde prévisionnel (estimation de fin d'année si chaque mois est cotisé en entier). Le panier peut aller jusqu'à ce prévisionnel, même si l'épargne déjà encaissée est plus basse. Il ne peut pas aller au-delà : le Reste au plafond passe en dessous de zéro et l'enregistrement est refusé.\nChoisissez la source des articles : Catalogue général (pas besoin que le commercial ait déjà du stock tontine) ou Stock tontine de son commercial. Le stock affiche, pour chaque article, Disponible , Réservé (déjà commandé par d'autres membres pas encore livrés) et Libre , à titre indicatif. Ajouter met l'article dans la commande ; une commande ne sort rien du stock, seule la remise le décompte.\nPour chaque article, la liste Offre propose l'unité, le gros, le demi-gros lorsqu'il existe, et les offres libres de la fiche (par exemple 3 unités pour 250). Le montant retenu est le prix de l'offre, pas un prix unitaire recalculé.\nSi les articles choisis coûtent moins que le solde déjà encaissé, la différence reste conservée comme Solde non utilisé au profit du client.\nSous le panier, Date de livraison prévue (facultatif) fixe le jour de remise prévu avec le membre. Laissez-la vide si la date n'est pas encore connue.\nLe dossier passe au statut En attente .\nUne confirmation propose de télécharger le reçu . Le document reprend la référence, la membre, les articles, les quantités et le montant total. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.\nSur la fiche, Télécharger le reçu ressort le même document. Après une réduction du panier, la même proposition s'affiche.\nValider la Livraison :\nUn responsable examine la sélection et clique sur Valider la Livraison . Le statut passe à Validé .\nLivrer :\nUne fois la session clôturée, au moment de la remise en mains propres, cliquez sur Livrer ."
   },
   {
-    "id": "commercial_tontine__5_livraisons_de_fin_d_ann_e_le_cycle_d_une_livra_147",
+    "id": "commercial_tontine__5_livraisons_de_fin_d_ann_e_le_cycle_d_une_livra_148",
     "title": "Guide Tontines — 5. Livraisons de fin d'année — Le cycle d'une livraison (suite 1)",
     "path": "/user-guide/commercial/tontine.html",
     "roles": [
@@ -1471,7 +1481,7 @@
     "content": "Guide Tontines\nLivraisons de fin d'année\nConsulter l'ensemble des livraisons (Menu Tontines > Livraison)\nDans le menu latéral gauche, cliquez sur Tontines puis sur Livraison . Cet espace centralise toutes les opérations de distribution de l'agence :\nIndicateurs globaux : nombre de colis livrés, montant total distribué, livraisons restant à honorer, soldes non utilisés.\nFiltres temporels (ce jour, cette semaine, ce mois, plage de dates) et filtre par commercial.\nRecherche instantanée par nom ou référence de client.\nReçu sur une ligne télécharge le reçu de la commande. La colonne Prévue le donne la date de livraison prévue, quand elle a été choisie.\nMembres à livrer le : choisissez une date, puis cliquez sur PDF . Le document liste les membres dont la livraison est prévue ce jour-là et qui ne sont pas encore livrés : membre, téléphone et quartier, commande et statut, articles, montant, solde net, reste à payer, et une case Remis à cocher sur le terrain. Les membres sont classés par commercial, puis par quartier. Avec un commercial choisi dans le filtre, seules ses commandes y figurent.\nVérifier un reçu : saisissez le code imprimé sur le document. Elykia affiche la référence, la membre, la date, le statut, le commercial, le montant et les articles. Si le code est inconnu, le message indique que ce reçu ne provient pas d'Elykia. Un reçu recopié avec un autre montant ne correspond pas à cet affichage.\nCochez les lignes En attente de la page, puis cliquez sur Valider la sélection . Le statut passe à Validée .\nTout valider valide toutes les livraisons En attente de la période, de la recherche et du commercial choisi. Une confirmation indique le nombre.\nFaire une demande de stock regroupe les commandes cochées d'un même commercial en une seule demande de sortie tontine. Les quantités d'un même article s'additionnent. Le magasinier livre ensuite ce commercial en une seule opération.\nDemande de stock (en attente) prépare la même demande pour toutes les livraisons En attente du filtre, qui ne sont pas déjà dans une demande de stock. La fenêtre rappelle les articles et les quantités, par commercial."
   },
   {
-    "id": "commercial_tontine__5_livraisons_de_fin_d_ann_e_consulter_l_ensemble_149",
+    "id": "commercial_tontine__5_livraisons_de_fin_d_ann_e_consulter_l_ensemble_150",
     "title": "Guide Tontines — 5. Livraisons de fin d'année — Consulter l'ensemble des livraisons (Menu Tontines > Livraison) (suite 1)",
     "path": "/user-guide/commercial/tontine.html",
     "roles": [
@@ -1964,7 +1974,7 @@
     "content": "Tableaux de bord et Pilotage (Dashboard V2 & BI)\nTableau de bord décisionnel BI (Menu Dashboard BI)\n\nAccessible via le menu latéral Dashboard BI pour les profils d'analyse, directeurs et gestionnaires, ce module est conçu pour l'analyse stratégique approfondie et le pilotage de la performance."
   },
   {
-    "id": "manager_dashboard__2_tableau_de_bord_d_cisionnel_bi_menu_dashboard__196",
+    "id": "manager_dashboard__2_tableau_de_bord_d_cisionnel_bi_menu_dashboard__197",
     "title": "Tableaux de bord et Pilotage (Dashboard V2 & BI) — 2. Tableau de bord décisionnel BI (Menu Dashboard BI) — A. Filtres de période multi-dimensionnels",
     "path": "/user-guide/manager/dashboard.html",
     "roles": [
@@ -1973,7 +1983,7 @@
     "content": "Tableaux de bord et Pilotage (Dashboard V2 & BI)\nTableau de bord décisionnel BI (Menu Dashboard BI)\nA. Filtres de période multi-dimensionnels\n\nLe Dashboard BI propose une barre de sélection temporelle rapide à 5 options :\n Aujourd'hui : Analyse de la journée en cours.\n Cette semaine : Synthèse hebdomadaire glissante.\n Ce mois : Vue consolidée du mois civil.\n Cette année : Bilan annuel cumulé.\n Personnalisé : Déploiement de deux sélecteurs de calendrier permettant de définir une plage de dates libre (Date début et Date fin)."
   },
   {
-    "id": "manager_dashboard__2_tableau_de_bord_d_cisionnel_bi_menu_dashboard__197",
+    "id": "manager_dashboard__2_tableau_de_bord_d_cisionnel_bi_menu_dashboard__198",
     "title": "Tableaux de bord et Pilotage (Dashboard V2 & BI) — 2. Tableau de bord décisionnel BI (Menu Dashboard BI) — B. Indicateurs stratégiques de rentabilité",
     "path": "/user-guide/manager/dashboard.html",
     "roles": [
@@ -1982,7 +1992,7 @@
     "content": "Tableaux de bord et Pilotage (Dashboard V2 & BI)\nTableau de bord décisionnel BI (Menu Dashboard BI)\nB. Indicateurs stratégiques de rentabilité\n\nLe bandeau BI présente 4 cartes de performance avancée :\n Chiffre d'Affaires Ventes : Volume total des ventes conclues sur la période et taux de variation par rapport à la période précédente.\n Marge Brute Dégagée : Marge commerciale nette réalisée en FCFA et pourcentage de marge sur coût d'achat.\n Encaissements & Recouvrement : Cumul des liquidités réellement collectées et taux de recouvrement effectif par rapport au prévisionnel.\n Valeur Globale du Stock : Montant immobilisé en magasin et taux de rotation des marchandises."
   },
   {
-    "id": "manager_dashboard__2_tableau_de_bord_d_cisionnel_bi_menu_dashboard__198",
+    "id": "manager_dashboard__2_tableau_de_bord_d_cisionnel_bi_menu_dashboard__199",
     "title": "Tableaux de bord et Pilotage (Dashboard V2 & BI) — 2. Tableau de bord décisionnel BI (Menu Dashboard BI) — C. Liens rapides d'analyse spécialisée",
     "path": "/user-guide/manager/dashboard.html",
     "roles": [
@@ -1991,7 +2001,7 @@
     "content": "Tableaux de bord et Pilotage (Dashboard V2 & BI)\nTableau de bord décisionnel BI (Menu Dashboard BI)\nC. Liens rapides d'analyse spécialisée\n\nTrois raccourcis permettent de plonger dans les sous-modules de Business Intelligence :\n Analyse des Ventes : Analyse détaillée du chiffre d'affaires ventilé par commercial, par article et par catégorie.\n Analyse des Recouvrements : Analyse fine des créances en souffrance, pyramide des retards de paiement et distribution de solvabilité des clients.\n Analyse du Stock : Matrice de rotation des stocks, détection des articles dormants et suivi des alertes d'approvisionnement."
   },
   {
-    "id": "manager_dashboard__2_tableau_de_bord_d_cisionnel_bi_menu_dashboard__199",
+    "id": "manager_dashboard__2_tableau_de_bord_d_cisionnel_bi_menu_dashboard__200",
     "title": "Tableaux de bord et Pilotage (Dashboard V2 & BI) — 2. Tableau de bord décisionnel BI (Menu Dashboard BI) — D. Centre d'Alertes et Notifications BI",
     "path": "/user-guide/manager/dashboard.html",
     "roles": [
@@ -2252,7 +2262,7 @@
     "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nPortefeuille Clients & Réaffectation de masse (Menu Clients > Liste)\n\nLe module Clients regroupe l'annuaire centralisé des clients et prospects, enrichi de contrôles de gestion de portefeuille."
   },
   {
-    "id": "manager_operations__5_portefeuille_clients_r_affectation_de_masse_me_228",
+    "id": "manager_operations__5_portefeuille_clients_r_affectation_de_masse_me_229",
     "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 5. Portefeuille Clients & Réaffectation de masse (Menu Clients > Liste) — A. Bandeau KPI du portefeuille",
     "path": "/user-guide/manager/operations.html",
     "roles": [
@@ -2261,7 +2271,7 @@
     "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nPortefeuille Clients & Réaffectation de masse (Menu Clients > Liste)\nA. Bandeau KPI du portefeuille\n\nEn haut de page, 4 cartes synthétiques donnent une photographie immédiate du portefeuille :\n Clients enregistrés : Nombre total de clients actifs enregistrés dans la base (hors fiches supprimées).\n Crédit en cours : Nombre de clients détenant actuellement au moins une vente à crédit non soldée.\n Membres tontine : Nombre de clients inscrits à au moins un cycle de tontine.\n Sans crédit ni tontine : Clients inactifs ou prospects n'ayant aucun engagement financier en cours."
   },
   {
-    "id": "manager_operations__5_portefeuille_clients_r_affectation_de_masse_me_229",
+    "id": "manager_operations__5_portefeuille_clients_r_affectation_de_masse_me_230",
     "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 5. Portefeuille Clients & Réaffectation de masse (Menu Clients > Liste) — B. Outils de recherche et filtres",
     "path": "/user-guide/manager/operations.html",
     "roles": [
@@ -2270,7 +2280,7 @@
     "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nPortefeuille Clients & Réaffectation de masse (Menu Clients > Liste)\nB. Outils de recherche et filtres\n Recherche universelle : Recherche en texte libre par nom, prénom, numéro de téléphone (8 chiffres) ou quartier/localité.\n Filtre Commercial : Permet d'isoler en un clic le portefeuille attribué à un commercial spécifique.\n Export Fiche Client PDF : Dès qu'un commercial est sélectionné, un bouton de téléchargement permet d'éditer la liste complète de ses clients au format PDF.\n\n---"
   },
   {
-    "id": "manager_operations__5_portefeuille_clients_r_affectation_de_masse_me_230",
+    "id": "manager_operations__5_portefeuille_clients_r_affectation_de_masse_me_231",
     "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 5. Portefeuille Clients & Réaffectation de masse (Menu Clients > Liste) — C. Réaffectation en masse de portefeuille",
     "path": "/user-guide/manager/operations.html",
     "roles": [
@@ -2279,7 +2289,7 @@
     "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nPortefeuille Clients & Réaffectation de masse (Menu Clients > Liste)\nC. Réaffectation en masse de portefeuille\n\nLorsqu'un commercial quitte l'entreprise, change de zone ou qu'un rééquilibrage de tournée est nécessaire, les gestionnaires autorisés peuvent réaffecter plusieurs clients en un seul geste :\n Sélection des clients :\nCochez les cases individuelles devant les noms des clients souhaités, ou utilisez la case d'en-tête pour sélectionner l'ensemble des lignes de la page.\nLe bouton d'action contextuelle « Changer de commercial (N) » apparaît automatiquement.\n Configuration dans la fenêtre modale :\n Commercial crédit : Choisissez le nouveau commercial responsable du suivi des crédits.\n Commercial tontine : Choisissez le nouveau commercial chargé des collectes de tontine (peut être identique ou différent du commercial crédit).\n Option stratégique : Transfert automatique des ventes :\nLa case à cocher « Transférer automatiquement les ventes du commercial vers le nouveau commercial » s'active dès qu'un commercial crédit est sélectionné.\n Effet opérationnel : Si cette case est cochée, l'ensemble des crédits actifs des clients sélectionnés sont automatiquement transférés au nouveau commercial, garantissant la continuité des tournées et la justesse des bilans de passation.\n Validation : Cliquez sur « Valider » pour appliquer les réaffectations. L'historique des changements de commercial est intégralement archivé pour audit.\n\n---"
   },
   {
-    "id": "manager_operations__5_portefeuille_clients_r_affectation_de_masse_me_231",
+    "id": "manager_operations__5_portefeuille_clients_r_affectation_de_masse_me_232",
     "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 5. Portefeuille Clients & Réaffectation de masse (Menu Clients > Liste) — D. Adhésions et plafonds de crédit",
     "path": "/user-guide/manager/operations.html",
     "roles": [
@@ -2297,7 +2307,7 @@
     "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nCommandes passées en ligne (Menu Services en ligne > Commandes)\n\nLes commandes passées par les clients depuis l’Espace Client apparaissent dans Services en ligne > Commandes .\nOuvrez Services en ligne > Commandes .\nDans Recherche , saisissez un numéro de commande, un nom, un code ou un téléphone, puis cliquez sur la loupe ou appuyez sur Entrée.\nDans Commercial , choisissez une personne pour n’afficher que ses commandes. Réinitialiser efface la recherche et le commercial.\nLa recherche, le commercial et l’onglet restent en place lorsque vous quittez la page et y revenez.\nParcourez les onglets En attente , Validées , Livrées et Autres .\nSur une commande en attente, cliquez sur Valider . Pour en traiter plusieurs sur la page, cochez-les puis cliquez sur Valider la sélection . Pour toutes les commandes en attente du filtre en cours (recherche et commercial), cliquez sur Tout valider . Une confirmation indique le nombre.\nPour écarter une commande en attente, cliquez sur Refuser . La même action existe pour une sélection : Refuser la sélection . La commande passe dans l’onglet Autres .\nUne fois la commande validée et la marchandise chez le commercial, cliquez sur Marquer comme livrée : la vente est créée automatiquement et la commande passe à Livrée .\nSur chaque ligne, cliquez sur Fiche pour télécharger la fiche. Le bouton est présent pour une commande en attente, validée, livrée, refusée ou annulée. Dans le détail, le bouton s’appelle Télécharger la fiche . Le document reprend l’entreprise, le nom et le prénom du client, son téléphone, son quartier, son adresse, le commercial associé, la date, le statut et les articles avec le montant.\nCliquez sur Demande de stock (en attente) pour préparer une demande par commercial. Chaque demande regroupe les commandes en ligne en attente de ce commercial qui ne sont pas déjà dans une demande de stock. La fenêtre rappelle les articles et les quantités. Cochez Pour le mois prochain si la sortie doit porter sur le mois suivant, puis confirmez."
   },
   {
-    "id": "manager_operations__6_commandes_pass_es_en_ligne_menu_services_en_li_233",
+    "id": "manager_operations__6_commandes_pass_es_en_ligne_menu_services_en_li_234",
     "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 6. Commandes passées en ligne (Menu Services en ligne > Commandes) — Menu Commandes",
     "path": "/user-guide/manager/operations.html",
     "roles": [
@@ -2315,7 +2325,7 @@
     "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nTraitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)\n\nLe module Paiements (sous Services en ligne ) permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via Mobile Money (Mixx by YAS ou Moov Money).\n\nAprès un Valider ou un Rejeter , la déclaration quitte immédiatement la liste des attentes. Pendant le traitement, les boutons de la ligne sont momentanément indisponibles."
   },
   {
-    "id": "manager_operations__7_traitement_des_d_clarations_de_paiements_clien_235",
+    "id": "manager_operations__7_traitement_des_d_clarations_de_paiements_clien_236",
     "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 7. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements) — A. Présentation générale et indicateurs",
     "path": "/user-guide/manager/operations.html",
     "roles": [
@@ -2324,7 +2334,7 @@
     "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nTraitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)\nA. Présentation générale et indicateurs\n Accès au module : Menu latéral Services en ligne > Paiements . Si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises.\n Barre d'état : Heure d'actualisation en direct et bouton « Actualiser » pour vérifier l'arrivée de nouveaux versements.\n Compteur dynamique : Affiche le nombre de déclarations actuellement en attente d'instruction.\n Visibilité des données :\n Pour un gestionnaire : Visualisation globale de toutes les déclarations de l'agence, avec affichage du commercial affecté.\n Pour un commercial : Consultation restreinte aux seules déclarations de paiement de son portefeuille clients.\n\n---"
   },
   {
-    "id": "manager_operations__7_traitement_des_d_clarations_de_paiements_clien_236",
+    "id": "manager_operations__7_traitement_des_d_clarations_de_paiements_clien_237",
     "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 7. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements) — B. Traitement des remboursements de crédit (Onglet Recouvrement crédit)",
     "path": "/user-guide/manager/operations.html",
     "roles": [
@@ -2333,7 +2343,7 @@
     "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nTraitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)\nB. Traitement des remboursements de crédit (Onglet Recouvrement crédit)\n\nCet onglet centralise les règlements d'échéances de vente à crédit."
   },
   {
-    "id": "manager_operations__7_traitement_des_d_clarations_de_paiements_clien_237",
+    "id": "manager_operations__7_traitement_des_d_clarations_de_paiements_clien_238",
     "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 7. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements) — B. Traitement des remboursements de crédit (Onglet Recouvrement crédit) — Actions de validation ou de rejet :",
     "path": "/user-guide/manager/operations.html",
     "roles": [
@@ -2342,7 +2352,7 @@
     "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nTraitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)\nActions de validation ou de rejet :\n Valider :\nAprès vérification de la réception effective des fonds sur le compte récepteur de l'agence, cliquez sur le bouton vert « Valider » . Pendant le traitement, les boutons de la ligne sont momentanément indisponibles.\n Conséquences automatiques : Le paiement est instantanément imputé sur le crédit du client, son solde restant dû diminue, le versement est enregistré dans le journal des recouvrements du commercial et comptabilisé dans les encaissements du jour. La déclaration quitte immédiatement la liste des attentes.\n Rejeter :\nSi la transaction est introuvable, incorrecte ou frauduleuse, cliquez sur le bouton rouge « Rejeter » .\nUne boîte de dialogue vous demande confirmation avant d'annuler définitivement la déclaration. Une fois confirmé, la ligne disparaît de la liste.\n\n Information affichée Description fonctionnelle \n --- --- \n Client Nom et prénom du client ou son numéro d'identifiant. \n Commercial Commercial gestionnaire du dossier de crédit. \n Crédit Numéro du crédit. Cliquer sur le lien bleu #ID ouvre directement la fiche 360° du crédit. \n Échéance Numéro de l'échéance réglée par le client. \n Montant Somme versée en Francs CFA (affichée en gras). \n Téléphone Numéro de téléphone Mobile Money utilisé pour le transfert. \n Référence Numéro de transaction officiel fourni par l'opérateur (Mixx ou Moov). Des pastilles peuvent signaler une référence différente de celle lue sur le justificatif, ou un justificatif déjà utilisé . \n Justificatif Bouton Agrandir pour ouvrir la capture ou le reçu PDF fourni par le client. \n Date Date et heure de déclaration du paiement par le client."
   },
   {
-    "id": "manager_operations__7_traitement_des_d_clarations_de_paiements_clien_238",
+    "id": "manager_operations__7_traitement_des_d_clarations_de_paiements_clien_239",
     "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 7. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements) — B. Traitement des remboursements de crédit (Onglet Recouvrement crédit) — Actions de validation ou de rejet :",
     "path": "/user-guide/manager/operations.html",
     "roles": [
@@ -2351,7 +2361,7 @@
     "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nTraitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)\nActions de validation ou de rejet :\n Consulter le justificatif : cliquez sur Agrandir pour visualiser la preuve avant de décider.\n Valider :\nAprès vérification de la réception effective des fonds sur le compte récepteur de l'agence, cliquez sur le bouton vert « Valider » .\n Conséquences automatiques : Le paiement est instantanément imputé sur le crédit du client, son solde restant dû diminue, le versement est enregistré dans le journal des recouvrements du commercial et comptabilisé dans les encaissements du jour.\n Rejeter :\nSi la transaction est introuvable, incorrecte ou frauduleuse, cliquez sur le bouton rouge « Rejeter » .\nUne boîte de dialogue vous demande confirmation avant d'annuler définitivement la déclaration.\n\n---"
   },
   {
-    "id": "manager_operations__7_traitement_des_d_clarations_de_paiements_clien_239",
+    "id": "manager_operations__7_traitement_des_d_clarations_de_paiements_clien_240",
     "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 7. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements) — C. Traitement des cotisations tontine (Onglet Cotisations tontine)",
     "path": "/user-guide/manager/operations.html",
     "roles": [
@@ -2396,7 +2406,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nNouvelle présentation : pilotage des commerciaux"
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_244",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_245",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — Nouvelle présentation : pilotage des commerciaux — Visite guidée",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2405,7 +2415,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nVisite guidée\n\nÀ la première ouverture de chaque écran (cockpit, fiche commercial, versements, journal), une visite guidée présente les zones une par une : cliquez sur Suivant , Précédent ou Passer (la touche Échap ferme la visite, les flèches du clavier font avancer ou reculer). Elle n'est proposée qu'une fois ; le bouton Visite guidée en haut de l'écran la relance à tout moment."
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_245",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_246",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — Nouvelle présentation : pilotage des commerciaux — Filtres",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2414,7 +2424,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nFiltres\n Période : Aujourd'hui , Semaine (depuis lundi), Mois , ou Dates pour choisir une plage puis Appliquer .\n Commercial : laisser vide pour toute l'équipe, ou choisir un commercial.\nLes filtres suivent l'utilisateur d'un écran à l'autre (fiche, versements, journal) et restent dans l'adresse de la page : un lien copié rouvre le rapport sur la même période."
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_246",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_247",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — Nouvelle présentation : pilotage des commerciaux — Cockpit équipe",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2423,7 +2433,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nCockpit équipe\n Les 4 chiffres à lire en premier :\n Dû à la caisse : ce que les commerciaux doivent remettre pour la période. C'est l'« A Verser » des opérations de la période plus les rattrapages saisis pendant la période pour des jours passés. La sous-ligne détaille Opérations · Rattrapages et la variation par rapport à la période précédente de même durée ( vs hier pour Aujourd'hui).\n Versé au secrétariat : total des versements portés sur la période, avec le surplus éventuel.\n Reste à verser : ce qui n'est pas encore rentré. À zéro, tout l'argent dû est en caisse.\n Taux de versement : part du dû déjà versée. Les manquants antérieurs (jours avant la période) sont rappelés dessous.\n Points d'attention : les écarts, du plus gros montant au plus petit — argent non versé, rattrapages non versés, surplus à équilibrer, manquants antérieurs. Un clic ouvre la fiche du commercial, ou l'écran Versements pour un surplus.\n Tableau équipe : une ligne par commercial, les commerciaux en retard en haut. Colonnes Crédit , Tontine (cotisations de la période), Rattrapages (cotisations de jours passés saisies pendant la période), Dû caisse , Versé , Écart (− manquant, + versé en trop) et Statut ( En retard , Surplus , À jour , Inactif ). Un rattrapage n'est jamais compté à la fois dans Tontine et dans Rattrapages. Un clic sur le nom ouvre la fiche.\n Caisse : total encaissé de toutes les caisses, dépenses hors approvisionnement, dépenses avec approvisionnement et solde de caisse (même calcul que l'ancienne « Synthèse caisse »).\n Origine du dû : répartition crédit, tontine, rattrapages et solde des nouveaux comptes.\n Portefeuille crédit de l'année (équipe) : portefeuille confié, versé, reste chez les commerciaux, reste chez les clients, dette marchandise. Il ne dépend pas de la période et se charge quand on fait défiler jusqu'à lui.\nLes boutons Versements & rapprochement et Journal des opérations ouvrent les deux écrans détaillés."
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_247",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_248",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — Nouvelle présentation : pilotage des commerciaux — Fiche commercial",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2432,7 +2442,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nFiche commercial\n\nOuverte depuis le tableau, une alerte ou le filtre Commercial. Un commercial connecté arrive directement sur sa propre fiche.\n Rapprochement de la période : Crédit + Tontine + Solde Nx + Rattrapages = Dû à la caisse ; Dû − Versé = Reste . Les manquants antérieurs sont rappelés dessous.\n Activité en trois blocs : Crédit (sortie stock, ventes, recouvrements, commandes, avances, reliquats), Tontine (collectes, rattrapages saisis et déjà versés, adhésions, livraisons), Clients (nouveaux clients, solde des nouveaux comptes, opérations).\n 7 derniers jours : pour chaque jour, ce qui était à verser (barre claire) et ce qui a été versé (barre foncée, orange en cas de retard).\n Bilans de l'année crédit et tontine, avec Reste chez les clients · détail . Si les versements tontine dépassent les collectes, une mention À vérifier l'indique : l'écart vient en général de collectes faites chez des membres non enregistrés, que le contrôle carnet permet de retrouver.\n Nouveau versement (un seul jour affiché, montant restant dû) et Équilibrer le surplus sont disponibles ici. Les flèches ‹ › passent au commercial précédent ou suivant ; Télécharger le PDF reprend le rapport du commercial."
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_248",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_249",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — Nouvelle présentation : pilotage des commerciaux — Versements & rapprochement",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2441,7 +2451,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nVersements & rapprochement\nTotaux de la période : Total versé , Crédit , Tontine (rattrapages compris), Solde nouveaux comptes , Surplus non catégorisé .\nUn dépôt par ligne (heure, référence, commercial, reçu par, ventilation, total). Les lignes en surplus sont surlignées et proposent Équilibrer . Les rattrapages répartis sur des jours passés sont détaillés sous le dépôt. Le filtre Avec surplus ne garde que les dépôts concernés. Le gestionnaire peut Annuler un versement dans les 3 jours (l'administrateur sans délai).\n Remise secrétaire → gérant ouvre la remise de caisse (ancien onglet « Remise »)."
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_249",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_250",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — Nouvelle présentation : pilotage des commerciaux — Remise au gestionnaire",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2450,7 +2460,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nRemise au gestionnaire\n\nLe bouton Remise au gestionnaire , en haut du cockpit, ouvre l'écran de remise de la nouvelle présentation : mois et dates, six indicateurs (reste à remettre, crédit, tontine, solde des nouveaux comptes, dépenses, montant net), dépenses à déduire, Soumettre la remise (secrétaire), Accuser réception ou Initier la réception (gestionnaire), et historique des remises. Une secrétaire sans indicateurs financiers arrive directement sur cet écran. Détail du cycle : Finances & Remises."
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_250",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_251",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — Nouvelle présentation : pilotage des commerciaux — Journal des opérations",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2459,7 +2469,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nJournal des opérations\nUne carte par type d'opération avec son nombre et son montant ; un clic ne garde que ce type, un second clic l'enlève.\nLa liste est horodatée et paginée ; Exporter en PDF reprend la période, le commercial et le type choisis."
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_251",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_nouvelle_pr_senta_252",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — Nouvelle présentation : pilotage des commerciaux — Revenir à l'ancienne présentation",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2495,7 +2505,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nB. Onglet 1 : Vue d'ensemble\n\nCet onglet présente la synthèse globale de la performance de l'agence sur la période :"
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__255",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__256",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — B. Onglet 1 : Vue d'ensemble — 1. Bilans annuels (lorsqu'un commercial est sélectionné)",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2504,7 +2514,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nBilans annuels (lorsqu'un commercial est sélectionné)\n\nDès qu'un commercial est ciblé dans la barre de filtre, deux blocs de bilan annuel apparaissent :\n Bilan Crédit Annuel :\n Portefeuille confié : Valorisation totale des articles confiés pour distribution au commercial au cours de l'année (stock d'ouverture au 1er janvier + dotations nettes des mouvements).\n Stock d'ouverture : Valeur du stock détenu par l'agent au premier jour de l'exercice.\n Total Ventes : Montant global des ventes à crédit contractualisées.\n Portefeuille cédé / reçu : Montants issus des passations de dossiers entre commerciaux.\n Versements crédit : Montant cumulé des remboursements déjà encaissés et remis en caisse.\n Reste chez le commercial : Valeur des marchandises actuellement sous la responsabilité physique de l'agent.\n Reste chez le client : Montant total restant dû par les clients du portefeuille. Un clic sur ce montant ouvre la liste nominative des clients débiteurs avec option d'export PDF.\n Total carnets : somme des montants relevés sur les carnets déjà contrôlés. Le sous-texte indique le montant des écarts encore ouverts lorsque le carnet dépasse le système.\n Bilan Tontine Annuel :\nTotal des cotisations collectées sur l'année.\nMontant des versements tontine remis au siège.\nReste des cotisations entre les mains du commercial en attente de versement.\n Total carnets : même lecture que sur le bilan crédit, limitée aux lignes de tontine de l’année contrôlées pour ce commercial."
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__256",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__257",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — B. Onglet 1 : Vue d'ensemble — 2. Cartes d'indicateurs de la période",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2513,7 +2523,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nCartes d'indicateurs de la période\n Ventes crédit : Montant total vendu, nombre de contrats signés et marge brute (si activée).\n Recouvrements crédit : Montant total encaissé et nombre de règlements d'échéances.\n Tontine : Montant total des cotisations perçues et nombre de collectes réalisées.\n Nouveaux comptes : Montant des dépôts initiaux d'ouverture et nombre de nouveaux clients enrôlés."
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__257",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__258",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — B. Onglet 1 : Vue d'ensemble — Synthèse caisse",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2522,7 +2532,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nSynthèse caisse\n\nSur la Vue d'ensemble, le bloc Synthèse caisse reprend l'ensemble des caisses pour la période choisie ( Aujourd'hui , Cette semaine , Ce mois ou Personnalisé ). Le choix d'un commercial ne change pas ces quatre montants.\n Dépenses (avec approvisionnement) : total de toutes les dépenses de la période, approvisionnements compris.\n Dépenses (sans approvisionnement) : total des dépenses de la période, hors approvisionnements.\n Total versé (période) : argent remis en caisse pendant la période, pour l'ensemble des commerciaux. Les rattrapages de jours précédents remis pendant cette période sont inclus. Un rattrapage remis un autre jour n'entre pas dans ce total. Sous le montant, la ligne Opérations : … · Rattrapages : … détaille ce qui appartient aux opérations de la période et ce qui a été remis pour des jours précédents. Si des cotisations de la période ont été remises à une autre date, la mention Versé après la période indique leur montant. Lorsqu'un commercial est choisi dans le filtre, une ligne dont COM005 : … (avec son nom) précise la part de ce commercial dans ce total, avec ses opérations et ses rattrapages.\n Solde de caisse : total versé moins les dépenses sans approvisionnement. C'est l'argent resté en caisse à la fin de la journée, ou de la période sélectionnée."
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__258",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__259",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — B. Onglet 1 : Vue d'ensemble — 3. Fiche d’un commercial : à verser, versé et reste",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2531,7 +2541,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nFiche d’un commercial : à verser, versé et reste\n\nSur la fiche d’un commercial (après sélection dans le filtre) :\n A Verser (Crédit / Tontine / Solde Nx) : ce qui doit être remis en caisse pour chaque catégorie, avec le déjà versé et le reste.\n Versé : total des versements de la période. S’il reste un surplus non affecté à une catégorie, la mention dont surplus non catégorisé s’affiche sous le montant.\n Reste : ce qui manque encore en crédit, tontine ou solde. Un montant déjà couvert par un surplus porte la mention dont couvert par surplus : il diminue le reste, sans changer le montant versé de ce jour.\n Dû à la caisse : l'« A Verser » de la période plus les rattrapages saisis pendant la période pour des jours passés. La ligne Dû de la période : … · Rattrapages saisis : … détaille les deux parts. Une cotisation de la période saisie plus tard est déjà dans « A Verser » : elle n'est pas comptée deux fois.\n Total encaissé : argent réellement remis par le commercial pendant la période. La ligne Opérations : … · Rattrapages : … sépare la part des opérations de la période de la part remise pour des jours précédents. Exemple : si le commercial remet 200 000, dont 150 000 pour les opérations d’aujourd’hui et 50 000 pour des journées passées, la carte affiche 200 000 avec Opérations : 150 000 · Rattrapages : 50 000 . Les cartes A Verser , Versé et Reste restent celles des opérations de la période."
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__259",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__260",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — B. Onglet 1 : Vue d'ensemble — Versement du jour",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2540,7 +2550,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nVersement du jour\n\nLorsque la période affichée est un seul jour et qu’il reste un montant à remettre :\nCliquez sur Faire un versement .\nComptez les espèces dans le billetage.\nSi des cotisations tontine de jours précédents ont été saisies ce jour-là, la fenêtre affiche le KPI Reste rattrapages et un champ Rattrapage , séparé de la Tontine du jour . Le Reste à verser ajoute ces rattrapages au crédit, à la tontine et au solde des nouveaux comptes du jour. Chaque date reçoit au plus le montant saisi ce jour pour elle ; un montant plus ancien encore dû sur cette date reste à remettre sur sa propre date.\nLe champ Rattrapage est rempli automatiquement : le billetage sert d'abord le crédit, la tontine du jour et le solde des nouveaux comptes, puis les rattrapages, des dates les plus anciennes aux plus récentes. Vous pouvez le corriger à la main : le rattrapage saisi est alors réservé en premier et le reste du billetage est réparti sur les autres catégories. Une valeur saisie à la main est conservée si le billetage change. Un rattrapage supérieur au Reste rattrapages est signalé et refusé.\nLa liste Rattrapages du jour montre la part de chaque date.\nCliquez sur Valider le versement . Ce qui dépasse les montants dus reste un surplus du jour d’encaissement."
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__260",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__261",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — B. Onglet 1 : Vue d'ensemble — 4. Équilibrer le surplus",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2549,7 +2559,7 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRapport Journalier d'activité\nÉquilibrer le surplus\n\nLe bouton Équilibrer le surplus est proposé lorsqu’un commercial a un surplus non catégorisé et un manque en crédit, tontine ou solde. Ce manque peut être sur la période affichée ou sur un jour plus ancien.\nCliquez sur Équilibrer le surplus .\nLa fenêtre indique le surplus de toute la période affichée, avec le montant de chaque jour.\nLe tableau liste chaque jour en manque : crédit, tontine, solde, et le montant qui sera affecté. Un jour antérieur à la période porte la mention Avant la période .\nLa case Utiliser le surplus pour les soldes des nouveaux comptes est décochée. Le surplus sert alors le crédit, puis la tontine. Ce qui reste passe au crédit et à la tontine des jours suivants. Cochez la case pour que le solde d’un jour soit couvert après le crédit et la tontine de ce jour.\nCochez Prioritaire sur les jours à servir en premier. Ces jours sont traités du plus ancien au plus récent. Le surplus qui reste va ensuite aux autres jours, du plus ancien au plus récent. Sans case prioritaire, les jours les plus anciens sont servis en premier.\nLe total qui sera affecté, le surplus restant et le reste après se mettent à jour quand vous changez une case.\nCliquez sur Équilibrer . Le total versé ne change pas.\nAprès validation, le surplus diminue et le reste du jour couvert diminue d’autant. Si l’argent a été encaissé un autre jour, ce jour affiche dont couvert par surplus et son montant versé reste celui qui a été encaissé.\nUne mention reste visible sur la fiche : date, heure, auteur, montants et jours couverts.\nLa même opération apparaît dans le Journal des opérations avec le type Équilibrage surplus (filtrable).\n\nUn jour déjà transformé en écart de caisse n’est pas repris par cet équilibrage."
   },
   {
-    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__261",
+    "id": "manager_reporting_config__1_rapport_journalier_d_activit_b_onglet_1_vue_d__262",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 1. Rapport Journalier d'activité — B. Onglet 1 : Vue d'ensemble — 5. Tableau de performance par commercial (vue agence)",
     "path": "/user-guide/manager/reporting_config.html",
     "roles": [
@@ -2774,7 +2784,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nEntrées Fournisseurs & Historique des Réceptions\n\nToute livraison de marchandise par un fournisseur doit faire l'objet d'une saisie d'entrée, soumise à une validation préalable obligatoire du gestionnaire avant d'impacter le stock disponible.\n\nPour accéder à la liste des réceptions, ouvrez le menu latéral Stock Commercial , puis cliquez sur Historique Entrée ."
   },
   {
-    "id": "manager_stock_sales__2_entr_es_fournisseurs_historique_des_r_ceptions_286",
+    "id": "manager_stock_sales__2_entr_es_fournisseurs_historique_des_r_ceptions_287",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 2. Entrées Fournisseurs & Historique des Réceptions — A. Circuit d'approbation d'une réception",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2783,7 +2793,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nEntrées Fournisseurs & Historique des Réceptions\nA. Circuit d'approbation d'une réception\n Saisie de l'entrée : Le magasinier saisit les articles et quantités reçus via le bouton « Entrées stock » de la page Inventaires .\n Étape « En attente » : Une référence de réception unique est générée. Les articles ne sont pas encore intégrés au stock vendable.\n Contrôle et Validation par le gestionnaire :\nRendez-vous dans Stock Commercial > Historique Entrée .\nCliquez sur « Voir » pour contrôler la concordance entre le bon de livraison fournisseur physique et les quantités saisies à l'écran, ou directement sur « Valider » .\nUne fenêtre de confirmation liste les articles. Les prix d'achat (unitaire, ou prix du colis / demi-colis) sont préremplis avec le catalogue : vous pouvez les modifier ou les laisser tels quels. Le demi-gros n'est proposé que s'il est défini sur la fiche. Les prix de vente du lot (unité, gros, demi-gros) sont aussi préremplis et modifiables pour cette entrée.\nCliquez sur « Confirmer la validation » : le stock magasin est instantanément augmenté avec les prix confirmés. En cas d'erreur, le message s'affiche dans la fenêtre : corrigez puis renvoyez.\n Refuser : Rejette la réception en cas de non-conformité majeure (marchandise abîmée, erreur de produit). Le statut passe à Refusé .\n Abandonner : Permet au créateur de la réception en attente de supprimer sa saisie avant validation si une erreur a été commise.\n Annuler : Réservé aux gestionnaires habilités pour annuler une réception déjà validée suite à une régularisation comptable, décrémentant le stock du magasin.\n\n Statut Réception Badge Couleur Impact sur le Stock Magasin Actions Disponibles \n --- --- --- --- \n En attente Jaune Aucun impact (en cours de contrôle) Valider, Refuser, Abandonner \n Validée Vert Stock magasin augmenté Voir, Annuler (selon vos droits) \n Refusée Rouge Aucun impact (réception rejetée) Voir \n Annulée Gris Le stock préalablement ajouté est retiré Voir"
   },
   {
-    "id": "manager_stock_sales__2_entr_es_fournisseurs_historique_des_r_ceptions_287",
+    "id": "manager_stock_sales__2_entr_es_fournisseurs_historique_des_r_ceptions_288",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 2. Entrées Fournisseurs & Historique des Réceptions — B. Consulter le détail et télécharger les documents",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2846,7 +2856,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nInventaires physiques et réconciliation des écarts\n\nAccessible via le menu latéral Inventaires , ce module permet de confronter le stock théorique calculé par l'informatique au stock physique réel compté sur les étagères du magasin dépôt."
   },
   {
-    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_294",
+    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_295",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 5. Inventaires physiques et réconciliation des écarts — A. Indicateurs de valorisation du stock magasin",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2855,7 +2865,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nInventaires physiques et réconciliation des écarts\nA. Indicateurs de valorisation du stock magasin\n\nPour les gestionnaires, le bandeau supérieur présente 5 métriques financières stratégiques :\n Valeur d'achat FIFO / Total achat : Valeur monétaire du stock au coût d'acquisition fournisseur.\n Prix total vente crédit : Valeur projetée de réalisation du stock si l'ensemble des articles est distribué à crédit.\n Marge estimée (crédit) : Marge brute prévisionnelle dégagée sur le stock (Vente crédit $-$ Coût d'achat).\n Prix total vente comptant : Valeur du stock au prix de vente comptant.\n Marge estimée (comptant) : Marge brute projetée au comptant."
   },
   {
-    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_295",
+    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_296",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 5. Inventaires physiques et réconciliation des écarts — B. Déroulement méthodique d'une session d'inventaire",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2864,7 +2874,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nInventaires physiques et réconciliation des écarts\nB. Déroulement méthodique d'une session d'inventaire\n\nUne session d'inventaire se déroule en 4 étapes séquentielles :\n Création de session : Cliquez sur le bouton vert « Créer un inventaire » . La session est créée au statut Brouillon et affiche la date, le statut et l'auteur. Elle passe à En cours dès que des quantités physiques sont enregistrées.\n Impression de la feuille de comptage : Cliquez sur « Télécharger PDF » pour éditer le document de comptage vierge destiné aux équipes de magasin.\n Saisie des quantités réelles : Cliquez sur « Saisir quantités physiques » . Dans la fenêtre qui s'ouvre, saisissez les quantités effectivement dénombrées pour chaque référence d'article.\n Réconciliation des écarts :\nCliquez sur « Réconcilier les écarts » pour afficher la balance comparative : Quantité Théorique Système vs Quantité Physique Constatée = Écart (Surplus ou Manquant).\nEnregistrez les motifs d'écart (casse, avarie, vol, erreur de saisie).\n Clôture définitive : Cliquez sur « Clôturer l'inventaire » . Les stocks théoriques sont automatiquement réalignés sur le comptage physique approuvé et la session est archivée dans l' Historique des inventaires (accessible via l'onglet ou le bouton Historique)."
   },
   {
-    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_296",
+    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_297",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 5. Inventaires physiques et réconciliation des écarts — C. Annuler un brouillon",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2873,7 +2883,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nInventaires physiques et réconciliation des écarts\nC. Annuler un brouillon\nTant que le statut affiché est Brouillon , cliquez sur « Annuler l'inventaire » .\nConfirmez. Le stock du magasin n'est pas modifié.\nLe bouton « Créer un inventaire » redevient disponible.\nDans Historique inventaires , le filtre Annulé retrouve cette session."
   },
   {
-    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_297",
+    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_298",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 5. Inventaires physiques et réconciliation des écarts — D. Stock magasin pendant l'inventaire",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2882,7 +2892,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nInventaires physiques et réconciliation des écarts\nD. Stock magasin pendant l'inventaire\n\nTant que l'inventaire est Brouillon ou En cours , les entrées de stock, la remise à zéro, la livraison d'une sortie et le retour de marchandise vers le magasin sont refusés. Le message affiché est : « Un inventaire est en cours. Veuillez attendre la fin de l'inventaire avant de continuer cette opération. »\n\nLes ventes et les crédits pris sur le stock du commercial restent possibles. Une demande de sortie peut être créée ; sa livraison attend la fin ou la suspension de l'inventaire."
   },
   {
-    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_298",
+    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_299",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 5. Inventaires physiques et réconciliation des écarts — E. Suspendre et reprendre",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -3016,7 +3026,7 @@
     "content": "Chef de recouvrement — application mobile\nOnglet Retards : prioriser, contrôler et clôturer\nContrôle crédit\n\nLe formulaire rappelle la mise journalière , le montant total du crédit et le montant déjà payé.\nSaisissez l’ avance lue sur le carnet . L’avance déjà enregistrée s’affiche à côté, avec la mention Identique ou Différente .\nLes pastilles vont de 1 à 31 . Touchez le dernier jour coché sur le carnet : les jours du 1 jusqu’à ce numéro passent au vert. La somme des mises se calcule en même temps.\nLe total carnet additionne cette somme et l’avance saisie.\nAjoutez une note si besoin, puis Capturer le contrôle . Le résultat affiche CONFORME lorsque le total carnet correspond au montant payé, sinon ECART .\n\nLorsque la mise journalière n’est pas affichée, saisissez directement le montant lu sur le carnet.\n\nSi ce crédit a déjà un écart qui n’a pas encore été accepté, la carte indique Déjà contrôlé et le montant de l’écart. Le formulaire reprend le montant saisi et le bouton devient Modifier le contrôle . Lorsque l’écart a été accepté ou refusé, ou si le dernier contrôle est CONFORME , un nouveau contrôle peut être saisi."
   },
   {
-    "id": "recovery_manager_mobile__onglet_retards_prioriser_contr_ler_et_cl_turer_c_312",
+    "id": "recovery_manager_mobile__onglet_retards_prioriser_contr_ler_et_cl_turer_c_313",
     "title": "Chef de recouvrement — application mobile — Onglet Retards : prioriser, contrôler et clôturer — Clôture totale ou partielle",
     "path": "/user-guide/recovery-manager/mobile.html",
     "roles": [
@@ -3056,7 +3066,7 @@
     "content": "Le contrôle tontine reste disponible après la clôture de la session. Il ouvre un formulaire par commercial lorsque plusieurs agents ont collecté pour le membre. Dans chaque bloc (le commercial actuel est signalé), cochez les mois à contrôler. Chaque mois n’apparaît que dans le bloc du commercial qui l’a encaissé, ou, s’il est encore à zéro, dans les blocs où vous pouvez encore l’attribuer. Pour chaque mois coché, la mise du mois est affichée avec des pastilles de 1 à 31. Ce montant est celui en vigueur pour ce mois : un mois ancien conserve l’ancienne mise lorsqu’elle a changé. Pour un mois encore à zéro, Collecté par permet de choisir le commercial qui a rempli le carnet, et Mise du mois permet de saisir la mise lue sur le carnet. Chaque mois vide que vous cochez propose ces choix de son côté. Si vous laissez la mise identique, rien de plus n’est enregistré. Si vous la changez, le total des jours cochés se recalcule, et cette mise sera retenue pour ce mois à l’acceptation. Un mois déjà cotisé garde le commercial qui l’a encaissé, sans nouveau choix de commercial, mais Mise du mois reste modifiable : si le carnet indique une autre mise que celle du système (affichée en repère), saisissez-la et le message « Mise corrigée » le confirme. Les montants déjà collectés ne changent pas, seuls les jours et la part société du mois sont recalculés. Sans écart de montant, la correction est appliquée dès l’enregistrement du contrôle ; avec un écart, elle l’est à l’acceptation de l’écart. Si le carnet physique montre aussi des jours pour un autre commercial sur ce même mois, touchez + sur la ligne déjà cotisée : une ligne carnet additionnelle s’ajoute juste en dessous. Choisissez un commercial différent, puis indiquez les jours (ou le montant) lus sur le carnet. La mise reste celle du mois d’origine. Vous pouvez ajouter jusqu’à deux lignes carnet de cette façon, et retirer une ligne additionnelle avec la corbeille avant d’enregistrer. Hors ligne, après la mise à jour de l’application, utilisez Actualiser le pack pour retrouver ces montants et la liste des commerciaux. Touchez le dernier jour coché : le montant du mois se calcule automatiquement.…"
   },
   {
-    "id": "recovery_manager_mobile__onglet_terrain_carnets_cr_dit_et_tontine_contr_l_316",
+    "id": "recovery_manager_mobile__onglet_terrain_carnets_cr_dit_et_tontine_contr_l_317",
     "title": "Chef de recouvrement — application mobile — Onglet Terrain : carnets crédit et tontine — Contrôle d’un carnet tontine (suite 2)",
     "path": "/user-guide/recovery-manager/mobile.html",
     "roles": [
@@ -3073,7 +3083,7 @@
       "recovery_manager",
       "manager"
     ],
-    "content": "Chef de recouvrement — application mobile\nOnglet Terrain : carnets crédit et tontine\nValider ou corriger la part société d’un membre tontine\n\nEn haut du formulaire de contrôle tontine, le bloc Part société affiche la part en place et son état ( Calcul automatique, non validée , Confirmée par le commercial , Réajustée par le commercial , Validée ou Corrigée par le chef de recouvrement ). Saisissez la part société de toute l’année, un commentaire si besoin, puis touchez Valider / corriger la part société :\nmontant égal à la part en place : la part est validée, sans autre mise à jour ;\nmontant différent : la part du membre est corrigée et son solde disponible recalculé immédiatement, sans validation supplémentaire.\n\nVotre saisie prime sur celle du commercial : après vous, il ne peut plus modifier cette part. Le bloc n’apparaît pas pour un membre déjà livré. Hors ligne, la saisie est gardée dans la file Parts société et envoyée à la reconnexion ; actualisez le pack pour voir la part en place si elle affiche Retéléchargez le pack .\n\nLorsqu’un écart est affiché, son montant apparaît à côté du badge, avec la mention Déjà contrôlé . Si cet écart n’a pas encore été accepté, le formulaire reprend les montants déjà saisis et le bouton Modifier le contrôle met à jour ce contrôle. Si le dernier contrôle est CONFORME , ou si l’écart a été accepté ou refusé, un nouveau contrôle peut être enregistré avec Capturer le contrôle . Ce choix entre modification et nouveau contrôle est le même pour un crédit et pour un membre tontine."
+    "content": "Chef de recouvrement — application mobile\nOnglet Terrain : carnets crédit et tontine\nValider ou corriger la part société d’un membre tontine\n\nEn haut du formulaire de contrôle tontine, le bloc Part société affiche le total cotisé (hors livraison), la part société du système, la part en place, le total disponible et l’état de la part ( Calcul automatique, non validée , Confirmée par le commercial , Réajustée par le commercial , Validée ou Corrigée par le chef de recouvrement ). Saisissez la part société de toute l’année : le total disponible réel après saisie s’affiche aussitôt. Ajoutez une note d’observation si besoin, puis touchez Valider / corriger la part société . Le bloc est absent quand le réajustement est désactivé pour la session (actualisez le pack pour voir les montants si certains manquent) :\nmontant égal à la part en place : la part est validée, sans autre mise à jour ;\nmontant différent : la part du membre est corrigée et son solde disponible recalculé immédiatement, sans validation supplémentaire.\n\nVotre saisie prime sur celle du commercial : après vous, il ne peut plus modifier cette part. Le bloc n’apparaît pas pour un membre déjà livré. Hors ligne, la saisie est gardée dans la file Parts société et envoyée à la reconnexion ; actualisez le pack pour voir la part en place si elle affiche Retéléchargez le pack .\n\nLorsqu’un écart est affiché, son montant apparaît à côté du badge, avec la mention Déjà contrôlé . Si cet écart n’a pas encore été accepté, le formulaire reprend les montants déjà saisis et le bouton Modifier le contrôle met à jour ce contrôle. Si le dernier contrôle est CONFORME , ou si l’écart a été accepté ou refusé, un nouveau contrôle peut être enregistré avec Capturer le contrôle . Ce choix entre modification et nouveau contrôle est le même pour un crédit et pour un membre tontine."
   },
   {
     "id": "recovery_manager_mobile__onglet_clients_contact_gps_et_changement_de_comm",
@@ -3356,7 +3366,7 @@
     "content": "Gestion physique du stock (Sorties & Retours)\nServir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie)\n\nChoisissez Crédit sur le sélecteur avant de préparer une sortie de vente.\n\nToutes les demandes de sortie validées par la gestion arrivent dans le menu Stock Commercial > Demandes Sortie (accessible si vous disposez des habilitations requises)."
   },
   {
-    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_346",
+    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_347",
     "title": "Gestion physique du stock (Sorties & Retours) — 1. Servir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie) — A. Contrôle avant remise physique",
     "path": "/user-guide/storekeeper/stock_commercial.html",
     "roles": [
@@ -3366,7 +3376,7 @@
     "content": "Gestion physique du stock (Sorties & Retours)\nServir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie)\nA. Contrôle avant remise physique\nFiltrez la liste des demandes par statut ou par commercial pour localiser la commande à préparer.\nCliquez sur « Voir » pour ouvrir le détail de la demande :\nLa référence s'affiche en haut de la fenêtre.\nVérifiez la liste exacte des articles et les quantités commandées.\nAssurez-vous que le statut est bien Validée .\nSi la sortie ne doit pas être remise, cliquez sur « Annuler » en bas de la fenêtre, puis confirmez. La demande passe au statut Annulée . La marchandise reste au magasin.\nCliquez sur « Télécharger » pour enregistrer la fiche de sortie de cette demande.\nPrélevez les articles en rayon et regroupez-les dans la zone de délivrance."
   },
   {
-    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_347",
+    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_348",
     "title": "Gestion physique du stock (Sorties & Retours) — 1. Servir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie) — B. Remise physique et validation du départ (`Livrer`)",
     "path": "/user-guide/storekeeper/stock_commercial.html",
     "roles": [
@@ -3376,7 +3386,7 @@
     "content": "Gestion physique du stock (Sorties & Retours)\nServir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie)\nB. Remise physique et validation du départ (Livrer)\nSur la liste, une demande Validée propose Livrer et Annuler . Choisissez Annuler puis confirmez si la sortie ne part pas. La demande passe au statut Annulée et le stock du magasin ne change pas.\nProcédez au comptage contradictoire avec le commercial présent au comptoir.\nCliquez sur le bouton bleu « Livrer » .\n Conséquences automatiques :\nLe statut de la demande passe définitivement à Livrée .\nLe stock physique du magasin est automatiquement débité.\nLe stock commercial du destinataire est automatiquement crédité.\nLa date et l'heure précises de livraison sont horodatées.\nCliquez sur l'icône de téléchargement pour imprimer la Fiche de sortie PDF signée par les deux parties."
   },
   {
-    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_348",
+    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_349",
     "title": "Gestion physique du stock (Sorties & Retours) — 1. Servir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie) — C. Vente au comptant",
     "path": "/user-guide/storekeeper/stock_commercial.html",
     "roles": [

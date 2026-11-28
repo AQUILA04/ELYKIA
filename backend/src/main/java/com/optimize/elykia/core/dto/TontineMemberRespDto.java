@@ -36,7 +36,8 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                                    Double projectedBalance,
                                    Double societyShareOverride,
                                    TontineSocietyShareStatus societyShareStatus,
-                                   Boolean societyShareLocked
+                                   Boolean societyShareLocked,
+                                   Double societyShareComputed
                                    ) {
 
     public static TontineMemberRespDto fromId(Long id) {
@@ -44,7 +45,7 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
             return null;
         }
 
-        return new TontineMemberRespDto(id, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        return new TontineMemberRespDto(id, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public static TontineMemberRespDto fromTontineMember(TontineMember member) {
@@ -68,7 +69,8 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                 null,
                 member.getSocietyShareOverride(),
                 member.getSocietyShareStatus() != null ? member.getSocietyShareStatus() : TontineSocietyShareStatus.AUTO,
-                Boolean.TRUE.equals(member.getSocietyShareLocked()));
+                Boolean.TRUE.equals(member.getSocietyShareLocked()),
+                member.getSocietyShareComputed());
     }
 
     public TontineMemberRespDto withFieldControlled(Boolean controlled) {
@@ -77,7 +79,7 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                 frequency, amount, notes, societyShare, availableContribution, validatedMonths, currentMonthDays,
                 operationConsentCode, syncConsentCode, totalDeliveryCollections,
                 carnetVerified, carnetVerifiedAt, carnetVerifiedBy, registrationSource, selfRegistered,
-                controlled, projectedBalance, societyShareOverride, societyShareStatus, societyShareLocked);
+                controlled, projectedBalance, societyShareOverride, societyShareStatus, societyShareLocked, societyShareComputed);
     }
 
     public TontineMemberRespDto withProjectedBalance(Double balance) {
@@ -86,7 +88,7 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                 frequency, amount, notes, societyShare, availableContribution, validatedMonths, currentMonthDays,
                 operationConsentCode, syncConsentCode, totalDeliveryCollections,
                 carnetVerified, carnetVerifiedAt, carnetVerifiedBy, registrationSource, selfRegistered,
-                fieldControlled, balance, societyShareOverride, societyShareStatus, societyShareLocked);
+                fieldControlled, balance, societyShareOverride, societyShareStatus, societyShareLocked, societyShareComputed);
     }
 
     /**
@@ -102,7 +104,7 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                 frequency, amount, notes, societyShare, availableContribution, validatedMonths, currentMonthDays,
                 operationConsentCode, syncConsentCode, totalDeliveryCollections,
                 carnetVerified, carnetVerifiedAt, carnetVerifiedBy, registrationSource, selfRegistered,
-                fieldControlled, projectedBalance, societyShareOverride, societyShareStatus, societyShareLocked);
+                fieldControlled, projectedBalance, societyShareOverride, societyShareStatus, societyShareLocked, societyShareComputed);
     }
 
     public static Page<TontineMemberRespDto> fromTontineMembers(Page<TontineMember> members) {

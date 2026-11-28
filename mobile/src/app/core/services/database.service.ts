@@ -105,7 +105,7 @@ export class DatabaseService {
     // 2. Migrations incrémentielles (natif uniquement).
     // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
     const currentVersion = await this.db.getVersion();
-    const targetVersion = 41; // part société réajustée (membres, commandes, saisies en attente)
+    const targetVersion = 42; // mode de réajustement par session, part société du système
     const dbVersion = currentVersion.version ?? 2;
     const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -544,6 +544,7 @@ export class DatabaseService {
             status TEXT,
             memberCount INTEGER,
             totalCollected REAL,
+            societyShareAdjustmentMode TEXT,
             isSync BOOLEAN DEFAULT 0,
             syncDate DATETIME,
             syncHash TEXT
@@ -574,6 +575,7 @@ export class DatabaseService {
             societyShareOverride REAL,
             societyShareStatus TEXT,
             societyShareLocked INTEGER DEFAULT 0,
+            societyShareComputed REAL,
             FOREIGN KEY(tontineSessionId) REFERENCES tontine_sessions(id)
             -- IMPORTANT:
             -- On ne met plus de contrainte FOREIGN KEY(clientId) ici, car l'ID du client
@@ -2296,16 +2298,17 @@ export class DatabaseService {
 
     const query = `
       INSERT OR REPLACE INTO tontine_sessions (
-        id, year, startDate, endDate, status, memberCount, totalCollected, isSync, syncDate, syncHash
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, year, startDate, endDate, status, memberCount, totalCollected, societyShareAdjustmentMode, isSync, syncDate, syncHash
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     // Generate hash for change detection if needed, or use provided hash
-    const syncHash = session.syncHash || this.generateHash(session, ['id', 'status', 'totalCollected', 'startDate', 'endDate']);
+    const syncHash = session.syncHash || this.generateHash(session, ['id', 'status', 'totalCollected', 'startDate', 'endDate', 'societyShareAdjustmentMode']);
 
     await this.db.run(query, [
       session.id, session.year, session.startDate, session.endDate, session.status,
-      session.memberCount, session.totalCollected, 1, new Date().toISOString(), syncHash
+      session.memberCount, session.totalCollected, session.societyShareAdjustmentMode || 'DISABLED',
+      1, new Date().toISOString(), syncHash
     ]);
   }
 
@@ -2322,8 +2325,9 @@ export class DatabaseService {
 
     const query = `
       INSERT OR REPLACE INTO tontine_members (
-        id, tontineSessionId, clientId, commercialUsername, totalContribution, deliveryStatus, registrationDate, isLocal, isSync, syncDate, syncHash, frequency, amount, notes, updateScope, operationConsentCode, societyShare, availableContribution, validatedMonths, currentMonthDays
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, tontineSessionId, clientId, commercialUsername, totalContribution, deliveryStatus, registrationDate, isLocal, isSync, syncDate, syncHash, frequency, amount, notes, updateScope, operationConsentCode, societyShare, availableContribution, validatedMonths, currentMonthDays,
+        societyShareOverride, societyShareStatus, societyShareLocked, societyShareComputed
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const set: capSQLiteSet[] = members.map(m => ({
@@ -2332,11 +2336,45 @@ export class DatabaseService {
         m.id, m.tontineSessionId, m.clientId, m.commercialUsername, m.totalContribution, m.deliveryStatus,
         m.registrationDate, m.isLocal ? 1 : 0, m.isSync ? 1 : 0, m.syncDate || new Date().toISOString(), m.syncHash,
         m.frequency, m.amount, m.notes, m.updateScope || null, m.operationConsentCode || null,
-        m.societyShare ?? 0, m.availableContribution ?? 0, m.validatedMonths ?? 0, m.currentMonthDays ?? 0
+        m.societyShare ?? 0, m.availableContribution ?? 0, m.validatedMonths ?? 0, m.currentMonthDays ?? 0,
+        // L'import remplace la ligne : l'état de la part société (validée, corrigée, verrou) doit suivre.
+        m.societyShareOverride ?? null, m.societyShareStatus || 'AUTO',
+        m.societyShareLocked === true || m.societyShareLocked === 1 ? 1 : 0, m.societyShareComputed ?? null
       ]
     }));
 
     await this.db.executeSet(set);
+    await this.reapplyPendingSocietyShares(members.map(m => String(m.id)));
+  }
+
+  /**
+   * Part société saisie hors ligne et pas encore envoyée : l'import du serveur ne la connaît pas.
+   * Elle est réappliquée (part, disponible) pour que la liste, la fiche et les reçus restent justes.
+   */
+  private async reapplyPendingSocietyShares(memberIds: string[]): Promise<void> {
+    if (!this.db || memberIds.length === 0) {
+      return;
+    }
+    try {
+      const pending = await this.db.query('SELECT tontineMemberId, declaredSocietyShare FROM tontine_society_share_pending');
+      const ids = new Set(memberIds);
+      for (const row of (pending.values || []) as Array<{ tontineMemberId: string; declaredSocietyShare: number }>) {
+        if (!ids.has(String(row.tontineMemberId))) {
+          continue;
+        }
+        await this.db.run(
+          `UPDATE tontine_members
+              SET availableContribution = MAX(0, COALESCE(availableContribution, 0) + COALESCE(societyShare, 0) - ?),
+                  societyShare = ?,
+                  societyShareOverride = ?,
+                  societyShareStatus = 'ADJUSTED'
+            WHERE id = ? AND COALESCE(societyShareLocked, 0) = 0`,
+          [row.declaredSocietyShare, row.declaredSocietyShare, row.declaredSocietyShare, row.tontineMemberId]
+        );
+      }
+    } catch (error) {
+      console.warn('Part société en attente non réappliquée après import', error);
+    }
   }
 
   /**

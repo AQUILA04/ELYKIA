@@ -15,8 +15,20 @@
   </p>
   <section class="summary society-share" *ngIf="canReviewSocietyShare" data-testid="e2e-rm-society-share">
     <div class="row">
+      <span>Total cotisé (hors livraison)</span>
+      <strong>{{ formatAmount(societyShareRegularTotal) }} FCFA</strong>
+    </div>
+    <div class="row" *ngIf="member.societyShareComputed != null">
+      <span>Part société du système</span>
+      <strong data-testid="e2e-rm-society-share-system">{{ formatAmount(member.societyShareComputed) }} FCFA</strong>
+    </div>
+    <div class="row">
       <span>Part société en place</span>
       <strong>{{ member.societyShare != null ? formatAmount(member.societyShare) + ' FCFA' : 'Retéléchargez le pack' }}</strong>
+    </div>
+    <div class="row" *ngIf="member.availableContribution != null">
+      <span>Total disponible</span>
+      <strong>{{ formatAmount(member.availableContribution) }} FCFA</strong>
     </div>
     <div class="row">
       <span>État</span>
@@ -31,8 +43,12 @@
         labelPlacement="stacked" [(ngModel)]="societyShareAmount" data-testid="e2e-rm-society-share-input"></ion-input>
     </ion-item>
     <ion-item lines="none" class="society-share-input">
-      <ion-input label="Commentaire (facultatif)" labelPlacement="stacked" [(ngModel)]="societyShareComment"></ion-input>
+      <ion-input label="Note d'observation (facultative)" labelPlacement="stacked" [(ngModel)]="societyShareComment"></ion-input>
     </ion-item>
+    <div class="row available-after" *ngIf="societyShareAvailableAfter !== null" data-testid="e2e-rm-society-share-available-after">
+      <span>Total disponible réel après saisie</span>
+      <strong>{{ formatAmount(societyShareAvailableAfter) }} FCFA</strong>
+    </div>
     <ion-button expand="block" size="small" (click)="submitSocietyShare()" [disabled]="societyShareBusy"
       data-testid="e2e-rm-society-share-submit">
       {{ societyShareBusy ? 'Enregistrement…' : 'Valider / corriger la part société' }}

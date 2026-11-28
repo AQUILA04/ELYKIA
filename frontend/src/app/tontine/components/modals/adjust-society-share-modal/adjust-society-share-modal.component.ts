@@ -6,14 +6,15 @@ import { TontineMember, TontineSocietyShareAdjustment } from '../../../types/ton
 
 export interface AdjustSocietyShareModalData {
   member: TontineMember;
-  /** Affiche les montants calculés (droit de voir la part société). */
-  canViewShare: boolean;
+  /** Etape imposée avant la commande (session en mode obligatoire). */
+  mandatory?: boolean;
   /** Affiche « Revenir au calcul automatique » (administrateur, par permission). */
   canReset: boolean;
 }
 
 /**
- * Saisie de la part société réelle de l'année. Le serveur compare au montant en place :
+ * Saisie de la part société réelle de l'année. Le formulaire montre le total cotisé, la part du système
+ * et le disponible actuel, puis le disponible réel après la saisie. Le serveur compare au montant en place :
  * égal, la part est validée ; différent, il remplace le calcul et le solde disponible est refait.
  */
 @Component({
@@ -44,6 +45,27 @@ export class AdjustSocietyShareModalComponent {
     const total = this.data.member.totalContribution || 0;
     const delivery = this.data.member.totalDeliveryCollections || 0;
     return Math.max(0, total - delivery);
+  }
+
+  /** Part calculée par le système (avant toute saisie). */
+  get systemSocietyShare(): number {
+    const member = this.data.member;
+    return member.societyShareComputed ?? member.societyShare ?? 0;
+  }
+
+  get currentAvailable(): number {
+    return this.data.member.availableContribution || 0;
+  }
+
+  /** Disponible réel si la part saisie est retenue (null tant que rien n'est saisi). */
+  get availableAfterEntry(): number | null {
+    const raw = this.form.value.declaredSocietyShare;
+    if (raw === null || raw === undefined || raw === '' || !Number.isFinite(Number(raw)) || Number(raw) < 0) {
+      return null;
+    }
+    const declared = Math.min(Math.round(Number(raw)), this.regularContribution);
+    const currentShare = this.data.member.societyShare || 0;
+    return Math.max(0, this.currentAvailable + currentShare - declared);
   }
 
   get isAdjusted(): boolean {

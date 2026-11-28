@@ -4,6 +4,8 @@ import {
   societyShareIncreaseOf
 } from './tontine-calculation.service';
 import { offlineSocietyShareResult } from './rm/rm-pack-society-share-mutation.util';
+import { availableAfterSocietyShare } from '../../shared/components/tontine-society-share-modal/tontine-society-share-modal.component';
+import { societyShareModeOf } from '../../models/tontine.model';
 
 function status(totalCollected: number, societyShare: number): TontineMemberAllocationStatus {
   return {
@@ -76,5 +78,26 @@ describe('offlineSocietyShareResult (chef de recouvrement hors ligne)', () => {
     expect(result.outcome).toBe('ADJUSTED');
     expect(result.memberSocietyShare).toBe(7000);
     expect(result.memberSocietyShareStatus).toBe('ADJUSTED');
+  });
+});
+
+describe('availableAfterSocietyShare (formulaire de réajustement)', () => {
+  const data = { regularContribution: 10000, systemSocietyShare: 1000, currentSocietyShare: 1000, currentAvailable: 9500 };
+
+  it('recomputes the available balance from the entered share', () => {
+    expect(availableAfterSocietyShare(data, 3000)).toBe(7500);
+    expect(availableAfterSocietyShare(data, 500)).toBe(10000);
+  });
+
+  it('caps the entered share at the regular contributions', () => {
+    expect(availableAfterSocietyShare(data, 50000)).toBe(500);
+  });
+});
+
+describe('societyShareModeOf', () => {
+  it('defaults to DISABLED', () => {
+    expect(societyShareModeOf(null)).toBe('DISABLED');
+    expect(societyShareModeOf({ societyShareAdjustmentMode: 'mandatory' })).toBe('MANDATORY');
+    expect(societyShareModeOf({ societyShareAdjustmentMode: 'OPTIONAL' })).toBe('OPTIONAL');
   });
 });

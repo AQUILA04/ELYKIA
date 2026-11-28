@@ -14,7 +14,11 @@ export interface TontineSession {
   readonly memberCount?: number;
   readonly totalCollected?: number;
   readonly totalRevenue?: number;
+  /** Réajustement de la part société : MANDATORY (obligatoire), OPTIONAL (facultatif), DISABLED (aucun). */
+  readonly societyShareAdjustmentMode?: TontineSocietyShareAdjustmentMode;
 }
+
+export type TontineSocietyShareAdjustmentMode = 'MANDATORY' | 'OPTIONAL' | 'DISABLED';
 
 export interface TontineMember {
   readonly id: number;
@@ -53,6 +57,8 @@ export interface TontineMember {
   readonly societyShareStatus?: TontineSocietyShareStatus;
   /** Validée ou corrigée par le chef de recouvrement : le commercial ne peut plus la changer. */
   readonly societyShareLocked?: boolean;
+  /** Part calculée par le système, avant toute saisie. */
+  readonly societyShareComputed?: number | null;
 }
 
 export type TontineSocietyShareStatus = 'AUTO' | 'CONFIRMED' | 'ADJUSTED';
@@ -229,6 +235,7 @@ export interface CreateTontineCollectionDto {
 export interface UpdateSessionDto {
   readonly startDate: string;
   readonly endDate: string;
+  readonly societyShareAdjustmentMode?: TontineSocietyShareAdjustmentMode;
 }
 
 export interface CreateDeliveryDto {

@@ -88,6 +88,14 @@ export interface RmPackTontineMember {
   societyShareStatus?: 'AUTO' | 'CONFIRMED' | 'ADJUSTED';
   /** Déjà validée ou corrigée par un chef de recouvrement. */
   societyShareLocked?: boolean;
+  /** Part calculée par le système (packs récents). */
+  societyShareComputed?: number;
+  /** Solde disponible en place (packs récents). */
+  availableContribution?: number;
+  /** Total cotisé hors collectes de livraison (packs récents). */
+  regularContribution?: number;
+  /** MANDATORY, OPTIONAL ou DISABLED : absent des anciens packs (réajustement alors proposé). */
+  societyShareAdjustmentMode?: 'MANDATORY' | 'OPTIONAL' | 'DISABLED';
   /** Totaux mensuels agrégés (rétrocompat packs déjà téléchargés). */
   months: RmPackTontineMonth[];
   /** Répartition système par commercial collecteur (packs récents). */

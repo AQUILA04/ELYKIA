@@ -246,7 +246,8 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             null,
             tm.societyShareOverride,
             tm.societyShareStatus,
-            tm.societyShareLocked
+            tm.societyShareLocked,
+            tm.societyShareComputed
         )
         FROM TontineMember tm
         LEFT JOIN tm.tontineSession s
@@ -310,7 +311,8 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             null,
             tm.societyShareOverride,
             tm.societyShareStatus,
-            tm.societyShareLocked
+            tm.societyShareLocked,
+            tm.societyShareComputed
         )
         FROM TontineMember tm
         LEFT JOIN tm.tontineSession s

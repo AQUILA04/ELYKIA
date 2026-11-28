@@ -8,7 +8,7 @@ export const environment = {
   appName: 'Elykia',
   /** Libellé bandeau (DEV/TEST/…). Masqué si prod. */
   envName: 'Dev',
-  version: '2.52.0'
+  version: '2.53.0'
 };
 
 /*

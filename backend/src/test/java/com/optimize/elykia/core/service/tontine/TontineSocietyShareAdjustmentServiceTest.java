@@ -13,6 +13,7 @@ import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.entity.tontine.TontineSocietyShareAdjustment;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
+import com.optimize.elykia.core.enumaration.TontineSocietyShareAdjustmentMode;
 import com.optimize.elykia.core.enumaration.TontineSocietyShareAdjustmentOutcome;
 import com.optimize.elykia.core.enumaration.TontineSocietyShareStatus;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
@@ -59,6 +60,7 @@ class TontineSocietyShareAdjustmentServiceTest {
         TontineSession session = new TontineSession();
         session.setId(1L);
         session.setStatus(TontineSessionStatus.ACTIVE);
+        session.setSocietyShareAdjustmentMode(TontineSocietyShareAdjustmentMode.OPTIONAL);
         member.setTontineSession(session);
         Client client = new Client();
         client.setTontineCollector("com1");
@@ -78,6 +80,36 @@ class TontineSocietyShareAdjustmentServiceTest {
                 .thenReturn(List.of(collection(10000.0)));
         lenient().when(adjustmentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
         lenient().when(deliveryRepository.findByTontineMemberId(7L)).thenReturn(Optional.empty());
+    }
+
+    @Test
+    void disabledSessionRefusesTheEntryAndIgnoresTheOrderOne() {
+        member.getTontineSession().setSocietyShareAdjustmentMode(TontineSocietyShareAdjustmentMode.DISABLED);
+
+        assertThrows(CustomValidationException.class, () -> service.adjust(7L, dto(3000.0)));
+        assertNull(service.adjustForDelivery(member, dto(3000.0), "DLV-1"));
+        assertNull(member.getSocietyShareOverride());
+    }
+
+    @Test
+    void mandatorySessionBlocksAnOrderWithoutTheStep() {
+        member.getTontineSession().setSocietyShareAdjustmentMode(TontineSocietyShareAdjustmentMode.MANDATORY);
+
+        assertThrows(CustomValidationException.class, () -> service.requireMandatoryStep(member, null));
+        assertDoesNotThrow(() -> service.requireMandatoryStep(member, dto(1000.0)));
+        member.setSocietyShareStatus(TontineSocietyShareStatus.CONFIRMED);
+        assertDoesNotThrow(() -> service.requireMandatoryStep(member, null));
+    }
+
+    @Test
+    void mandatoryStepIsSkippedWithoutCollectionsOrOutsideTheMandatoryMode() {
+        member.getTontineSession().setSocietyShareAdjustmentMode(TontineSocietyShareAdjustmentMode.OPTIONAL);
+        assertDoesNotThrow(() -> service.requireMandatoryStep(member, null));
+
+        member.getTontineSession().setSocietyShareAdjustmentMode(TontineSocietyShareAdjustmentMode.MANDATORY);
+        when(collectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(7L, State.ENABLED))
+                .thenReturn(List.of());
+        assertDoesNotThrow(() -> service.requireMandatoryStep(member, null));
     }
 
     @Test

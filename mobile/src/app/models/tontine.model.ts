@@ -6,9 +6,19 @@ export interface TontineSession {
     status: 'ACTIVE' | 'CLOSED' | 'ENDED' | 'PENDING';
     memberCount: number;
     totalCollected: number;
+    /** Réajustement de la part société : obligatoire, facultatif ou aucun (DISABLED par défaut). */
+    societyShareAdjustmentMode?: TontineSocietyShareAdjustmentMode | null;
     isSync: boolean;
     syncDate?: string;
     syncHash?: string;
+}
+
+export type TontineSocietyShareAdjustmentMode = 'MANDATORY' | 'OPTIONAL' | 'DISABLED';
+
+/** Mode de réajustement d'une session (Aucun si absent : ancienne session ou session pas encore relue). */
+export function societyShareModeOf(session: { societyShareAdjustmentMode?: string | null } | null | undefined): TontineSocietyShareAdjustmentMode {
+    const mode = String(session?.societyShareAdjustmentMode || '').toUpperCase();
+    return mode === 'MANDATORY' || mode === 'OPTIONAL' ? mode : 'DISABLED';
 }
 
 export interface TontineMember {
@@ -39,6 +49,8 @@ export interface TontineMember {
     societyShareStatus?: 'AUTO' | 'CONFIRMED' | 'ADJUSTED' | null;
     /** Validée ou corrigée par le chef de recouvrement : la saisie du commercial est refusée. */
     societyShareLocked?: boolean;
+    /** Part calculée par le système (serveur), avant toute saisie. */
+    societyShareComputed?: number | null;
 }
 
 export interface TontineMemberView extends TontineMember {

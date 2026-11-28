@@ -53,7 +53,8 @@ export function mapApiMemberToLocal(
     currentMonthDays: member.currentMonthDays ?? 0,
     societyShareOverride: member.societyShareOverride ?? null,
     societyShareStatus: member.societyShareStatus ?? 'AUTO',
-    societyShareLocked: member.societyShareLocked === true
+    societyShareLocked: member.societyShareLocked === true,
+    societyShareComputed: member.societyShareComputed ?? null
   };
 }
 

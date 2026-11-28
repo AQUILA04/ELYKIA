@@ -95,7 +95,7 @@ Lorsque l’agence a activé la vérification automatique, le badge **Vérifié*
 
 ### Valider ou corriger la part société d’un membre tontine
 
-En haut du formulaire de contrôle tontine, le bloc **Part société** affiche la part en place et son état (**Calcul automatique, non validée**, **Confirmée par le commercial**, **Réajustée par le commercial**, **Validée** ou **Corrigée par le chef de recouvrement**). Saisissez la part société de toute l’année, un commentaire si besoin, puis touchez **Valider / corriger la part société** :
+En haut du formulaire de contrôle tontine, le bloc **Part société** affiche le total cotisé (hors livraison), la part société du système, la part en place, le total disponible et l’état de la part (**Calcul automatique, non validée**, **Confirmée par le commercial**, **Réajustée par le commercial**, **Validée** ou **Corrigée par le chef de recouvrement**). Saisissez la part société de toute l’année : le **total disponible réel après saisie** s’affiche aussitôt. Ajoutez une note d’observation si besoin, puis touchez **Valider / corriger la part société**. Le bloc est absent quand le réajustement est désactivé pour la session (actualisez le pack pour voir les montants si certains manquent) :
 
 - montant **égal** à la part en place : la part est validée, sans autre mise à jour ;
 - montant **différent** : la part du membre est corrigée et son solde disponible recalculé immédiatement, sans validation supplémentaire.

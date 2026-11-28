@@ -17,4 +17,5 @@ public class TontineSessionDto {
     private Integer memberCount;
     private Double totalCollected;
     private Double totalRevenue;
+    private String societyShareAdjustmentMode;
 }

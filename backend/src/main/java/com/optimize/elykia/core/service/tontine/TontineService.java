@@ -177,6 +177,14 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
         session.setStartDate(dto.getStartDate());
         session.setEndDate(dto.getEndDate());
+        if (dto.getSocietyShareAdjustmentMode() != null
+                && dto.getSocietyShareAdjustmentMode() != session.getSocietyShareAdjustmentMode()) {
+            if (session.getStatus() == TontineSessionStatus.ENDED) {
+                throw new CustomValidationException(
+                        "La session est terminée : le réajustement de la part société ne peut plus être modifié.");
+            }
+            session.setSocietyShareAdjustmentMode(dto.getSocietyShareAdjustmentMode());
+        }
 
         return tontineSessionRepository.save(session);
     }

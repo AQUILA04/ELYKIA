@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.elykia.core.enumaration.TontineSocietyShareAdjustmentMode;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -13,4 +14,7 @@ public class TontineSessionUpdateDto {
 
     @NotNull(message = "La date de fin ne peut pas être nulle.")
     private LocalDate endDate;
+
+    /** Facultatif : absent, le mode de réajustement de la part société ne change pas. */
+    private TontineSocietyShareAdjustmentMode societyShareAdjustmentMode;
 }
