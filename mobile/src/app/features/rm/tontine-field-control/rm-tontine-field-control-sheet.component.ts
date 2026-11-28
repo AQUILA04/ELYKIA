@@ -549,7 +549,27 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
   get canReviewSocietyShare(): boolean {
     return !!this.societyShareWrite
       && !!this.member
+      && this.member.societyShareAdjustmentMode !== 'DISABLED'
       && String(this.member.deliveryStatus || '').toUpperCase() !== 'DELIVERED';
+  }
+
+  /** Total cotisé hors livraison (pack récent) ; sinon le total cotisé. */
+  get societyShareRegularTotal(): number {
+    return this.member?.regularContribution ?? this.member?.totalContribution ?? 0;
+  }
+
+  /** Disponible réel si la part saisie est retenue (null tant que rien n'est saisi ou sans solde dans le pack). */
+  get societyShareAvailableAfter(): number | null {
+    const raw = this.societyShareAmount;
+    if (raw === null || raw === undefined || String(raw) === '' || this.member?.availableContribution == null) {
+      return null;
+    }
+    const amount = Number(raw);
+    if (!Number.isFinite(amount) || amount < 0) {
+      return null;
+    }
+    const declared = Math.min(Math.round(amount), this.societyShareRegularTotal);
+    return Math.max(0, (this.member.availableContribution ?? 0) + (this.member.societyShare ?? 0) - declared);
   }
 
   societyShareStatusText(): string {
@@ -581,6 +601,8 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
         ...this.member,
         societyShare: outcome.result.memberSocietyShare ?? this.member.societyShare,
         societyShareStatus: outcome.result.memberSocietyShareStatus ?? this.member.societyShareStatus,
+        availableContribution: outcome.result.memberAvailableContribution ?? this.societyShareAvailableAfter
+          ?? this.member.availableContribution,
         societyShareLocked: true
       };
       const label = outcome.result.outcome === 'VALIDATED' ? 'Part société conforme : validée.' : 'Part société corrigée.';

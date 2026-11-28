@@ -28,6 +28,14 @@ public class RmPackTontineMemberDto {
     private String societyShareStatus;
     /** Déjà validée ou corrigée par un chef de recouvrement. */
     private Boolean societyShareLocked;
+    /** Part calculée par le système (avant toute saisie). */
+    private Double societyShareComputed;
+    /** Solde disponible en place. */
+    private Double availableContribution;
+    /** Total cotisé hors collectes de livraison (base de la part société). */
+    private Double regularContribution;
+    /** MANDATORY, OPTIONAL ou DISABLED (session du membre). */
+    private String societyShareAdjustmentMode;
     /** Totaux mensuels agrégés (rétrocompat packs déjà téléchargés). */
     private List<RmPackTontineMonthDto> months;
     /** Répartition des montants système par commercial collecteur. */

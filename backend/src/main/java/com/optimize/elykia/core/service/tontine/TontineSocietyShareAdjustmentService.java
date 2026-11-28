@@ -13,6 +13,7 @@ import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSocietyShareAdjustment;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
+import com.optimize.elykia.core.enumaration.TontineSocietyShareAdjustmentMode;
 import com.optimize.elykia.core.enumaration.TontineSocietyShareAdjustmentOutcome;
 import com.optimize.elykia.core.enumaration.TontineSocietyShareAdjustmentSource;
 import com.optimize.elykia.core.enumaration.TontineSocietyShareStatus;
@@ -77,11 +78,44 @@ public class TontineSocietyShareAdjustmentService {
         if (dto == null || dto.getDeclaredSocietyShare() == null) {
             return null;
         }
+        if (modeOf(member) == TontineSocietyShareAdjustmentMode.DISABLED) {
+            // Réajustement désactivé pour la session : la saisie jointe est ignorée, la commande continue.
+            return null;
+        }
         if (dto.getSource() == null) {
             dto.setSource(TontineSocietyShareAdjustmentSource.DELIVERY_CREATION);
         }
         TontineMember locked = memberRepository.findByIdForUpdate(member.getId()).orElse(member);
         return apply(locked, dto, deliveryReference, false);
+    }
+
+    /**
+     * Session en mode obligatoire : une commande ou une livraison directe ne passe pas tant que la part
+     * société du membre n'a été ni validée ni corrigée, sauf si la saisie arrive avec la commande.
+     * Sans collecte régulière, il n'y a rien à réajuster : la commande n'est pas bloquée.
+     */
+    @Transactional(readOnly = true)
+    public void requireMandatoryStep(TontineMember member, AdjustTontineSocietyShareDto dto) {
+        if (modeOf(member) != TontineSocietyShareAdjustmentMode.MANDATORY) {
+            return;
+        }
+        if (dto != null && dto.getDeclaredSocietyShare() != null) {
+            return;
+        }
+        if (member.getSocietyShareStatus() != null && member.getSocietyShareStatus() != TontineSocietyShareStatus.AUTO) {
+            return;
+        }
+        if (member.getDeliveryStatus() == TontineMemberDeliveryStatus.DELIVERED || regularTotal(member) <= 0.0) {
+            return;
+        }
+        throw new CustomValidationException(
+                "Réajustement de la part société obligatoire : saisissez la part société réelle de ce membre "
+                        + "avant d'enregistrer la commande ou la livraison.");
+    }
+
+    static TontineSocietyShareAdjustmentMode modeOf(TontineMember member) {
+        return TontineSocietyShareAdjustmentMode.orDefault(
+                member.getTontineSession() != null ? member.getTontineSession().getSocietyShareAdjustmentMode() : null);
     }
 
     /** Retour au calcul automatique (administrateur). */
@@ -128,6 +162,10 @@ public class TontineSocietyShareAdjustmentService {
             }
         }
 
+        if (modeOf(member) == TontineSocietyShareAdjustmentMode.DISABLED) {
+            throw new CustomValidationException(
+                    "Le réajustement de la part société n'est pas activé pour cette session.");
+        }
         User user = userService.getCurrentUser();
         boolean supervisor = isSupervisor(user);
         requireEditable(member);

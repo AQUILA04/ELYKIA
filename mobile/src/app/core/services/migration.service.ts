@@ -172,6 +172,9 @@ export class MigrationService {
       case 41:
         await this.migrateToV41(db);
         break;
+      case 42:
+        await this.migrateToV42(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -1043,6 +1046,12 @@ export class MigrationService {
         lastError TEXT
       );
     `);
+  }
+
+  /** Mode de réajustement de la part société par session et part calculée par le système. */
+  private async migrateToV42(db: SQLiteDBConnection): Promise<void> {
+    await this.migrateAddColumnIfMissing(db, 'v42', 'tontine_sessions', 'societyShareAdjustmentMode', 'TEXT');
+    await this.addColumnIfNotExists(db, 'tontine_members', 'societyShareComputed', 'REAL');
   }
 
   private async migrateToV39(db: SQLiteDBConnection): Promise<void> {

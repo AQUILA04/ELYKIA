@@ -1,0 +1,56 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title>Réajuster la part société</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()" data-testid="e2e-society-share-cancel">Annuler</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" data-testid="e2e-society-share-form">
+  <p class="client" *ngIf="data.clientName">{{ data.clientName }}</p>
+
+  <p class="mandatory" *ngIf="data.mandatory" data-testid="e2e-society-share-mandatory">
+    Étape obligatoire pour cette session : enregistrez la part société réelle avant la commande ou la livraison directe.
+  </p>
+
+  <section class="amounts">
+    <div class="row">
+      <span>Total cotisé (hors livraison)</span>
+      <strong data-testid="e2e-society-share-total">{{ format(data.regularContribution) }}</strong>
+    </div>
+    <div class="row">
+      <span>Part société du système</span>
+      <strong data-testid="e2e-society-share-system">{{ format(data.systemSocietyShare) }}</strong>
+    </div>
+    <div class="row" *ngIf="data.currentSocietyShare !== data.systemSocietyShare">
+      <span>Part société retenue</span>
+      <strong>{{ format(data.currentSocietyShare) }}</strong>
+    </div>
+    <div class="row">
+      <span>Total disponible</span>
+      <strong data-testid="e2e-society-share-available">{{ format(data.currentAvailable) }}</strong>
+    </div>
+  </section>
+
+  <ion-item lines="none" class="field">
+    <ion-input type="number" inputmode="numeric" min="0" label="Part société réelle de l'année (FCFA)"
+      labelPlacement="stacked" [(ngModel)]="amount" (ionInput)="error = null"
+      data-testid="e2e-tontine-society-share-input"></ion-input>
+  </ion-item>
+  <ion-item lines="none" class="field">
+    <ion-textarea label="Note d'observation (facultative)" labelPlacement="stacked" [autoGrow]="true"
+      [(ngModel)]="comment" data-testid="e2e-tontine-society-share-comment"></ion-textarea>
+  </ion-item>
+
+  <div class="after" *ngIf="availableAfter !== null" data-testid="e2e-society-share-available-after">
+    <span>Total disponible réel après saisie</span>
+    <strong>{{ format(availableAfter) }}</strong>
+  </div>
+
+  <p class="error" *ngIf="error" role="alert">{{ error }}</p>
+
+  <ion-button expand="block" (click)="save()" data-testid="e2e-tontine-society-share-save">
+    {{ data.submitLabel || 'Enregistrer' }}
+  </ion-button>
+</ion-content>

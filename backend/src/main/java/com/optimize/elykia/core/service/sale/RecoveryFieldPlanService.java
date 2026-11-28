@@ -518,6 +518,12 @@ public class RecoveryFieldPlanService {
                 .societyShare(member.getSocietyShare())
                 .societyShareStatus(member.getSocietyShareStatus() != null ? member.getSocietyShareStatus().name() : "AUTO")
                 .societyShareLocked(Boolean.TRUE.equals(member.getSocietyShareLocked()))
+                .societyShareComputed(member.getSocietyShareComputed() != null ? member.getSocietyShareComputed() : member.getSocietyShare())
+                .availableContribution(member.getAvailableContribution())
+                .regularContribution(Math.max(0.0, (member.getTotalContribution() != null ? member.getTotalContribution() : 0.0)
+                        - (member.getTotalDeliveryCollections() != null ? member.getTotalDeliveryCollections() : 0.0)))
+                .societyShareAdjustmentMode(com.optimize.elykia.core.enumaration.TontineSocietyShareAdjustmentMode.orDefault(
+                        member.getTontineSession() != null ? member.getTontineSession().getSocietyShareAdjustmentMode() : null).name())
                 .months(months)
                 .collectors(collectors)
                 .build();
@@ -631,6 +637,12 @@ public class RecoveryFieldPlanService {
                     .societyShare(member.getSocietyShare())
                     .societyShareStatus(member.getSocietyShareStatus() != null ? member.getSocietyShareStatus().name() : "AUTO")
                     .societyShareLocked(Boolean.TRUE.equals(member.getSocietyShareLocked()))
+                    .societyShareComputed(member.getSocietyShareComputed() != null ? member.getSocietyShareComputed() : member.getSocietyShare())
+                    .availableContribution(member.getAvailableContribution())
+                    .regularContribution(Math.max(0.0, (member.getTotalContribution() != null ? member.getTotalContribution() : 0.0)
+                            - (member.getTotalDeliveryCollections() != null ? member.getTotalDeliveryCollections() : 0.0)))
+                    .societyShareAdjustmentMode(com.optimize.elykia.core.enumaration.TontineSocietyShareAdjustmentMode.orDefault(
+                            member.getTontineSession() != null ? member.getTontineSession().getSocietyShareAdjustmentMode() : null).name())
                     .months(months)
                     .collectors(collectors)
                     .build());

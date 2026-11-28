@@ -1,7 +1,8 @@
 import { warehouseStockLabel } from 'src/app/core/utils/warehouse-stock.util';
 import { Component, OnInit, OnDestroy, Optional, ViewChild } from '@angular/core';
 import { TontineSocietyShareService, newSocietyShareReference } from 'src/app/core/services/tontine-society-share.service';
-import { SocietyShareInput, promptSocietyShare, regularContributionOf } from 'src/app/core/utils/tontine-society-share-prompt.util';
+import { SocietyShareInput, regularContributionOf } from 'src/app/core/utils/tontine-society-share-prompt.util';
+import { openSocietyShareForm } from 'src/app/shared/components/tontine-society-share-modal/tontine-society-share-modal.component';
 import { societyShareIncreaseOf } from 'src/app/core/services/tontine-calculation.service';
 import { FeedbackService } from 'src/app/core/services/feedback.service';
 import { tontineCeilingExceededMessage } from 'src/app/core/utils/tontine-order-ceiling.util';
@@ -24,7 +25,7 @@ import { DatabaseService } from 'src/app/core/services/database.service';
 import { ArticleService } from 'src/app/core/services/article.service';
 import { TontineCalculationService } from 'src/app/core/services/tontine-calculation.service';
 
-import { TontineMember, TontineSession, TontineDelivery, TontineDeliveryItem, TontineStock, TontineDeliveryCreationMode } from 'src/app/models/tontine.model';
+import { TontineMember, TontineSession, TontineDelivery, TontineDeliveryItem, TontineStock, TontineDeliveryCreationMode, societyShareModeOf } from 'src/app/models/tontine.model';
 import { Article } from 'src/app/models/article.model';
 import { Client } from 'src/app/models/client.model';
 import {
@@ -126,6 +127,10 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     societyShareInput: SocietyShareInput | null = null;
     /** Total cotisé hors collectes de livraison (la part société ne peut pas le dépasser). */
     regularContribution = 0;
+    /** Part calculée par le système (affichée dans le formulaire de réajustement). */
+    systemSocietyShare = 0;
+    /** Saisie de la fiche membre faite hors ligne, pas encore envoyée : l'étape obligatoire est faite. */
+    private hasPendingSocietyShare = false;
     private readonly societyShareReference = newSocietyShareReference('SSA-CMD');
 
     private currentSearchQuery = '';
@@ -292,6 +297,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 return;
             }
         }
+
+        await this.ensureMandatorySocietyShare();
     }
 
     async ionViewWillEnter() {
@@ -337,7 +344,9 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             this.vm.member = members.find(m => String(m.id) === String(this.memberId)) || null;
             if (this.vm.member && this.societyShareService) {
                 // Part société saisie hors ligne sur la fiche membre : appliquée jusqu'à son envoi.
+                const before = this.vm.member;
                 this.vm.member = await this.societyShareService.withPendingOverride(this.vm.member);
+                this.hasPendingSocietyShare = this.vm.member !== before;
             }
             if (this.vm.member && this.societyShareInput) {
                 this.vm.member = { ...this.vm.member, societyShareOverride: this.societyShareInput.amount };
@@ -358,6 +367,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                     );
                     this.vm.societyShare = status.societyShare;
                     this.vm.availableBudget = status.availableBudget;
+                    this.systemSocietyShare = this.vm.member.societyShareComputed
+                        ?? status.computedSocietyShare ?? status.societyShare;
                     const estimated = await this.tontineCalculationService.projectBalance(
                         this.vm.member,
                         this.vm.session,
@@ -392,35 +403,90 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         if (String(this.vm.session.status || '').toUpperCase() === 'ENDED') {
             return false;
         }
+        if (societyShareModeOf(this.vm.session) === 'DISABLED') {
+            return false;
+        }
         return this.regularContribution > 0;
+    }
+
+    /**
+     * Session en mode obligatoire : la part société réelle est saisie avant la commande ou la livraison
+     * directe, sauf si elle est déjà validée, corrigée ou saisie (en attente d'envoi ou sur cet écran).
+     */
+    societyShareStepRequired(): boolean {
+        const member = this.vm.member;
+        if (!member || societyShareModeOf(this.vm.session) !== 'MANDATORY' || !this.canAdjustSocietyShare()) {
+            return false;
+        }
+        if (this.societyShareInput || this.hasPendingSocietyShare || member.societyShareLocked) {
+            return false;
+        }
+        return (member.societyShareStatus || 'AUTO') === 'AUTO';
+    }
+
+    /** Ouvre l'étape obligatoire ; sans saisie, l'écran se ferme. Renvoie false si l'étape n'est pas faite. */
+    private async ensureMandatorySocietyShare(): Promise<boolean> {
+        if (!this.vm.session) {
+            try {
+                const session = await firstValueFrom(this.store.select(selectTontineSession).pipe(take(1)));
+                if (session) {
+                    this.vm.session = session;
+                }
+            } catch {
+                // Session pas encore chargée : le serveur contrôle aussi l'étape.
+            }
+        }
+        if (!this.societyShareStepRequired()) {
+            return true;
+        }
+        const done = await this.adjustSocietyShare(true);
+        if (!done) {
+            await this.feedback.warning(
+                'Le réajustement de la part société est obligatoire pour cette session avant la commande ou la livraison directe.',
+                { title: 'Part société obligatoire' }
+            );
+            this.navCtrl.back();
+            return false;
+        }
+        return true;
     }
 
     /**
      * Part société réelle saisie pendant la commande : le solde et le plafond sont recalculés tout de suite,
      * et la part part avec la commande (même requête) pour être appliquée avant le contrôle du plafond.
      */
-    async adjustSocietyShare(): Promise<void> {
+    async adjustSocietyShare(mandatory = false): Promise<boolean> {
         if (!this.canAdjustSocietyShare() || !this.vm.member) {
-            return;
+            return false;
         }
         if (this.vm.member.societyShareLocked) {
             await this.feedback.warning(
                 'Le chef de recouvrement a déjà validé la part société de ce membre : elle ne peut plus être modifiée ici.',
                 { title: 'Part société validée' }
             );
-            return;
+            return false;
         }
-        const input = await promptSocietyShare(this.alertCtrl, this.regularContribution);
+        const client = this.vm.client;
+        const input = await openSocietyShareForm(this.modalCtrl, {
+            clientName: client?.fullName || [client?.firstname, client?.lastname].filter(Boolean).join(' ') || undefined,
+            regularContribution: this.regularContribution,
+            systemSocietyShare: this.systemSocietyShare,
+            currentSocietyShare: this.vm.societyShare,
+            currentAvailable: this.vm.availableBudget,
+            mandatory,
+            submitLabel: mandatory ? 'Enregistrer et continuer' : 'Enregistrer'
+        });
         if (!input) {
-            return;
+            return false;
         }
         this.societyShareInput = input;
         await this.loadMemberData();
         await this.feedback.success(
             `Part société prise en compte. Nouveau solde disponible : ${Math.round(this.vm.availableBudget).toLocaleString('fr-FR')} FCFA. `
-            + 'Elle sera enregistrée avec la commande.',
+            + 'Elle sera enregistrée avec la commande ou la livraison.',
             { title: 'Part société' }
         );
+        return true;
     }
 
     loadCatalogue() {
@@ -834,6 +900,9 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     }
 
     private async confirmAndProcess(mode: TontineDeliveryCreationMode): Promise<void> {
+        if (!(await this.ensureMandatorySocietyShare())) {
+            return;
+        }
         const isOrder = mode === 'ORDER';
         if (isOrder && !canCreateTontineOrder(this.vm.session?.status)) {
             await this.showSessionGateMessage('ORDER');
@@ -925,6 +994,13 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         }
         if (!isOrder && !this.isDirectDeliveryAllowed()) {
             await this.showSessionGateMessage('DIRECT');
+            return;
+        }
+        if (this.societyShareStepRequired()) {
+            await this.feedback.warning(
+                'Réajustez d\'abord la part société de ce membre : c\'est obligatoire pour cette session.',
+                { title: 'Part société obligatoire' }
+            );
             return;
         }
         if (this.exceedsProjected()) {

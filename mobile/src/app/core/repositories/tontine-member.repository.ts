@@ -21,8 +21,8 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
         const query = `
       INSERT OR REPLACE INTO tontine_members (
         id, tontineSessionId, clientId, commercialUsername, totalContribution, deliveryStatus, registrationDate, isLocal, isSync, syncDate, syncHash, frequency, amount, notes, updateScope, operationConsentCode, societyShare, availableContribution, validatedMonths, currentMonthDays,
-        societyShareOverride, societyShareStatus, societyShareLocked
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        societyShareOverride, societyShareStatus, societyShareLocked, societyShareComputed
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
         const set: capSQLiteSet[] = entities.map(m => {
@@ -36,7 +36,8 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
                     member.operationConsentCode || null,
                     member.societyShare ?? 0, member.availableContribution ?? 0, member.validatedMonths ?? 0, member.currentMonthDays ?? 0,
                     member.societyShareOverride ?? null, member.societyShareStatus || 'AUTO',
-                    member.societyShareLocked === true || member.societyShareLocked === 1 ? 1 : 0
+                    member.societyShareLocked === true || member.societyShareLocked === 1 ? 1 : 0,
+                    member.societyShareComputed ?? null
                 ]
             };
         });

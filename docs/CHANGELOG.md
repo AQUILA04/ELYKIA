@@ -9,6 +9,26 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend, Frontend & Mobile — 2026-11-28 (réajustement de la part société par session)
+
+### Added
+
+- **Backend 1.68.0 → mode de réajustement par session →** colonne `society_share_adjustment_mode` sur `tontine_session` (Flyway V051) : `MANDATORY` (obligatoire), `OPTIONAL` (facultatif) ou `DISABLED` (aucun). Session 2026 : obligatoire ; une nouvelle session démarre sans réajustement. Modifiable par `PUT /sessions/current` tant que la session n'est pas terminée (`ENDED`), donc aussi après la clôture.
+- **Backend 1.68.0 → étape obligatoire →** en mode obligatoire, la première commande ou la livraison directe d'un membre est refusée tant que sa part société n'a été ni validée ni corrigée, sauf si la saisie arrive avec la commande. Sans collecte régulière, rien n'est imposé.
+- **Backend 1.68.0 →** `TontineMemberRespDto.societyShareComputed` (part du système) ; le pack du chef de recouvrement porte aussi la part du système, le solde disponible, le total cotisé hors livraison et le mode de la session.
+- **Frontend 2.69.0 → Paramètres de la session →** liste **Réajustement de la part société** (Obligatoire, Facultatif, Aucun).
+- **Frontend 2.69.0 / Mobile 2.53.0 → formulaire de réajustement →** total cotisé (hors livraison), part société du système, total disponible, part réelle, note d'observation facultative, puis **Total disponible réel après saisie**, recalculé pendant la frappe. Même contenu dans le contrôle du chef de recouvrement.
+- **Frontend 2.69.0 / Mobile 2.53.0 → mode obligatoire →** le formulaire s'ouvre avant le choix des articles (web : **Préparer la livraison** ; mobile : à l'ouverture de la commande, avant la commande comme la livraison directe). Sans saisie, l'écran de commande se ferme.
+
+### Changed
+
+- **Frontend / Mobile → mode Aucun →** les boutons de réajustement sont cachés (fiche membre web et mobile, commande, chef de recouvrement) ; le serveur refuse les saisies et ignore celle jointe à une commande. Les parts déjà saisies restent appliquées.
+- **Frontend 2.69.0 →** le formulaire affiche les montants à tous les profils qui peuvent réajuster (plus seulement avec le droit de voir la part société).
+
+### Fixed
+
+- **Mobile 2.53.0 → import des membres →** la synchronisation n'effaçait plus l'état de la part société (validée, corrigée, verrou du chef de recouvrement) ; une saisie hors ligne pas encore envoyée est réappliquée après l'import, pour que la liste, la fiche et les reçus gardent le disponible réajusté. SQLite v42 (`societyShareAdjustmentMode` sur la session, `societyShareComputed` sur le membre).
+
 ## Backend, Frontend & Mobile — 2026-11-27 (réajustement de la part société tontine)
 
 ### Added

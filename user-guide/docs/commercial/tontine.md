@@ -101,12 +101,17 @@ Quatre indicateurs résument sa position :
 
 ### Réajuster la part société
 Le bouton **Réajuster la part société** (en-tête de la fiche) corrige la part société quand les collectes mal enregistrées donnent un montant différent de celui attendu par l'entreprise. Il est visible pour les commerciaux, les gestionnaires, le chef de recouvrement et les administrateurs, tant que le membre n'est pas livré et qu'il a des cotisations.
-- Saisissez la **part société réelle de toute l'année** et, si besoin, un commentaire.
+- La fenêtre affiche le **total cotisé** (hors collectes à la livraison), la **part société du système**, le **total disponible**, puis le **total disponible réel après saisie** dès que le montant est tapé.
+- Saisissez la **part société réelle de toute l'année** et, si besoin, une note d'observation.
 - Montant **égal** à la part en place : rien ne change, la part est marquée **Validée**.
 - Montant **différent** : il remplace le calcul de l'application. Le **Solde Disponible** et le plafond de la commande en attente sont recalculés tout de suite. Les collectes qui suivent ne modifient plus cette part.
 - La part ne peut pas dépasser le total cotisé hors collectes à la livraison. Ces collectes restent exclues de la part société.
 - Le chef de recouvrement est prioritaire : après sa validation ou sa correction, la saisie d'un commercial est refusée. Une commande en attente qui dépasse le nouveau plafond repasse **En attente** et doit être réduite avant la remise.
 - Un membre déjà livré est en lecture seule.
+- Le réajustement se règle par session, dans **Paramètres de la session** (tableau de bord tontine) : **Obligatoire**, **Facultatif** ou **Aucun**. Le réglage reste modifiable après la clôture, mais plus une fois la session terminée.
+  - **Obligatoire** : **Préparer la livraison** ouvre d'abord la fenêtre de part société si elle n'est ni validée ni corrigée ; la commande n'est possible qu'après l'enregistrement. Le serveur refuse aussi une commande ou une livraison directe faite sans cette étape.
+  - **Facultatif** : le bouton est disponible, sans être imposé.
+  - **Aucun** : le bouton est caché et aucune saisie n'est acceptée ; les parts déjà saisies restent appliquées.
 - L'indicateur **Part Société** affiche **Validée** ou **Corrigée**, avec la mention du chef de recouvrement lorsque c'est lui qui a statué.
 - La section **Historique de la part société** liste chaque saisie : date, auteur, écran d'origine, résultat, part **calculée** par l'application, part **avant** la saisie, montant **saisi**, part **retenue**, solde après et commentaire.
 - Les administrateurs (permission `ROLE_RESET_TONTINE_SOCIETY_SHARE`) peuvent cliquer sur **Revenir au calcul automatique** dans la même fenêtre : la saisie est retirée et l'application reprend son calcul.

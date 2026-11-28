@@ -17,7 +17,8 @@ import { HybridSyncUiService } from 'src/app/core/services/hybrid-sync-ui.servic
 import { OnlineWriteError, WriteErrorKind } from 'src/app/core/services/online-first-write.types';
 import { DailyConsentGuardService } from 'src/app/features/daily-consent/daily-consent-guard.service';
 
-import { TontineMember, TontineCollection, TontineDelivery, TontineDeliveryItem } from 'src/app/models/tontine.model';
+import { TontineMember, TontineCollection, TontineDelivery, TontineDeliveryItem, TontineSocietyShareAdjustmentMode, societyShareModeOf } from 'src/app/models/tontine.model';
+import { openSocietyShareForm } from 'src/app/shared/components/tontine-society-share-modal/tontine-society-share-modal.component';
 import { Client } from 'src/app/models/client.model';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import { loadTontineSession } from 'src/app/store/tontine/tontine.actions';
@@ -49,7 +50,7 @@ import {
 import { FeedbackService } from 'src/app/core/services/feedback.service';
 import { TontineOrderCeilingService } from 'src/app/core/services/tontine-order-ceiling.service';
 import { TontineSocietyShareService } from 'src/app/core/services/tontine-society-share.service';
-import { promptSocietyShare, regularContributionOf } from 'src/app/core/utils/tontine-society-share-prompt.util';
+import { regularContributionOf } from 'src/app/core/utils/tontine-society-share-prompt.util';
 import {
     TontineOrderCeiling,
     tontineCeilingExcess
@@ -86,6 +87,8 @@ export class MemberDetailPage implements OnInit, OnDestroy {
     /** Vrai seulement si la lecture des livraisons a échoué : on ne propose pas une nouvelle commande à l'aveugle. */
     private deliveryLookupFailed = false;
     sessionStatus: string | null = null;
+    /** Réajustement de la part société pour la session (Aucun : boutons cachés). */
+    societyShareMode: TontineSocietyShareAdjustmentMode = 'DISABLED';
 
     vm: MemberDetailViewModel = {
         member: null,
@@ -166,6 +169,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             .subscribe(session => {
                 if (session?.status) {
                     this.sessionStatus = session.status;
+                    this.societyShareMode = societyShareModeOf(session);
                 }
             });
 
@@ -269,6 +273,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             const session = await firstValueFrom(this.tontineService.getSession());
             if (session?.status) {
                 this.sessionStatus = session.status;
+                this.societyShareMode = societyShareModeOf(session);
                 return;
             }
         } catch (error) {
@@ -278,6 +283,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             const current = await firstValueFrom(this.store.select(selectTontineSession).pipe(take(1)));
             if (current?.status) {
                 this.sessionStatus = current.status;
+                this.societyShareMode = societyShareModeOf(current);
             }
         } catch {
             // Le store n'est pas encore prêt : le menu reste masqué tant qu'aucun statut n'est connu.
@@ -339,7 +345,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         if (String(member.deliveryStatus || '').toUpperCase() === 'DELIVERED') {
             return false;
         }
-        if (String(this.sessionStatus || '').toUpperCase() === 'ENDED') {
+        if (String(this.sessionStatus || '').toUpperCase() === 'ENDED' || this.societyShareMode === 'DISABLED') {
             return false;
         }
         return regularContributionOf(this.vm.collections) > 0;
@@ -370,7 +376,15 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             );
             return;
         }
-        const input = await promptSocietyShare(this.alertCtrl, regularContributionOf(this.vm.collections));
+        const member = this.vm.member;
+        const client = this.vm.client;
+        const input = await openSocietyShareForm(this.modalCtrl, {
+            clientName: client?.fullName || [client?.firstname, client?.lastname].filter(Boolean).join(' ') || undefined,
+            regularContribution: regularContributionOf(this.vm.collections),
+            systemSocietyShare: member.societyShareComputed ?? member.societyShare ?? 0,
+            currentSocietyShare: member.societyShare ?? 0,
+            currentAvailable: member.availableContribution ?? 0
+        });
         if (!input) {
             return;
         }

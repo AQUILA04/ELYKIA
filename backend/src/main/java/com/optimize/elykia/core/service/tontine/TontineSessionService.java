@@ -335,6 +335,8 @@ public class TontineSessionService {
                                 .memberCount((int) memberCount)
                                 .totalCollected(totalCollected)
                                 .totalRevenue(session.getTotalRevenue())
+                                .societyShareAdjustmentMode(com.optimize.elykia.core.enumaration.TontineSocietyShareAdjustmentMode
+                                                .orDefault(session.getSocietyShareAdjustmentMode()).name())
                                 .build();
         }
 }

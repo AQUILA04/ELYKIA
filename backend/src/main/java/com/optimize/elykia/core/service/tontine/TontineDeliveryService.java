@@ -114,7 +114,14 @@ public class TontineDeliveryService {
     }
 
     private TontineSocietyShareAdjustmentDto applySocietyShareAdjustment(TontineMember member, CreateDeliveryDto dto) {
-        if (societyShareAdjustmentService == null || dto.getSocietyShareAdjustment() == null
+        if (societyShareAdjustmentService == null) {
+            return null;
+        }
+        if (!isDelivered(member) && deliveryRepository.findByTontineMemberId(member.getId()).isEmpty()) {
+            // Première commande ou livraison directe : l'étape de part société peut être imposée par la session.
+            societyShareAdjustmentService.requireMandatoryStep(member, dto.getSocietyShareAdjustment());
+        }
+        if (dto.getSocietyShareAdjustment() == null
                 || dto.getSocietyShareAdjustment().getDeclaredSocietyShare() == null) {
             return null;
         }

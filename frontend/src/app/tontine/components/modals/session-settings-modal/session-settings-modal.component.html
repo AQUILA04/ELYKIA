@@ -22,6 +22,16 @@
       </mat-error>
     </mat-form-field>
 
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Réajustement de la part société</mat-label>
+      <mat-select formControlName="societyShareAdjustmentMode" data-testid="e2e-session-society-share-mode">
+        <mat-option value="MANDATORY">Obligatoire (avant la commande ou la livraison directe)</mat-option>
+        <mat-option value="OPTIONAL">Facultatif</mat-option>
+        <mat-option value="DISABLED">Aucun (boutons cachés)</mat-option>
+      </mat-select>
+      <mat-hint>Ne peut plus changer une fois la session terminée.</mat-hint>
+    </mat-form-field>
+
     <mat-error *ngIf="error" class="error-message">
       {{ error }}
     </mat-error>

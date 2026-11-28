@@ -513,6 +513,11 @@
         {
           "name": "status",
           "type": "varchar"
+        },
+        {
+          "name": "society_share_adjustment_mode",
+          "type": "varchar",
+          "description": "Réajustement de la part société : MANDATORY (obligatoire), OPTIONAL (facultatif) ou DISABLED (aucun)"
         }
       ]
     },

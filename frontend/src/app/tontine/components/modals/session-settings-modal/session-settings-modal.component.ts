@@ -22,7 +22,8 @@ export class SessionSettingsModalComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       startDate: [null, Validators.required],
-      endDate: [null, Validators.required]
+      endDate: [null, Validators.required],
+      societyShareAdjustmentMode: ['DISABLED']
     });
   }
 
@@ -30,8 +31,13 @@ export class SessionSettingsModalComponent implements OnInit {
     if (this.data.session) {
       this.form.patchValue({
         startDate: new Date(this.data.session.startDate),
-        endDate: new Date(this.data.session.endDate)
+        endDate: new Date(this.data.session.endDate),
+        societyShareAdjustmentMode: this.data.session.societyShareAdjustmentMode || 'DISABLED'
       });
+      if (this.data.session.status === 'ENDED') {
+        // Session terminée : le mode de réajustement ne peut plus changer.
+        this.form.get('societyShareAdjustmentMode')?.disable();
+      }
     }
   }
 
@@ -45,7 +51,10 @@ export class SessionSettingsModalComponent implements OnInit {
 
     const sessionData = {
       startDate: this.formatDate(this.form.value.startDate),
-      endDate: this.formatDate(this.form.value.endDate)
+      endDate: this.formatDate(this.form.value.endDate),
+      ...(this.form.get('societyShareAdjustmentMode')?.enabled
+        ? { societyShareAdjustmentMode: this.form.value.societyShareAdjustmentMode }
+        : {})
     };
 
     this.tontineService.updateCurrentSession(sessionData).subscribe({

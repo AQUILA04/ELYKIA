@@ -16,19 +16,25 @@
         <span class="summary-value">{{ getClientName() }}</span>
       </div>
       <div class="summary-row">
-        <span class="summary-label">Cotisé (hors livraison)</span>
-        <span class="summary-value">{{ formatCurrency(regularContribution) }}</span>
+        <span class="summary-label">Total cotisé (hors livraison)</span>
+        <span class="summary-value" data-testid="e2e-society-share-total">{{ formatCurrency(regularContribution) }}</span>
       </div>
-      <ng-container *ngIf="data.canViewShare">
-        <div class="summary-row">
-          <span class="summary-label">Part société actuelle</span>
-          <span class="summary-value">{{ formatCurrency(data.member.societyShare) }}</span>
-        </div>
-        <div class="summary-row">
-          <span class="summary-label">Solde disponible</span>
-          <span class="summary-value">{{ formatCurrency(data.member.availableContribution) }}</span>
-        </div>
-      </ng-container>
+      <div class="summary-row">
+        <span class="summary-label">Part société du système</span>
+        <span class="summary-value" data-testid="e2e-society-share-system">{{ formatCurrency(systemSocietyShare) }}</span>
+      </div>
+      <div class="summary-row" *ngIf="isAdjusted">
+        <span class="summary-label">Part société retenue</span>
+        <span class="summary-value">{{ formatCurrency(data.member.societyShare) }}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Total disponible</span>
+        <span class="summary-value" data-testid="e2e-society-share-available">{{ formatCurrency(currentAvailable) }}</span>
+      </div>
+    </div>
+
+    <div class="error-banner" *ngIf="data.mandatory" role="note">
+      Étape obligatoire pour cette session : enregistrez la part société réelle avant de préparer la commande.
     </div>
 
     <div class="info-banner">
@@ -59,8 +65,13 @@
         </mat-form-field>
       </div>
 
+      <div class="summary-row available-after" *ngIf="availableAfterEntry !== null" data-testid="e2e-society-share-available-after">
+        <span class="summary-label">Total disponible réel après saisie</span>
+        <span class="summary-value">{{ formatCurrency(availableAfterEntry) }}</span>
+      </div>
+
       <div class="form-field">
-        <label class="field-label" for="society-share-comment">Commentaire (facultatif)</label>
+        <label class="field-label" for="society-share-comment">Note d'observation (facultative)</label>
         <mat-form-field appearance="outline" class="elykia-field">
           <textarea matInput id="society-share-comment" rows="2" formControlName="comment"
                     data-testid="e2e-tontine-society-share-comment"></textarea>
