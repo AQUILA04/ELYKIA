@@ -10,6 +10,24 @@ export interface SpecialDailyStakeDto {
     collector: string;
   }
 
+export interface UnifiedRecoveryUnitDto {
+  creditId: number;
+  clientId?: number;
+  amount: number;
+  recoveryId: string;
+  reliquatGeneratedAmount?: number;
+  reliquatUsedAmount?: number;
+  operationConsentCode?: string | null;
+  confirmedAmount?: number | null;
+}
+
+export interface UnifiedRecoveryBatchDto {
+  collector: string;
+  syncConsentCode?: string | null;
+  source?: 'MOBILE_SYNC' | 'WEB_TFJ_BATCH';
+  recoveries: UnifiedRecoveryUnitDto[];
+}
+
   export interface TicketingDto {
     collector: string;
     totalAmount: number;

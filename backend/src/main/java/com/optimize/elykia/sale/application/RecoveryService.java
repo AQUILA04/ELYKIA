@@ -9,6 +9,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * @deprecated Silo historique non raccordé au moteur de recouvrement unifié
+ *             ({@link com.optimize.elykia.sale.api.CreditRecoveryUseCase}).
+ */
+@Deprecated(since = "2.17.0", forRemoval = true)
 @Service
 @Transactional(readOnly = true)
 public class RecoveryService extends GenericService<Recovery, Long> {

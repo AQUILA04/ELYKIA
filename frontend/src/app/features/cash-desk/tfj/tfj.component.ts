@@ -4,7 +4,7 @@ import { CashDeskService } from '../service/cash-desk.service';
 import { MatTableDataSource } from '@angular/material/table';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { NgxSpinnerService } from 'ngx-spinner';
-import { SpecialDailyStakeDto, DefaultDailyStakeDto, TicketingDto } from '../default-daily-stake-dto';
+import { TicketingDto, UnifiedRecoveryBatchDto } from '../default-daily-stake-dto';
 import { TokenStorageService } from '@shared/service/token-storage.service';
 import { Router } from "@angular/router";
 import { AlertService } from '@shared/service/alert.service';
@@ -194,7 +194,8 @@ export class TFJComponent implements OnInit {
           if (credit.selectedMultiplier === 1) {
             this.normalStake.push({
               clientId: credit.client.id,
-              creditId: credit.id
+              creditId: credit.id,
+              amount: credit.dailyStake
             });
           } else {
             this.specialStake.push({
@@ -238,17 +239,19 @@ export class TFJComponent implements OnInit {
     this.submitData();
   }
 
-  // CORRIGÉ (BUG #4) : Chaînage propre des appels API avec concatMap
+  // Unifié : un seul appel batch /api/v1/credits/recoveries/batch suivi du billetage
   submitData(): void {
-    const defaultDailyStakeDto: DefaultDailyStakeDto = {
-      clientIds: this.normalStake.map(stake => stake.clientId),
-      collector: this.collector,
-      creditIds: this.normalStake.map(stake => stake.creditId),
-    };
-
-    const specialDailyStakeDto: SpecialDailyStakeDto = {
-      stakeUnits: this.specialStake,
+    const batchTimestamp = Date.now();
+    const combinedStakes = [...this.normalStake, ...this.specialStake];
+    const unifiedBatchDto: UnifiedRecoveryBatchDto = {
       collector: this.collector || '',
+      source: 'WEB_TFJ_BATCH',
+      recoveries: combinedStakes.map((stake, index) => ({
+        creditId: stake.creditId,
+        clientId: stake.clientId,
+        amount: stake.amount,
+        recoveryId: `TFJ-${stake.creditId}-${batchTimestamp}-${index}`
+      }))
     };
 
     const ticketingDto: TicketingDto = {
@@ -259,8 +262,7 @@ export class TFJComponent implements OnInit {
 
     this.spinner.show();
 
-    this.cashDeskService.submitOperations(defaultDailyStakeDto).pipe(
-      concatMap(() => this.cashDeskService.submitSpecialDailyStake(specialDailyStakeDto)),
+    this.cashDeskService.submitUnifiedRecoveries(unifiedBatchDto).pipe(
       concatMap(() => this.cashDeskService.submitTicketing(ticketingDto))
     ).subscribe({
         next: (response: any) => {

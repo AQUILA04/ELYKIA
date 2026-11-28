@@ -19,7 +19,7 @@ import com.optimize.elykia.carnet.infrastructure.persistence.CarnetEcartDecision
 import com.optimize.elykia.sale.infrastructure.persistence.CreditFieldControlRepository;
 import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberFieldControlRepository;
 import com.optimize.elykia.sale.application.DebtService;
-import com.optimize.elykia.sale.application.CreditTimelineService;
+import com.optimize.elykia.sale.api.CreditRecoveryUseCase;
 import com.optimize.elykia.tontine.application.TontineService;
 import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.junit.jupiter.api.BeforeEach;
@@ -53,7 +53,7 @@ class CarnetEcartDecisionServiceTest {
     @Mock private CarnetEcartDecisionRepository decisionRepository;
     @Mock private CreditFieldControlRepository creditFieldControlRepository;
     @Mock private TontineMemberFieldControlRepository tontineFieldControlRepository;
-    @Mock private CreditTimelineService creditTimelineService;
+    @Mock private CreditRecoveryUseCase creditRecoveryUseCase;
     @Mock private TontineService tontineService;
     @Mock private DebtService debtService;
     @Mock private UserService userService;
@@ -67,7 +67,7 @@ class CarnetEcartDecisionServiceTest {
                 decisionRepository,
                 creditFieldControlRepository,
                 tontineFieldControlRepository,
-                creditTimelineService,
+                creditRecoveryUseCase,
                 tontineService,
                 debtService,
                 userService,
@@ -91,7 +91,7 @@ class CarnetEcartDecisionServiceTest {
 
         assertEquals(1, result.getIgnored().size());
         assertTrue(result.getSucceeded().isEmpty());
-        verify(creditTimelineService, never()).postFieldControlRecovery(any(), any(Double.class), any());
+        verify(creditRecoveryUseCase, never()).recordFieldControlRecovery(any());
         verify(debtService, never()).createFieldControlShortage(any(), any(), any(Double.class), any(), any(), any());
         verify(decisionRepository, never()).save(any());
     }
@@ -206,7 +206,7 @@ class CarnetEcartDecisionServiceTest {
                 ArgumentCaptor.forClass(com.optimize.elykia.carnet.domain.CarnetEcartDecision.class);
         verify(decisionRepository).save(captor.capture());
         assertEquals(CarnetEcartStatus.REJECTED, captor.getValue().getStatus());
-        verify(creditTimelineService, never()).postFieldControlRecovery(any(), any(Double.class), any());
+        verify(creditRecoveryUseCase, never()).recordFieldControlRecovery(any());
         verify(debtService, never()).createFieldControlShortage(any(), any(), any(Double.class), any(), any(), any());
     }
 

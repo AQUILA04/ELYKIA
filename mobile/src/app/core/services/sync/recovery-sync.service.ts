@@ -6,7 +6,11 @@ import { RecoveryRepositoryExtensions } from '../../repositories/recovery.reposi
 import { AuthService } from '../auth.service';
 import { SyncErrorService } from '../sync-error.service';
 import { Recovery } from '../../../models/recovery.model';
-import { DefaultDailyStakeRequest, DefaultDailyStakeResponse, SpecialDailyStakeRequest, SpecialDailyStakeResponse } from '../../../models/sync.model';
+import {
+    UnifiedRecoveryBatchRequest,
+    UnifiedRecoveryBatchResponse,
+    UnifiedRecoveryUnit
+} from '../../../models/sync.model';
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
 import { DateFilter } from '../../models/date-filter.model';
@@ -17,7 +21,6 @@ import { DateFilter } from '../../models/date-filter.model';
 export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepository> {
     private failedClientIds: string[] = [];
     private failedDistributionIds: string[] = [];
-
 
     constructor(
         protected override http: HttpClient,
@@ -44,78 +47,59 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
     }
 
     /**
-     * Synchronize all unsynced recoveries
-     * Overridden to handle batching and dependencies
+     * Synchronize all unsynced recoveries via the unified batch endpoint.
      */
     override async syncBatch(limit: number = 100, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
         const unsyncedRecoveries = await this.fetchUnsynced(limit, dateFilter);
 
         const validRecoveries: Recovery[] = [];
-        let success = 0;
         let errors = 0;
         const failedIds: string[] = [];
 
         for (const recovery of unsyncedRecoveries) {
             if (this.failedClientIds.includes(recovery.clientId)) {
                 errors++;
+                failedIds.push(recovery.id);
                 await this.syncErrorService.logSyncError('recovery', recovery.id, 'SKIP', new Error('Parent client failed sync'), recovery, `Recovery ${recovery.id}`, recovery);
             } else if (this.failedDistributionIds.includes(recovery.distributionId)) {
                 errors++;
+                failedIds.push(recovery.id);
                 await this.syncErrorService.logSyncError('recovery', recovery.id, 'SKIP', new Error('Parent distribution failed sync'), recovery, `Recovery ${recovery.id}`, recovery);
             } else {
                 validRecoveries.push(recovery);
             }
         }
 
-        // Split into default and special stakes
-        const defaultStakes = validRecoveries.filter(r => r.isDefaultStake);
-        const specialStakes = validRecoveries.filter(r => !r.isDefaultStake);
-
-        // Sync Default Stakes (Batch)
-        if (defaultStakes.length > 0) {
-            try {
-                await this.syncDefaultDailyStakes(defaultStakes);
-                success += defaultStakes.length;
-            } catch (error) {
-                errors += defaultStakes.length;
-                defaultStakes.forEach(r => failedIds.push(r.id));
-                // Error logging is done inside syncDefaultDailyStakes catch block
-            }
+        if (validRecoveries.length === 0) {
+            return { success: 0, errors, failedIds };
         }
 
-        // Sync Special Stakes (Batch)
-        if (specialStakes.length > 0) {
-            try {
-                await this.syncSpecialDailyStakes(specialStakes);
-                success += specialStakes.length;
-            } catch (error) {
-                errors += specialStakes.length;
-                specialStakes.forEach(r => failedIds.push(r.id));
-            }
+        try {
+            const batchOutcome = await this.syncRecoveriesBatch(validRecoveries);
+            return {
+                success: batchOutcome.success,
+                errors: errors + batchOutcome.errors,
+                failedIds: [...failedIds, ...batchOutcome.failedIds]
+            };
+        } catch {
+            validRecoveries.forEach(r => failedIds.push(r.id));
+            return {
+                success: 0,
+                errors: errors + validRecoveries.length,
+                failedIds
+            };
         }
-
-        return { success, errors, failedIds };
     }
 
     async syncSingle(item: Recovery): Promise<any> {
-        // Recovery usually synced in batch.
-        // Implement single sync by creating a batch of 1.
-        if (item.isDefaultStake) {
-            return this.syncDefaultDailyStakes([item]);
-        } else {
-            return this.syncSpecialDailyStakes([item]);
-        }
+        return this.syncRecoveriesBatch([item]);
     }
 
     /**
      * Envoie un encaissement au serveur sans mettre à jour SQLite (online-first).
      */
     async postCreateRecovery(recovery: Recovery): Promise<void> {
-        if (recovery.isDefaultStake) {
-            await this.postDefaultDailyStakes([recovery]);
-        } else {
-            await this.postSpecialDailyStakes([recovery]);
-        }
+        await this.postRecoveriesOnline([recovery]);
     }
 
     protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<Recovery[]> {
@@ -145,89 +129,98 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
             return { success: 0, errors: 0, failedIds: [] };
         }
 
-        // We reuse syncBatch logic but passing the specific list of recoveries is not directly supported by syncBatch signature.
-        // So we implement a similar logic here or refactor syncBatch.
-        // Let's implement specific logic here reusing the batch sync methods.
+        try {
+            return await this.syncRecoveriesBatch(closingRecoveries);
+        } catch {
+            return {
+                success: 0,
+                errors: closingRecoveries.length,
+                failedIds: closingRecoveries.map(r => r.id)
+            };
+        }
+    }
 
+    private async buildUnifiedUnits(recoveries: Recovery[]): Promise<UnifiedRecoveryUnit[]> {
+        const units: UnifiedRecoveryUnit[] = [];
+
+        for (const recovery of recoveries) {
+            const distributionServerId = await this.repository.getServerId(recovery.distributionId, 'distribution');
+            if (!distributionServerId) {
+                continue;
+            }
+            const parsedCreditId = Number.parseInt(distributionServerId, 10);
+            if (Number.isNaN(parsedCreditId)) {
+                continue;
+            }
+
+            let parsedClientId: number | undefined;
+            if (recovery.clientId) {
+                const clientServerId = await this.repository.getServerId(recovery.clientId, 'client');
+                if (clientServerId) {
+                    const candidate = Number.parseInt(clientServerId, 10);
+                    if (!Number.isNaN(candidate)) {
+                        parsedClientId = candidate;
+                    }
+                }
+            }
+
+            units.push({
+                creditId: parsedCreditId,
+                ...(parsedClientId !== undefined ? { clientId: parsedClientId } : {}),
+                amount: recovery.amount,
+                recoveryId: recovery.id,
+                reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
+                reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
+                operationConsentCode: recovery.operationConsentCode ?? null,
+                confirmedAmount: recovery.confirmedAmount ?? null
+            });
+        }
+
+        return units;
+    }
+
+    private async syncRecoveriesBatch(recoveries: Recovery[]): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        const units = await this.buildUnifiedUnits(recoveries);
+        if (units.length === 0) {
+            return { success: 0, errors: 0, failedIds: [] };
+        }
+
+        const currentUser = this.authService.currentUser;
+        const syncRequest: UnifiedRecoveryBatchRequest = {
+            collector: currentUser?.username || '',
+            syncConsentCode: this.syncConsentCode ?? null,
+            source: 'MOBILE_SYNC',
+            recoveries: units
+        };
+
+        const headers = this.getAuthHeaders();
         let success = 0;
         let errors = 0;
         const failedIds: string[] = [];
 
-        // Split into default and special stakes
-        const defaultStakes = closingRecoveries.filter(r => r.isDefaultStake);
-        const specialStakes = closingRecoveries.filter(r => !r.isDefaultStake);
-
-        // Sync Default Stakes (Batch)
-        if (defaultStakes.length > 0) {
-            try {
-                await this.syncDefaultDailyStakes(defaultStakes);
-                success += defaultStakes.length;
-            } catch (error) {
-                errors += defaultStakes.length;
-                defaultStakes.forEach(r => failedIds.push(r.id));
-            }
-        }
-
-        // Sync Special Stakes (Batch)
-        if (specialStakes.length > 0) {
-            try {
-                await this.syncSpecialDailyStakes(specialStakes);
-                success += specialStakes.length;
-            } catch (error) {
-                errors += specialStakes.length;
-                specialStakes.forEach(r => failedIds.push(r.id));
-            }
-        }
-
-        return { success, errors, failedIds };
-    }
-
-    private async syncDefaultDailyStakes(recoveries: Recovery[]): Promise<void> {
-        const stakeUnits = [];
-        const currentUser = this.authService.currentUser;
-
-        for (const recovery of recoveries) {
-            const distributionServerId = await this.repository.getServerId(recovery.distributionId, 'distribution');
-            if (distributionServerId) {
-                stakeUnits.push({
-                    creditId: Number.parseInt(distributionServerId),
-                    recoveryId: recovery.id,
-                    reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
-                    reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
-                    operationConsentCode: recovery.operationConsentCode ?? null,
-                    confirmedAmount: recovery.confirmedAmount ?? null
-                });
-            }
-        }
-
-        if (stakeUnits.length === 0) return;
-
-        const syncRequest: DefaultDailyStakeRequest = {
-            collector: currentUser?.username || '',
-            syncConsentCode: this.syncConsentCode ?? null,
-            stakeUnits
-        };
-
-        const headers = this.getAuthHeaders();
-
         try {
             const response = await firstValueFrom(
-                this.http.post<ApiResponse<DefaultDailyStakeResponse>>(`${this.baseUrl}/api/v1/credits/default-daily-stake`, syncRequest, { headers })
+                this.http.post<ApiResponse<UnifiedRecoveryBatchResponse>>(
+                    `${this.baseUrl}/api/v1/credits/recoveries/batch`,
+                    syncRequest,
+                    { headers }
+                )
             );
 
             if (response?.data) {
                 const result = response.data;
 
-                // Handle successful recoveries
                 if (result.successRecoveryIds && Array.isArray(result.successRecoveryIds)) {
                     for (const recoveryId of result.successRecoveryIds) {
                         await this.repository.markAsSynced(recoveryId);
+                        success++;
                     }
                 }
 
-                // Handle failed recoveries
                 if (result.failedRecoveries && Array.isArray(result.failedRecoveries)) {
                     for (const failed of result.failedRecoveries) {
+                        errors++;
+                        failedIds.push(failed.recoveryId);
                         const recovery = recoveries.find(r => r.id === failed.recoveryId);
                         if (recovery) {
                             await this.syncErrorService.logSyncError(
@@ -243,6 +236,7 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
                     }
                 }
             }
+            return { success, errors, failedIds };
         } catch (error) {
             for (const recovery of recoveries) {
                 await this.syncErrorService.logSyncError('recovery', recovery.id, 'CREATE', error, syncRequest, `Recovery ${recovery.id}`, recovery);
@@ -251,165 +245,28 @@ export class RecoverySyncService extends BaseSyncService<Recovery, RecoveryRepos
         }
     }
 
-    private async syncSpecialDailyStakes(recoveries: Recovery[]): Promise<void> {
-        const stakeUnits = [];
-        const currentUser = this.authService.currentUser;
+    private async postRecoveriesOnline(recoveries: Recovery[]): Promise<void> {
+        const units = await this.buildUnifiedUnits(recoveries);
 
-        for (const recovery of recoveries) {
-            if (recovery.clientId && recovery.distributionId) {
-                const clientServerId = await this.repository.getServerId(recovery.clientId, 'client');
-                const distributionServerId = await this.repository.getServerId(recovery.distributionId, 'distribution');
-
-                if (clientServerId && distributionServerId) {
-                    const parsedCreditId = Number.parseInt(distributionServerId, 10);
-                    const parsedClientId = Number.parseInt(clientServerId, 10);
-
-                    if (!Number.isNaN(parsedCreditId) && !Number.isNaN(parsedClientId)) {
-                        stakeUnits.push({
-                            amount: recovery.amount,
-                            creditId: parsedCreditId,
-                            clientId: parsedClientId,
-                            recoveryId: recovery.id,
-                            reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
-                            reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
-                            operationConsentCode: recovery.operationConsentCode ?? null,
-                            confirmedAmount: recovery.confirmedAmount ?? null
-                        });
-                    }
-                }
-            }
-        }
-
-        if (stakeUnits.length === 0) return;
-
-        const syncRequest: SpecialDailyStakeRequest = {
-            collector: currentUser?.username || '',
-            syncConsentCode: this.syncConsentCode ?? null,
-            stakeUnits
-        };
-
-        const headers = this.getAuthHeaders();
-
-        try {
-            const response = await firstValueFrom(
-                this.http.post<ApiResponse<SpecialDailyStakeResponse>>(`${this.baseUrl}/api/v1/credits/special-daily-stake`, syncRequest, { headers })
-            );
-
-            if (response?.data) {
-                const result = response.data;
-
-                // Handle successful recoveries
-                if (result.successRecoveryIds && Array.isArray(result.successRecoveryIds)) {
-                    for (const recoveryId of result.successRecoveryIds) {
-                        await this.repository.markAsSynced(recoveryId);
-                    }
-                }
-
-                // Handle failed recoveries
-                if (result.failedRecoveries && Array.isArray(result.failedRecoveries)) {
-                    for (const failed of result.failedRecoveries) {
-                        const recovery = recoveries.find(r => r.id === failed.recoveryId);
-                        if (recovery) {
-                            await this.syncErrorService.logSyncError(
-                                'recovery',
-                                recovery.id,
-                                'CREATE',
-                                new Error(failed.errorMessage),
-                                syncRequest,
-                                `Recovery ${recovery.id}`,
-                                recovery
-                            );
-                        }
-                    }
-                }
-            }
-        } catch (error) {
-            // Fallback for global errors (network, etc.)
-            for (const recovery of recoveries) {
-                await this.syncErrorService.logSyncError('recovery', recovery.id, 'CREATE', error, syncRequest, `Recovery ${recovery.id}`, recovery);
-            }
-            throw error;
-        }
-    }
-
-    private async postDefaultDailyStakes(recoveries: Recovery[]): Promise<void> {
-        const stakeUnits = [];
-        const currentUser = this.authService.currentUser;
-
-        for (const recovery of recoveries) {
-            const distributionServerId = await this.repository.getServerId(recovery.distributionId, 'distribution');
-            if (distributionServerId) {
-                stakeUnits.push({
-                    creditId: Number.parseInt(distributionServerId, 10),
-                    recoveryId: recovery.id,
-                    reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
-                    reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
-                    operationConsentCode: recovery.operationConsentCode ?? null,
-                    confirmedAmount: recovery.confirmedAmount ?? null
-                });
-            }
-        }
-
-        if (stakeUnits.length === 0) {
+        if (units.length === 0) {
             throw new Error('Impossible de synchroniser l\'encaissement : crédit parent introuvable sur le serveur.');
         }
 
-        const syncRequest: DefaultDailyStakeRequest = {
-            collector: currentUser?.username || '',
-            syncConsentCode: this.syncConsentCode ?? null,
-            stakeUnits
-        };
-
-        const headers = this.getAuthHeaders();
-        const response = await firstValueFrom(
-            this.http.post<ApiResponse<DefaultDailyStakeResponse>>(`${this.baseUrl}/api/v1/credits/default-daily-stake`, syncRequest, { headers })
-        );
-
-        this.assertRecoveryPushSuccess(recoveries, response?.data?.successRecoveryIds, response?.data?.failedRecoveries);
-    }
-
-    private async postSpecialDailyStakes(recoveries: Recovery[]): Promise<void> {
-        const stakeUnits = [];
         const currentUser = this.authService.currentUser;
-
-        for (const recovery of recoveries) {
-            if (recovery.clientId && recovery.distributionId) {
-                const clientServerId = await this.repository.getServerId(recovery.clientId, 'client');
-                const distributionServerId = await this.repository.getServerId(recovery.distributionId, 'distribution');
-
-                if (clientServerId && distributionServerId) {
-                    const parsedCreditId = Number.parseInt(distributionServerId, 10);
-                    const parsedClientId = Number.parseInt(clientServerId, 10);
-
-                    if (!Number.isNaN(parsedCreditId) && !Number.isNaN(parsedClientId)) {
-                        stakeUnits.push({
-                            amount: recovery.amount,
-                            creditId: parsedCreditId,
-                            clientId: parsedClientId,
-                            recoveryId: recovery.id,
-                            reliquatGeneratedAmount: recovery.reliquatGeneratedAmount || 0,
-                            reliquatUsedAmount: recovery.reliquatUsedAmount || 0,
-                            operationConsentCode: recovery.operationConsentCode ?? null,
-                            confirmedAmount: recovery.confirmedAmount ?? null
-                        });
-                    }
-                }
-            }
-        }
-
-        if (stakeUnits.length === 0) {
-            throw new Error('Impossible de synchroniser l\'encaissement : client ou crédit parent introuvable sur le serveur.');
-        }
-
-        const syncRequest: SpecialDailyStakeRequest = {
+        const syncRequest: UnifiedRecoveryBatchRequest = {
             collector: currentUser?.username || '',
             syncConsentCode: this.syncConsentCode ?? null,
-            stakeUnits
+            source: 'MOBILE_SYNC',
+            recoveries: units
         };
 
         const headers = this.getAuthHeaders();
         const response = await firstValueFrom(
-            this.http.post<ApiResponse<SpecialDailyStakeResponse>>(`${this.baseUrl}/api/v1/credits/special-daily-stake`, syncRequest, { headers })
+            this.http.post<ApiResponse<UnifiedRecoveryBatchResponse>>(
+                `${this.baseUrl}/api/v1/credits/recoveries/batch`,
+                syncRequest,
+                { headers }
+            )
         );
 
         this.assertRecoveryPushSuccess(recoveries, response?.data?.successRecoveryIds, response?.data?.failedRecoveries);

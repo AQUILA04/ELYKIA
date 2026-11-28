@@ -8,6 +8,10 @@ import lombok.ToString;
 
 import java.time.LocalDate;
 
+/**
+ * @deprecated Silo historique non raccordé au moteur de recouvrement unifié ({@link CreditTimeline}).
+ */
+@Deprecated(since = "2.17.0", forRemoval = true)
 @Getter
 @Setter
 @ToString

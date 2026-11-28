@@ -6,6 +6,7 @@ import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
+import com.optimize.elykia.finance.domain.DailyAccountancy;
 import com.optimize.elykia.sale.domain.policy.SaleLifecyclePolicies;
 import com.optimize.elykia.sale.domain.policy.SaleLifecyclePolicy;
 import com.optimize.elykia.sale.web.dto.DistributeArticleDto;
@@ -21,6 +22,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Entity
 @Getter
@@ -327,6 +330,136 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
     }
 
 
+    private static final double RECOVERY_EPSILON = 0.001;
+
+    /**
+     * Applique un recouvrement unifié sur l'agrégat {@link Credit} en garantissant tous les
+     * invariants financiers : vérification du statut, borne du montant, recalcul déterministe de
+     * {@code remainingDaysCount = ceil(totalAmountRemaining / dailyStake)}, clôture automatique
+     * et construction de l'écriture {@link CreditTimeline}.
+     */
+    @JsonIgnore
+    public CreditTimeline applyRecovery(RecoveryPayment payment, DailyAccountancy dailyAccountancy) {
+        Objects.requireNonNull(payment, "Le paiement de recouvrement ne peut pas être nul.");
+        checkInProgressStatus();
+
+        double currentTotal = getTotalAmount();
+        double currentPaid = getTotalAmountPaid();
+        double currentRemaining = getTotalAmountRemaining();
+
+        if (payment.source() != RecoverySource.INITIAL_SALE) {
+            if (payment.amount() > currentRemaining + RECOVERY_EPSILON) {
+                throw new CustomValidationException(
+                        "Le montant du recouvrement ne peut pas dépasser le montant restant à payer ! Ref: "
+                                + this.reference
+                                + " Montant restant: " + currentRemaining
+                                + " Montant mise: " + payment.amount());
+            }
+            this.totalAmountPaid = Math.min(currentTotal, currentPaid + payment.amount());
+            this.totalAmountRemaining = Math.max(0.0, currentTotal - this.totalAmountPaid);
+        } else if (currentPaid < currentTotal) {
+            this.totalAmountPaid = Math.min(currentTotal, currentPaid + payment.amount());
+            this.totalAmountRemaining = Math.max(0.0, currentTotal - this.totalAmountPaid);
+        } else {
+            this.totalAmountRemaining = 0.0;
+        }
+
+        if (this.totalAmountRemaining <= RECOVERY_EPSILON) {
+            this.totalAmountRemaining = 0.0;
+            this.remainingDaysCount = 0;
+        } else if (this.dailyStake != null && this.dailyStake > 0) {
+            this.remainingDaysCount = (int) Math.ceil(this.totalAmountRemaining / this.dailyStake);
+        }
+
+        if (this.totalAmountRemaining == 0.0 && !awaitingWarehouseDelivery()) {
+            this.status = CreditStatus.SETTLED;
+            this.effectiveEndDate = LocalDate.now();
+            if (this.client != null) {
+                this.client.setCreditInProgress(false);
+            }
+            if (this.expectedEndDate != null && this.effectiveEndDate.isBefore(this.expectedEndDate)) {
+                this.solvencyNote = SolvencyStatus.EARLY;
+            } else if (this.expectedEndDate != null && this.effectiveEndDate.isAfter(this.expectedEndDate)) {
+                this.solvencyNote = SolvencyStatus.LATE;
+                this.lateDaysCount = Math.abs((int) ChronoUnit.DAYS.between(this.effectiveEndDate, this.expectedEndDate));
+            } else {
+                this.solvencyNote = SolvencyStatus.TIME;
+            }
+        }
+
+        this.dailyPaid = Boolean.TRUE;
+
+        CreditTimeline timeline = new CreditTimeline();
+        timeline.setCredit(this);
+        timeline.setAmount(payment.amount());
+        timeline.setNormalStake(this.dailyStake != null
+                && Math.abs(payment.amount() - this.dailyStake) < RECOVERY_EPSILON);
+        timeline.setRemainingDaysCount(this.remainingDaysCount);
+        timeline.setTotalAmountRemaining(this.totalAmountRemaining);
+        String effectiveCommercial = StringUtils.hasText(payment.commercialUsername())
+                ? payment.commercialUsername()
+                : this.getCommercialUsername();
+        timeline.setCommercialUsername(effectiveCommercial);
+        timeline.setReference(StringUtils.hasText(payment.reference())
+                ? payment.reference()
+                : generateRecoveryReference());
+        timeline.setReliquatGeneratedAmount(payment.reliquatGeneratedAmount());
+        timeline.setReliquatUsedAmount(payment.reliquatUsedAmount());
+        timeline.setOperationConsentCode(payment.operationConsentCode());
+        timeline.setConfirmedAmount(payment.confirmedAmount());
+        timeline.setSyncConsentCode(payment.syncConsentCode());
+        timeline.setDailyAccountancy(dailyAccountancy);
+        return timeline;
+    }
+
+    /**
+     * Annule l'imputation d'un recouvrement sur l'agrégat {@link Credit}, rouvre le crédit
+     * s'il avait été clôturé et recalcule {@code remainingDaysCount} de façon symétrique.
+     *
+     * @return {@code true} si le crédit est repassé de {@link CreditStatus#SETTLED} à {@link CreditStatus#INPROGRESS}.
+     */
+    @JsonIgnore
+    public boolean reverseRecovery(double amount) {
+        double paid = getTotalAmountPaid();
+        double newPaid = Math.max(0.0, paid - amount);
+        this.totalAmountPaid = newPaid;
+        this.totalAmountRemaining = Math.max(0.0, getTotalAmount() - newPaid);
+
+        boolean reopened = false;
+        boolean wasSettled = CreditStatus.SETTLED.equals(this.status);
+        if (wasSettled && this.totalAmountRemaining > RECOVERY_EPSILON) {
+            this.status = CreditStatus.INPROGRESS;
+            this.effectiveEndDate = null;
+            this.solvencyNote = SolvencyStatus.ND;
+            this.lateDaysCount = 0;
+            if (this.client != null) {
+                this.client.setCreditInProgress(true);
+            }
+            reopened = true;
+        }
+
+        if (this.totalAmountRemaining <= RECOVERY_EPSILON) {
+            this.totalAmountRemaining = 0.0;
+            this.remainingDaysCount = 0;
+        } else if (this.dailyStake != null && this.dailyStake > 0) {
+            this.remainingDaysCount = (int) Math.ceil(this.totalAmountRemaining / this.dailyStake);
+        }
+
+        this.dailyPaid = Boolean.FALSE;
+        return reopened;
+    }
+
+    private static String generateRecoveryReference() {
+        LocalDate now = LocalDate.now();
+        int randomInt = ThreadLocalRandom.current().nextInt();
+        String hexString = String.format("%08x", randomInt & 0xFFFFFFFFL);
+        return "REC-" + now.getYear() + now.getMonthValue() + "-" + hexString;
+    }
+
+    /**
+     * @deprecated Utiliser {@link #applyRecovery(RecoveryPayment, DailyAccountancy)}.
+     */
+    @Deprecated(since = "2.17.0")
     @JsonIgnore
     public CreditTimeline dailyStakeOperation(CreditTimeline creditTimeline) {
         if (totalAmountPaid < totalAmount) {

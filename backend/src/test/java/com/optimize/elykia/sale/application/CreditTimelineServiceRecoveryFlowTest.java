@@ -119,11 +119,7 @@ class CreditTimelineServiceRecoveryFlowTest {
 
         Credit credit = inProgressCredit(1L, "collector1", 100.0, 1000.0);
         CreditTimelineDto dto = stakeDto(1L, 100.0, "REC-WEB-1");
-        CreditTimeline mapped = new CreditTimeline();
-        mapped.setAmount(100.0);
-        mapped.setReference("REC-WEB-1");
 
-        when(creditMapper.toCreditTimeline(any())).thenReturn(mapped);
         when(creditService.getById(1L)).thenReturn(credit);
         when(dailyAccountancyService.getByCollectorOrCreateNew("collector1")).thenReturn(new DailyAccountancy());
         when(creditService.update(any(Credit.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -171,7 +167,7 @@ class CreditTimelineServiceRecoveryFlowTest {
 
         Credit okCredit = inProgressCredit(10L, "collector1", 100.0, 1000.0);
         // mise > restant → exception métier isolée (ne doit pas casser l'autre TX)
-        Credit badCredit = inProgressCredit(99L, "collector1", 200.0, 100.0);
+        Credit badCredit = inProgressCredit(99L, "collector1", 100.0, 100.0);
         when(repository.existsByReference("REC-OK")).thenReturn(false);
         when(repository.existsByReference("REC-FAIL")).thenReturn(false);
         when(creditRepository.findByIdAndStatus(10L, CreditStatus.INPROGRESS)).thenReturn(Optional.of(okCredit));
@@ -181,17 +177,22 @@ class CreditTimelineServiceRecoveryFlowTest {
         when(creditService.update(any(Credit.class))).thenAnswer(inv -> inv.getArgument(0));
         when(repository.save(any(CreditTimeline.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        CollectorDailyStakeDto dto = new CollectorDailyStakeDto();
+        com.optimize.elykia.sale.web.dto.SpecialDailyStakeDto dto = new com.optimize.elykia.sale.web.dto.SpecialDailyStakeDto();
         dto.setCollector("collector1");
-        DefaultDailyStakeUnitDto ok = new DefaultDailyStakeUnitDto();
+        com.optimize.elykia.sale.web.dto.SpecialDailyStakeUnitDto ok = new com.optimize.elykia.sale.web.dto.SpecialDailyStakeUnitDto();
         ok.setCreditId(10L);
         ok.setRecoveryId("REC-OK");
-        DefaultDailyStakeUnitDto fail = new DefaultDailyStakeUnitDto();
+        ok.setAmount(100.0);
+        com.optimize.elykia.sale.web.dto.SpecialDailyStakeUnitDto fail = new com.optimize.elykia.sale.web.dto.SpecialDailyStakeUnitDto();
         fail.setCreditId(99L);
         fail.setRecoveryId("REC-FAIL");
-        dto.setStakeUnits(List.of(ok, fail));
+        fail.setAmount(200.0);
+        java.util.LinkedHashSet<com.optimize.elykia.sale.web.dto.SpecialDailyStakeUnitDto> units = new java.util.LinkedHashSet<>();
+        units.add(ok);
+        units.add(fail);
+        dto.setStakeUnits(units);
 
-        SpecialDailyStakeResponseDto response = service.defaultDailyStakeByCollector(dto);
+        SpecialDailyStakeResponseDto response = service.specialDailyStakeByCollector(dto);
 
         assertEquals(List.of("REC-OK"), response.getSuccessRecoveryIds());
         assertEquals(1, response.getFailedRecoveries().size());
@@ -298,11 +299,7 @@ class CreditTimelineServiceRecoveryFlowTest {
 
         Credit credit = inProgressCredit(1L, "COM015", 100.0, 1000.0);
         CreditTimelineDto dto = stakeDto(1L, 100.0, "REC-OWN");
-        CreditTimeline mapped = new CreditTimeline();
-        mapped.setAmount(100.0);
-        mapped.setReference("REC-OWN");
 
-        when(creditMapper.toCreditTimeline(any())).thenReturn(mapped);
         when(creditService.getById(1L)).thenReturn(credit);
         when(dailyAccountancyService.getByCollectorOrCreateNew("COM015")).thenReturn(new DailyAccountancy());
         when(creditService.update(any(Credit.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -373,10 +370,6 @@ class CreditTimelineServiceRecoveryFlowTest {
         dto.setAmount(5000.0);
         dto.setNormalStake(false);
 
-        CreditTimeline mapped = new CreditTimeline();
-        mapped.setAmount(5000.0);
-        mapped.setNormalStake(false);
-        when(creditMapper.toCreditTimeline(dto)).thenReturn(mapped);
         when(dailyAccountancyService.getByCollectorOrCreateNew("COM001")).thenReturn(new DailyAccountancy());
         when(creditService.update(any(Credit.class))).thenAnswer(inv -> inv.getArgument(0));
         when(repository.save(any(CreditTimeline.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -387,8 +380,9 @@ class CreditTimelineServiceRecoveryFlowTest {
         verify(transactionManager, never()).getTransaction(any(TransactionDefinition.class));
         verify(accountingDayService, never()).ensureAccountingReadyForOperations();
         verify(dailyAccountancyService).getByCollectorOrCreateNew("COM001");
-        verify(repository).save(any(CreditTimeline.class));
-        assertEquals(cashSale, mapped.getCredit());
+        org.mockito.ArgumentCaptor<CreditTimeline> savedCaptor = org.mockito.ArgumentCaptor.forClass(CreditTimeline.class);
+        verify(repository).save(savedCaptor.capture());
+        assertEquals(cashSale, savedCaptor.getValue().getCredit());
         assertEquals(CreditStatus.SETTLED, cashSale.getStatus());
     }
 
@@ -419,10 +413,6 @@ class CreditTimelineServiceRecoveryFlowTest {
         dto.setAmount(5000.0);
         dto.setNormalStake(false);
 
-        CreditTimeline mapped = new CreditTimeline();
-        mapped.setAmount(5000.0);
-        mapped.setNormalStake(false);
-        when(creditMapper.toCreditTimeline(dto)).thenReturn(mapped);
         when(dailyAccountancyService.getByCollectorOrCreateNew("COM001")).thenReturn(new DailyAccountancy());
         when(creditService.update(any(Credit.class))).thenAnswer(inv -> inv.getArgument(0));
         when(repository.save(any(CreditTimeline.class))).thenAnswer(inv -> inv.getArgument(0));

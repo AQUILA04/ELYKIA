@@ -8,6 +8,8 @@ import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.inventory.application.ArticlesService;
 import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.finance.api.CashSalesRegisterPort;
+import com.optimize.elykia.sale.api.CreditRecoveryUseCase;
+import com.optimize.elykia.sale.api.RecordRecoveryCommand;
 import com.optimize.elykia.sale.api.WarehouseCashSalePricingPort;
 import com.optimize.elykia.sale.domain.CommercialMonthlyStock;
 import com.optimize.elykia.sale.domain.CommercialMonthlyStockCashSalePricing;
@@ -15,12 +17,12 @@ import com.optimize.elykia.sale.domain.CommercialMonthlyStockItem;
 import com.optimize.elykia.sale.domain.CommercialStockMovementType;
 import com.optimize.elykia.sale.domain.Credit;
 import com.optimize.elykia.sale.domain.CreditStatus;
+import com.optimize.elykia.sale.domain.RecoverySource;
 import com.optimize.elykia.sale.infrastructure.persistence.CommercialMonthlyStockItemRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CommercialMonthlyStockRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.sale.web.dto.CreditDto;
 import com.optimize.elykia.sale.web.dto.CreditRespDto;
-import com.optimize.elykia.sale.web.dto.CreditTimelineDto;
 import com.optimize.elykia.sale.web.mapper.CreditMapper;
 import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.shared.monitoring.BusinessMetricsPublisher;
@@ -54,7 +56,7 @@ public class CashSaleService {
     private final Optional<WarehouseCashSalePricingPort> cashSalePricingService;
     private final Optional<BusinessMetricsPublisher> metricsPublisher;
     private final StockRequestService stockRequestService;
-    private final CreditTimelineService creditTimelineService;
+    private final CreditRecoveryUseCase creditRecoveryUseCase;
     private CashSalesRegisterPort cashSalesRegisterPort;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -75,7 +77,7 @@ public class CashSaleService {
             Optional<WarehouseCashSalePricingPort> cashSalePricingService,
             Optional<BusinessMetricsPublisher> metricsPublisher,
             @Lazy StockRequestService stockRequestService,
-            @Lazy CreditTimelineService creditTimelineService) {
+            @Lazy CreditRecoveryUseCase creditRecoveryUseCase) {
         this.creditRepository = creditRepository;
         this.creditMapper = creditMapper;
         this.clientService = clientService;
@@ -88,7 +90,7 @@ public class CashSaleService {
         this.cashSalePricingService = cashSalePricingService;
         this.metricsPublisher = metricsPublisher;
         this.stockRequestService = stockRequestService;
-        this.creditTimelineService = creditTimelineService;
+        this.creditRecoveryUseCase = creditRecoveryUseCase;
     }
 
     public CreditRespDto createCashSale(CreditDto creditDto) {
@@ -164,7 +166,7 @@ public class CashSaleService {
         }
         releaseWarehouseReservation(credit);
         stockRequestService.cancelLinkedCashSaleRequest(credit.getId());
-        creditTimelineService.reverseCollectionsForCancelledCashSale(credit);
+        creditRecoveryUseCase.reverseCollectionsForCancelledCashSale(credit);
         credit.setStatus(CreditStatus.CANCELLED);
         credit.setPendingWarehouseDelivery(false);
         credit.setTotalAmountRemaining(0.0);
@@ -233,12 +235,19 @@ public class CashSaleService {
     }
 
     private void recordInitialRecovery(Credit credit) {
-        var timeline = new CreditTimelineDto();
-        timeline.setCreditId(credit.getId());
-        timeline.setCollector(credit.getCollector());
-        timeline.setAmount(credit.getTotalAmount());
-        timeline.setNormalStake(Boolean.FALSE);
-        creditTimelineService.recordInitialSaleRecovery(credit, timeline);
+        RecordRecoveryCommand command = new RecordRecoveryCommand(
+                credit.getId(),
+                credit.getTotalAmount(),
+                null,
+                credit.getCommercialUsername(),
+                0.0,
+                0.0,
+                null,
+                null,
+                null,
+                RecoverySource.INITIAL_SALE
+        );
+        creditRecoveryUseCase.recordInitialSaleRecovery(credit, command);
     }
 
     private void handleStockCommercialForCashSale(Credit credit) {
